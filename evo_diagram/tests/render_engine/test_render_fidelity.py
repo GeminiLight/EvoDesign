@@ -33,6 +33,7 @@ from evo_diagram.agentic_system.render_engine.tldraw.group_fitter import (
 )
 from evo_diagram.agentic_system.render_engine.excalidraw.arrow_adder import (
     _should_drop_edge_label,
+    _segment_hits_box,
     add_excalidraw_arrows_to_manifest,
 )
 from evo_diagram.agentic_system.render_engine.excalidraw.converter import (
@@ -694,6 +695,37 @@ def test_excalidraw_arrow_adder_distributes_shared_source_ports():
     assert len(arrows) == 2
     starts = sorted((arrow["x"] + arrow["points"][0][0]) for arrow in arrows)
     assert starts[0] < starts[1]
+
+
+def test_excalidraw_arrow_adder_routes_around_intermediate_node():
+    """An orthogonal edge must not pass through a third node on its route."""
+    layout = _minimal_layout()
+    layout["b"]["y"] = 520
+    layout["c"] = {
+        "type": "rectangle",
+        "strokeColor": "#1971c2",
+        "backgroundColor": "#a5d8ff",
+        "label": {"text": "Review"},
+        "x": 200,
+        "y": 320,
+        "w": 160,
+        "h": 60,
+    }
+
+    manifest = InstantiationToExcalidrawConverter(layout_instantiation=layout).convert()
+    manifest = add_excalidraw_arrows_to_manifest(manifest, _minimal_structure())
+    arrow = next(element for element in manifest["elements"] if element["type"] == "arrow")
+    absolute_points = [
+        (arrow["x"] + point[0], arrow["y"] + point[1])
+        for point in arrow["points"]
+    ]
+    middle_box = (200.0, 320.0, 160.0, 60.0)
+
+    assert len(absolute_points) > 2
+    assert all(
+        not _segment_hits_box(start, end, middle_box)
+        for start, end in zip(absolute_points, absolute_points[1:])
+    )
 
 
 def test_edge_label_filter_allows_five_word_informative_label():

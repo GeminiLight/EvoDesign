@@ -42,7 +42,181 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_STAGGER_SPACING = 50.0
 DEFAULT_PORT_SPACING = 32.0
+NODE_CLEARANCE = 16.0
 MAX_EDGE_LABEL_WORDS = 5
+
+
+def _segment_hits_box(
+    start: Tuple[float, float],
+    end: Tuple[float, float],
+    bbox: Tuple[float, float, float, float],
+) -> bool:
+    """Return whether a segment enters the strict interior of ``bbox``."""
+    left, top, width, height = bbox
+    right = left + width
+    bottom = top + height
+    if width <= 0 or height <= 0:
+        return False
+
+    # Liang-Barsky clipping keeps this check exact for horizontal, vertical,
+    # and zero-length segments without introducing a geometry dependency.
+    epsilon = 1e-6
+    left += epsilon
+    top += epsilon
+    right -= epsilon
+    bottom -= epsilon
+    if left >= right or top >= bottom:
+        return False
+
+    dx = end[0] - start[0]
+    dy = end[1] - start[1]
+    t_enter, t_exit = 0.0, 1.0
+    for p, q in (
+        (-dx, start[0] - left),
+        (dx, right - start[0]),
+        (-dy, start[1] - top),
+        (dy, bottom - start[1]),
+    ):
+        if abs(p) <= epsilon:
+            if q < 0:
+                return False
+            continue
+        ratio = q / p
+        if p < 0:
+            t_enter = max(t_enter, ratio)
+        else:
+            t_exit = min(t_exit, ratio)
+        if t_enter >= t_exit:
+            return False
+    return t_enter < t_exit and t_exit > epsilon and t_enter < 1.0 - epsilon
+
+
+def _shape_obstacles(
+    elements: List[Dict[str, Any]],
+    id_map: Dict[str, str],
+    source_id: str,
+    target_id: str,
+) -> List[Tuple[float, float, float, float]]:
+    """Collect drawable node boxes that an edge is not allowed to enter."""
+    reverse_map = reverse_id_map(id_map)
+    obstacles: List[Tuple[float, float, float, float]] = []
+    shape_types = {"rectangle", "ellipse", "diamond", "embeddable", "iframe"}
+    for element in elements:
+        if not isinstance(element, dict) or element.get("isDeleted"):
+            continue
+        if element.get("id") in {source_id, target_id}:
+            continue
+        if element.get("type") not in shape_types:
+            continue
+        semantic_id = reverse_map.get(str(element.get("id", "")), "")
+        if semantic_id.endswith(":background") or semantic_id.endswith(":title"):
+            continue
+        try:
+            bbox = (
+                float(element.get("x", 0) or 0),
+                float(element.get("y", 0) or 0),
+                float(element.get("width", 0) or 0),
+                float(element.get("height", 0) or 0),
+            )
+        except (TypeError, ValueError):
+            continue
+        if bbox[2] > 0 and bbox[3] > 0:
+            obstacles.append(bbox)
+    return obstacles
+
+
+def _avoid_node_intersections(
+    waypoints: List[Dict[str, float]],
+    obstacles: List[Tuple[float, float, float, float]],
+    clearance: float = NODE_CLEARANCE,
+    existing_arrows: Optional[List[Dict[str, Any]]] = None,
+) -> List[Dict[str, float]]:
+    """Insert a short orthogonal detour when a path enters a node box.
+
+    The original endpoints and their requested sides remain unchanged.  For
+    each colliding segment we try the four axis-aligned sides of the obstacle
+    and keep the shortest candidate that remains clear of every obstacle.
+    """
+    if len(waypoints) < 2 or not obstacles:
+        return waypoints
+
+    def point(value: Tuple[float, float]) -> Dict[str, float]:
+        return {"x": float(value[0]), "y": float(value[1])}
+
+    def candidate_is_clear(candidate: List[Tuple[float, float]]) -> bool:
+        return all(
+            not _segment_hits_box(a, b, obstacle)
+            for a, b in zip(candidate, candidate[1:])
+            for obstacle in obstacles
+        )
+
+    def candidate_crossings(candidate: List[Tuple[float, float]]) -> int:
+        if not existing_arrows:
+            return 0
+        origin_x = min(value[0] for value in candidate)
+        origin_y = min(value[1] for value in candidate)
+        candidate_arrow = {
+            "id": "__detour_candidate__",
+            "type": "arrow",
+            "x": origin_x,
+            "y": origin_y,
+            "points": [[x - origin_x, y - origin_y] for x, y in candidate],
+        }
+        arrows = [
+            arrow for arrow in existing_arrows if arrow.get("type") == "arrow"
+        ]
+        return len(detect_crossings(arrows + [candidate_arrow]))
+
+    # A turn waypoint can itself lie inside an obstacle (the common case is a
+    # horizontal approach whose bend is placed in the middle node).  Route
+    # from the waypoint before the first hit all the way to the destination,
+    # rather than trying to end the detour at that already-invalid bend.
+    original = [(float(item["x"]), float(item["y"])) for item in waypoints]
+    for obstacle in obstacles:
+        hit_index = next(
+            (
+                index
+                for index, (start, end) in enumerate(zip(original, original[1:]))
+                if _segment_hits_box(start, end, obstacle)
+            ),
+            None,
+        )
+        if hit_index is None:
+            continue
+
+        start_index = hit_index
+        start = original[start_index]
+        end = original[-1]
+        left, top, width, height = obstacle
+        right, bottom = left + width, top + height
+        candidates = [
+            [start, (start[0], top - clearance), (end[0], top - clearance), end],
+            [start, (start[0], bottom + clearance), (end[0], bottom + clearance), end],
+            [start, (left - clearance, start[1]), (left - clearance, end[1]), end],
+            [start, (right + clearance, start[1]), (right + clearance, end[1]), end],
+        ]
+        valid = [candidate for candidate in candidates if candidate_is_clear(candidate)]
+        if not valid:
+            continue
+
+        chosen = min(
+            valid,
+            key=lambda candidate: (
+                candidate_crossings(candidate),
+                sum(
+                    abs(a[0] - b[0]) + abs(a[1] - b[1])
+                    for a, b in zip(candidate, candidate[1:])
+                ),
+            ),
+        )
+        original = original[: start_index + 1] + chosen[1:]
+
+    result: List[Dict[str, float]] = []
+    for value in original:
+        current = point(value)
+        if not result or current != result[-1]:
+            result.append(current)
+    return result
 
 
 def _build_fixed_segments(points: List[List[float]]) -> Optional[List[Dict[str, Any]]]:
@@ -367,6 +541,9 @@ def _build_lookup_store(elements: List[Dict[str, Any]], id_map: Dict[str, str]) 
 def add_excalidraw_arrows_to_manifest(
     manifest: Dict[str, Any],
     structure_instantiation: Dict[str, Any],
+    *,
+    port_spacing: Optional[float] = None,
+    _adaptive_ports: bool = True,
 ) -> Dict[str, Any]:
     """
     Add arrow elements to an Excalidraw manifest based on structure_instantiation edges.
@@ -378,6 +555,10 @@ def add_excalidraw_arrows_to_manifest(
     Returns:
         Updated manifest with arrow elements added
     """
+    if port_spacing is None:
+        port_spacing = DEFAULT_PORT_SPACING
+    if port_spacing < 0:
+        raise ValueError("port_spacing must be non-negative")
     manifest = deepcopy(manifest)
     elements = manifest.get("elements", [])
     id_map = id_map_from_manifest(manifest)
@@ -536,7 +717,18 @@ def add_excalidraw_arrows_to_manifest(
             start_port_total=_source_port_counts[source_port_key],
             end_port_index=target_port_index,
             end_port_total=_target_port_counts[target_port_key],
-            port_spacing=DEFAULT_PORT_SPACING,
+            port_spacing=port_spacing,
+        )
+        obstacles = _shape_obstacles(
+            elements,
+            id_map,
+            source_excalidraw_id,
+            target_excalidraw_id,
+        )
+        abs_waypoints = _avoid_node_intersections(
+            abs_waypoints,
+            obstacles,
+            existing_arrows=new_arrows,
         )
         ox, oy, rel_points = to_relative_points(abs_waypoints)
         bbox_w, bbox_h = waypoints_bbox(abs_waypoints)
@@ -708,6 +900,34 @@ def add_excalidraw_arrows_to_manifest(
             arrow_elem["boundElements"] = [{"type": "text", "id": text_id}]
             new_arrows.append(text_elem)
 
+    # Fan-out is a local readability improvement, but it must not trade away
+    # global route clarity.  Compare against the same scene with midpoint
+    # ports and keep the lower-crossing candidate.  This makes the feature
+    # deterministic and naturally falls back on dense layouts where moving a
+    # shared source face would introduce extra crossings.
+    arrow_elems = [a for a in new_arrows if a.get("type") == "arrow"]
+    if _adaptive_ports and port_spacing > 0:
+        midpoint_manifest = add_excalidraw_arrows_to_manifest(
+            manifest,
+            structure_instantiation,
+            port_spacing=0.0,
+            _adaptive_ports=False,
+        )
+        midpoint_arrows = [
+            element
+            for element in midpoint_manifest.get("elements", [])
+            if element.get("type") == "arrow"
+        ]
+        fanout_crossings = len(detect_crossings(arrow_elems))
+        midpoint_crossings = len(detect_crossings(midpoint_arrows))
+        if midpoint_crossings < fanout_crossings:
+            logger.info(
+                "[ArrowAdder] midpoint ports selected (%d crossings vs %d with fan-out)",
+                midpoint_crossings,
+                fanout_crossings,
+            )
+            return midpoint_manifest
+
     elements.extend(new_arrows)
     manifest["elements"] = elements
 
@@ -716,7 +936,6 @@ def add_excalidraw_arrows_to_manifest(
     # convergences are excluded).  The warning signal is intended for
     # future Layout-side iteration; we never modify already-committed
     # geometry here.
-    arrow_elems = [a for a in new_arrows if a.get("type") == "arrow"]
     crossings = detect_crossings(arrow_elems)
     if crossings:
         for a_id, b_id, meta in crossings:
