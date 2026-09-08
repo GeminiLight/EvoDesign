@@ -10,6 +10,7 @@ from evo_diagram.canvas_runtime import normalize_canvas_library
 from .binding_consistency import check_arrow_shape_binding
 from .collision_detection import (
     check_edge_crossings,
+    check_edge_node_intersections,
     check_node_overlap,
     check_out_of_canvas,
 )
@@ -56,6 +57,7 @@ def _check_specs(
         ("containment/swimlane_lane", check_swimlane_lane_membership, (objective_manifest, structure)),
         ("collision/node_overlap", check_node_overlap, (objective_manifest,)),
         ("collision/edge_crossing", check_edge_crossings, (objective_manifest,)),
+        ("collision/edge_node_intersection", check_edge_node_intersections, (objective_manifest,)),
         ("collision/out_of_canvas", check_out_of_canvas, (objective_manifest,)),
     ]
 

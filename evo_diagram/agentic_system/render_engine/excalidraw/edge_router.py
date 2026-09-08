@@ -79,6 +79,47 @@ def _stagger_delta(index: int, total: int, spacing: float) -> float:
     return (index - (total - 1) / 2.0) * spacing
 
 
+def _face_stagger_delta(
+    index: int,
+    total: int,
+    span: float,
+    spacing: float,
+    margin: float = 8.0,
+) -> float:
+    """Return a bounded offset for a fan-out port on one shape face.
+
+    A fixed spacing is useful for readable paths, but it must not push a port
+    past a node corner.  Clamping the symmetric offset keeps the endpoint on
+    the face even when a compact node has many incoming or outgoing edges.
+    """
+    raw = _stagger_delta(index, total, spacing)
+    max_delta = max(0.0, (float(span) - 2.0 * margin) / 2.0)
+    return max(-max_delta, min(max_delta, raw))
+
+
+def _offset_face_point(
+    point: Dict[str, float],
+    bbox: Dict[str, float],
+    side: str,
+    index: int,
+    total: int,
+    spacing: float,
+) -> Dict[str, float]:
+    """Move a face midpoint along its face for deterministic port fan-out."""
+    offset = _face_stagger_delta(
+        index,
+        total,
+        bbox.get("w", 0.0) if side in ("top", "bottom") else bbox.get("h", 0.0),
+        spacing,
+    )
+    adjusted = dict(point)
+    if side in ("top", "bottom"):
+        adjusted["x"] += offset
+    else:
+        adjusted["y"] += offset
+    return adjusted
+
+
 def compute_waypoints(
     start_side: str,
     end_side: str,
@@ -89,6 +130,11 @@ def compute_waypoints(
     stagger_index: int = 0,
     stagger_total: int = 1,
     stagger_spacing: float = 50.0,
+    start_port_index: int = 0,
+    start_port_total: int = 1,
+    end_port_index: int = 0,
+    end_port_total: int = 1,
+    port_spacing: float = 32.0,
 ) -> Tuple[List[Dict[str, float]], float, float]:
     """Compute a polyline path between two face midpoints.
 
@@ -106,6 +152,14 @@ def compute_waypoints(
         stagger_total: total count of such sibling edges. Default ``1``.
         stagger_spacing: pixel gap between staggered segments. Default
             ``50.0``.
+        start_port_index: 0-based position among all edges leaving the same
+            source face. Default ``0``.
+        start_port_total: total count of edges leaving that source face.
+        end_port_index: 0-based position among all edges entering the same
+            target face. Default ``0``.
+        end_port_total: total count of edges entering that target face.
+        port_spacing: desired pixel gap between adjacent face ports. The
+            actual offset is bounded by the node face. Default ``32.0``.
 
     Returns:
         ``(points, focus_start, focus_end)``:
@@ -120,8 +174,22 @@ def compute_waypoints(
     if end_side not in _VALID_SIDES:
         raise ValueError(f"Invalid end_side: {end_side!r}")
 
-    start = _side_midpoint(src_bbox, start_side)
-    end = _side_midpoint(tgt_bbox, end_side)
+    start = _offset_face_point(
+        _side_midpoint(src_bbox, start_side),
+        src_bbox,
+        start_side,
+        start_port_index,
+        start_port_total,
+        port_spacing,
+    )
+    end = _offset_face_point(
+        _side_midpoint(tgt_bbox, end_side),
+        tgt_bbox,
+        end_side,
+        end_port_index,
+        end_port_total,
+        port_spacing,
+    )
 
     start_vertical = start_side in ("top", "bottom")
 

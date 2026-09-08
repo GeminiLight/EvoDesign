@@ -218,6 +218,31 @@ def test_right_right_ushape_detours_right():
     assert pts[1]["x"] == 530.0 and pts[2]["x"] == 530.0
 
 
+def test_port_stagger_distributes_start_face_endpoints():
+    first, _, _ = compute_waypoints(
+        "bottom", "top", SRC, TGT_BELOW_ALIGNED,
+        start_port_index=0, start_port_total=2,
+    )
+    second, _, _ = compute_waypoints(
+        "bottom", "top", SRC, TGT_BELOW_ALIGNED,
+        start_port_index=1, start_port_total=2,
+    )
+
+    assert first[0]["x"] < SRC["x"] + SRC["w"] / 2 < second[0]["x"]
+    assert first[0]["y"] == second[0]["y"] == SRC["y"] + SRC["h"]
+    assert first[-1] == second[-1]
+
+
+def test_port_stagger_is_bounded_inside_compact_face():
+    compact = {"x": 100.0, "y": 100.0, "w": 30.0, "h": 30.0}
+    points, _, _ = compute_waypoints(
+        "bottom", "top", compact, TGT_BELOW_ALIGNED,
+        start_port_index=0, start_port_total=8,
+    )
+
+    assert compact["x"] < points[0]["x"] < compact["x"] + compact["w"]
+
+
 # ---------------------------------------------------------------------------
 # Boundary cases
 # ---------------------------------------------------------------------------

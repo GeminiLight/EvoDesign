@@ -1,4 +1,4 @@
-"""Geometric collision detection: node-node overlap, edge-edge crossings.
+"""Geometric collision detection: node overlap and edge path defects.
 
 These two checks are pure pixel-math: they don't depend on chart_type or any
 LLM output, and complement the structural checks in render_validation /
@@ -12,6 +12,10 @@ binding_consistency.
 **Edge crossings** — pairs of arrow segments that cross. Reported only as
 INFO unless the count exceeds a threshold (then MINOR), since some crossings
 are unavoidable.
+
+**Edge-node intersections** — an arrow path entering a non-endpoint node is a
+MAJOR visual defect. The source and target shapes are excluded because the
+path intentionally terminates on their faces.
 
 Out-of-canvas: shape bbox outside the configured safe area
 `[CANVAS_MARGIN, MAX_CANVAS-CANVAS_MARGIN]`. Reported as MINOR.
@@ -119,6 +123,137 @@ def _arrow_segments(elem: Dict[str, Any]) -> List[Tuple[Tuple[float, float], Tup
             continue   # zero-length segment, ignore
         segments.append((a, b))
     return segments
+
+
+def _segment_intersects_rect_interior(
+    start: Tuple[float, float],
+    end: Tuple[float, float],
+    bbox: Tuple[float, float, float, float],
+    epsilon: float = 1e-6,
+) -> bool:
+    """Return whether a segment enters the strict interior of a rectangle."""
+    x, y, width, height = bbox
+    if width <= 0 or height <= 0:
+        return False
+
+    # Liang-Barsky clipping against a slightly inset rectangle.  Insetting
+    # avoids treating a path that merely touches a node border as an overlap.
+    left = x + epsilon
+    right = x + width - epsilon
+    top = y + epsilon
+    bottom = y + height - epsilon
+    if left >= right or top >= bottom:
+        return False
+
+    dx = end[0] - start[0]
+    dy = end[1] - start[1]
+    t_enter, t_exit = 0.0, 1.0
+    for p, q in (
+        (-dx, start[0] - left),
+        (dx, right - start[0]),
+        (-dy, start[1] - top),
+        (dy, bottom - start[1]),
+    ):
+        if abs(p) <= epsilon:
+            if q < 0:
+                return False
+            continue
+        ratio = q / p
+        if p < 0:
+            t_enter = max(t_enter, ratio)
+        else:
+            t_exit = min(t_exit, ratio)
+        if t_enter >= t_exit:
+            return False
+    return t_enter < t_exit and t_exit > epsilon and t_enter < 1.0 - epsilon
+
+
+def _arrow_endpoint_ids(
+    arrow: Dict[str, Any],
+    id_map: Dict[str, str],
+) -> set[str]:
+    """Resolve semantic or direct endpoint references for an arrow."""
+    endpoint_ids: set[str] = set()
+    for binding_key in ("startBinding", "endBinding"):
+        binding = arrow.get(binding_key)
+        if isinstance(binding, dict) and binding.get("elementId"):
+            endpoint_ids.add(str(binding["elementId"]))
+
+    metadata = arrow.get("meta")
+    if not isinstance(metadata, dict):
+        metadata = arrow.get("_meta")
+    if isinstance(metadata, dict):
+        for key in ("source", "target"):
+            ref = metadata.get(key)
+            if ref is not None:
+                ref = str(ref)
+                endpoint_ids.add(str(id_map.get(ref, ref)))
+    return endpoint_ids
+
+
+def check_edge_node_intersections(manifest: Dict[str, Any]) -> List[Finding]:
+    """Report arrow paths that enter a node other than their endpoints."""
+    findings: List[Finding] = []
+    if not isinstance(manifest, dict):
+        return findings
+    elements = manifest.get("elements", [])
+    if not isinstance(elements, list):
+        return findings
+
+    id_map = {}
+    meta = manifest.get("_meta")
+    if isinstance(meta, dict) and isinstance(meta.get("id_map"), dict):
+        id_map = {str(key): str(value) for key, value in meta["id_map"].items()}
+    background_ids = detect_group_frame_ids(
+        [elem for elem in elements if isinstance(elem, dict)],
+        structural=True,
+        id_map=id_map,
+    )
+    candidates: List[Tuple[str, Tuple[float, float, float, float]]] = []
+    for elem in elements:
+        if not isinstance(elem, dict) or elem.get("isDeleted"):
+            continue
+        if elem.get("type") in {"arrow", "text", "image", "line", "freedraw"}:
+            continue
+        element_id = elem.get("id")
+        if not element_id or element_id in background_ids:
+            continue
+        bbox = _bbox(elem)
+        if bbox is not None:
+            candidates.append((str(element_id), bbox))
+
+    for arrow in elements:
+        if not isinstance(arrow, dict) or arrow.get("isDeleted") or arrow.get("type") != "arrow":
+            continue
+        arrow_id = str(arrow.get("id", "<no-id>"))
+        endpoint_ids = _arrow_endpoint_ids(arrow, id_map)
+        segments = _arrow_segments(arrow)
+        for node_id, bbox in candidates:
+            if node_id in endpoint_ids:
+                continue
+            hit_segment = next(
+                (
+                    index
+                    for index, segment in enumerate(segments)
+                    if _segment_intersects_rect_interior(segment[0], segment[1], bbox)
+                ),
+                None,
+            )
+            if hit_segment is None:
+                continue
+            findings.append(
+                Finding(
+                    category="collision/edge_node_intersection",
+                    severity=Severity.MAJOR,
+                    message=(
+                        f"arrow {arrow_id!r} enters node {node_id!r} on segment "
+                        f"{hit_segment}; source/target endpoints are excluded."
+                    ),
+                    element_id=arrow_id,
+                    location={"node_id": node_id, "segment_index": hit_segment, "bbox": list(bbox)},
+                )
+            )
+    return findings
 
 
 def check_node_overlap(manifest: Dict[str, Any]) -> List[Finding]:
@@ -320,5 +455,6 @@ def check_out_of_canvas(manifest: Dict[str, Any]) -> List[Finding]:
 __all__ = [
     "check_node_overlap",
     "check_edge_crossings",
+    "check_edge_node_intersections",
     "check_out_of_canvas",
 ]

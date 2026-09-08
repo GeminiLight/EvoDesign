@@ -679,3 +679,51 @@ class TestObjectiveChecks:
             [100.0, 100.0],
         ]
         assert check_edge_crossings(objective) == []
+
+    def test_edge_node_intersection_ignores_bound_endpoints(self):
+        from evo_diagram.agentic_system.verification_stage.checks.collision_detection import (
+            check_edge_node_intersections,
+        )
+
+        manifest = {
+            "_meta": {"id_map": {"source": "source", "target": "target", "middle": "middle"}},
+            "elements": [
+                {"id": "source", "type": "rectangle", "x": 0, "y": 40, "width": 40, "height": 40},
+                {"id": "middle", "type": "rectangle", "x": 100, "y": 40, "width": 40, "height": 40},
+                {"id": "target", "type": "rectangle", "x": 200, "y": 40, "width": 40, "height": 40},
+                {
+                    "id": "arrow:1",
+                    "type": "arrow",
+                    "x": 40,
+                    "y": 60,
+                    "points": [[0, 0], [200, 0]],
+                    "meta": {"source": "source", "target": "target"},
+                },
+            ],
+        }
+
+        findings = check_edge_node_intersections(manifest)
+
+        assert len(findings) == 1
+        assert findings[0].category == "collision/edge_node_intersection"
+        assert findings[0].location["node_id"] == "middle"
+
+    def test_edge_node_intersection_does_not_flag_border_touch(self):
+        from evo_diagram.agentic_system.verification_stage.checks.collision_detection import (
+            check_edge_node_intersections,
+        )
+
+        manifest = {
+            "elements": [
+                {"id": "node", "type": "rectangle", "x": 100, "y": 100, "width": 40, "height": 40},
+                {
+                    "id": "arrow:touch",
+                    "type": "arrow",
+                    "x": 0,
+                    "y": 100,
+                    "points": [[0, 0], [100, 0]],
+                },
+            ],
+        }
+
+        assert check_edge_node_intersections(manifest) == []

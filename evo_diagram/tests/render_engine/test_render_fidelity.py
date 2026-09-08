@@ -664,6 +664,38 @@ def test_bug_c_excalidraw_arrow_records_semantic_edge_metadata():
     assert arrow["meta"]["target"] == "b"
 
 
+def test_excalidraw_arrow_adder_distributes_shared_source_ports():
+    layout = _minimal_layout()
+    layout["c"] = {
+        "type": "rectangle",
+        "strokeColor": "#1971c2",
+        "backgroundColor": "#a5d8ff",
+        "label": {"text": "Review"},
+        "x": 500,
+        "y": 400,
+        "w": 160,
+        "h": 60,
+    }
+    layout["e2"] = {
+        "strokeColor": "#e03131",
+        "routing": "elbowed",
+        "start": {"elementId": "a", "side": "bottom"},
+        "end": {"elementId": "c", "side": "top"},
+        "endArrowhead": "arrow",
+    }
+    structure = _minimal_structure()
+    structure["nodes"].append({"id": "c", "label": "Review"})
+    structure["edges"].append({"id": "e2", "from": "a", "to": "c"})
+
+    manifest = InstantiationToExcalidrawConverter(layout_instantiation=layout).convert()
+    manifest = add_excalidraw_arrows_to_manifest(manifest, structure)
+    arrows = [element for element in manifest["elements"] if element["type"] == "arrow"]
+
+    assert len(arrows) == 2
+    starts = sorted((arrow["x"] + arrow["points"][0][0]) for arrow in arrows)
+    assert starts[0] < starts[1]
+
+
 def test_edge_label_filter_allows_five_word_informative_label():
     reason = _should_drop_edge_label(
         "publishes real time inventory update",

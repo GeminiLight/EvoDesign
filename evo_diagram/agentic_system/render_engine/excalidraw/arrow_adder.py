@@ -41,6 +41,7 @@ from .edge_router import (
 logger = logging.getLogger(__name__)
 
 DEFAULT_STAGGER_SPACING = 50.0
+DEFAULT_PORT_SPACING = 32.0
 MAX_EDGE_LABEL_WORDS = 5
 
 
@@ -479,11 +480,23 @@ def add_excalidraw_arrows_to_manifest(
         key = (rs["rel"].get("source", ""), rs["start_edge"], rs["end_edge"])
         _fanout_counts[key] += 1
 
+    # Port fan-out is independent of the target orientation: two edges leaving
+    # the same face should not collapse onto the same midpoint merely because
+    # they eventually use different target faces.  The target side is grouped
+    # separately for fan-in at a shared destination face.
+    _source_port_counts: Dict[Tuple[str, str], int] = defaultdict(int)
+    _target_port_counts: Dict[Tuple[str, str], int] = defaultdict(int)
+    for rs in _relation_sides:
+        _source_port_counts[(rs["rel"].get("source", ""), rs["start_edge"])] += 1
+        _target_port_counts[(rs["rel"].get("target", ""), rs["end_edge"])] += 1
+
     # ------------------------------------------------------------------
     # Second pass: render arrows with stagger
     # ------------------------------------------------------------------
     new_arrows: List[Dict[str, Any]] = []
     _fanout_indices: Dict[Tuple[str, str, str], int] = defaultdict(int)
+    _source_port_indices: Dict[Tuple[str, str], int] = defaultdict(int)
+    _target_port_indices: Dict[Tuple[str, str], int] = defaultdict(int)
 
     for rs in _relation_sides:
         rel = rs["rel"]
@@ -504,6 +517,13 @@ def add_excalidraw_arrows_to_manifest(
         stagger_total = _fanout_counts[fanout_key]
         _fanout_indices[fanout_key] += 1
 
+        source_port_key = (source_ref, start_edge)
+        target_port_key = (target_ref, end_edge)
+        source_port_index = _source_port_indices[source_port_key]
+        target_port_index = _target_port_indices[target_port_key]
+        _source_port_indices[source_port_key] += 1
+        _target_port_indices[target_port_key] += 1
+
         # Compute an explicit polyline path for the arrow.
         src_bbox = shape_bbox(source_shape)
         tgt_bbox = shape_bbox(target_shape)
@@ -512,6 +532,11 @@ def add_excalidraw_arrows_to_manifest(
             stagger_index=stagger_index,
             stagger_total=stagger_total,
             stagger_spacing=DEFAULT_STAGGER_SPACING,
+            start_port_index=source_port_index,
+            start_port_total=_source_port_counts[source_port_key],
+            end_port_index=target_port_index,
+            end_port_total=_target_port_counts[target_port_key],
+            port_spacing=DEFAULT_PORT_SPACING,
         )
         ox, oy, rel_points = to_relative_points(abs_waypoints)
         bbox_w, bbox_h = waypoints_bbox(abs_waypoints)
