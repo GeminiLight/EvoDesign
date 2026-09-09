@@ -208,10 +208,15 @@ class RenderWorkflow:
 	def _run_excalidraw_arrow_adder(self, state: WorkflowState) -> WorkflowState:
 		"""Enrich Excalidraw manifest with arrows from structure_instantiation."""
 		from .excalidraw.arrow_adder import add_excalidraw_arrows_to_manifest
+		from .excalidraw.architecture_style_normalizer import normalize_architecture_style
 		from .shared.render_audit import audit_excalidraw_manifest
 		base_manifest = state.diagram_manifest or state.manifest_without_arrows
 		enriched_manifest = add_excalidraw_arrows_to_manifest(
 			manifest=base_manifest,
+			structure_instantiation=state.structure_instantiation,
+		)
+		enriched_manifest = normalize_architecture_style(
+			manifest=enriched_manifest,
 			structure_instantiation=state.structure_instantiation,
 		)
 		state.update_stage(ARROW, {"manifest": enriched_manifest})
@@ -236,9 +241,14 @@ class RenderWorkflow:
 	def _run_excalidraw_group_alignment(self, state: WorkflowState) -> WorkflowState:
 		"""Preserve equal-width/equal-height group intent from layout output."""
 		from .excalidraw.group_alignment_normalizer import preserve_group_alignment_intent
+		from .excalidraw.layered_layout_compactor import compact_architecture_layout
 		aligned_manifest = preserve_group_alignment_intent(
 			manifest=state.diagram_manifest,
 			layout_instantiation=state.layout_instantiation,
+		)
+		aligned_manifest = compact_architecture_layout(
+			manifest=aligned_manifest,
+			structure_instantiation=state.structure_instantiation,
 		)
 		state.update_stage(ALIGN_GROUPS, {"manifest": aligned_manifest})
 		logger.info("[RenderWorkflow/Excalidraw] Group alignment intent preserved")
