@@ -16,10 +16,10 @@ from evo_diagram.agentic_system.common.semantic_ids import (
 
 
 _ARCHITECTURE_TYPES = {"architecture", "architecture_diagram"}
-_FRAME_TOP_PADDING = 92.0
-_FRAME_BOTTOM_PADDING = 54.0
-_ROW_GAP = 108.0
-_LAYER_GAP = 72.0
+_FRAME_TOP_PADDING = 74.0
+_FRAME_BOTTOM_PADDING = 40.0
+_ROW_GAP = 86.0
+_LAYER_GAP = 48.0
 _SIDE_GAP = 120.0
 _SIDE_WIDTH = 500.0
 _MIN_CONTENT_WIDTH = 1100.0
