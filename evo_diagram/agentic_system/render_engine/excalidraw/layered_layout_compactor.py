@@ -177,20 +177,28 @@ def compact_architecture_layout(
     }
     id_map = id_map_from_manifest(output)
 
+    def _is_side_group(group: Mapping[str, Any]) -> bool:
+        group_class = str(group.get("class", "")).lower()
+        group_id = str(group.get("id", "")).lower()
+        return (
+            "cross" in group_class
+            or "cross" in group_id
+            or "governance" in group_class
+            or "governance" in group_id
+        )
+
+    # Classify cross-cutting/governance groups before the generic ``group_*``
+    # fallback.  Real Structure output commonly uses IDs such as
+    # ``group_enterprise_governance`` while carrying the decisive
+    # ``cross_cutting_zone`` class; checking the ID alone incorrectly inserts
+    # the sidebar into the main vertical layer stack.
+    side_groups = [group for group in groups if _is_side_group(group)]
     layer_groups = [
         group for group in groups
-        if str(group.get("class", "")).lower() == "architecture_layer"
-        or (
-            str(group.get("id", "")).startswith("group_")
-            and "cross" not in str(group.get("id", "")).lower()
-        )
-    ]
-    side_groups = [
-        group for group in groups
-        if group not in layer_groups
+        if group not in side_groups
         and (
-            "cross" in str(group.get("class", "")).lower()
-            or "cross" in str(group.get("id", "")).lower()
+            str(group.get("class", "")).lower() == "architecture_layer"
+            or str(group.get("id", "")).startswith("group_")
         )
     ]
 
@@ -276,13 +284,21 @@ def compact_architecture_layout(
         frame["height"] = total_bottom - frame["y"]
         _set_title_position(elements_by_id, id_map, group_id, frame["x"] + 30.0, frame["y"] + 20.0)
         side_center_x = frame["x"] + frame["width"] / 2.0
+        single_member_y = frame["y"] + frame["height"] / 2.0
         for member in members:
             render_id = str(member.get("id", ""))
             semantic_id = _semantic_for_render_id(id_map, render_id)
-            nearest_center = min(
-                row_centers,
-                key=lambda pair: abs(pair[0] - _number(member.get("y"))),
-            )[1]
+            if len(members) == 1:
+                # A single cross-cutting/governance node is a hub, rather than
+                # a layer peer.  Centering it in the sidebar shortens the
+                # longest fan-in route and keeps the side channel visually
+                # balanced across the main stack.
+                nearest_center = single_member_y
+            else:
+                nearest_center = min(
+                    row_centers,
+                    key=lambda pair: abs(pair[0] - _number(member.get("y"))),
+                )[1]
             width, height = _element_size(member)
             _move_semantic_element(
                 elements_by_id,
