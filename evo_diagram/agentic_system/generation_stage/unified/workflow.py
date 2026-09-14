@@ -88,6 +88,16 @@ class UnifiedGeneratorWorkflow:
                 "UnifiedGeneratorWorkflow normalizer produced an invalid "
                 f"semantic sidecar: {exc}"
             ) from exc
+        # Keep one-shot output visually consistent with the pipeline renderer.
+        # The unified generator emits native Excalidraw, so this is a small
+        # deterministic polish pass rather than a second layout strategy.
+        from evo_diagram.agentic_system.render_engine.excalidraw.architecture_style_normalizer import (
+            normalize_architecture_style,
+        )
+        state.diagram_manifest = normalize_architecture_style(
+            manifest,
+            state.structure_instantiation,
+        )
         return state
 
     def _run_validator(self, state: UnifiedWorkflowState) -> UnifiedWorkflowState:

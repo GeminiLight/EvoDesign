@@ -11,15 +11,29 @@ from evo_diagram.agentic_system.render_engine.excalidraw.layered_layout_compacto
 def test_architecture_style_normalizer_uses_formal_typography_and_connectors():
     manifest = {
         "elements": [
-            {"id": "label", "type": "text", "fontFamily": 5},
+            {"id": "title-layer", "type": "text", "fontFamily": 5},
+            {
+                "id": "frame-layer",
+                "type": "rectangle",
+                "backgroundColor": "transparent",
+                "strokeStyle": "dashed",
+                "strokeWidth": 2,
+            },
+            {"id": "shape", "type": "rectangle", "roundness": None},
             {"id": "edge", "type": "arrow", "roughness": 1, "label": {"fontFamily": 1}},
         ]
     }
     out = normalize_architecture_style(manifest, {"chart_type": "architecture"})
     assert out is not manifest
     assert out["elements"][0]["fontFamily"] == 2
-    assert out["elements"][1]["roughness"] == 0
-    assert out["elements"][1]["label"]["fontFamily"] == 2
+    assert out["elements"][0]["fontStyle"] == 1
+    assert out["elements"][1]["backgroundColor"] == "#F8FAFC"
+    assert out["elements"][1]["strokeStyle"] == "solid"
+    assert out["elements"][1]["strokeWidth"] == 1
+    assert out["elements"][1]["roundness"] == {"type": 3}
+    assert out["elements"][2]["roundness"] == {"type": 3}
+    assert out["elements"][3]["roughness"] == 0
+    assert out["elements"][3]["label"]["fontFamily"] == 2
     assert manifest["elements"][0]["fontFamily"] == 5
 
 
