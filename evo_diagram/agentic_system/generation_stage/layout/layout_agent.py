@@ -35,6 +35,9 @@ from evo_diagram.agentic_system.common.layout_contract import (
 )
 from evo_diagram.agentic_system.common.semantic_ids import ICON_SUFFIX
 from evo_diagram.agentic_system.generation_stage.layout.prompts import LAYOUT_TASK_PROMPT
+from evo_diagram.agentic_system.generation_stage.layout.viewport_profile import (
+    choose_layout_viewport,
+)
 from evo_diagram.core.base_agent import BaseAgent, _render_template
 from .state import WorkflowState
 
@@ -92,6 +95,9 @@ class LayoutAgent(BaseAgent):
             "design_expertise": state.design_expertise or "",
             "runtime_directives": state.runtime_directives or "",
             "size_hints": _build_size_hints_prompt(state.styling_instantiation),
+            "viewport_plan": choose_layout_viewport(
+                state.structure_instantiation
+            ).to_prompt(),
         }
 
         # Render task prompt

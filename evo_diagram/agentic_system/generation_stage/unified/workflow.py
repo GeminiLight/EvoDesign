@@ -1,16 +1,20 @@
 """UnifiedGeneratorWorkflow — wires UnifiedGenerator into a single-node LangGraph.
 
-One LLM call produces the Excalidraw scene; then we run a trimmed post-pass:
+One generation call produces the Excalidraw scene; then we run a trimmed post-pass:
 a deterministic normalizer that mirrors the pipeline-mode converter's
 z-order + group-title-dedup guarantees (so the unified path doesn't silently
 regress the 2026-04 render-fidelity fixes), followed by the validator.
 The group fitter is still skipped here because the unified generator already
-derives group bounds itself.
+derives group bounds itself. Contract failures return the current scene and
+diagnostic to generation for at most two repairs before failing closed.
 """
 
 from __future__ import annotations
 
+import json
 import logging
+from copy import deepcopy
+from pathlib import Path
 
 from langchain_core.language_models import BaseChatModel
 from langgraph.graph import END, StateGraph
@@ -18,9 +22,11 @@ from langgraph.graph import END, StateGraph
 from evo_diagram.canvas_environment import audit_manifest, normalize_manifest, validate_manifest
 from .state import UnifiedWorkflowState
 from .generator import UnifiedGenerator
+from .native_defaults import complete_native_elements, complete_native_semantics
 from .sidecar import validate_semantic_sidecar
 
 logger = logging.getLogger(__name__)
+MAX_SCENE_ATTEMPTS = 3
 
 
 class UnifiedGeneratorWorkflow:
@@ -48,14 +54,74 @@ class UnifiedGeneratorWorkflow:
 
     def _build_graph(self):
         workflow = StateGraph(UnifiedWorkflowState)
-        workflow.add_node("generate_scene", self._run_agent)
-        workflow.add_node("normalize_scene", self._run_normalizer)
-        workflow.add_node("validate_scene", self._run_validator)
-        workflow.set_entry_point("generate_scene")
-        workflow.add_edge("generate_scene", "normalize_scene")
-        workflow.add_edge("normalize_scene", "validate_scene")
-        workflow.add_edge("validate_scene", END)
+        workflow.add_node("generate_validate", self._run_generation_cycle)
+        workflow.set_entry_point("generate_validate")
+        workflow.add_conditional_edges(
+            "generate_validate",
+            lambda state: "repair" if (
+                state.validation_error and len(state.generation_attempts) < MAX_SCENE_ATTEMPTS
+            ) else "done",
+            {"repair": "generate_validate", "done": END},
+        )
         return workflow.compile()
+
+    def _run_generation_cycle(self, state: UnifiedWorkflowState) -> UnifiedWorkflowState:
+        """Return contract failures to generation, without retrying runtime failures."""
+        stage = "generate"
+        state.candidate_output = None
+        state.diagram_manifest = None
+        state.structure_instantiation = None
+        try:
+            state = self._run_agent(state)
+            stage = "normalize"
+            state = self._run_normalizer(state)
+            stage = "validate"
+            state = self._run_validator(state)
+        except (ValueError, RuntimeError) as exc:
+            if isinstance(exc, RuntimeError) and stage != "normalize":
+                raise
+            if state.candidate_output is None:
+                # Transport, prompt configuration, and JSON parsing failures
+                # have their own policies; there is no scene to repair here.
+                raise
+            detail = str(exc)
+            if exc.__cause__:
+                detail += f" Cause: {exc.__cause__}"
+            state.validation_error = detail
+            state.generation_attempts.append({
+                "attempt": len(state.generation_attempts) + 1,
+                "stage": stage,
+                "error": detail,
+                "output": deepcopy(
+                    state.diagram_manifest if state.diagram_manifest is not None
+                    else state.candidate_output
+                ),
+            })
+            logger.warning("[UnifiedGeneratorWorkflow] Scene validation failed: %s", detail)
+        else:
+            state.validation_error = None
+            state.generation_attempts.append({
+                "attempt": len(state.generation_attempts) + 1,
+                "stage": "complete",
+                "error": None,
+            })
+        self._save_attempt_report(state)
+        return state
+
+    @staticmethod
+    def _save_attempt_report(state: UnifiedWorkflowState) -> None:
+        if not state.validation_report_path:
+            return
+        path = Path(state.validation_report_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        status = "complete" if not state.validation_error else (
+            "failed" if len(state.generation_attempts) >= MAX_SCENE_ATTEMPTS else "repairing"
+        )
+        path.write_text(json.dumps({
+            "status": status,
+            "max_attempts": MAX_SCENE_ATTEMPTS,
+            "attempts": state.generation_attempts,
+        }, ensure_ascii=False, indent=2), encoding="utf-8")
 
     def _run_agent(self, state: UnifiedWorkflowState) -> UnifiedWorkflowState:
         return self.agent.run(state)
@@ -71,6 +137,8 @@ class UnifiedGeneratorWorkflow:
         if not isinstance(manifest, dict):
             return state
         try:
+            complete_native_elements(manifest)
+            complete_native_semantics(manifest)
             normalize_manifest(manifest, canvas_library="excalidraw")
             logger.info(
                 "[UnifiedGeneratorWorkflow/normalizer] z-order + title dedup applied (%d elements)",
@@ -94,10 +162,39 @@ class UnifiedGeneratorWorkflow:
         from evo_diagram.agentic_system.render_engine.excalidraw.architecture_style_normalizer import (
             normalize_architecture_style,
         )
-        state.diagram_manifest = normalize_architecture_style(
+        from evo_diagram.agentic_system.render_engine.excalidraw.arrow_adder import (
+            rebuild_excalidraw_arrows,
+        )
+        from evo_diagram.agentic_system.render_engine.excalidraw.layered_layout_compactor import (
+            compact_architecture_layout,
+        )
+        polished = compact_architecture_layout(
             manifest,
             state.structure_instantiation,
         )
+        if polished is not manifest:
+            polished = rebuild_excalidraw_arrows(
+                polished,
+                state.structure_instantiation,
+            )
+        state.diagram_manifest = normalize_architecture_style(
+            polished,
+            state.structure_instantiation,
+        )
+        if state.diagram_manifest is not manifest:
+            try:
+                normalize_manifest(
+                    state.diagram_manifest,
+                    canvas_library="excalidraw",
+                )
+                state.structure_instantiation = validate_semantic_sidecar(
+                    state.diagram_manifest
+                )
+            except Exception as exc:  # noqa: BLE001
+                raise RuntimeError(
+                    "UnifiedGeneratorWorkflow post-layout normalization failed; "
+                    "refusing to render stale arrow geometry."
+                ) from exc
         return state
 
     def _run_validator(self, state: UnifiedWorkflowState) -> UnifiedWorkflowState:
@@ -126,5 +223,10 @@ class UnifiedGeneratorWorkflow:
         final = (
             UnifiedWorkflowState(**result) if isinstance(result, dict) else result
         )
+        if final.validation_error:
+            raise ValueError(
+                f"Unified scene remains invalid after {len(final.generation_attempts)} "
+                f"attempts: {final.validation_error}"
+            )
         logger.info("Unified generator workflow finished.")
         return final

@@ -159,9 +159,7 @@ def pick_sides_from_geometry(
 
     dx = source_center_x - target_center_x
     dy = source_center_y - target_center_y
-    vertical_threshold = 30.0
-
-    if abs(dy) >= abs(dx) or abs(dy) > vertical_threshold:
+    if abs(dy) >= abs(dx):
         if dy < 0:
             return "bottom", "top"
         return "top", "bottom"

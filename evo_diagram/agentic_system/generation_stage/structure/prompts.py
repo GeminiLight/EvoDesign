@@ -23,10 +23,85 @@ STRUCTURE_TASK_PROMPT = (
      - Does this chart_type use edges? (matrix/swot/venn/pyramid/funnel/gantt/timeline/most infographic → NO, emit `edges: []` regardless of what the source text says; mindmap/tree/orgchart → exactly n−1; architecture → only named flows)
      State the budget as a one-liner: `"type=X → nodes≤N, groups=G, edges=E"`. This is the contract for the rest of this turn.
 
-(c) **Extract entities to fill the budget, not to cover the text.** List candidate nodes with stable snake_case ids (labels 2–4 words max). For each candidate: "which slot in my chart_type budget does this fill?" — if "none", drop it silently. For types with hard counts (matrix rows×cols, pyramid 3–6 levels, venn 2–3 sets), stop once budget is full. **Groups are the most commonly over-extracted category** — only add when the chart_type's organizer is group-based (swimlane lanes, architecture layers, sequence actor lanes). Do not invent groups to park entities the type can't place. **EXCEPTION: For ER and class diagrams, extract ALL entities and ALL relationships — aim for completeness, not minimalism.**
+(c) **Extract source-grounded entities to fill the budget.** List candidate nodes
+with stable snake_case ids (labels 2–4 words max). For each candidate ask both
+"which slot in my chart_type budget does this fill?" and "where is this concept
+supported by the source?" If it fills no slot, drop it; if it has no source
+support, never invent it. For types with hard counts (matrix rows×cols, pyramid
+3–6 levels, venn 2–3 sets), stop once budget is full. **Groups are the most
+commonly over-extracted category** — only add when the chart_type's organizer is
+group-based (swimlane lanes, architecture layers, sequence actor lanes). Do not
+invent groups to park entities the type can't place. **EXCEPTION: For ER and
+class diagrams, extract ALL entities and ALL relationships — aim for
+completeness, not minimalism.**
 
 (d) **Edge decision — type-gated.** If step (b) said `edges: []`, EMIT ZERO EDGES and skip to (e). A matrix/venn/pyramid with edges is a bug, not a feature — do not "preserve" relations the source text implies. If the type allows edges:
-     - Apply the 3-check Visual Necessity Filter: irreplaceable / not implied by containment / adds clarity.
+     - Apply the 3-check Visual Necessity Filter: irreplaceable / not implied by
+       another **semantic edge** / adds clarity. `branch_id`, a frame, or physical
+       containment is not a semantic edge and must never be used to discard an
+       explicit source fact.
+     - Build a source-grounded triple before emitting each edge: `(subject,
+       predicate, object)`. Give it an evidence basis: `explicit` when the source
+       states the relationship, or `structural` when it only expresses the
+       document's declared organization. Plausible world knowledge is neither
+       category and MUST be dropped.
+     - Keep semantic facts separate from presentation organizers. A branch,
+       section, layer, or category title is a navigation device unless the
+       source itself makes it the subject or object of the claim. It MUST NOT
+       replace an entity in an explicit triple merely to make the graph look
+       tidier. For example, "Machine Learning is a subset of Artificial
+       Intelligence" becomes `Artificial Intelligence --has subtype--> Machine
+       Learning`, never `Theory Section --includes--> Machine Learning`.
+       `branch_id` already assigns a concept to its visual section; it does not
+       require an invented anchor-to-concept edge.
+       A core node is allowed to participate directly in source-explicit domain
+       relationships with descendants. Only its document-organization edges
+       are restricted to branch anchors. Before committing the fact ledger,
+       revisit every source clause mentioning the core and verify its real
+       endpoints survived; an organizer path is never a replacement for that
+       fact. Use the source clause itself as evidence, not a rewritten sentence
+       that changes its subject into the section title.
+     - Classify the predicate before choosing its wording: `hierarchy`,
+       `composition`, `exemplification`, `dependency`, `causal`, `association`,
+       `flow`, `temporal`, or `conditional`. Preserve source strength and
+       modality: "linked to", "associated with", "may", and "often" MUST NOT
+       become `causes`, `raises`, `requires`, or another stronger claim.
+     - Decide directionality independently from relation type. Emit
+       `directionality=directed` when the source establishes an ordered subject
+       and object (subtype, containment, example, dependency, enabling, causal,
+       flow). Emit `directionality=undirected` for symmetric wording such as
+       "associated with", "linked to", "related to", or "connected with".
+       Never turn a symmetric association into a one-way arrow merely because
+       the JSON edge must list a source and target.
+     - Run the sentence test: reading `source --label--> target` as a sentence
+       must be grammatical and source-faithful. If the predicate naturally reads
+       in the opposite direction, reverse the endpoints or choose a directionally
+       correct label. Check subject-verb agreement as part of this test: plural
+       `Technologies` takes `improve`, not `improves`; when a short label cannot
+       remain grammatical, preserve a compact source phrase such as `enables
+       improvement in`. Never emit category→example with the label `exemplifies`;
+       use category→example `has example`, or example→category `exemplifies`.
+     - Resolve list scope and coordination. A heading followed by "including
+       A, B, C" creates membership edges only; it does not create causal edges
+       among siblings. A predicate applying to "all" listed members may expand
+       to each member, but only when the source explicitly gives that scope.
+       Resolve pronouns and demonstratives such as "they", "these systems", or
+       "these challenges" before building triples. Prefer the nearest compatible
+       antecedent; when it denotes a whole named category, connect the category,
+       and when it explicitly denotes every list member, expand the predicate to
+       those members. Do not silently switch between category scope and member
+       scope.
+     - Preserve source-explicit intermediate categories before applying the
+       node budget. If the source says "metrics such as A and B", retain the
+       Metrics node with `Metrics --has example--> A/B`; do not flatten A/B
+       directly under an outer section. The same applies to concerns, phases,
+       capabilities, and other named list governors.
+     - Prefer one truthful collection-level edge when the source predicate has
+       an explicit collective subject and a matching collection node exists.
+       "All applications contribute to X" should normally be
+       `Applications --contribute to--> X`, not N duplicate member edges. Only
+       expand to members when the source separately predicates each member or
+       when no faithful collection node exists.
      - Classify each cross-boundary relation: adjacent handoff (into next neighbor), long-span transfer (across multiple organizers), convergence (many→one), or feedback return (back to earlier). Each class needs different spatial treatment.
      - Run a **parallel-edge audit**: for every pair sharing both endpoints, make an explicit keep-or-merge decision — semantically distinct (different triggers/messages/timings) → keep both; semantic duplicates → merge into one (combine labels with " / ", max 3 pieces). Silent duplication is a top readability failure mode.
 
@@ -37,6 +112,12 @@ STRUCTURE_TASK_PROMPT = (
 - No dangling entities that exist only because the source mentioned them?
 - No group created to "park" an entity the chart_type can't place?
 - Would a viewer instantly recognize the diagram type from the extracted structure?
+- Build a final two-column audit in hidden reasoning: every `explicit` edge must
+  map to one source claim with the same resolved subject and object; every source
+  claim selected for the diagram must map back to an edge. Organizer edges are
+  audited separately and must use `evidence_basis=structural`. If an organizer
+  and an entity both need edges from the core, retain both: they express document
+  organization and domain semantics respectively, not duplicate facts.
 
 (f) Commit: any change to (a)–(e) during emission means you must restart the chain, not patch mid-way.
 
@@ -44,7 +125,11 @@ Emit the JSON only after all steps are complete.
 
 ### CURRENT TASK: Structure Generation (Stage 1 of 3) ###
 
-The overriding principle is **Diagram-Type-First Extraction**: entities, groups, and edges serve the chosen `chart_type`, not the source text. "Correctly extracted from text" is irrelevant — "visually appropriate for this chart_type" is the goal. Missing a minor entity is acceptable; overfitting entities/groups/edges the chart_type can't gracefully display is not.
+The overriding principle is **Source-Faithful, Diagram-Type-Aware Extraction**.
+The selected `chart_type` controls which supported facts earn visual space; it
+never licenses changing, strengthening, reversing, or inventing a fact. Missing
+a minor entity can be an acceptable budget trade-off. A false relation is never
+acceptable, even when it would make the chosen diagram look more connected.
 
 **EXCEPTION — Data Model Types (ER, Class Diagram):** For ER diagrams and class diagrams, the goal is COMPLETENESS, not minimalism. These are data models — every entity, attribute, and relationship mentioned in the source text must appear. Missing an entity breaks the data model's integrity. When `chart_type` is `er_diagram` or `class_diagram`, extract ALL entities and ALL relationships described in the source text.
 
@@ -54,6 +139,17 @@ Output format — a single JSON object with exactly two top-level keys:
 - `specification`: your Phase-1 diagnosis. Include at least
   `diagram_paradigm`, `semantic_typology`, `topological_invariants`, `schema_extensions`.
   **`diagram_paradigm` MUST include a `type_budget` sub-field** recording the one-liner from (b) — this is the contract Styling and Layout will inherit.
+  For relationship-bearing chart types, `semantic_typology` MUST include two
+  separate ledgers:
+  - `fact_ledger`: one entry per selected source claim, each with
+    `subject_id`, `predicate`, `object_id`, and short `evidence`;
+  - `organizer_ledger`: document/presentation organization only, with
+    `source_id`, `label`, and `target_id`.
+  Every `fact_ledger` entry maps to exactly one instantiation edge with
+  `evidence_basis=explicit`, and every explicit edge maps back to one fact entry.
+  Every organizer entry maps to an edge with `evidence_basis=structural`.
+  Never move an entry between ledgers just because one mapping is easier to
+  lay out.
 - `instantiation`: the concrete semantic graph with
   `chart_type`, `nodes`, `edges`, `groups`. `edges` and `groups` MAY be empty arrays when the type budget says so — do NOT include placeholder entries.
 
@@ -70,6 +166,20 @@ topology from a flat edge list.
 - `matrix`: every `nodes[*]` carries `row` (0-indexed int) and `col` (0-indexed int).
 - `sequence_diagram`: every `nodes[*]` carries `actor_id` (string, which actor lane it belongs to), and every `edges[*]` carries `sequence_idx` (0-indexed timeline order).
 - `gantt`: every `nodes[*]` carries `start_ts` and `end_ts` (ISO-like strings or consistent integer units).
+- `concept_map`: every node carries `branch_id`: the core uses `null`, each
+  `branch_anchor` uses its own id, and every descendant uses the id of its
+  owning branch anchor. Branch ownership is layout metadata, not a substitute
+  for or inference from a causal/dependency edge. Every `edges[*]` carries
+  `relation_type` using one of
+  `hierarchy`, `composition`, `exemplification`, `dependency`, `causal`, or
+  `association`, `directionality` (`directed` or `undirected`), plus
+  `evidence_basis` (`explicit` or `structural`). For an
+  explicit semantic edge, also include a short `evidence` phrase copied or
+  tightly compressed from the source. Structural organizer edges may omit
+  `evidence`. `relation_type` describes the domain predicate; `evidence_basis`
+  describes why the edge exists. An explicit `hierarchy`, `composition`, or
+  `exemplification` edge is still a source fact and MUST NOT be treated as a
+  disposable organizer edge.
 
 For all other chart_types, omit these fields entirely (do not emit `null` or
 `""` — just skip the field). `edge.source`/`edge.target` is still the

@@ -22,7 +22,11 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from ..state import EditOp
-from .prompts import REFINER_LLM_SYSTEM_PROMPT, build_refiner_user_prompt
+from .prompts import (
+    MAX_MANIFEST_SUMMARY_ELEMENTS,
+    REFINER_LLM_SYSTEM_PROMPT,
+    build_refiner_user_prompt,
+)
 from evo_diagram.core.base_agent import (
     _is_transient_status_code,
     _status_code_from_exception,
@@ -57,14 +61,14 @@ def _coerce_to_edits(raw_list: List[Any]) -> List[EditOp]:
 def build_manifest_summary(
     manifest: Dict[str, Any],
     *,
-    cap: int = 120,
+    cap: int = MAX_MANIFEST_SUMMARY_ELEMENTS,
     pinned_ids: Optional[Iterable[str]] = None,
 ) -> List[Dict[str, Any]]:
     """Produce a compact element list for the LLM prompt.
 
-    Each entry: ``{id, type, bbox: [x, y, w, h], text?}``. Skips arrows
-    (the LLM doesn't reposition arrow waypoints — too risky for now)
-    and isDeleted elements. ``pinned_ids`` are emitted first so elements tied
+    Includes semantic IDs, container membership, and connector endpoints so
+    visually similar background frames cannot be confused with nodes.
+    ``pinned_ids`` are emitted first so elements tied
     to active verifier findings are not lost when the prompt is capped.
     """
     pinned: List[Dict[str, Any]] = []
@@ -74,6 +78,15 @@ def build_manifest_summary(
     elements = manifest.get("elements", [])
     if not isinstance(elements, list):
         return []
+    semantic_ids = {
+        render_id: semantic_id
+        for semantic_id, render_id in (manifest.get("_meta", {}).get("id_map", {})).items()
+    }
+    bound_texts = {
+        elem.get("containerId"): elem.get("text") or elem.get("originalText")
+        for elem in elements
+        if isinstance(elem, dict) and elem.get("type") == "text" and elem.get("containerId")
+    }
     for elem in elements:
         if not isinstance(elem, dict) or elem.get("isDeleted"):
             continue
@@ -92,14 +105,40 @@ def build_manifest_summary(
         element_id = entry.get("id")
         if not isinstance(element_id, str) or not element_id or element_id in seen_ids:
             continue
-        text = elem.get("text") or elem.get("originalText")
+        text = elem.get("text") or elem.get("originalText") or bound_texts.get(element_id)
         if text:
             entry["text"] = str(text)[:60]
+        if element_id in semantic_ids:
+            entry["semantic_id"] = semantic_ids[element_id]
+        if elem.get("containerId"):
+            entry["container_id"] = elem["containerId"]
+        metadata = elem.get("meta") or {}
+        for key in ("semantic_edge_id", "semantic_arrow_id"):
+            if metadata.get(key):
+                entry[key] = metadata[key]
+        style = {
+            key: elem[key]
+            for key in ("fontSize", "fontFamily", "strokeColor", "backgroundColor", "strokeWidth", "strokeStyle")
+            if key in elem
+        }
+        if style:
+            entry["style"] = style
+        if metadata.get("conceptFactAnchor"):
+            entry["role"] = "fact_bearing_section_heading_keep_border"
+        if elem.get("is_group"):
+            entry["role"] = "group_background"
+            if metadata.get("memberIds"):
+                entry["member_ids"] = metadata["memberIds"]
+        if elem.get("type") == "arrow":
+            entry["source"] = metadata.get("source")
+            entry["target"] = metadata.get("target")
+        entry["opacity"] = elem.get("opacity", 100)
         if element_id in pinned_set:
             pinned.append(entry)
         else:
             regular.append(entry)
         seen_ids.add(element_id)
+    regular.sort(key=lambda entry: entry.get("opacity", 100) == 0)
     return (pinned + regular)[:cap]
 
 
@@ -173,7 +212,7 @@ class RefinerLLMAgent:
             SystemMessage(content=REFINER_LLM_SYSTEM_PROMPT),
             HumanMessage(
                 content=[
-                    {"type": "image_url", "image_url": {"url": data_url}},
+                    {"type": "image_url", "image_url": {"url": data_url, "detail": "high"}},
                     {"type": "text", "text": user_text},
                 ]
             ),

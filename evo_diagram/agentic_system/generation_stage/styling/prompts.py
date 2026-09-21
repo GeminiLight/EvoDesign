@@ -39,9 +39,15 @@ STYLING_TASK_PROMPT = (
 | Red | Error, danger, critical | Failure states, alerts, critical paths |
 | Gray | Neutral, container, background | Group backgrounds, supporting elements |
 
-**Fill + Stroke Pairing** — Always pair a light fill with a matching dark stroke from the SAME color family. Never put a dark hex on `backgroundColor` — bound text defaults to `#1e1e1e` and becomes unreadable on dark fills. Do NOT cross-pair fills and strokes from different families.
+**Fill + Stroke Pairing** — Always pair a light fill with a matching dark stroke from the SAME color family. Never put a dark hex on `backgroundColor` — bound text defaults to `#1F2937` and becomes unreadable on dark fills. Do NOT cross-pair fills and strokes from different families.
 
-**Typography** — Font sizes: group titles 20-24, node labels 16-20, edge labels 14, annotations 12-14. Default to Helvetica font; use mono only for code/technical content.
+**Typography** — Use a compact, role-driven type scale: group titles 18-20,
+primary node labels 18, ordinary node labels 16-18, edge labels 12-13, and
+annotations 12. Use one sans-serif family (Helvetica by default), reserve bold
+for group titles and focal concepts, and keep line height between 1.15 and 1.25.
+Use at most two text sizes inside any one local group so hierarchy stays clear
+without making every element compete for attention. Use mono only for code or
+technical literals.
 
 **Geometry Boundary** — Styling does not emit x/y coordinates, width/height,
 or size hints. Layout owns geometry and will derive node sizes from the
@@ -115,13 +121,23 @@ A diagram with 6-10 nodes typically uses **2-4 distinct families** — not all n
 
 **Shape Language** — Map semantic roles to shapes:
 - Terminators → ellipse | Process steps → rectangle | Decisions → diamond
-- Containers → rectangle (dashed stroke) | Central nodes → ellipse
+- Containers → rounded rectangle (light fill or dashed stroke)
+- Central concepts and section anchors → rounded rectangle by default; use an
+  ellipse only when the diagram semantics explicitly mean start/end, cycle, or
+  continuity. Do not use wide ellipses as generic hierarchy markers.
+- Keep the shape vocabulary small. Express hierarchy first through containment,
+  size, typography, fill, and border weight.
 
-**Typography** — Hierarchical sizing:
-- Group titles: fontSize 20-24
-- Node labels: fontSize 16-20
-- Edge labels: fontSize 14
-- Annotations: fontSize 12-14
+**Typography** — Compact hierarchical sizing:
+- Group titles: fontSize 18-20, fontStyle 1
+- Primary/focal node labels: fontSize 18, fontStyle 1
+- Ordinary node labels: fontSize 16-18, fontStyle 0
+- Edge labels: fontSize 12-13, fontStyle 0
+- Annotations: fontSize 12, fontStyle 0
+- Keep one font family and lineHeight 1.15-1.25 throughout. Do not use bold or
+  large text as decoration; weight and size must encode semantic importance.
+- Use at most two text sizes inside a local group. Keep label padding generous
+  enough that letters never touch borders; layout owns the required geometry.
 
 ### CURRENT TASK: Styling Generation (Stage 2 of 3) ###
 

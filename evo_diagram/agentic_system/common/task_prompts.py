@@ -97,10 +97,12 @@ _STRUCTURE_CONTRACT = """
    `groups[*].id` — the exact strings you emit here are the contract for Stages 2 and 3.
 6. **Edge labels are FORBIDDEN by default. Add `edge.label` ONLY when the chart_type and the edge's role REQUIRE it.** Edge labels render as text on top of arrows, which is visual noise that the user has explicitly complained about. The rule:
 
-   - **REQUIRED**: emit a non-empty `label` on every edge —
+   - **REQUIRED**: emit a non-empty `label` on every semantic edge —
        - `sequence_diagram` (the message text), `state_diagram` / `state_machine` (the trigger / event),
        - `er_diagram` / `class_diagram` (cardinality or relation verb),
-       - `concept_map` (the relation verb, ≤5 words),
+       - `concept_map` (a directionally correct relation verb, ≤5 words;
+         structural organizer edges may use `organized into`, `includes`,
+         `contains`, `has subtype`, or `has example`),
        - `data_flow_diagram` (the data name or trigger),
        - `flowchart` BUT ONLY for edges OUT OF a `decision` node (the branch condition: "yes" / "no" / "approved" / "<5s"). Non-decision flowchart edges get NO label.
 
@@ -113,7 +115,7 @@ _STRUCTURE_CONTRACT = """
 7. **Quality bar for OPTIONAL labels** (apply to every label you emit on an OPTIONAL-class chart_type — if the label fails ANY of these, drop it):
    - **≤ 5 words.** "approves", "publishes JSON", "REST 200", "Real-time Inventory Update" are fine. "Liquidity & credit distribution to firms" is too long → drop.
    - **A relation verb, data name, protocol, or constraint** — NOT a paraphrase of the destination node. If your edge points at a node labelled "Banking" and your edge label is "Liquidity & credit distribution" (a description of what banking is), you are repeating the destination node — DROP the label.
-   - **NOT a generic direction-verb** that the arrow itself encodes. The forbidden words below add zero information beyond the arrow direction:
+   - **NOT a generic direction-verb** that the arrow itself encodes. The forbidden words below add zero information beyond the arrow direction. The only exception is a concept-map structural organizer edge, where a concise membership label is allowed because the relation type is part of the map's meaning:
       `next`, `then`, `after`, `before`, `follows`, `follow`, `leads to`, `leads_to`, `lead to`, `goes to`, `goes_to`, `go to`, `flows to`, `flows_to`, `flow to`, `passes to`, `passes_to`, `pass to`, `sent to`, `sent_to`, `sends to`, `is part of`, `part of`, `part_of`, `contains`, `containing`, `includes`, `including`, `has`, `have`, `is a`, `is_a`, `is an`, `uses`, `use`, `using`, `calls`, `call`, `to`, `from`, `and`, `or`, `→`, `->`, `=>`, `⇒`, `>`. NEVER emit these as a label — set `label` to `""` or omit instead.
 
 ### DO / DON'T ###
@@ -166,10 +168,14 @@ _STRUCTURE_CONTRACT = """
        `{{"id":"edge:n_govt2n_market", "source":"n_govt", "target":"n_market", "label":"regulates"}}` (single relation verb)
        NOT `{{"label":"Government regulatory framework over private markets"}}`
 
+     concept_map structural organizer edge:
+       `{{"id":"edge:n_topic2n_example", "source":"n_topic", "target":"n_example", "label":"has example", "relation_type":"exemplification", "evidence_basis":"structural"}}`
+       NOT `{{"source":"n_topic", "target":"n_example", "label":"exemplifies"}}` (the sentence direction is backwards)
+
 Return ONLY the JSON object. No markdown fences, no prose.
 
 ### REMINDER (re-check before emitting) ###
-Every node+edge+group has a stable `id`; groups use `members` (not `children`); edges carry both `id` AND `source`/`target`; node/group ids are bare semantic ids while edge ids use `edge:{source_id}2{target_id}`; **edge labels are FORBIDDEN by default — emit `label` only on REQUIRED chart_types (sequence/state/ER/class/flowchart-decision-branch) or when the label is a ≤5-word non-stop-verb relation that adds info beyond the arrow direction. Generic stop-verbs (next/then/follows/leads to/contains/has/uses/...) are ALWAYS forbidden. Long descriptive labels that paraphrase the destination node are ALWAYS forbidden.**"""
+Every node+edge+group has a stable `id`; groups use `members` (not `children`); edges carry both `id` AND `source`/`target`; node/group ids are bare semantic ids while edge ids use `edge:{source_id}2{target_id}`; **edge labels are FORBIDDEN by default — emit `label` only on REQUIRED chart_types (sequence/state/ER/class/concept-map semantics/flowchart-decision-branch) or when the label is a ≤5-word non-stop-verb relation that adds info beyond the arrow direction. Generic stop-verbs (next/then/follows/leads to/contains/has/uses/...) are forbidden except for concise concept-map structural organizer labels. Long descriptive labels that paraphrase the destination node are ALWAYS forbidden.**"""
 
 
 _STYLING_CONTRACT_REMOVED = True  # Moved to generation_stage/styling/contracts/

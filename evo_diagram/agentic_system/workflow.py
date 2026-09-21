@@ -77,6 +77,39 @@ def _optional_int(value: Any) -> Optional[int]:
     return value if isinstance(value, int) and not isinstance(value, bool) else None
 
 
+def _refinement_regression_reason(
+    initial: Any, candidate: Any, *, compare_visual_scores: bool = True,
+) -> Optional[str]:
+    """Keep the baseline when verified refinement provides weaker evidence."""
+    if initial is None or candidate is None:
+        return None
+    if _has_blocking_verification_errors(candidate):
+        return "Candidate verification has blocking errors."
+    before = getattr(initial, "objective_summary", None)
+    after = getattr(candidate, "objective_summary", None)
+    if not isinstance(before, dict) or not isinstance(after, dict):
+        return None
+    severities = ("critical", "major", "minor", "info")
+    original_counts = tuple(int(before.get(key, 0) or 0) for key in severities)
+    candidate_counts = tuple(int(after.get(key, 0) or 0) for key in severities)
+    if candidate_counts > original_counts:
+        return f"Objective findings regressed: {original_counts} -> {candidate_counts}."
+    if candidate_counts < original_counts:
+        return None
+    if not compare_visual_scores:
+        # Independent scores drift even on almost identical renders. When
+        # paired comparison is enabled, let it judge the actual two images.
+        return None
+    original_score = getattr(getattr(initial, "critique", None), "overall_score", None)
+    candidate_score = getattr(getattr(candidate, "critique", None), "overall_score", None)
+    if isinstance(original_score, (float, int)) and candidate_score is None:
+        return "Candidate critic was unavailable and objective findings did not improve."
+    if isinstance(original_score, (float, int)) and isinstance(candidate_score, (float, int)):
+        if original_score - candidate_score >= 0.5:
+            return f"Critic score fell from {original_score:.1f} to {candidate_score:.1f} without fewer objective findings."
+    return None
+
+
 def _optional_string_list(value: Any) -> Optional[List[str]]:
     if value is None:
         return None
@@ -847,6 +880,7 @@ class Text2DiagramWorkflow:
             source_text=text_content,
             output_dir=verification_dir,
             skip_critic=not self.enable_critic,
+            skip_checks=["layout_audit"] if self.mode == "oneshot" else None,
             emit_markdown=True,
         )
         logger.info(
@@ -871,12 +905,12 @@ class Text2DiagramWorkflow:
         initial_verification: _VerificationPhaseResult,
         refinement: _RefinementPhaseResult,
     ) -> _VerificationPhaseResult:
-        """Verify the selected final artifact when refinement changed it."""
+        """Verify immutable refinement artifacts before selecting the final pair."""
         if refinement.manifest is None and refinement.png_path is None:
             return initial_verification
 
         if not finalize.manifest_path or not finalize.png_path:
-            raise RuntimeError("Final verification requires persisted final artifacts.")
+            raise RuntimeError("Candidate verification requires persisted refinement artifacts.")
 
         final_render_result = RenderResult(
             manifest=finalize.manifest,
@@ -900,7 +934,6 @@ class Text2DiagramWorkflow:
         should_run = (
             self.enable_refiner
             and not self.verification_only
-            and self.mode != "oneshot"
         )
         return should_run
 
@@ -955,6 +988,7 @@ class Text2DiagramWorkflow:
             output_dir=refiner_dir,
             canvas_library=self.canvas_library,
             max_iterations=self.refiner_max_iterations,
+            skip_checks=["layout_audit"] if self.mode == "oneshot" else None,
             emit_markdown=True,
         )
         refiner_converged = getattr(refiner_state, "converged", None)
@@ -1099,10 +1133,12 @@ class Text2DiagramWorkflow:
             ),
             refiner_latest_findings_summary=_refiner_findings_summary(refiner_state),
             refiner_candidate_manifest_path=_optional_str(
-                getattr(refiner_state, "candidate_manifest_path", None)
+                generation.artifact_paths.get("refiner_candidate_manifest_path")
+                or getattr(refiner_state, "candidate_manifest_path", None)
             ),
             refiner_candidate_png_path=_optional_str(
-                getattr(refiner_state, "candidate_image_path", None)
+                generation.artifact_paths.get("refiner_candidate_png_path")
+                or getattr(refiner_state, "candidate_image_path", None)
             ),
             final_diagram_manifest=finalize.manifest,
             final_manifest_path=finalize.manifest_path,
@@ -1167,6 +1203,45 @@ class Text2DiagramWorkflow:
     # Main pipeline
     # ------------------------------------------------------------------
 
+    def _compare_refinement_visuals(
+        self,
+        initial_state: Any,
+        candidate_state: Any,
+        original_path: Optional[str],
+        candidate_path: Optional[str],
+        text_content: str,
+        save_dir: str,
+        artifact_paths: Dict[str, str],
+    ) -> Optional[str]:
+        """Require visible benefit when refinement ties objective quality."""
+        if not self.enable_critic or not original_path or not candidate_path:
+            return None
+        before = getattr(initial_state, "objective_summary", None)
+        after = getattr(candidate_state, "objective_summary", None)
+        if not isinstance(before, dict) or not isinstance(after, dict):
+            return None
+        severities = ("critical", "major", "minor", "info")
+        if any(int(before.get(key, 0) or 0) != int(after.get(key, 0) or 0) for key in severities):
+            return None
+        from .verification_stage.critic.comparison import compare_rendered_diagrams
+
+        report: Dict[str, Any] = {
+            "original_path": original_path, "candidate_path": candidate_path,
+        }
+        try:
+            report.update(compare_rendered_diagrams(original_path, candidate_path, text_content))
+            rejection = None if report["winner"] == "candidate" else (
+                "Side-by-side comparison found no clear refinement improvement: " + report["reason"]
+            )
+        except Exception as exc:
+            logger.warning("Refinement comparison unavailable: %s", exc)
+            report.update({"winner": "original", "error": str(exc)})
+            rejection = "Visual comparison unavailable; preserving the equally verified original."
+        report_path = os.path.join(save_dir, "8_final_verification", "refinement_comparison.json")
+        _save_json(report_path, report)
+        artifact_paths["refiner_comparison_report_path"] = report_path
+        return rejection
+
     def run(
         self,
         text_content: Any,
@@ -1214,19 +1289,56 @@ class Text2DiagramWorkflow:
                 verification=verification,
                 save_dir=directories.save_dir,
             )
-            finalize = self._finalize_outputs(
-                render_result=render_result,
-                refinement=refinement,
-                generation=generation,
-                final_dir=directories.final_dir,
+            # Verify immutable refinement artifacts before promoting them.
+            # Reports must continue to point at the candidate even if it is
+            # rejected; never overwrite the image that a report evaluated.
+            candidate_artifacts = _FinalizeResult(
+                manifest=refinement.manifest or render_result.manifest,
+                manifest_path=(
+                    generation.artifact_paths.get("refined_manifest_path")
+                    or render_result.manifest_path
+                ),
+                png_path=refinement.png_path or render_result.png_path,
             )
             final_verification = self._run_final_verification_phase(
-                finalize=finalize,
+                finalize=candidate_artifacts,
                 generation=generation,
                 text_content=text_content,
                 save_dir=directories.save_dir,
                 initial_verification=verification,
                 refinement=refinement,
+            )
+            rejection = _refinement_regression_reason(
+                verification.state, final_verification.state,
+                compare_visual_scores=not self.enable_critic,
+            )
+            if rejection is None and refinement.manifest is not None:
+                rejection = self._compare_refinement_visuals(
+                    verification.state, final_verification.state,
+                    render_result.png_path, candidate_artifacts.png_path,
+                    text_content, directories.save_dir, generation.artifact_paths,
+                )
+            if rejection and refinement.manifest is not None:
+                logger.warning("[Phase 5] Rejecting refined candidate: %s", rejection)
+                generation.artifact_paths["refiner_candidate_manifest_path"] = candidate_artifacts.manifest_path
+                generation.artifact_paths["refiner_candidate_png_path"] = candidate_artifacts.png_path
+                candidate_report = generation.artifact_paths.pop("final_verification_report_path", None)
+                if candidate_report:
+                    generation.artifact_paths["refiner_candidate_verification_report_path"] = candidate_report
+                generation.artifact_paths.pop("refined_manifest_path", None)
+                generation.artifact_paths.pop("refined_png_path", None)
+                original_report = generation.artifact_paths.get("pre_refine_verification_report_path")
+                if original_report:
+                    generation.artifact_paths["verification_report_path"] = original_report
+                refinement = _RefinementPhaseResult(
+                    manifest=None, png_path=None, state=refinement.state,
+                )
+                final_verification = verification
+            finalize = self._finalize_outputs(
+                render_result=render_result,
+                refinement=refinement,
+                generation=generation,
+                final_dir=directories.final_dir,
             )
             state = self._build_state(
                 text_content=text_content,

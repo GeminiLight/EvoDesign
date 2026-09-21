@@ -8,6 +8,9 @@ from evo_diagram.agentic_system.common.layout_contract import (
 )
 from evo_diagram.core.base_agent import BaseAgent
 from evo_diagram.agentic_system.generation_stage.layout.layout_agent import LayoutAgent
+from evo_diagram.agentic_system.generation_stage.layout.viewport_profile import (
+    choose_layout_viewport,
+)
 
 
 def _structure():
@@ -134,9 +137,45 @@ def test_layout_agent_prompt_includes_estimated_size_hints():
     assert "### ELEMENT SIZE HINTS ###" in prompt
     assert '"n_start": {"min_height": 24, "min_width": 96}' in prompt
     assert '"edge:n_start2n_done"' not in prompt
+    assert "Program-selected profile: compact" in prompt
+    assert "Preferred logical viewport: 1200 x 800" in prompt
     assistant_content = state.conversation_history[-1]["content"]
     assert "--- Layout Design Specification ---" in assistant_content
     assert "--- Instantiation ---" in assistant_content
+
+
+def test_layout_viewport_profile_scales_with_semantic_load():
+    compact = choose_layout_viewport(_structure())
+    assert (compact.profile, compact.width, compact.height) == (
+        "compact",
+        1200,
+        800,
+    )
+
+    dense_concept_map = {
+        "chart_type": "concept_map",
+        "nodes": [
+            {"id": f"n_{index}", "label": f"Concept {index}"}
+            for index in range(22)
+        ],
+        "edges": [
+            {
+                "id": f"edge:{index}",
+                "source": "n_0",
+                "target": f"n_{index + 1}",
+                "label": "relates to",
+            }
+            for index in range(21)
+        ],
+        "groups": [],
+    }
+
+    large = choose_layout_viewport(dense_concept_map)
+    assert (large.profile, large.width, large.height) == (
+        "large",
+        2400,
+        1600,
+    )
 
 
 def test_layout_agent_rejects_categorized_instantiation_without_flattening():

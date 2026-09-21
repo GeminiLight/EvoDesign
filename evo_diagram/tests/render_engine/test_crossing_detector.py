@@ -123,6 +123,14 @@ def test_empty_arrow_list():
     assert detect_crossings([]) == []
 
 
+def test_transparent_arrow_is_not_a_visible_crossing():
+    visible = _arrow("visible", (0, 50), (100, 50))
+    transparent = _arrow("transparent", (50, 0), (50, 100))
+    transparent["opacity"] = 0
+
+    assert detect_crossings([visible, transparent]) == []
+
+
 def test_single_arrow_cannot_cross_itself():
     a = _arrow("e1", (0, 0), (100, 0), (100, 100))
     assert detect_crossings([a]) == []

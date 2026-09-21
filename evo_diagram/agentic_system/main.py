@@ -93,6 +93,9 @@ def parse_arguments():
     parser.add_argument("--use-icons", action="store_true", default=argparse.SUPPRESS,
                         help="Add Material Design icons to diagram nodes. "
                              "Defaults are set by --variant preset.")
+    parser.add_argument("--no-icons", dest="use_icons", action="store_false",
+                        default=argparse.SUPPRESS,
+                        help="Disable icons, overriding the variant preset.")
     parser.add_argument(
         "--canvas-library",
         choices=["excalidraw", "tldraw"],

@@ -34,6 +34,16 @@ from typing import Any, Dict, List, Tuple
 _ORIENT_EPSILON = 1e-6
 
 
+def _is_visible_arrow(arrow: Dict[str, Any]) -> bool:
+    """Return whether an arrow contributes visible rendered geometry."""
+    if arrow.get("type") != "arrow" or arrow.get("isDeleted"):
+        return False
+    try:
+        return float(arrow.get("opacity", 100) or 0) > 0
+    except (TypeError, ValueError):
+        return True
+
+
 def _orient(ax: float, ay: float, bx: float, by: float, cx: float, cy: float) -> int:
     """Sign of the 2D cross product ``(b-a) x (c-a)``.
 
@@ -139,6 +149,30 @@ def _arrow_segments(arrow: Dict[str, Any]) -> List[Tuple[float, float, float, fl
     return segs
 
 
+def count_segment_crossings(
+    segment: Tuple[float, float, float, float],
+    arrows: List[Dict[str, Any]],
+) -> int:
+    """Count existing arrow paths crossed by one candidate segment.
+
+    This is the routing-time counterpart to :func:`detect_crossings`. It keeps
+    the same shared-endpoint semantics while avoiding the quadratic work of
+    rebuilding a complete candidate manifest for every visibility-graph edge.
+    Each existing arrow contributes at most one crossing to the count.
+    """
+    count = 0
+    for arrow in arrows:
+        if not _is_visible_arrow(arrow):
+            continue
+        for existing_segment in _arrow_segments(arrow):
+            if _shares_endpoint(segment, existing_segment):
+                continue
+            if _segments_intersect(segment, existing_segment):
+                count += 1
+                break
+    return count
+
+
 def detect_crossings(
     arrows: List[Dict[str, Any]],
 ) -> List[Tuple[str, str, Dict[str, Any]]]:
@@ -160,6 +194,8 @@ def detect_crossings(
     # Pre-compute segments per arrow
     indexed: List[Tuple[str, List[Tuple[float, float, float, float]]]] = []
     for a in arrows:
+        if not _is_visible_arrow(a):
+            continue
         aid = a.get("id")
         if not aid:
             continue

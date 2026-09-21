@@ -90,6 +90,7 @@ class VerifierRefinerState(BaseModel):
     # ---- Controls ----
     max_iterations: int = Field(default=3, ge=1)
     skip_rerender_between_iterations: bool = False
+    skip_checks: List[str] = Field(default_factory=list)
     emit_markdown: bool = False
 
     # ---- Loaded data ----

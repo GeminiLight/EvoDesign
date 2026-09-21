@@ -242,11 +242,16 @@ class RenderWorkflow:
 		"""Preserve equal-width/equal-height group intent from layout output."""
 		from .excalidraw.group_alignment_normalizer import preserve_group_alignment_intent
 		from .excalidraw.layered_layout_compactor import compact_architecture_layout
+		from .excalidraw.radial_concept_compactor import compact_concept_map_layout
 		aligned_manifest = preserve_group_alignment_intent(
 			manifest=state.diagram_manifest,
 			layout_instantiation=state.layout_instantiation,
 		)
 		aligned_manifest = compact_architecture_layout(
+			manifest=aligned_manifest,
+			structure_instantiation=state.structure_instantiation,
+		)
+		aligned_manifest = compact_concept_map_layout(
 			manifest=aligned_manifest,
 			structure_instantiation=state.structure_instantiation,
 		)

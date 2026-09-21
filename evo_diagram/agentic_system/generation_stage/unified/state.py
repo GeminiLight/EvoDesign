@@ -36,3 +36,7 @@ class UnifiedWorkflowState(WorkflowStateBase):
     # Extra bookkeeping for token accounting / debugging during A/B runs.
     raw_llm_output: Optional[str] = None
     audit_warnings: List[str] = Field(default_factory=list)
+    candidate_output: Any = None
+    validation_error: Optional[str] = None
+    generation_attempts: List[Dict[str, Any]] = Field(default_factory=list)
+    validation_report_path: Optional[str] = None

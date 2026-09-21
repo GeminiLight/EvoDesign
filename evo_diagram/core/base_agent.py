@@ -28,6 +28,17 @@ _RETRYABLE_EXCEPTIONS = (
 )
 _HTTP_STATUS_ERROR_TYPES: tuple[type[BaseException], ...] = ()
 _PROVIDER_STATUS_ERROR_TYPES: tuple[type[BaseException], ...] = ()
+_PROVIDER_API_ERROR_TYPES: tuple[type[BaseException], ...] = ()
+_TRANSIENT_API_ERROR_MARKERS = (
+    "temporarily unavailable",
+    "service unavailable",
+    "stream_timeout",
+    "stream timeout",
+    "server overloaded",
+    "overloaded",
+    "rate limit",
+    "try again later",
+)
 
 try:
     import httpx
@@ -45,6 +56,10 @@ try:
         *_PROVIDER_STATUS_ERROR_TYPES,
         openai.APIStatusError,
     )
+    _PROVIDER_API_ERROR_TYPES = (
+        *_PROVIDER_API_ERROR_TYPES,
+        openai.APIError,
+    )
 except ImportError:
     pass
 
@@ -57,6 +72,10 @@ try:
     _PROVIDER_STATUS_ERROR_TYPES = (
         *_PROVIDER_STATUS_ERROR_TYPES,
         anthropic.APIStatusError,
+    )
+    _PROVIDER_API_ERROR_TYPES = (
+        *_PROVIDER_API_ERROR_TYPES,
+        anthropic.APIError,
     )
 except ImportError:
     pass
@@ -75,11 +94,42 @@ def _status_code_from_exception(exc: BaseException) -> Optional[int]:
     return response_status if isinstance(response_status, int) else None
 
 
+def _is_stream_transport_error(exc: BaseException) -> bool:
+    """Distinguish broken provider events from invalid model-authored JSON."""
+    if isinstance(exc, json.JSONDecodeError):
+        traceback = exc.__traceback__
+        while traceback is not None:
+            if traceback.tb_frame.f_globals.get("__name__") == "openai._streaming":
+                return True
+            traceback = traceback.tb_next
+        return False
+    if isinstance(exc, ValueError) and str(exc) == "No generations found in stream.":
+        traceback = exc.__traceback__
+        while traceback is not None:
+            frame = traceback.tb_frame
+            if (
+                frame.f_globals.get("__name__") == "langchain_core.language_models.chat_models"
+                and frame.f_code.co_name == "generate_from_stream"
+            ):
+                return True
+            traceback = traceback.tb_next
+        return False
+    return isinstance(exc, _PROVIDER_API_ERROR_TYPES) and any(
+        marker in str(exc).lower()
+        for marker in ("stream_read_error", "stream_timeout", "stream timeout")
+    )
+
+
 def _is_retryable_exception(exc: BaseException) -> bool:
     """Retry only transient transport/provider failures."""
+    if _is_stream_transport_error(exc):
+        return True
     if isinstance(exc, _HTTP_STATUS_ERROR_TYPES + _PROVIDER_STATUS_ERROR_TYPES):
         status_code = _status_code_from_exception(exc)
         return status_code is not None and _is_transient_status_code(status_code)
+    if isinstance(exc, _PROVIDER_API_ERROR_TYPES):
+        message = str(exc).lower()
+        return any(marker in message for marker in _TRANSIENT_API_ERROR_MARKERS)
     return isinstance(exc, _RETRYABLE_EXCEPTIONS)
 
 
@@ -200,7 +250,13 @@ class BaseAgent(ABC):
         except _RETRYABLE_EXCEPTIONS:
             raise
         except Exception as e:
-            logger.warning(f"LLM invocation failed (non-retryable): {type(e).__name__}: {e}")
+            disposition = "transient; retrying" if _is_retryable_exception(e) else "non-retryable"
+            logger.warning(
+                "LLM invocation failed (%s): %s: %s",
+                disposition,
+                type(e).__name__,
+                e,
+            )
             raise
 
     def invoke(self, input_dict: dict) -> Any:

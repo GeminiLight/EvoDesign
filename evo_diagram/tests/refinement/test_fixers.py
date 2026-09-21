@@ -3,6 +3,51 @@ from copy import deepcopy
 
 import pytest
 
+
+@pytest.mark.parametrize("operation,payload", [
+    ("set_style", {"opacity": 0}),
+    ("set_style", {"strokeWidth": 0}),
+    ("set_style", {"strokeColor": "transparent"}),
+    ("delete_element", {}),
+])
+def test_visual_refiner_cannot_erase_semantic_connectors(operation, payload):
+    from evo_diagram.agentic_system.refinement_stage.fixers.apply_edits import apply_edits
+    from evo_diagram.agentic_system.refinement_stage.state import EditOp
+
+    manifest = {
+        "elements": [{"id": "a", "type": "arrow", "opacity": 62,
+                      "meta": {"semantic_edge_id": "requires"}}],
+        "_meta": {"id_map": {"requires": "a"}},
+    }
+    original = deepcopy(manifest)
+    result, outcomes = apply_edits(manifest, [
+        EditOp(op=operation, id="a", payload=payload, source="llm"),
+    ])
+    assert result == original
+    assert not outcomes[0].applied
+    assert "semantic" in outcomes[0].error
+
+
+@pytest.mark.parametrize("payload", [
+    {"strokeWidth": 0},
+    {"strokeColor": "#f8fcf7", "backgroundColor": "#f8fcf7"},
+])
+def test_refiner_keeps_visible_boundary_on_fact_bearing_heading(payload):
+    from evo_diagram.agentic_system.refinement_stage.fixers.apply_edits import apply_edits
+    from evo_diagram.agentic_system.refinement_stage.state import EditOp
+
+    manifest = {
+        "elements": [{"id": "heading", "type": "rectangle", "strokeWidth": 1,
+                      "meta": {"conceptFactAnchor": True}}],
+        "_meta": {"id_map": {"category": "heading"}},
+    }
+    result, outcomes = apply_edits(manifest, [
+        EditOp(op="set_style", id="heading", payload=payload, source="llm"),
+    ])
+    assert result["elements"][0]["strokeWidth"] == 1
+    assert not outcomes[0].applied
+
+
 class TestFixers:
     def test_edit_op_has_expected_ops(self):
         from evo_diagram.agentic_system.refinement_stage.state import EditOp

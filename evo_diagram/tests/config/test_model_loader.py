@@ -50,29 +50,29 @@ class TestModelConfig:
         assert path.parent.name == "defaults"
         assert path.exists()
 
-    def test_default_generator_role_uses_stepfun(self, monkeypatch):
+    def test_default_generator_role_uses_gpt_5_6(self, monkeypatch):
         monkeypatch.setenv("STEPFUN_API_KEY", "sk-stepfun-test")
 
         cfg = ModelConfig(_DEFAULT_PATH)
         params = cfg.get_model_config("generator")
 
-        assert cfg.list_roles()["generator"] == "step-3.7-flash"
+        assert cfg.list_roles()["generator"] == "gpt-5.6"
         assert params["model_provider"] == "openai"
-        assert params["model"] == "step-3.7-flash"
-        assert params["base_url"] == "https://api.stepfun.com/v1"
+        assert params["model"] == "gpt-5.6-sol"
+        assert params["base_url"] == "https://provider.example/v1/responses"
         assert params["api_key"] == "sk-stepfun-test"
 
-    def test_default_llm_roles_use_stepfun_flash(self, monkeypatch):
+    def test_default_llm_roles_use_gpt_5_6(self, monkeypatch):
         monkeypatch.setenv("STEPFUN_API_KEY", "sk-stepfun-test")
 
         cfg = ModelConfig(_DEFAULT_PATH)
 
         for role in ("default", "fast", "eval", "generator", "refiner", "verifier", "distiller", "router"):
             params = cfg.get_model_config(role)
-            assert cfg.list_roles()[role] == "step-3.7-flash"
+            assert cfg.list_roles()[role] == "gpt-5.6"
             assert params["model_provider"] == "openai"
-            assert params["model"] == "step-3.7-flash"
-            assert params["base_url"] == "https://api.stepfun.com/v1"
+            assert params["model"] == "gpt-5.6-sol"
+            assert params["base_url"] == "https://provider.example/v1/responses"
             assert params["api_key"] == "sk-stepfun-test"
 
     def test_default_vlm_roles_declare_vision_capability(self, monkeypatch):

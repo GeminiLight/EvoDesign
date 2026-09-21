@@ -79,6 +79,23 @@ def _stagger_delta(index: int, total: int, spacing: float) -> float:
     return (index - (total - 1) / 2.0) * spacing
 
 
+def _bounded_midpoint(
+    start: float,
+    end: float,
+    index: int,
+    total: int,
+    spacing: float,
+    margin: float = 12.0,
+) -> float:
+    """Stagger a corridor without pushing it into either endpoint node."""
+    midpoint = (start + end) / 2.0
+    low = min(start, end) + margin
+    high = max(start, end) - margin
+    if low >= high:
+        return midpoint
+    return max(low, min(high, midpoint + _stagger_delta(index, total, spacing)))
+
+
 def _face_stagger_delta(
     index: int,
     total: int,
@@ -199,8 +216,9 @@ def compute_waypoints(
             # top↔bottom pair: travel along y axis
             if abs(start["x"] - end["x"]) < alignment_tol:
                 return [start, end], 0.0, 0.0
-            mid_y = (start["y"] + end["y"]) / 2.0
-            mid_y += _stagger_delta(stagger_index, stagger_total, stagger_spacing)
+            mid_y = _bounded_midpoint(
+                start["y"], end["y"], stagger_index, stagger_total, stagger_spacing
+            )
             return (
                 [
                     start,
@@ -214,8 +232,9 @@ def compute_waypoints(
         # left↔right pair: travel along x axis
         if abs(start["y"] - end["y"]) < alignment_tol:
             return [start, end], 0.0, 0.0
-        mid_x = (start["x"] + end["x"]) / 2.0
-        mid_x += _stagger_delta(stagger_index, stagger_total, stagger_spacing)
+        mid_x = _bounded_midpoint(
+            start["x"], end["x"], stagger_index, stagger_total, stagger_spacing
+        )
         return (
             [
                 start,

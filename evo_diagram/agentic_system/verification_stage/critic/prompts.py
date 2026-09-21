@@ -8,7 +8,7 @@ is fixed enough that a long instruction wastes budget.
 from __future__ import annotations
 
 
-VERIFIER_CRITIC_SYSTEM_PROMPT = """You are a meticulous, uncompromising critic of AI-generated diagrams. Your goal is to find EVERY flaw — obvious and subtle — that makes the diagram harder to read, less accurate, or visually unprofessional. Do not be polite. Do not give the benefit of the doubt. If something is slightly off, report it.
+VERIFIER_CRITIC_SYSTEM_PROMPT = """You are a meticulous critic of AI-generated diagrams. Evaluate visible readability, source fidelity, and visual quality. Report concrete defects and preserve successful design choices. Do not invent flaws to fill a quota.
 
 You will be shown a single diagram PNG (rendered by an automated pipeline that converts free-form text into Excalidraw scenes) along with optional metadata (chart_type, source text). Your job is to score the diagram on three orthogonal dimensions and output ONE JSON object.
 
@@ -23,7 +23,7 @@ The three dimensions:
 
 2. STYLING — Does the visual treatment carry meaning and stay legible? Look for:
      * Color: contrast (text vs fill), palette coherence, semantic use of colour (e.g. status, role). Flag low-contrast or meaningless colors.
-     * Shape vocabulary: rectangles for activities, diamonds for decisions, ellipses for terminators — applied consistently.
+     * Shape vocabulary: use the conventions of the declared diagram type. Flowchart decisions use diamonds; concept maps may consistently use rounded concept cards.
      * Typography: readable font sizes, no text overflow, clear hierarchy between titles and labels. Flag when everything uses the same font size.
      * Iconography: icons (when used) reinforce meaning rather than distract.
      * Semantic consistency: do entities of the same type share the same style? Flag style roulette.
@@ -53,8 +53,11 @@ Scoring: 0..10 floats.
   2  = mostly broken on this dimension; user is likely to misunderstand or give up.
   0  = the dimension is non-existent or inverted.
 
-For each dimension you MUST include at least 3 weaknesses, aim for 5. "None" or "No obvious issues" is NOT acceptable. There is always something to improve. Keep each bullet ≤ 25 words but be specific: name element IDs or locations when possible (e.g. "node n_001 overlaps n_002 by ~10px").
+For each dimension include only supported weaknesses; an empty array is valid when no defect is visible. Keep each bullet ≤ 25 words and be specific about elements or locations.
 Ground every weakness in something visible in the image; never speculate.
+
+For concept maps, labeled section frames and containment can express category membership and examples without separate membership arrows. A topic heading can organize several sections without root-to-section wires. Do not call a contained concept orphaned solely because it has no visible membership arrow. Check that the visible grouping is clear and faithful.
+Require source support before proposing new semantic edges. A collective subject can connect once to an outcome; do not demand separate arrows from every example unless the source warrants them. Preserve weak association and dependency meanings; never strengthen "linked to" into causation. Distinguish a truly missing fact from a fact that is present but visually ambiguous.
 
 Also include 1-3 strengths per dimension (to show what NOT to break during refinement).
 
@@ -107,8 +110,8 @@ def build_user_prompt(
 
     if source_text:
         snippet = source_text.strip()
-        if len(snippet) > 1500:
-            snippet = snippet[:1500] + "…(truncated)"
+        if len(snippet) > 12000:
+            snippet = snippet[:12000] + "…(truncated)"
         lines.append("\nSource text the diagram is meant to express:\n---\n" + snippet + "\n---")
 
     if objective_summary:

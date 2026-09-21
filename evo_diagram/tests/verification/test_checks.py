@@ -2,6 +2,28 @@
 import pytest
 
 
+@pytest.mark.parametrize("offset,end_x,endpoint,expected", [
+    (0, 180, False, True),
+    (-2, 180, False, True),
+    (-6, 180, False, False),
+    (0, 100, False, False),
+    (0, 180, True, False),
+])
+def test_edge_clearance_distinguishes_border_runs_from_endpoints_and_corners(offset, end_x, endpoint, expected):
+    from evo_diagram.agentic_system.verification_stage.checks.collision_detection import check_edge_node_clearance
+
+    manifest = {"elements": [
+        {"id": "node", "type": "rectangle", "x": 100, "y": 100, "width": 40, "height": 40},
+        {"id": "edge", "type": "arrow", "x": 0, "y": 100 + offset,
+         "points": [[0, 0], [end_x, 0]], "meta": {"target": "node"} if endpoint else {}},
+    ]}
+    findings = check_edge_node_clearance(manifest)
+    assert bool(findings) is expected
+    if expected:
+        assert findings[0].category == "collision/edge_node_clearance"
+        assert findings[0].location["node_id"] == "node"
+
+
 def _minimal_tldraw_manifest(*shape_records):
     required_schema_keys = [
         "com.tldraw.store",
@@ -359,6 +381,46 @@ class TestObjectiveChecks:
         assert findings[0].category == "collision/out_of_canvas"
         assert findings[0].element_id == "clipped"
         assert "violates canvas safe area" in findings[0].message
+
+    def test_out_of_canvas_ignores_arrow_bound_text_placeholder(self):
+        from evo_diagram.agentic_system.verification_stage.checks.collision_detection import (
+            check_out_of_canvas,
+        )
+
+        manifest = {
+            "elements": [
+                {
+                    "id": "arrow:1",
+                    "type": "arrow",
+                    "x": 100,
+                    "y": 100,
+                    "points": [[0, 0], [200, 0]],
+                },
+                {
+                    "id": "arrow-label",
+                    "type": "text",
+                    "containerId": "arrow:1",
+                    "x": 120,
+                    "y": 0,
+                    "width": 48,
+                    "height": 16,
+                    "text": "depends on",
+                },
+                {
+                    "id": "ordinary-text",
+                    "type": "text",
+                    "x": 120,
+                    "y": 0,
+                    "width": 48,
+                    "height": 16,
+                    "text": "visible",
+                },
+            ],
+        }
+
+        findings = check_out_of_canvas(manifest)
+
+        assert [finding.element_id for finding in findings] == ["ordinary-text"]
 
     def test_run_all_checks_projects_tldraw_shapes_for_overlap_detection(self):
         from evo_diagram.agentic_system.verification_stage.checks import aggregator
@@ -727,3 +789,66 @@ class TestObjectiveChecks:
         }
 
         assert check_edge_node_intersections(manifest) == []
+
+    def test_edge_node_intersection_flags_early_entry_into_target(self):
+        from evo_diagram.agentic_system.verification_stage.checks.collision_detection import (
+            check_edge_node_intersections,
+        )
+
+        manifest = {
+            "_meta": {"id_map": {"source": "source", "target": "target"}},
+            "elements": [
+                {"id": "source", "type": "rectangle", "x": 0, "y": 4, "width": 40, "height": 40},
+                {"id": "target", "type": "rectangle", "x": 200, "y": 40, "width": 40, "height": 40},
+                {
+                    "id": "arrow:hugs-target",
+                    "type": "arrow",
+                    "x": 40,
+                    "y": 44,
+                    "points": [[0, 0], [0, -2], [180, -2], [180, -4]],
+                    "meta": {"source": "source", "target": "target"},
+                },
+            ],
+        }
+
+        findings = check_edge_node_intersections(manifest)
+
+        assert len(findings) == 1
+        assert findings[0].element_id == "arrow:hugs-target"
+        assert findings[0].location["node_id"] == "target"
+        assert findings[0].location["segment_index"] == 1
+
+    def test_collision_checks_ignore_fully_transparent_arrows(self):
+        from evo_diagram.agentic_system.verification_stage.checks.collision_detection import (
+            check_edge_crossings,
+            check_edge_node_intersections,
+        )
+
+        manifest = {
+            "elements": [
+                {"id": "node", "type": "rectangle", "x": 90, "y": 90, "width": 20, "height": 20},
+                {
+                    "id": "hidden-horizontal",
+                    "type": "arrow",
+                    "opacity": 0,
+                    "x": 0,
+                    "y": 100,
+                    "points": [[0, 0], [200, 0]],
+                },
+                {
+                    "id": "visible-vertical",
+                    "type": "arrow",
+                    "opacity": 100,
+                    "x": 100,
+                    "y": 0,
+                    "points": [[0, 0], [0, 200]],
+                },
+            ],
+        }
+
+        assert check_edge_crossings(manifest) == []
+        intersection_ids = {
+            finding.element_id for finding in check_edge_node_intersections(manifest)
+        }
+        assert "hidden-horizontal" not in intersection_ids
+        assert "visible-vertical" in intersection_ids

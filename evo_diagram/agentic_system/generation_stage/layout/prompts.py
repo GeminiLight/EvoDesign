@@ -11,14 +11,14 @@ from evo_diagram.canvas_runtime import (
     CANVAS_DEFAULT_VIEWPORT_WIDTH,
 )
 
-_CANVAS_VIEWPORT_LABEL = (
+_CANVAS_HARD_BOUNDS_LABEL = (
     f"{CANVAS_DEFAULT_VIEWPORT_WIDTH} x {CANVAS_DEFAULT_VIEWPORT_HEIGHT}"
 )
 
 LAYOUT_TASK_PROMPT = (
     f"""
 ### REASONING PROTOCOL (complete these steps in your hidden thinking channel, in order, before emitting JSON) ###
-(a) Read upstream `[Diagnosis]` blocks — note `diagram_paradigm` and `visual_paradigm`. Your `canvas_use_plan` MUST reflect the paradigm (radial for mindmap, grid for matrix, lanes for swimlane, etc.). Budget the {_CANVAS_VIEWPORT_LABEL} viewport accordingly.
+(a) Read upstream `[Diagnosis]` blocks — note `diagram_paradigm` and `visual_paradigm`. Your `canvas_use_plan` MUST reflect the paradigm (radial for mindmap, grid for matrix, lanes for swimlane, etc.). Use the program-selected viewport budget below rather than treating the full hard bounds as blank space to fill.
 (b) Pick the pattern-specific placement grammar (organizer-first for containment; anchor-first for radial; flow-first for directed).
 (c) Assign coordinates node-by-node. For groups, compute rectangle from children — never guess.
 (d) **Pick edge port sides — this is a DISCRETE 4-choose-1 per endpoint, not a coordinate computation.**
@@ -42,11 +42,11 @@ LAYOUT_TASK_PROMPT = (
 ### PHASE 3 LAYOUT DIAGNOSTIC FRAMEWORK ###
 
 **Canvas Planning**:
-- Viewport: {_CANVAS_VIEWPORT_LABEL} available (use proportionally to complexity)
+{{{{viewport_plan}}}}
 - Footprint: let narrative complexity determine spread
 - Primary axis: choose dominant reading direction
 - Local axis: may differ from global axis inside organizers
-- **Viewport overflow**: If content exceeds the {_CANVAS_VIEWPORT_LABEL} viewport, scale proportionally. Do NOT emit elements outside the viewport bounds.
+- **Viewport overflow**: Stay inside the preferred viewport whenever the supplied minimum element sizes fit. The absolute safety bounds are {_CANVAS_HARD_BOUNDS_LABEL}; do NOT emit elements outside them.
 - **Text overflow**: When a node's label exceeds its width, word-wrap within the node. Do NOT truncate with ellipsis or reduce font size — the node's `w`/`h` are computed from the label length, so overflow should not occur if dimensions are sized correctly. If it still occurs, increase `w` rather than clipping text.
 
 **Organizer-First Placement** — For containment-based diagrams:
@@ -92,7 +92,7 @@ consistent with the upstream `diagram_paradigm` and `visual_paradigm`. Your
 job here is geometry only, but every coordinate must reinforce the upstream
 diagnosis, not re-derive it.
 
-- Canvas plan within the {_CANVAS_VIEWPORT_LABEL} viewport.
+- Canvas plan within the program-selected preferred viewport; the hard bounds are only an emergency ceiling.
 - **Use chart-type-specific layout algorithms when upstream nodes carry the corresponding optional fields** (see Structure's OPTIONAL PER-TYPE FIELDS section — these hints short-circuit the need to reconstruct topology from edges). If none apply, fall back to the generic organizer-first placement below.
 - Organizer-first placement for containment-based families; derive group rectangles from children, not by guess.
 - Within-organizer flow grammar vs cross-boundary edge grammar (adjacent handoff, long-span transfer, convergence, feedback return).

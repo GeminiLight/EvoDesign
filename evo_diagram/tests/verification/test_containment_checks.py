@@ -135,3 +135,24 @@ def test_swimlane_explicit_membership_overrides_centroid_assignment():
     assert len(findings) == 1
     assert findings[0].category == "containment/swimlane_lane"
     assert findings[0].location["lane_id"] == "lane1"
+def test_concept_branch_membership_survives_moving_frame_to_another_branch():
+    from evo_diagram.agentic_system.verification_stage.checks.containment import (
+        check_group_bbox_contains_children,
+    )
+
+    structure = {"chart_type": "concept_map", "nodes": [
+        {"id": "theory", "class": "branch_anchor", "branch_id": "theory"},
+        {"id": "practice", "class": "branch_anchor", "branch_id": "practice"},
+        {"id": "model", "class": "concept", "branch_id": "theory"},
+    ]}
+    manifest = {"_meta": {"id_map": {
+        "theory:background": "frame1", "practice:background": "frame2", "model": "m",
+    }}, "elements": [
+        {"id": "frame1", "type": "rectangle", "x": 0, "y": 200, "width": 200, "height": 100},
+        {"id": "frame2", "type": "rectangle", "x": 0, "y": 0, "width": 200, "height": 100},
+        {"id": "m", "type": "rectangle", "x": 30, "y": 20, "width": 100, "height": 50},
+    ]}
+    findings = check_group_bbox_contains_children(manifest, structure)
+    assert len(findings) == 1
+    assert findings[0].element_id == "m"
+    assert findings[0].location["group_id"] == "theory"

@@ -28,6 +28,7 @@ from evo_diagram.agentic_system.common.spec_utils import (
 from evo_diagram.agentic_system.generation_stage.structure.prompts import STRUCTURE_TASK_PROMPT
 from evo_diagram.agentic_system.generation_stage.structure.schemas import (
     StructureValidationError,
+    validate_structure_semantic_ledger,
     validate_structure_instantiation,
 )
 from evo_diagram.agentic_system.generation_stage.structure.state import WorkflowState
@@ -127,6 +128,7 @@ class StructureAgent(BaseAgent):
 
         try:
             instantiation = validate_structure_instantiation(instantiation)
+            validate_structure_semantic_ledger(specification, instantiation)
         except StructureValidationError as exc:
             state.add_error(str(exc))
             raise

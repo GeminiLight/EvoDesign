@@ -18,7 +18,10 @@ from evo_diagram.agentic_system.render_engine.excalidraw.edge_router import (
     to_relative_points,
     waypoints_bbox,
 )
-from evo_diagram.agentic_system.render_engine.shared.edge_routing import audit_sides
+from evo_diagram.agentic_system.render_engine.shared.edge_routing import (
+    audit_sides,
+    pick_sides_from_geometry,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -241,6 +244,29 @@ def test_port_stagger_is_bounded_inside_compact_face():
     )
 
     assert compact["x"] < points[0]["x"] < compact["x"] + compact["w"]
+
+
+def test_corridor_stagger_stays_between_close_vertical_nodes():
+    target = {"x": 400.0, "y": 230.0, "w": 100.0, "h": 60.0}
+    points, _, _ = compute_waypoints(
+        "bottom",
+        "top",
+        SRC,
+        target,
+        stagger_index=2,
+        stagger_total=3,
+        stagger_spacing=50.0,
+    )
+
+    assert SRC["y"] + SRC["h"] < points[1]["y"] < target["y"]
+    assert points[1]["y"] == points[2]["y"]
+
+
+def test_side_selection_uses_dominant_axis_for_far_sidebar_target():
+    source = _shape_from_bbox(SRC)
+    target = _shape_from_bbox({"x": 1000.0, "y": 300.0, "w": 100.0, "h": 60.0})
+
+    assert pick_sides_from_geometry(source, target) == ("right", "left")
 
 
 # ---------------------------------------------------------------------------

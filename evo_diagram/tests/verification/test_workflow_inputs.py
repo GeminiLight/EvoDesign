@@ -5,6 +5,8 @@ from __future__ import annotations
 import base64
 import json
 
+import pytest
+
 from evo_diagram.agentic_system.verification_stage.workflow import VerifierWorkflow
 from evo_diagram.agentic_system.verification_stage.checks.finding import Finding, Severity
 
@@ -16,6 +18,47 @@ _VALID_PNG = base64.b64decode(
 
 def _write_png(path):
     path.write_bytes(_VALID_PNG)
+
+
+@pytest.mark.parametrize("mode", ["oneshot", "multiagent"])
+def test_pipeline_native_verification_skips_only_unavailable_layout_ir(tmp_path, mode):
+    from types import SimpleNamespace
+
+    from evo_diagram.agentic_system.generation_stage.unified.native_defaults import complete_native_elements
+    from evo_diagram.agentic_system.workflow import Text2DiagramWorkflow
+
+    structure = {
+        "chart_type": "flowchart",
+        "nodes": [{"id": key, "label": key, "class": "process"} for key in ("a", "b")],
+        "edges": [], "groups": [],
+    }
+    manifest = {
+        "type": "excalidraw/clipboard", "files": {}, "appState": {},
+        "elements": [
+            {"id": key, "type": "rectangle", "x": x, "y": 100, "width": 120,
+             "height": 60, "strokeColor": "#333333", "backgroundColor": "#ffffff"}
+            for key, x in (("a", 100), ("b", 160))
+        ],
+        "_meta": {"id_map": {"a": "a", "b": "b"}, "structure_instantiation": structure},
+    }
+    complete_native_elements(manifest)
+    manifest_path, structure_path, image_path = (tmp_path / name for name in ("scene.json", "structure.json", "scene.png"))
+    manifest_path.write_text(json.dumps(manifest))
+    structure_path.write_text(json.dumps(structure))
+    _write_png(image_path)
+    workflow = object.__new__(Text2DiagramWorkflow)
+    workflow.mode, workflow.canvas_library = mode, "excalidraw"
+    workflow.enable_verifier, workflow.enable_critic = True, False
+    result = workflow._run_verification_phase(
+        render_result=SimpleNamespace(manifest_path=str(manifest_path), png_path=str(image_path)),
+        generation=SimpleNamespace(artifact_paths={"structure_instantiation_path": str(structure_path)}),
+        text_content="Two overlapping process nodes.", save_dir=str(tmp_path),
+    )
+    categories = {finding.category for finding in result.state.objective_findings}
+    assert "collision/node_overlap" in categories
+    assert ("render_validation/layout_audit/missing_layout" in categories) == (mode == "multiagent")
+    assert result.state.status == "reported_with_findings"
+    assert result.state.structure == structure
 
 
 def test_verifier_loads_explicit_layout_path(tmp_path):

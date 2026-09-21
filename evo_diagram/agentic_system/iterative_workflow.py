@@ -29,7 +29,7 @@ from typing import Any, Dict, List, Optional
 
 from langgraph.graph import END, START, StateGraph
 
-from evo_diagram.canvas_environment import render_png_result
+from evo_diagram.canvas_environment import normalize_manifest, render_png_result
 from evo_diagram.canvas_runtime import normalize_canvas_library
 from evo_diagram.agentic_system.verification_stage.checks.aggregator import run_all_checks
 from evo_diagram.agentic_system.verification_stage.checks.finding import (
@@ -56,6 +56,9 @@ from evo_diagram.agentic_system.refinement_stage.state import (
     IterationLog,
     SUPPORTED_REFINER_CANVAS_LIBRARIES,
     VerifierRefinerState,
+)
+from evo_diagram.agentic_system.render_engine.excalidraw.arrow_adder import (
+    rebuild_excalidraw_arrows,
 )
 
 logger = logging.getLogger(__name__)
@@ -159,6 +162,7 @@ def _run_objective_checks(state: VerifierRefinerState) -> List[Finding]:
         state.structure,
         layout_instantiation=state.layout_instantiation,
         canvas_library=state.canvas_library,
+        skip_categories=state.skip_checks,
     )
 
 
@@ -177,7 +181,57 @@ def _apply_edit_batch(
     setattr(log, target_attr, outcomes)
     applied_n = sum(1 for outcome in outcomes if outcome.applied)
     state.add_log(f"{log_prefix} emitted={len(edits)} applied={applied_n}")
+    _refresh_edited_geometry(state, outcomes, log=log)
     return outcomes
+
+
+def _refresh_edited_geometry(
+    state: VerifierRefinerState,
+    outcomes: List[EditApplyOutcome],
+    *,
+    log: IterationLog,
+) -> bool:
+    """Refresh routes and label geometry after shape or typography edits."""
+    manifest = state.manifest or {}
+    metadata = manifest.get("_meta") or {}
+    if not state.structure or not metadata.get("edge_data"):
+        return False
+    elements = {element.get("id"): element for element in manifest.get("elements", [])}
+    changed_shapes = {
+        outcome.edit.id
+        for outcome in outcomes
+        if outcome.applied
+        and outcome.edit.op in {"set_position", "set_size"}
+        and elements.get(outcome.edit.id, {}).get("type")
+        in {"rectangle", "ellipse", "diamond", "image"}
+    }
+    changed_edge_labels = {
+        outcome.edit.id
+        for outcome in outcomes
+        if outcome.applied
+        and outcome.edit.op == "set_style"
+        and {"fontSize", "fontFamily"}.intersection(outcome.edit.payload)
+        and elements.get(outcome.edit.id, {}).get("type") == "text"
+        and (
+            (elements[outcome.edit.id].get("meta") or {}).get("semantic_edge_id")
+            or elements.get(elements[outcome.edit.id].get("containerId"), {}).get("type") == "arrow"
+        )
+    }
+    if not changed_shapes and not changed_edge_labels:
+        return False
+
+    # Excalidraw exports authored polylines as supplied; changing a shape's
+    # bbox alone does not retarget or reroute them. Reuse the scene router,
+    # which also preserves semantic IDs and authored connector styles.
+    state.manifest = rebuild_excalidraw_arrows(manifest, state.structure)
+    normalize_manifest(state.manifest, canvas_library=state.canvas_library)
+    message = (
+        f"rebuilt connectors after edits to {len(changed_shapes)} shape(s) "
+        f"and {len(changed_edge_labels)} edge label(s)"
+    )
+    log.notes.append(message)
+    state.add_log(message)
+    return True
 
 
 def _propose_llm_edits(
@@ -233,13 +287,15 @@ def _rerender_iteration_image(
     *,
     log: IterationLog,
     iteration: int,
+    phase: str = "",
 ) -> None:
     out_dir = Path(state.output_dir or Path(state.manifest_path).parent)
     if state.skip_rerender_between_iterations:
         log.notes.append("re-render skipped (--no-rerender)")
         return
 
-    iter_image = out_dir / f"refined_iter_{iteration}.png"
+    suffix = f"_{phase}" if phase else ""
+    iter_image = out_dir / f"refined_iter_{iteration}{suffix}.png"
     render_result = render_png_result(
         state.manifest,
         str(iter_image),
@@ -274,6 +330,13 @@ def _mark_convergence(
     state.current_iteration = iteration
 
     remaining_serious = _major_or_critical_count(findings_after_iter)
+    severity_order = ("critical", "major", "minor", "info")
+    baseline = state.iteration_logs[0].findings_before
+    current = summarize_findings(findings_after_iter)
+    has_regression = tuple(current.get(key, 0) for key in severity_order) > tuple(
+        baseline.get(key, 0) for key in severity_order
+    )
+    quality_resolved = remaining_serious == 0 and not has_regression
     current_fp = _fingerprint_findings(findings_after_iter)
     is_stagnant = (
         state._prev_findings_fingerprint is not None
@@ -283,7 +346,7 @@ def _mark_convergence(
 
     if is_stagnant:
         state.termination_reason = "stagnant"
-        state.converged = remaining_serious == 0
+        state.converged = quality_resolved
         state.add_log(
             f"  → stagnant (findings unchanged after round {iteration}; "
             f"{remaining_serious} serious finding(s) remain)"
@@ -292,28 +355,30 @@ def _mark_convergence(
             "stagnation: findings identical to previous round"
         )
     elif not edits_applied:
-        if remaining_serious == 0:
+        if quality_resolved:
             state.converged = True
             state.termination_reason = "no_edits_resolved"
             state.add_log(
-                "  → converged (no edits emitted and no serious findings remain)"
+                "  → converged (no edits emitted, no serious findings or objective regression)"
             )
         else:
             state.converged = False
             state.termination_reason = "fixed_point_unresolved"
             state.add_log(
-                f"  → fixed point reached ({remaining_serious} serious finding(s) "
-                "remain but no fixer can address them)"
+                f"  → fixed point reached ({remaining_serious} serious finding(s), "
+                f"objective regression={has_regression}, no applicable edits)"
             )
             log.notes.append(
-                f"stopped at fixed point: {remaining_serious} serious finding(s) unfixable"
+                "stopped at fixed point with unresolved findings or objective regression"
             )
-    elif remaining_serious == 0:
+    elif quality_resolved:
         state.converged = True
         state.termination_reason = "resolved"
         state.add_log(
-            "  → converged (no serious findings remain after this round)"
+            "  → converged (no serious findings or objective regression remain)"
         )
+    elif has_regression:
+        state.add_log("  → continuing to repair objective regression from the initial scene")
 
 
 # ---------------------------------------------------------------------------
@@ -405,6 +470,7 @@ def _run_one_iteration(
         state.current_iteration = iteration
         return state
 
+    manifest_before_deterministic = state.manifest
     det_outcomes = _apply_edit_batch(
         state,
         det_edits,
@@ -416,6 +482,16 @@ def _run_one_iteration(
     # ── Phase 3: Fix — LLM ──────────────────────────────────────────
     llm_outcomes: List[EditApplyOutcome] = []
     if llm_agent is not None:
+        if state.manifest is not manifest_before_deterministic:
+            # Geometry synchronization creates a new scene. Supply its actual
+            # pixels alongside the updated manifest summary to the VLM.
+            _rerender_iteration_image(
+                state, log=log, iteration=iteration, phase="deterministic"
+            )
+            if state.status == "failed":
+                state.iteration_logs.append(log)
+                state.current_iteration = iteration
+                return state
         proposed_edits = _propose_llm_edits(
             state,
             llm_agent=llm_agent,
@@ -651,6 +727,7 @@ class IterativeRefinerWorkflow:
         canvas_library: str = "excalidraw",
         max_iterations: int = 3,
         skip_rerender_between_iterations: bool = False,
+        skip_checks: Optional[List[str]] = None,
         emit_markdown: bool = False,
     ) -> VerifierRefinerState:
         canvas_library = _normalize_refiner_canvas_library(canvas_library)
@@ -664,6 +741,7 @@ class IterativeRefinerWorkflow:
             canvas_library=canvas_library,
             max_iterations=max_iterations,
             skip_rerender_between_iterations=skip_rerender_between_iterations,
+            skip_checks=skip_checks or [],
             emit_markdown=emit_markdown,
         )
         result = self.graph.invoke(initial)

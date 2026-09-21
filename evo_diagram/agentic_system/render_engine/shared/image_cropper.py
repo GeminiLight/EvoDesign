@@ -54,19 +54,25 @@ def smart_crop(image_path: str, output_path: str, padding: int = 0, bottom_offse
     safe_h = max(0, img_working.shape[0] - bottom_offset)
     img_working = img_working[0:safe_h, 0:]
     
-    # 3. Step 2: Content Recognition
-    # Convert to grayscale for threshold processing
-    gray = cv2.cvtColor(img_working, cv2.COLOR_BGR2GRAY)
-
-    # 4. Thresholding using Otsu's method for automatic threshold
-    # This automatically finds the optimal threshold value
-    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    
-    # 5. Morphological Operations
-    # Use closing to connect nearby elements and remove noise
-    kernel = np.ones((5, 5), np.uint8)
-    thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=2)
-    thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=1)
+    # Native Excalidraw exports have clean, uniform padding, with no UI to
+    # remove. A dark title can dominate Otsu's threshold and erase pale frame
+    # borders or dashed relations from the bounds. Morphological opening also
+    # erases thin strokes. Preserve every visible deviation from the exported
+    # canvas color, including single-pixel lines and tinted backgrounds.
+    if canvas_engine.lower() == "excalidraw":
+        background = img_working[0, 0].astype(np.int16)
+        difference = np.max(
+            np.abs(img_working.astype(np.int16) - background), axis=2
+        )
+        thresh = (difference > 2).astype(np.uint8) * 255
+    else:
+        gray = cv2.cvtColor(img_working, cv2.COLOR_BGR2GRAY)
+        _, thresh = cv2.threshold(
+            gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
+        )
+        kernel = np.ones((5, 5), np.uint8)
+        thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=2)
+        thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=1)
 
     # 6. Bounding Box Calculation
     # Find all non-zero (white) pixels which represent the actual diagram content

@@ -39,6 +39,14 @@ _EDGE_CROSSING_INFO_THRESHOLD = 0  # 0..N crossings → INFO
 _EDGE_CROSSING_MINOR_THRESHOLD = 4  # >N crossings → MINOR
 
 
+def _is_fully_transparent(elem: Dict[str, Any]) -> bool:
+    """Return whether an element is intentionally absent from the visual surface."""
+    try:
+        return float(elem.get("opacity", 100)) <= 0
+    except (TypeError, ValueError):
+        return False
+
+
 def _bbox(elem: Dict[str, Any]) -> Optional[Tuple[float, float, float, float]]:
     try:
         x = float(elem.get("x", 0) or 0)
@@ -171,13 +179,13 @@ def _segment_intersects_rect_interior(
 def _arrow_endpoint_ids(
     arrow: Dict[str, Any],
     id_map: Dict[str, str],
-) -> set[str]:
-    """Resolve semantic or direct endpoint references for an arrow."""
-    endpoint_ids: set[str] = set()
-    for binding_key in ("startBinding", "endBinding"):
+) -> Dict[str, set[str]]:
+    """Resolve semantic or direct endpoint references by endpoint role."""
+    endpoint_ids: Dict[str, set[str]] = {"source": set(), "target": set()}
+    for binding_key, role in (("startBinding", "source"), ("endBinding", "target")):
         binding = arrow.get(binding_key)
         if isinstance(binding, dict) and binding.get("elementId"):
-            endpoint_ids.add(str(binding["elementId"]))
+            endpoint_ids[role].add(str(binding["elementId"]))
 
     metadata = arrow.get("meta")
     if not isinstance(metadata, dict):
@@ -187,12 +195,31 @@ def _arrow_endpoint_ids(
             ref = metadata.get(key)
             if ref is not None:
                 ref = str(ref)
-                endpoint_ids.add(str(id_map.get(ref, ref)))
+                endpoint_ids[key].add(str(id_map.get(ref, ref)))
     return endpoint_ids
 
 
-def check_edge_node_intersections(manifest: Dict[str, Any]) -> List[Finding]:
-    """Report arrow paths that enter a node other than their endpoints."""
+def _segment_tracks_border(
+    start: Tuple[float, float], end: Tuple[float, float],
+    bbox: Tuple[float, float, float, float], clearance: float,
+) -> bool:
+    """Detect a visible parallel run along an unrelated node border."""
+    x, y, width, height = bbox
+    if abs(start[1] - end[1]) <= 1e-6:
+        overlap = min(max(start[0], end[0]), x + width) - max(min(start[0], end[0]), x)
+        distance = min(abs(start[1] - y), abs(start[1] - y - height))
+    elif abs(start[0] - end[0]) <= 1e-6:
+        overlap = min(max(start[1], end[1]), y + height) - max(min(start[1], end[1]), y)
+        distance = min(abs(start[0] - x), abs(start[0] - x - width))
+    else:
+        return False
+    return overlap >= 12.0 and distance < clearance
+
+
+def check_edge_node_intersections(
+    manifest: Dict[str, Any], node_clearance: float = 0.0,
+) -> List[Finding]:
+    """Report node crossings and optionally ambiguous parallel border runs."""
     findings: List[Finding] = []
     if not isinstance(manifest, dict):
         return findings
@@ -225,21 +252,44 @@ def check_edge_node_intersections(manifest: Dict[str, Any]) -> List[Finding]:
     for arrow in elements:
         if not isinstance(arrow, dict) or arrow.get("isDeleted") or arrow.get("type") != "arrow":
             continue
+        if _is_fully_transparent(arrow):
+            continue
         arrow_id = str(arrow.get("id", "<no-id>"))
         endpoint_ids = _arrow_endpoint_ids(arrow, id_map)
         segments = _arrow_segments(arrow)
         for node_id, bbox in candidates:
-            if node_id in endpoint_ids:
-                continue
+            indexes = list(range(len(segments)))
+            if node_id in endpoint_ids["source"]:
+                indexes = [index for index in indexes if index != 0]
+            if node_id in endpoint_ids["target"]:
+                indexes = [index for index in indexes if index != len(segments) - 1]
             hit_segment = next(
                 (
                     index
-                    for index, segment in enumerate(segments)
+                    for index in indexes
+                    for segment in [segments[index]]
                     if _segment_intersects_rect_interior(segment[0], segment[1], bbox)
                 ),
                 None,
             )
             if hit_segment is None:
+                if node_clearance > 0 and node_id not in endpoint_ids["source"] | endpoint_ids["target"]:
+                    border_segment = next((
+                        index for index, (start, end) in enumerate(segments)
+                        if _segment_tracks_border(start, end, bbox, node_clearance)
+                    ), None)
+                    if border_segment is not None:
+                        findings.append(Finding(
+                            category="collision/edge_node_clearance",
+                            severity=Severity.MAJOR,
+                            message=(
+                                f"arrow {arrow_id!r} runs along unrelated node {node_id!r} "
+                                f"on segment {border_segment}; leave at least {node_clearance:g}px "
+                                "so the line does not imply an extra connection."
+                            ),
+                            element_id=arrow_id,
+                            location={"node_id": node_id, "segment_index": border_segment, "bbox": list(bbox)},
+                        ))
                 continue
             findings.append(
                 Finding(
@@ -247,13 +297,22 @@ def check_edge_node_intersections(manifest: Dict[str, Any]) -> List[Finding]:
                     severity=Severity.MAJOR,
                     message=(
                         f"arrow {arrow_id!r} enters node {node_id!r} on segment "
-                        f"{hit_segment}; source/target endpoints are excluded."
+                        f"{hit_segment}; only the first source segment and final "
+                        "target segment may touch endpoint nodes."
                     ),
                     element_id=arrow_id,
                     location={"node_id": node_id, "segment_index": hit_segment, "bbox": list(bbox)},
                 )
             )
     return findings
+
+
+def check_edge_node_clearance(manifest: Dict[str, Any]) -> List[Finding]:
+    """Report sustained near-border routes that imply unrelated connections."""
+    return [
+        finding for finding in check_edge_node_intersections(manifest, node_clearance=4.0)
+        if finding.category == "collision/edge_node_clearance"
+    ]
 
 
 def check_node_overlap(manifest: Dict[str, Any]) -> List[Finding]:
@@ -354,6 +413,8 @@ def check_edge_crossings(manifest: Dict[str, Any]) -> List[Finding]:
     for elem in elements:
         if not isinstance(elem, dict) or elem.get("isDeleted") or elem.get("type") != "arrow":
             continue
+        if _is_fully_transparent(elem):
+            continue
         eid = elem.get("id", "")
         segs = _arrow_segments(elem)
         if not segs:
@@ -418,12 +479,22 @@ def check_out_of_canvas(manifest: Dict[str, Any]) -> List[Finding]:
     if not isinstance(elements, list):
         return findings
 
+    arrow_ids = {
+        str(elem.get("id"))
+        for elem in elements
+        if isinstance(elem, dict) and elem.get("type") == "arrow" and elem.get("id")
+    }
     for elem in elements:
         if not isinstance(elem, dict):
             continue
         if elem.get("isDeleted"):
             continue
         if elem.get("type") in ("arrow", "freedraw", "line"):
+            continue
+        # Excalidraw positions text bound to an arrow from the arrow geometry.
+        # Its serialized x/y can remain a placeholder outside the canvas even
+        # though the rendered label is correctly located on the connector.
+        if elem.get("type") == "text" and str(elem.get("containerId")) in arrow_ids:
             continue
         bbox = _bbox(elem)
         if bbox is None:

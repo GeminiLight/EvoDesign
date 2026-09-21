@@ -36,6 +36,13 @@ SIZE_DICT = {
 # Approximate character width per font size unit (for estimating text dimensions)
 _CHAR_WIDTH_FACTOR = 0.6
 _STABLE_EXCALIDRAW_UPDATED_MS = 1
+_DEFAULT_NODE_STROKE = "#64748B"
+_DEFAULT_NODE_FILL = "#F8FAFC"
+_DEFAULT_TEXT_COLOR = "#1F2937"
+_DEFAULT_NODE_FONT_SIZE = 18
+_DEFAULT_ANNOTATION_FONT_SIZE = 16
+_DEFAULT_GROUP_TITLE_FONT_SIZE = 18
+_DEFAULT_LINE_HEIGHT = 1.2
 
 
 def _stable_payload(value: Any) -> str:
@@ -353,6 +360,19 @@ class InstantiationToExcalidrawConverter:
             "index": self._next_index(),
         }
 
+        # Keep the renderer fallback visually usable even when an upstream
+        # styling stage omits shape details. Explicit authored values below
+        # always win, and group frames retain their transparent defaults.
+        if not is_group_frame(semantic_id, element_data):
+            shape.update({
+                "strokeColor": _DEFAULT_NODE_STROKE,
+                "backgroundColor": _DEFAULT_NODE_FILL,
+                "strokeWidth": 1.5,
+                "roughness": 0,
+            })
+            if elem_type == "rectangle":
+                shape["roundness"] = {"type": 3}
+
         # Apply Excalidraw-native styling if present
         for key in ("strokeColor", "backgroundColor", "fillStyle", "strokeWidth",
                      "strokeStyle", "roughness", "opacity", "roundness"):
@@ -409,10 +429,16 @@ class InstantiationToExcalidrawConverter:
             props = {}
 
         text = self._lookup_label(semantic_id, element_data)
+        is_group_title = semantic_id.endswith(TITLE_SUFFIX)
         font_size = (
             label_data.get("fontSize")
             or props.get("fontSize")
-            or element_data.get("fontSize", 20)
+            or element_data.get("fontSize")
+            or (
+                _DEFAULT_GROUP_TITLE_FONT_SIZE
+                if is_group_title
+                else _DEFAULT_ANNOTATION_FONT_SIZE
+            )
         )
         font_family = (
             label_data.get("fontFamily")
@@ -428,6 +454,18 @@ class InstantiationToExcalidrawConverter:
             label_data.get("verticalAlign")
             or props.get("verticalAlign")
             or element_data.get("verticalAlign", "top")
+        )
+        font_style = (
+            label_data.get("fontStyle")
+            or props.get("fontStyle")
+            or element_data.get("fontStyle")
+            or (1 if is_group_title else 0)
+        )
+        line_height = (
+            label_data.get("lineHeight")
+            or props.get("lineHeight")
+            or element_data.get("lineHeight")
+            or _DEFAULT_LINE_HEIGHT
         )
 
         x = element_data.get("x", 0)
@@ -453,12 +491,14 @@ class InstantiationToExcalidrawConverter:
             "text": text,
             "fontSize": font_size,
             "fontFamily": font_family,
+            "fontStyle": font_style,
             "textAlign": text_align,
             "verticalAlign": vertical_align,
             "containerId": None,
             "originalText": text,
             "autoResize": True,
-            "lineHeight": 1.25,
+            "lineHeight": line_height,
+            "strokeColor": _DEFAULT_TEXT_COLOR,
         }
 
         # Apply stroke color if specified. Styling layer emits text color at
@@ -500,10 +540,39 @@ class InstantiationToExcalidrawConverter:
         if not isinstance(props, dict):
             props = {}
 
-        font_size = label_data.get("fontSize", props.get("fontSize", 20))
-        font_family = label_data.get("fontFamily", props.get("fontFamily", 5))
-        text_align = label_data.get("textAlign", props.get("textAlign", "center"))
-        vertical_align = label_data.get("verticalAlign", props.get("verticalAlign", "middle"))
+        font_size = (
+            label_data.get("fontSize")
+            or props.get("fontSize")
+            or container_data.get("fontSize")
+            or _DEFAULT_NODE_FONT_SIZE
+        )
+        font_family = (
+            label_data.get("fontFamily")
+            or props.get("fontFamily")
+            or container_data.get("fontFamily", 2)
+        )
+        text_align = (
+            label_data.get("textAlign")
+            or props.get("textAlign")
+            or container_data.get("textAlign", "center")
+        )
+        vertical_align = (
+            label_data.get("verticalAlign")
+            or props.get("verticalAlign")
+            or container_data.get("verticalAlign", "middle")
+        )
+        font_style = (
+            label_data.get("fontStyle")
+            or props.get("fontStyle")
+            or container_data.get("fontStyle")
+            or 0
+        )
+        line_height = (
+            label_data.get("lineHeight")
+            or props.get("lineHeight")
+            or container_data.get("lineHeight")
+            or _DEFAULT_LINE_HEIGHT
+        )
 
         # Estimate actual text dimensions (not container dimensions)
         dims = _estimate_text_dimensions(text, font_size)
@@ -520,12 +589,14 @@ class InstantiationToExcalidrawConverter:
             "text": text,
             "fontSize": font_size,
             "fontFamily": font_family,
+            "fontStyle": font_style,
             "textAlign": text_align,
             "verticalAlign": vertical_align,
             "containerId": container_id,
             "originalText": text,
             "autoResize": True,
-            "lineHeight": 1.25,
+            "lineHeight": line_height,
+            "strokeColor": _DEFAULT_TEXT_COLOR,
         }
 
         # Apply text color from label or container

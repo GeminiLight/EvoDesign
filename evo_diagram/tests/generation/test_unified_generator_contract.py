@@ -5,12 +5,14 @@ import pytest
 from evo_diagram.agentic_system.generation_stage.unified.generator import UnifiedGenerator
 from evo_diagram.agentic_system.generation_stage.unified.state import UnifiedWorkflowState
 from evo_diagram.agentic_system.generation_stage.unified.workflow import UnifiedGeneratorWorkflow
+from evo_diagram.agentic_system.generation_stage.unified.transport_journal import NativeStreamJournal
 
 
 def _generator_with_output(output):
     generator = object.__new__(UnifiedGenerator)
     generator.full_domain_knowledge = True
     generator._last_raw_output = None
+    generator.stream_journal = NativeStreamJournal()
     generator.invoke = lambda _inputs: output
     return generator
 
@@ -287,3 +289,182 @@ def test_unified_workflow_validator_passes_structure_to_audit(monkeypatch):
     assert captured["structure_instantiation"] == structure
     assert captured["canvas_library"] == "excalidraw"
     assert state.audit_warnings == ["checked"]
+
+
+@pytest.mark.parametrize("failure_stage", ["generate", "normalize", "validate"])
+def test_unified_workflow_repairs_current_scene_from_concrete_errors(tmp_path, monkeypatch, failure_stage):
+    import json
+    from copy import deepcopy
+    import evo_diagram.agentic_system.generation_stage.unified.workflow as workflow_module
+    from evo_diagram.agentic_system.generation_stage.unified.generator import UNIFIED_TASK_PROMPT
+    from evo_diagram.agentic_system.render_engine.excalidraw.converter import _excalidraw_defaults
+
+    good = _manifest()
+    good["elements"][0].update(_excalidraw_defaults("repair-node"))
+    good["elements"][0].update(x=80, y=80, width=160, height=60)
+    bad = deepcopy(good)
+    if failure_stage == "generate":
+        bad["_meta"]["id_map"]["n1"] = "missing_shape"
+    elif failure_stage == "validate":
+        bad["elements"][0].pop("width")
+    else:
+        original_normalize = workflow_module.normalize_manifest
+        calls = []
+
+        def reject_first_scene(manifest, **kwargs):
+            calls.append(1)
+            if len(calls) == 1:
+                raise ValueError("invalid frame index")
+            return original_normalize(manifest, **kwargs)
+
+        monkeypatch.setattr(workflow_module, "normalize_manifest", reject_first_scene)
+
+    generator = _generator_with_output(deepcopy(bad))
+    generator._system_prompt = "Respect source facts."
+    generator._task_prompt = UNIFIED_TASK_PROMPT
+    received = []
+
+    def repair(messages):
+        received.append(deepcopy(messages))
+        return deepcopy(good)
+
+    generator.invoke_with_history = repair
+    workflow = object.__new__(UnifiedGeneratorWorkflow)
+    workflow.agent = generator
+    workflow.graph = workflow._build_graph()
+    report_path = tmp_path / "attempts.json"
+    state = workflow.run(UnifiedWorkflowState(
+        text_content="One is a process.", validation_report_path=str(report_path),
+    ))
+
+    assert len(received) == 1
+    assert received[0][-2]["role"] == "assistant"
+    previous = json.loads(received[0][-2]["content"])
+    assert previous["elements"][0]["id"] == "n1"
+    assert failure_stage in received[0][-1]["content"]
+    assert "One is a process." in received[0][1]["content"]
+    assert state.diagram_manifest["elements"][0]["width"] == 160
+    assert state.structure_instantiation["nodes"][0]["id"] == "n1"
+    report = json.loads(report_path.read_text())
+    assert report["status"] == "complete"
+    assert len(report["attempts"]) == 2
+    assert report["attempts"][0]["stage"] == failure_stage
+    assert report["attempts"][0]["output"] == previous
+    assert report["attempts"][1]["error"] is None
+
+
+def test_unified_workflow_bounds_repairs_and_keeps_failure_evidence(tmp_path):
+    import json
+    from copy import deepcopy
+    from evo_diagram.agentic_system.generation_stage.unified.generator import UNIFIED_TASK_PROMPT
+
+    bad = _manifest()
+    bad["_meta"]["id_map"]["n1"] = "missing_shape"
+    generator = _generator_with_output(deepcopy(bad))
+    generator._system_prompt = "Respect source facts."
+    generator._task_prompt = UNIFIED_TASK_PROMPT
+    repairs = []
+    generator.invoke_with_history = lambda messages: (repairs.append(messages) or deepcopy(bad))
+    workflow = object.__new__(UnifiedGeneratorWorkflow)
+    workflow.agent = generator
+    workflow.graph = workflow._build_graph()
+    report_path = tmp_path / "failed-attempts.json"
+
+    with pytest.raises(ValueError, match="remains invalid after 3 attempts"):
+        workflow.run(UnifiedWorkflowState(
+            text_content="One is a process.", validation_report_path=str(report_path),
+        ))
+
+    assert len(repairs) == 2
+    report = json.loads(report_path.read_text())
+    assert report["status"] == "failed"
+    assert len(report["attempts"]) == 3
+    assert all(item["output"] == bad for item in report["attempts"])
+
+
+def test_unified_workflow_does_not_send_transport_errors_as_scene_feedback():
+    workflow = object.__new__(UnifiedGeneratorWorkflow)
+    generator = _generator_with_output(None)
+
+    def unavailable(_inputs):
+        raise OSError("connection unavailable")
+
+    generator.invoke = unavailable
+    workflow.agent = generator
+    workflow.graph = workflow._build_graph()
+    with pytest.raises(OSError, match="connection unavailable"):
+        workflow.run(UnifiedWorkflowState(text_content="One is a process."))
+
+
+def _compact_native_scene():
+    manifest = _manifest(with_edge=True)
+    manifest["elements"] = [
+        {"id": "n1", "type": "rectangle", "x": 80, "y": 80, "width": 160,
+         "height": 60, "strokeColor": "#3F7E8C", "backgroundColor": "#E8F4F6"},
+        {"id": "n2", "type": "rectangle", "x": 400, "y": 80, "width": 160,
+         "height": 60, "strokeColor": "#3F7E8C", "backgroundColor": "#E8F4F6"},
+        {"id": "arrow1", "type": "arrow", "x": 240, "y": 110, "width": 160,
+         "height": 1, "points": [[0, 0], [160, 0]], "strokeColor": "#64707A",
+         "backgroundColor": "transparent", "startArrowhead": None, "endArrowhead": "arrow",
+         "startBinding": {"elementId": "n1", "focus": 0, "gap": 0},
+         "endBinding": {"elementId": "n2", "focus": 0, "gap": 0},
+         "meta": {"semantic_edge_id": "edge:n12n2"}},
+        {"id": "label1", "type": "text", "x": 120, "y": 100, "width": 80,
+         "height": 22.5, "text": "One", "fontSize": 18, "containerId": "n1",
+         "strokeColor": "#173C45", "backgroundColor": "transparent"},
+    ]
+    return manifest
+
+
+def test_compact_native_scene_normalizes_and_validates_without_visual_drift():
+    from copy import deepcopy
+    from evo_diagram.agentic_system.generation_stage.unified.native_defaults import complete_native_elements
+    from evo_diagram.agentic_system.verification_stage.checks.binding_consistency import check_arrow_shape_binding
+
+    manifest = _compact_native_scene()
+    authored = deepcopy(manifest)
+    state = UnifiedWorkflowState(diagram_manifest=manifest)
+    workflow = object.__new__(UnifiedGeneratorWorkflow)
+    workflow._run_normalizer(state)
+    workflow._run_validator(state)
+    completed = {element["id"]: element for element in manifest["elements"]}
+    for original in authored["elements"]:
+        for key, value in original.items():
+            actual = completed[original["id"]][key]
+            if key == "meta":
+                assert all(actual[name] == content for name, content in value.items())
+            else:
+                assert actual == value
+    assert {item["id"] for item in completed["n1"]["boundElements"]} == {"arrow1", "label1"}
+    assert completed["label1"]["originalText"] == "One"
+    assert completed["label1"]["fontFamily"] == 2
+    assert completed["n1"]["seed"] != completed["n2"]["seed"]
+    assert not check_arrow_shape_binding(manifest)
+    once = deepcopy(manifest)
+    complete_native_elements(manifest)
+    assert manifest == once
+
+
+@pytest.mark.parametrize("fault", ["geometry", "reference"])
+def test_native_completion_leaves_missing_geometry_and_bad_references_invalid(fault):
+    from evo_diagram.agentic_system.generation_stage.unified.native_defaults import complete_native_elements
+    manifest = _compact_native_scene()
+    if fault == "geometry":
+        manifest["elements"][0].pop("width")
+    else:
+        manifest["elements"][2]["endBinding"]["elementId"] = "missing_target"
+    complete_native_elements(manifest)
+    workflow = object.__new__(UnifiedGeneratorWorkflow)
+    with pytest.raises(ValueError, match="schema validation failed"):
+        workflow._run_validator(UnifiedWorkflowState(diagram_manifest=manifest))
+
+
+def test_native_completion_preserves_explicit_metadata_and_typography():
+    from evo_diagram.agentic_system.generation_stage.unified.native_defaults import complete_native_elements
+    manifest = _compact_native_scene()
+    label = manifest["elements"][-1]
+    label.update(fontFamily=3, lineHeight=1.4, autoResize=False, roughness=1, seed=42)
+    complete_native_elements(manifest)
+    assert {key: label[key] for key in ("fontFamily", "lineHeight", "autoResize", "roughness", "seed")} == {
+        "fontFamily": 3, "lineHeight": 1.4, "autoResize": False, "roughness": 1, "seed": 42,
+    }

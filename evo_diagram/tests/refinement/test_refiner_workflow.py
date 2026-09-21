@@ -23,6 +23,84 @@ def _workflow_with_noop_llm() -> IterativeRefinerWorkflow:
     return IterativeRefinerWorkflow(llm_agent=_NoOpRefinerLLM())
 
 
+@pytest.mark.parametrize("move_target", [True, False])
+@pytest.mark.parametrize("chart_type", ["flowchart", "concept_map"])
+def test_edit_batch_preserves_label_style_and_recomputes_geometry(move_target, chart_type):
+    from evo_diagram.agentic_system.iterative_workflow import _apply_edit_batch
+    from evo_diagram.agentic_system.refinement_stage.state import (
+        EditOp, IterationLog, VerifierRefinerState,
+    )
+    from evo_diagram.agentic_system.render_engine.excalidraw.arrow_adder import (
+        add_excalidraw_arrows_to_manifest,
+    )
+    from evo_diagram.agentic_system.render_engine.excalidraw.converter import (
+        InstantiationToExcalidrawConverter,
+    )
+    from evo_diagram.agentic_system.verification_stage.checks.collision_detection import (
+        check_edge_node_intersections,
+    )
+
+    structure = {
+        "chart_type": chart_type,
+        "nodes": [{"id": key, "label": key, "class": "process"} for key in ("a", "b")],
+        "edges": [{"id": "edge:a2b", "source": "a", "target": "b", "label": "supplies"}],
+        "groups": [],
+    }
+    layout = {
+        "a": {"type": "rectangle", "x": 80, "y": 80, "w": 120, "h": 60},
+        "b": {"type": "rectangle", "x": 400, "y": 80, "w": 120, "h": 60},
+        "edge:a2b": {
+            "type": "arrow",
+            "start": {"elementId": "a", "side": "right"},
+            "end": {"elementId": "b", "side": "left"},
+        },
+    }
+    manifest = InstantiationToExcalidrawConverter(
+        layout_instantiation=layout, structure_instantiation=structure,
+    ).convert()
+    manifest = add_excalidraw_arrows_to_manifest(manifest, structure)
+    target_id = manifest["_meta"]["id_map"]["b"]
+    arrow = next(element for element in manifest["elements"] if element["type"] == "arrow")
+    label = next(element for element in manifest["elements"] if element.get("meta", {}).get("semantic_edge_id") == "edge:a2b" and element["type"] == "text")
+    original_label_width = label["width"]
+    state = VerifierRefinerState(
+        manifest_path="unused.json", image_path="unused.png",
+        manifest=manifest, structure=structure,
+    )
+    log = IterationLog(iteration=1)
+    edits = [
+        EditOp(op="set_style", id=arrow["id"], payload={"strokeColor": "#456789"}),
+        EditOp(op="set_style", id=label["id"], payload={"fontSize": 18, "strokeColor": "#123456"}),
+    ]
+    if move_target:
+        edits.extend([
+            EditOp(op="set_position", id=target_id, payload={"x": 460, "y": 300}),
+            EditOp(op="set_size", id=target_id, payload={"width": 160, "height": 80}),
+        ])
+    outcomes = _apply_edit_batch(
+        state,
+        edits,
+        log=log, target_attr="llm_edits", log_prefix="test",
+    )
+
+    assert all(outcome.applied for outcome in outcomes)
+    moved = next(element for element in state.manifest["elements"] if element["id"] == target_id)
+    routed = next(element for element in state.manifest["elements"] if element["type"] == "arrow")
+    end_x = routed["x"] + routed["points"][-1][0]
+    end_y = routed["y"] + routed["points"][-1][1]
+    assert moved["y"] <= end_y <= moved["y"] + moved["height"]
+    assert end_x == pytest.approx(moved["x"], abs=10)
+    assert routed["meta"]["target"] == "b"
+    assert routed["strokeColor"] == "#456789"
+    assert state.manifest["_meta"]["id_map"]["edge:a2b"] == routed["id"]
+    assert not check_edge_node_intersections(state.manifest)
+    assert any("rebuilt connectors" in note for note in log.notes)
+    rebuilt_label = next(element for element in state.manifest["elements"] if element.get("meta", {}).get("semantic_edge_id") == "edge:a2b" and element["type"] == "text")
+    assert rebuilt_label["fontSize"] == 18
+    assert rebuilt_label["strokeColor"] == "#123456"
+    assert rebuilt_label["width"] > original_label_width
+
+
 def test_refiner_manifest_summary_pins_finding_elements_before_cap():
     from evo_diagram.agentic_system.refinement_stage.agent.llm_agent import (
         build_manifest_summary,
@@ -45,6 +123,33 @@ def test_refiner_manifest_summary_pins_finding_elements_before_cap():
     summary = build_manifest_summary(manifest, cap=3, pinned_ids={"n8"})
 
     assert [entry["id"] for entry in summary] == ["n8", "n0", "n1"]
+
+
+def test_refiner_prompt_retains_semantic_context_and_labels_after_element_80():
+    from evo_diagram.agentic_system.refinement_stage.agent.llm_agent import build_manifest_summary
+    from evo_diagram.agentic_system.refinement_stage.agent.prompts import build_refiner_user_prompt
+
+    elements = [{"id": f"element_{index}", "type": "rectangle", "x": index * 20, "y": 40,
+                 "width": 10, "height": 10} for index in range(82)]
+    elements.extend([
+        {"id": "group", "type": "rectangle", "is_group": True, "x": 0, "y": 0,
+         "width": 100, "height": 100, "meta": {"memberIds": ["collective"]}},
+        {"id": "collective", "type": "rectangle", "x": 10, "y": 10,
+         "width": 60, "height": 40, "meta": {"conceptFactAnchor": True}},
+        {"id": "late_predicate", "type": "text", "text": "enables", "x": 120, "y": 20,
+         "width": 80, "height": 20, "fontSize": 14, "strokeColor": "#123456",
+         "meta": {"semantic_edge_id": "collective_to_outcome", "semantic_arrow_id": "connector"}},
+    ])
+    summary = build_manifest_summary({"elements": elements, "_meta": {"id_map": {"category": "collective"}}})
+    prompt = build_refiner_user_prompt(
+        chart_type="concept_map", remaining_findings=[], critique=None, manifest_summary=summary,
+    )
+    assert "late_predicate" in prompt
+    assert "collective_to_outcome" in prompt
+    assert "fact_bearing_section_heading_keep_border" in prompt
+    assert '"member_ids": ["collective"]' in prompt
+    assert '"fontSize": 14' in prompt
+    assert '"strokeColor": "#123456"' in prompt
 
 
 def test_refiner_prompt_includes_finding_location():
@@ -818,3 +923,69 @@ def test_refiner_report_includes_intermediate_rerender_error(tmp_path):
     assert report["iterations"][0]["rerender_error"] == (
         "RuntimeError: renderer stderr tail"
     )
+
+
+@pytest.mark.parametrize("severity", ["minor", "info"])
+def test_refiner_continues_after_new_low_severity_findings(severity):
+    from evo_diagram.agentic_system.iterative_workflow import _mark_convergence
+    from evo_diagram.agentic_system.refinement_stage.state import IterationLog, VerifierRefinerState
+    from evo_diagram.agentic_system.verification_stage.checks.finding import Finding, Severity
+
+    state = VerifierRefinerState(manifest_path="scene.json", image_path="scene.png")
+    finding = Finding(
+        category="binding/edge_label_distance", severity=Severity(severity),
+        element_id="predicate", message="Label became detached after editing.",
+    )
+    _mark_convergence(
+        state, log=IterationLog(iteration=1, findings_before={"total": 0}),
+        findings_after_iter=[finding], edits_applied=True, iteration=1,
+    )
+    assert state.converged is False
+    assert state.termination_reason is None
+    assert IterativeRefinerWorkflow()._after_iteration(state) == "run_iteration"
+
+    _mark_convergence(
+        state, log=IterationLog(iteration=2, findings_before={severity: 1}),
+        findings_after_iter=[], edits_applied=True, iteration=2,
+    )
+    assert state.converged is True
+    assert state.termination_reason == "resolved"
+
+
+@pytest.mark.parametrize("edits_applied,stagnant", [(False, False), (True, True)])
+def test_refiner_unfixable_new_minor_is_not_marked_converged(edits_applied, stagnant):
+    from evo_diagram.agentic_system.iterative_workflow import _fingerprint_findings, _mark_convergence
+    from evo_diagram.agentic_system.refinement_stage.state import IterationLog, VerifierRefinerState
+    from evo_diagram.agentic_system.verification_stage.checks.finding import Finding, Severity
+
+    state = VerifierRefinerState(manifest_path="scene.json", image_path="scene.png")
+    finding = Finding(
+        category="binding/edge_label_distance", severity=Severity.MINOR,
+        element_id="predicate", message="Label became detached after editing.",
+    )
+    if stagnant:
+        state._prev_findings_fingerprint = _fingerprint_findings([finding])
+    _mark_convergence(
+        state, log=IterationLog(iteration=1, findings_before={"total": 0}),
+        findings_after_iter=[finding], edits_applied=edits_applied, iteration=1,
+    )
+    assert state.converged is False
+    assert state.termination_reason == ("stagnant" if stagnant else "fixed_point_unresolved")
+
+
+def test_refiner_accepts_remaining_minor_after_removing_major():
+    from evo_diagram.agentic_system.iterative_workflow import _mark_convergence
+    from evo_diagram.agentic_system.refinement_stage.state import IterationLog, VerifierRefinerState
+    from evo_diagram.agentic_system.verification_stage.checks.finding import Finding, Severity
+
+    state = VerifierRefinerState(manifest_path="scene.json", image_path="scene.png")
+    finding = Finding(
+        category="binding/edge_label_distance", severity=Severity.MINOR,
+        element_id="predicate", message="Small remaining gap.",
+    )
+    _mark_convergence(
+        state, log=IterationLog(iteration=1, findings_before={"major": 1}),
+        findings_after_iter=[finding], edits_applied=True, iteration=1,
+    )
+    assert state.converged is True
+    assert state.termination_reason == "resolved"

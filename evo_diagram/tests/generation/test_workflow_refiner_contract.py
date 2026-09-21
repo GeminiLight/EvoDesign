@@ -7,6 +7,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import pytest
+
 
 def _generator_outputs() -> dict:
     return {
@@ -411,7 +413,21 @@ def test_workflow_records_non_converged_candidate_artifacts(tmp_path, monkeypatc
     assert state.artifact_paths["refiner_candidate_png_path"] == str(candidate_png_path)
 
 
-def test_workflow_verifies_adopted_refined_final_artifact(tmp_path, monkeypatch):
+@pytest.mark.parametrize("initial_counts,candidate_counts,candidate_score,adopt,comparison_winner", [
+    ({}, {}, 8.5, True, None),
+    ({}, {"critical": 1}, 8.8, False, None),
+    ({}, {}, 7.5, False, None),
+    ({}, {}, None, False, None),
+    ({"major": 1}, {}, 7.5, True, None),
+    ({}, {}, 8.5, True, "candidate"),
+    ({}, {}, 8.5, False, "original"),
+    ({}, {}, 8.5, False, "tie"),
+    ({}, {}, 7.5, True, "candidate"),
+    ({}, {}, 8.9, False, "original"),
+])
+def test_workflow_verifies_refinement_before_promoting_artifacts(
+    tmp_path, monkeypatch, initial_counts, candidate_counts, candidate_score, adopt, comparison_winner,
+):
     from evo_diagram.agentic_system import workflow as workflow_module
     from evo_diagram.agentic_system.workflow import Text2DiagramWorkflow
     from evo_diagram.canvas_environment import RenderResult
@@ -452,18 +468,20 @@ def test_workflow_verifies_adopted_refined_final_artifact(tmp_path, monkeypatch)
 
     pre_verifier_state = MagicMock()
     pre_verifier_state.status = "reported"
-    pre_verifier_state.quality_passed = True
-    pre_verifier_state.cli_exit_code = 0
-    pre_verifier_state.objective_summary = {"critical": 0}
+    pre_verifier_state.quality_passed = not bool(initial_counts)
+    pre_verifier_state.cli_exit_code = int(bool(initial_counts))
+    pre_verifier_state.objective_summary = initial_counts
+    pre_verifier_state.critique = SimpleNamespace(overall_score=8.4)
     pre_verifier_state.errors = []
     pre_verifier_state.objective_findings = []
     pre_verifier_state.report_path = str(pre_report_path)
 
     final_verifier_state = MagicMock()
     final_verifier_state.status = "reported"
-    final_verifier_state.quality_passed = False
-    final_verifier_state.cli_exit_code = 1
-    final_verifier_state.objective_summary = {"critical": 1}
+    final_verifier_state.quality_passed = not bool(candidate_counts)
+    final_verifier_state.cli_exit_code = int(bool(candidate_counts))
+    final_verifier_state.objective_summary = candidate_counts
+    final_verifier_state.critique = SimpleNamespace(overall_score=candidate_score)
     final_verifier_state.errors = []
     final_verifier_state.objective_findings = ["final artifact issue"]
     final_verifier_state.report_path = str(final_report_path)
@@ -498,10 +516,14 @@ def test_workflow_verifies_adopted_refined_final_artifact(tmp_path, monkeypatch)
     monkeypatch.setattr(workflow_module, "VerifierWorkflow", lambda: verifier)
     monkeypatch.setattr(workflow_module, "IterativeRefinerWorkflow", lambda: refiner)
 
+    from evo_diagram.agentic_system.verification_stage.critic import comparison
+    monkeypatch.setattr(comparison, "compare_rendered_diagrams", lambda *args: {
+        "winner": comparison_winner, "reason": "The displayed group margins are more balanced.",
+    })
     workflow = Text2DiagramWorkflow(
         object(),
         enable_refiner=True,
-        enable_critic=False,
+        enable_critic=comparison_winner is not None,
     )
     state = workflow.run(
         text_content="A flows to B",
@@ -511,17 +533,29 @@ def test_workflow_verifies_adopted_refined_final_artifact(tmp_path, monkeypatch)
 
     assert verifier.run.call_count == 2
     assert refiner.run.call_args.kwargs["verifier_report_path"] == str(pre_report_path)
-    assert verifier.run.call_args_list[1].kwargs["manifest_path"] == state.final_manifest_path
-    assert verifier.run.call_args_list[1].kwargs["image_path"] == state.final_png_path
-    assert state.final_diagram_manifest == refined_manifest
-    assert Path(state.final_png_path).read_bytes() == b"refined-png"
-    assert state.verification_quality_passed is False
-    assert state.verification_cli_exit_code == 1
-    assert state.verification_objective_summary == {"critical": 1}
-    assert state.verification_report_path == str(final_report_path)
+    assert verifier.run.call_args_list[1].kwargs["manifest_path"] == str(refined_manifest_path)
+    assert verifier.run.call_args_list[1].kwargs["image_path"] == str(refined_png_path)
+    assert state.final_diagram_manifest == (refined_manifest if adopt else original_manifest)
+    assert Path(state.final_png_path).read_bytes() == (b"refined-png" if adopt else b"original-png")
+    assert json.loads(Path(state.final_manifest_path).read_text()) == state.final_diagram_manifest
+    selected_verification = final_verifier_state if adopt else pre_verifier_state
+    assert state.verification_quality_passed is selected_verification.quality_passed
+    assert state.verification_cli_exit_code == selected_verification.cli_exit_code
+    assert state.verification_objective_summary == (candidate_counts if adopt else initial_counts)
+    selected_report = str(final_report_path if adopt else pre_report_path)
+    assert state.verification_report_path == selected_report
     assert state.artifact_paths["pre_refine_verification_report_path"] == str(pre_report_path)
-    assert state.artifact_paths["final_verification_report_path"] == str(final_report_path)
-    assert state.artifact_paths["verification_report_path"] == str(final_report_path)
+    assert state.artifact_paths["verification_report_path"] == selected_report
+    if comparison_winner is not None:
+        comparison_path = Path(state.artifact_paths["refiner_comparison_report_path"])
+        assert json.loads(comparison_path.read_text())["winner"] == comparison_winner
+    if adopt:
+        assert state.artifact_paths["final_verification_report_path"] == str(final_report_path)
+    else:
+        assert state.artifact_paths["refiner_candidate_verification_report_path"] == str(final_report_path)
+        assert state.refiner_candidate_manifest_path == str(refined_manifest_path)
+        assert state.refiner_candidate_png_path == str(refined_png_path)
+        assert Path(refined_png_path).read_bytes() == b"refined-png"
 
 
 def test_oneshot_verification_receives_semantic_structure_path(tmp_path, monkeypatch):

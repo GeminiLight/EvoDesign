@@ -101,6 +101,13 @@ class LLMFactory:
         # timeouts that occur when the server holds a connection silently.
         kwargs.setdefault("streaming", True)
 
+        # Identify the application: some gateways reject the SDK's default User-Agent.
+        if provider_key == "openai":
+            kwargs.setdefault(
+                "default_headers",
+                {"User-Agent": "EvoDiagram/diagnostic"},
+            )
+
         config_kwargs = {
             "model": model,
             "model_provider": model_provider,

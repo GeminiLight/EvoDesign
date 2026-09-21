@@ -10,6 +10,7 @@ from evo_diagram.canvas_runtime import normalize_canvas_library
 from .binding_consistency import check_arrow_shape_binding
 from .collision_detection import (
     check_edge_crossings,
+    check_edge_node_clearance,
     check_edge_node_intersections,
     check_node_overlap,
     check_out_of_canvas,
@@ -19,6 +20,7 @@ from .containment import (
     check_swimlane_lane_membership,
 )
 from .finding import Finding, summarize_findings
+from .label_proximity import check_edge_label_proximity
 from .objective_manifest import build_objective_manifest
 from .render_validation import (
     check_layout_audit,
@@ -53,11 +55,13 @@ def _check_specs(
         ("render_audit", check_render_audit, (manifest, structure, canvas_library)),
         ("layout_audit", check_layout_audit, (layout_instantiation, structure)),
         ("binding", check_arrow_shape_binding, (objective_manifest,)),
+        ("binding/edge_label_distance", check_edge_label_proximity, (objective_manifest,)),
         ("containment/group_bbox", check_group_bbox_contains_children, (objective_manifest, structure)),
         ("containment/swimlane_lane", check_swimlane_lane_membership, (objective_manifest, structure)),
         ("collision/node_overlap", check_node_overlap, (objective_manifest,)),
         ("collision/edge_crossing", check_edge_crossings, (objective_manifest,)),
         ("collision/edge_node_intersection", check_edge_node_intersections, (objective_manifest,)),
+        ("collision/edge_node_clearance", check_edge_node_clearance, (objective_manifest,)),
         ("collision/out_of_canvas", check_out_of_canvas, (objective_manifest,)),
     ]
 

@@ -119,7 +119,7 @@ class VerifierCriticAgent:
         )
         human = HumanMessage(
             content=[
-                {"type": "image_url", "image_url": {"url": data_url}},
+                {"type": "image_url", "image_url": {"url": data_url, "detail": "high"}},
                 {"type": "text", "text": user_text},
             ]
         )

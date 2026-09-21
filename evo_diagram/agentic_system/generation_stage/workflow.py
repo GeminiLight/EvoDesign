@@ -619,6 +619,10 @@ class OneShotGeneratorWorkflow(GeneratorWorkflow):
             diagram_type=effective_diagram_type,
             palette_key=palette_key,
             content_area=content_area,
+            validation_report_path=(
+                os.path.join(save_dir, "1_unified", "generation_validation_attempts.json")
+                if save_dir else None
+            ),
         )
         state = self.unified.run(state)
 
@@ -630,6 +634,8 @@ class OneShotGeneratorWorkflow(GeneratorWorkflow):
             with open(manifest_path, "w", encoding="utf-8") as f:
                 json.dump(state.diagram_manifest, f, indent=2, ensure_ascii=False)
             artifact_paths = {"unified_manifest_path": manifest_path}
+            if state.validation_report_path and os.path.exists(state.validation_report_path):
+                artifact_paths["generation_validation_report_path"] = state.validation_report_path
             if state.structure_instantiation:
                 structure_path = os.path.join(stage_dir, "structure_instantiation.json")
                 with open(structure_path, "w", encoding="utf-8") as f:

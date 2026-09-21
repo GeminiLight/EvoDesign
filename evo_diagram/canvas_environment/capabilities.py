@@ -69,9 +69,7 @@ def require_generation_capability(*, canvas_library: str, mode: str) -> None:
 
 
 def refiner_unsupported_reason(*, canvas_library: str, mode: str) -> str | None:
-    normalized_mode = normalize_generation_mode(mode)
-    if normalized_mode == "oneshot":
-        return "iterative refiner is disabled for oneshot generation."
+    normalize_generation_mode(mode)
     capabilities = get_canvas_capabilities(canvas_library)
     if not capabilities.supports_refiner:
         return (

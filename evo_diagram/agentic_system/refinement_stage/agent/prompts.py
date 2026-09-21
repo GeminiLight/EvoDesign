@@ -10,14 +10,18 @@ import json
 from typing import Any, Dict, List, Optional
 
 
-REFINER_LLM_SYSTEM_PROMPT = """You are a surgical, meticulous expert at fixing rendered Excalidraw diagrams. Your goal is to make every diagram pixel-perfect — not just "good enough". Be thorough: do not stop at the obvious issues.
+MAX_MANIFEST_SUMMARY_ELEMENTS = 120
+
+
+REFINER_LLM_SYSTEM_PROMPT = """You improve rendered Excalidraw diagrams through small, evidence-based edits. Fix visible defects while preserving clear composition and faithful relationships. A successful pass may need only one edit, or no edits.
 
 You will receive:
 1. A rendered PNG of the current diagram.
 2. A list of objective findings from a rule-based verifier (some MAY have
    been auto-fixed already — only REMAINING findings are shown).
 3. The diagram's subjective critique across structure / styling / layout.
-4. A compact summary of every element on the canvas (id, type, bbox, text).
+4. A compact element summary with geometry, current styles, semantic roles,
+   group membership, and connector endpoints.
 5. The history of edits already applied this iteration cycle.
 
 Your job: emit a JSON LIST of primitive edit ops that, when applied, will
@@ -43,11 +47,37 @@ Hard rules:
   such as bound_id or container_id, use the exact missing id from the finding.
 - Each edit must address a SPECIFIC finding or critique point, named in the
   rationale. Vague rationales like "improve layout" are rejected.
+- Treat subjective critique as a hypothesis to check against the current
+  PNG and semantic roles. Do not apply a suggestion that removes meaning,
+  breaks an already clear alignment, or fixes a defect no longer visible.
 - Do not fix things the deterministic pass already handled. The remaining
   findings list is what's left.
 - For overlap: move the smaller element OR the more recently added one.
 - For arrow crossings: prefer moving endpoint shapes (set_position) rather
   than deleting arrows.
+- For generated diagrams with semantic connectors, moving/resizing shapes
+  automatically recomputes connector paths. Do not separately translate arrow
+  elements or detach valid bindings to chase their old coordinates. Move the
+  endpoint or obstacle shapes and let routing maintain the connections.
+- Group backgrounds identify their member_ids. A background is not a concept
+  node: moving it alone does not move its contents. Keep every member inside
+  its original group, with space for the heading. Keep different groups apart.
+- A fact_bearing_section_heading_keep_border is also a collective relation
+  endpoint. Preserve its visible outline and contrast; making it blend into
+  the frame would leave its connector floating. It may differ from navigation-only headings.
+- Navigation headings and collective fact endpoints have different roles.
+  Do not add borders to every heading merely to match a fact endpoint.
+- Preserve established rows, columns, and balanced group margins. Shortening
+  one connector is not an improvement if it pushes an otherwise centered
+  group against one side. A perimeter route can be appropriate when a
+  shorter path would cross nodes or other relationships.
+- Adjust typography consistently across labels with the same role. Compare
+  current font sizes before editing; predicates should remain subordinate
+  to concept labels, section headings, and the main title.
+- Preserve the meaning and visibility of nodes, predicates, and semantic
+  connectors. Never hide a fact with opacity=0, erase its label, or change a
+  dependency/association to a causal link for aesthetic reasons. Opacity-zero
+  organizer connectors are intentionally expressed by group containment.
 - delete_element is BLOCKED on connected elements. Before deleting, use
   clear_arrow_binding to disconnect arrows first, then delete if orphaned.
 - Use clear_container_binding for text whose containerId points to a missing
@@ -55,7 +85,8 @@ Hard rules:
 - Output a JSON ARRAY only. No prose, no markdown fences. An empty array
   means "no fix needed; converged".
 
-PROACTIVE DISCOVERY — Beyond the remaining findings, inspect the PNG for issues the verifier may have missed:
+VISUAL REVIEW — Inspect the PNG for visible issues the verifier may have missed.
+These are checks, not a required list of changes:
 - Micro-misalignments: elements in the same row/column that are off by > 2px.
 - Semantic inconsistency: similar entities with different colors/shapes.
 - Text hierarchy: titles and labels using the same font size.
@@ -127,17 +158,21 @@ def build_refiner_user_prompt(
 
     lines.append("")
     lines.append("Manifest summary:")
-    # Cap to ~80 elements to keep payload bounded.
-    for entry in manifest_summary[:80]:
+    # Use the same budget as build_manifest_summary; a second smaller cap
+    # silently hid the final relationship labels of ordinary overview diagrams.
+    for entry in manifest_summary[:MAX_MANIFEST_SUMMARY_ELEMENTS]:
         eid = entry.get("id", "?")
         etype = entry.get("type", "?")
         x, y, w, h = entry.get("bbox", [0, 0, 0, 0])
-        text = (entry.get("text") or "").replace("\n", " ")[:32]
+        text = (entry.get("text") or "").replace("\n", " ")[:60]
         lines.append(
             f"  {eid:24s} {etype:9s} x={x:>5.0f} y={y:>5.0f} w={w:>5.0f} h={h:>5.0f}  text={text!r}"
         )
-    if len(manifest_summary) > 80:
-        lines.append(f"  … ({len(manifest_summary) - 80} more elements omitted)")
+        context = {key: value for key, value in entry.items() if key not in {"id", "type", "bbox", "text"}}
+        if context:
+            lines.append("    " + json.dumps(context, ensure_ascii=False, sort_keys=True))
+    if len(manifest_summary) > MAX_MANIFEST_SUMMARY_ELEMENTS:
+        lines.append(f"  … ({len(manifest_summary) - MAX_MANIFEST_SUMMARY_ELEMENTS} more elements omitted)")
 
     if previous_attempts:
         lines.append("")

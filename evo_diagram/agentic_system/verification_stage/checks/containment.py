@@ -256,14 +256,43 @@ def _membership_context(
         return None
 
     idm = id_map_from_manifest(manifest)
+    reverse_ids = reverse_base_id_map(idm)
+    explicit_members = build_explicit_member_map(structure)
+    groups_by_id = {group["id"]: group for group in groups}
+    # Concept-map sections are created from branch ownership, not from the
+    # optional structure.groups list. Geometry-based inference would silently
+    # reassign a node after a refiner moves its original frame away.
+    nodes = (structure or {}).get("nodes") or []
+    branch_groups = {
+        node.get("branch_id"): node["id"]
+        for node in nodes
+        if isinstance(node, dict)
+        and node.get("class") == "branch_anchor"
+        and node.get("branch_id")
+        and node.get("id") in groups_by_id
+    }
+    for node in nodes:
+        if not isinstance(node, dict):
+            continue
+        group_id = branch_groups.get(node.get("branch_id"))
+        if group_id and node.get("id"):
+            explicit_members.setdefault(node["id"], group_id)
+    frame_groups = {group["bg_id"]: group["id"] for group in groups}
+    for element in elements:
+        if not isinstance(element, dict) or element.get("id") not in frame_groups:
+            continue
+        for member_id in (element.get("meta") or {}).get("memberIds", []):
+            explicit_members.setdefault(
+                reverse_ids.get(member_id, member_id), frame_groups[element["id"]],
+            )
     return _MembershipContext(
         elements=elements,
         groups=groups,
-        groups_by_id={group["id"]: group for group in groups},
+        groups_by_id=groups_by_id,
         background_ids=background_ids,
         title_ids=title_ids,
-        reverse_id_map=reverse_base_id_map(idm),
-        explicit_member_to_group=build_explicit_member_map(structure),
+        reverse_id_map=reverse_ids,
+        explicit_member_to_group=explicit_members,
     )
 
 
