@@ -94,6 +94,9 @@ function renderEdges() {
     const bend = Math.max(18, Math.abs(x2 - x1) / 2);
     return `<path d="M${x1} ${y1} C${x1+bend} ${y1},${x2-bend} ${y2},${x2} ${y2}"/>`;
   }).join('');
+  const source = nodes[4], target = nodes[1];
+  svg.querySelector('#feedback-path').setAttribute('d',
+    `M${source.x+source.w/2} ${source.y+source.h} V321 H${target.x+target.w/2} V${target.y+target.h+3}`);
 }
 function point(event) {
   const p = new DOMPoint(event.clientX, event.clientY);
