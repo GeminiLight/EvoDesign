@@ -10,7 +10,7 @@
 - `docs/assets/`: favicon, sharing image, and two qualitative manuscript figure crops.
 - `README.md`: repository landing page and release status.
 
-The static website uses relative asset URLs so it works under the `/EvoDesign/` GitHub Pages path. Google Fonts enhances the typography when available; system font fallbacks keep the page usable without it. No analytics or application backend is included.
+The static website uses relative asset URLs so it works under the `/EvoDesign/` GitHub Pages path. Stylesheet and script URLs include a content-hash `v` query to avoid stale browser caches; refresh that value when those files change. Google Fonts enhances the typography when available; system font fallbacks keep the page usable without it. No analytics or application backend is included.
 
 ## Publishing
 
