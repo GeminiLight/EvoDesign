@@ -3,8 +3,10 @@
 ## Structure
 
 - `docs/index.html`: page content, author order and affiliations, resource links, metadata.
-- `docs/styles.css`: responsive blue, violet, and cyan visual system.
+- `docs/styles.css`: base responsive layout.
+- `docs/polish.css`: refined blue, violet, and cyan presentation, responsive controls, and motion styles.
 - `docs/app.js`: local canvas illustration and manuscript result data.
+- `docs/motion.js`: guided flow, progressive entrance effects, counters, figure dialog, navigation state, and motion preferences.
 - `docs/assets/`: favicon, sharing image, and two qualitative manuscript figure crops.
 - `README.md`: repository landing page and release status.
 
@@ -42,9 +44,16 @@ Place the research code in the repository alongside `docs/`. Update the README w
 
 The refinement images are cropped diagram panels from Figure 9, showing the initial solution and final refinement. They are qualitative examples, not quantitative evidence. No manuscript instructions or hidden PDF text are incorporated into website content.
 
+## Motion and interaction
+
+The canvas walkthrough highlights each stage and traces its connections. It plays once on desktop when the canvas enters view; on narrow screens, visitors start it themselves. Selecting a step scrolls the canvas horizontally to the relevant node. Dragging a node interrupts playback.
+
+The Motion control pauses presentation effects and remembers the choice locally. The page also respects the system’s reduced-motion preference, provides manual step exploration, stops transient animation when the tab is hidden, and leaves content visible when JavaScript is unavailable. Native figure dialogs support Escape and return focus to their trigger.
+
 ## Check before publishing changes
 
 - Verify desktop and mobile layouts and horizontal table scrolling.
-- Exercise model selection, pointer and keyboard node movement, palette switching, reset, and SVG export.
+- Exercise flow playback/pause, step selection, model selection, pointer and keyboard node movement, palette switching, reset, and SVG export.
+- Check reduced motion, persisted motion preferences, figure-dialog focus and Escape, and narrow-screen canvas navigation.
 - Check resource URLs, image loading, and browser errors.
 - Keep unreleased resources visibly marked as forthcoming.

@@ -49,6 +49,7 @@ function renderResults() {
     return `<tr${i === 5 ? ' class="ours"' : ''}><th scope="row">${methodLabels[i][0]}</th><td>${methodLabels[i][1]}</td>${means.map(v => `<td class="score-cell">${v.toFixed(3)}<span class="score-meter" aria-hidden="true"><i style="width:${v / 5 * 100}%"></i></span></td>`).join('')}</tr>`;
   }).join('');
   document.querySelector('#results-caption').textContent = `Mean score within each dimension · ${modelSelect.selectedOptions[0].textContent} backbone for non-pixel methods · higher is better`;
+  document.dispatchEvent(new Event('results:rendered'));
 }
 modelSelect.addEventListener('change', renderResults);
 renderResults();
@@ -85,6 +86,7 @@ function renderNodes() {
     return `<g class="demo-node" data-node="${i}" transform="translate(${n.x},${n.y})" tabindex="0" role="button" aria-label="${n.label} diagram node. Use arrow keys to move."><rect class="node-box" width="${n.w}" height="${n.h}" rx="9" fill="${fill}" stroke="${stroke}"/><text x="15" y="18" font-family="system-ui,sans-serif" font-size="7" letter-spacing="1" fill="${ink}">${n.tag}</text><g transform="translate(16,32)" fill="none" stroke="${ink}" stroke-width="1.5">${icons[n.icon]}</g><text x="15" y="79" font-family="system-ui,sans-serif" font-size="15" font-weight="500" fill="#38384f">${n.label}</text><text x="15" y="96" font-family="system-ui,sans-serif" font-size="8" fill="#625f75">${n.detail}</text><g fill="${stroke}" transform="translate(${n.w-17},35)"><circle cy="0" r="1.3"/><circle cy="5" r="1.3"/><circle cy="10" r="1.3"/></g></g>`;
   }).join('');
   renderEdges();
+  document.dispatchEvent(new Event('canvas:rendered'));
 }
 function renderEdges() {
   edgeLayer.innerHTML = nodes.slice(0, -1).map((n, i) => {
@@ -112,6 +114,8 @@ function moveNode(index, x, y) {
 nodeLayer.addEventListener('pointerdown', event => {
   const el = event.target.closest('[data-node]');
   if (!el || event.button !== 0) return;
+  document.dispatchEvent(new Event('canvas:interaction'));
+  el.classList.add('is-dragging');
   const index = Number(el.dataset.node), p = point(event);
   drag = {index, dx:p.x-nodes[index].x, dy:p.y-nodes[index].y};
   el.setPointerCapture(event.pointerId);
@@ -126,6 +130,7 @@ nodeLayer.addEventListener('pointermove', event => {
 function finishDrag() {
   if (drag) status.textContent = `${nodes[drag.index].label} moved · Connections stay attached`;
   drag = null;
+  nodeLayer.querySelectorAll('.is-dragging').forEach(el => el.classList.remove('is-dragging'));
 }
 nodeLayer.addEventListener('pointerup', finishDrag);
 nodeLayer.addEventListener('pointercancel', finishDrag);
@@ -135,6 +140,7 @@ nodeLayer.addEventListener('keydown', event => {
   const delta = keys[event.key], el = event.target.closest('[data-node]');
   if (!delta || !el) return;
   event.preventDefault();
+  document.dispatchEvent(new Event('canvas:interaction'));
   const i = Number(el.dataset.node), n = nodes[i], step = event.shiftKey ? 20 : 5;
   moveNode(i, n.x+delta[0]*step, n.y+delta[1]*step);
   status.textContent = `${n.label} moved · Use arrow keys to adjust`;
@@ -154,6 +160,7 @@ document.querySelector('#export').addEventListener('click', () => {
   const copy = svg.cloneNode(true);
   copy.setAttribute('xmlns','http://www.w3.org/2000/svg');
   copy.setAttribute('width','1080'); copy.setAttribute('height','370');
+  copy.querySelector('#flow-particles').replaceChildren();
   copy.querySelectorAll('[tabindex]').forEach(el => {el.removeAttribute('tabindex');el.removeAttribute('role');});
   const bg = document.createElementNS('http://www.w3.org/2000/svg','rect');
   bg.setAttribute('width','1080');bg.setAttribute('height','370');bg.setAttribute('fill','#fdfdff');
