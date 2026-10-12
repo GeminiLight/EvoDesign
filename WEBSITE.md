@@ -24,12 +24,11 @@ Local preview:
 python3 -m http.server 8000 --directory docs
 ```
 
-## Add the updated paper
+## Paper updates
 
-1. Add the final, correctly named manuscript as `docs/assets/EvoDesign.pdf`, or use the final public paper URL.
-2. Replace the forthcoming paper entry in `docs/index.html` with a working link and update the hero paper link.
-3. Update the README release status and add the verified BibTeX. Do not invent a venue, identifier, or publication date.
-4. Keep the project, paper, algorithm, metadata, and sharing image named **EvoDesign**.
+The hero Paper link, research-paper resource, and README point to https://arxiv.org/abs/2604.09568. Keep this unversioned URL so future arXiv revisions appear at the same address.
+
+If the public paper URL changes, update both website links and the README together. Add verified BibTeX when needed; do not invent a venue, identifier, or publication date. Keep the project, paper, algorithm, metadata, and sharing image named **EvoDesign**.
 
 The supplied anonymous manuscript is not distributed by this repository. Authors and affiliations were transcribed in row-major order from the author image provided by the project owner. No equal-contribution or corresponding-author symbols were inferred. The contact email is the one supplied for Hui Xiong.
 

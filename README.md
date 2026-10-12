@@ -2,7 +2,7 @@
 
 <img src="docs/assets/social-preview.svg" alt="EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution" width="900">
 
-**[Project page](https://tianfuwang.tech/EvoDesign/)** · **Code coming soon** · **Updated paper forthcoming**
+**[Project page](https://tianfuwang.tech/EvoDesign/)** · **Code coming soon** · **[Paper (arXiv)](https://arxiv.org/abs/2604.09568)**
 
 <sub>Tianfu Wang¹ · Leilei Ding² · Ziyang Tao² · Yi Zhan² · Zhiyuan Ma² · Wei Wu² · Yuxuan Lei² · Junyang Wang² · Yin Wu¹ · Yizhao Xu³ · Hongyuan Zhu² · Qi Liu² · Nicholas Jing Yuan¹ · Yanyong Zhang² · Hui Xiong¹˒⁴</sub>
 
@@ -28,7 +28,7 @@ This repository currently hosts the project website. The research implementation
 | --- | --- |
 | Project website | [Available](https://tianfuwang.tech/EvoDesign/) |
 | Research implementation | Coming soon |
-| Updated manuscript | Forthcoming |
+| Research paper | [arXiv:2604.09568](https://arxiv.org/abs/2604.09568) |
 | CanvasBench release details | Forthcoming |
 
 The interactive canvas on the website is a browser-local illustration of editability, not a live deployment of the research system. No installation commands, model checkpoints, or dataset downloads are claimed at this stage.
@@ -72,4 +72,4 @@ Open `http://localhost:8000`. See [website maintenance](WEBSITE.md) for author, 
 
 ## Citation and contact
 
-Citation metadata will be added with the updated manuscript. For research inquiries, contact [Hui Xiong](mailto:xionghui@ust.hk).
+The paper is available at [arXiv:2604.09568](https://arxiv.org/abs/2604.09568). For research inquiries, contact [Hui Xiong](mailto:xionghui@ust.hk).
