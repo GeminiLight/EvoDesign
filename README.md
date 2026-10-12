@@ -2,7 +2,7 @@
 
 <img src="docs/assets/social-preview.svg" alt="EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution" width="900">
 
-**[Project page](https://geminilight.github.io/EvoDesign/)** · **Code coming soon** · **Updated paper forthcoming**
+**[Project page](https://tianfuwang.tech/EvoDesign/)** · **Code coming soon** · **Updated paper forthcoming**
 
 <sub>Tianfu Wang¹ · Leilei Ding² · Ziyang Tao² · Yi Zhan² · Zhiyuan Ma² · Wei Wu² · Yuxuan Lei² · Junyang Wang² · Yin Wu¹ · Yizhao Xu³ · Hongyuan Zhu² · Qi Liu² · Nicholas Jing Yuan¹ · Yanyong Zhang² · Hui Xiong¹˒⁴</sub>
 
@@ -26,7 +26,7 @@ This repository currently hosts the project website. The research implementation
 
 | Resource | Status |
 | --- | --- |
-| Project website | [Available](https://geminilight.github.io/EvoDesign/) |
+| Project website | [Available](https://tianfuwang.tech/EvoDesign/) |
 | Research implementation | Coming soon |
 | Updated manuscript | Forthcoming |
 | CanvasBench release details | Forthcoming |

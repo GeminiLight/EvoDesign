@@ -14,7 +14,9 @@ The static website uses relative asset URLs so it works under the `/EvoDesign/` 
 
 GitHub Pages serves `main` → `/docs`. Pushing changes to `docs/` triggers GitHub's Pages build and deployment. The `.nojekyll` file disables Jekyll processing.
 
-Expected URL: https://geminilight.github.io/EvoDesign/
+Public URL: https://tianfuwang.tech/EvoDesign/
+
+GitHub Pages inherits the account’s existing `tianfuwang.tech` domain. The default `geminilight.github.io/EvoDesign/` address redirects there. No repository-level custom domain or DNS change is required.
 
 Local preview:
 
