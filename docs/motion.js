@@ -6,6 +6,7 @@
   const root = document.documentElement;
   const systemMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const toggle = document.querySelector('#motion-toggle');
+  toggle.hidden = false;
   const animations = new Set();
   const counters = new Set();
   let preference = true;
@@ -182,7 +183,7 @@
 
   // One-time reveals never leave content hidden if an observer fails to run.
   const revealTargets = document.querySelectorAll(
-    '.showcase-heading, .section-heading, .overview-copy, .section-top, .method-step, .memory-band, .refinement-copy, .case-study, .benchmark-lower>div, .results-table-wrap, .result-highlights>div, .resources'
+    '.showcase-heading, .section-heading, .overview-copy, .section-top, .method-step, .memory-band, .refinement-copy, .case-study, .benchmark-lower>div, .results-table-wrap, .result-highlights>div, .research-definition, .brief-facts, .question-list, .citation-section, .resources'
   );
   if ('IntersectionObserver' in window) {
     const revealObserver = new IntersectionObserver(entries => {
@@ -194,6 +195,18 @@
           [{ opacity: 0, transform: 'translateY(20px)' }, { opacity: 1, transform: 'translateY(0)' }],
           { duration: 700, delay: stagger, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
         if (entry.target.classList.contains('results-table-wrap')) animateResultMeters();
+        if (entry.target.classList.contains('memory-band')) {
+          entry.target.querySelectorAll('.memory-levels>div').forEach((level, index) => {
+            animate(level, [{ opacity: .25, transform: 'translateX(-9px)' }, { opacity: 1, transform: 'translateX(0)' }],
+              { duration: 650, delay: 240 + index * 180, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+          });
+        }
+        if (entry.target.classList.contains('citation-section')) {
+          entry.target.querySelectorAll('.citation-orbit i').forEach((ring, index) => {
+            animate(ring, [{ opacity: 0, transform: 'scale(.7)' }, { opacity: 1, transform: 'scale(1)' }],
+              { duration: 950, delay: index * 120, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
+          });
+        }
       });
     }, { threshold: .12 });
     revealTargets.forEach(element => revealObserver.observe(element));
@@ -202,7 +215,7 @@
     });
     heroObserver.observe(document.querySelector('.hero'));
   }
-  document.querySelectorAll('.hero-eyebrow, h1, .paper-title, .author-block, .hero-actions, .hero-caption').forEach((element, index) => {
+  document.querySelectorAll('.hero-eyebrow, h1, .paper-title, .author-block, .hero-actions, .hero-caption, .hero-shortcuts').forEach((element, index) => {
     animate(element,
       [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'translateY(0)' }],
       { duration: 800, delay: index * 70, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
@@ -243,7 +256,7 @@
   });
 
   const header = document.querySelector('.site-header');
-  const navSections = [...document.querySelectorAll('.nav-links a')].map(link => ({ link, section: document.querySelector(link.getAttribute('href')) }));
+  const navSections = [...document.querySelectorAll('.nav-links a, .nav-cite')].map(link => ({ link, section: document.querySelector(link.getAttribute('href')) }));
   let scrollFrame = 0;
   function updateScroll() {
     scrollFrame = 0;
@@ -278,5 +291,67 @@
     if (event.target !== dialog) return;
     const bounds = dialog.getBoundingClientRect();
     if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();
+  });
+
+  // Native details preserve all research text and navigation without JavaScript.
+  const contents = document.querySelector('.mobile-contents');
+  contents.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+    contents.open = false;
+    const section = document.querySelector(link.hash);
+    if (section) {
+      section.setAttribute('tabindex', '-1');
+      section.focus({ preventScroll: true });
+    }
+  }));
+  document.addEventListener('pointerdown', event => {
+    if (contents.open && !contents.contains(event.target)) contents.open = false;
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && contents.open) {
+      contents.open = false;
+      contents.querySelector('summary').focus();
+    }
+  });
+  contents.addEventListener('focusout', event => {
+    if (event.relatedTarget && !contents.contains(event.relatedTarget)) contents.open = false;
+  });
+  document.querySelectorAll('.research-question, .citation-source, .mobile-contents').forEach(detail => {
+    detail.addEventListener('toggle', () => {
+      if (!detail.open) return;
+      const content = detail.querySelector('.question-answer, pre, .contents-panel');
+      animate(content, [{ opacity: .3, transform: 'translateY(-5px)' }, { opacity: 1, transform: 'translateY(0)' }],
+        { duration: 320, easing: 'cubic-bezier(.22,1,.36,1)' });
+    });
+  });
+
+  const copyButton = document.querySelector('#copy-citation');
+  const copyStatus = document.querySelector('#copy-status');
+  let copyTimer;
+  copyButton.hidden = false;
+  copyButton.addEventListener('click', async () => {
+    clearTimeout(copyTimer);
+    copyButton.classList.remove('is-copied');
+    copyButton.querySelector('span').textContent = 'Copy BibTeX';
+    const code = document.querySelector('#bibtex');
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+      await navigator.clipboard.writeText(code.textContent.trim());
+      copyButton.classList.add('is-copied');
+      copyButton.querySelector('span').textContent = 'Copied';
+      copyStatus.textContent = 'BibTeX copied. Ready to paste into your bibliography.';
+      animate(copyButton, [{ transform: 'scale(.97)' }, { transform: 'scale(1)' }], { duration: 240, easing: 'ease-out' });
+      copyTimer = setTimeout(() => {
+        copyButton.classList.remove('is-copied');
+        copyButton.querySelector('span').textContent = 'Copy BibTeX';
+      }, 2800);
+    } catch {
+      document.querySelector('.citation-source').open = true;
+      const range = document.createRange();
+      range.selectNodeContents(code);
+      const selection = window.getSelection();
+      selection.removeAllRanges(); selection.addRange(range);
+      code.parentElement.focus();
+      copyStatus.textContent = 'Automatic copy is unavailable. Copy the selected BibTeX below, or download the .bib file.';
+    }
   });
 })();

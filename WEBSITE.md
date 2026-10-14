@@ -57,3 +57,29 @@ The Motion control pauses presentation effects and remembers the choice locally.
 - Check reduced motion, persisted motion preferences, figure-dialog focus and Escape, and narrow-screen canvas navigation.
 - Check resource URLs, image loading, and browser errors.
 - Keep unreleased resources visibly marked as forthcoming.
+
+## Scholarly metadata and citation
+
+`research/paper.json` holds the verified paper title, author order, affiliations, arXiv identifier, DOI, year, description, and website abstract. The publication year is separate from the website modification date. No conference proceedings details or exact publication day are inferred.
+
+After editing metadata or the metric arrays in `docs/app.js`, run:
+
+```sh
+node scripts/sync-research.mjs
+```
+
+This updates the scholarly meta tags and JSON-LD, the default results in raw HTML, BibTeX/RIS downloads, GitHub `CITATION.cff`, README citation, the all-metrics CSV, sitemap, and CSS/JS content hashes. The generated files are committed; deployment still has no build step. After changing author names, also update the visible author block and README author line. Change `pageModified` and the footer date only when website content actually changes.
+
+The citation block supports clipboard copy, a readable fallback, and downloads. The default GPT-5.5 results remain available without JavaScript; other backbone settings are also available in the CSV. The CSV transcribes the supplied manuscript and is not the CanvasBench dataset.
+
+`docs/sitemap.xml` lists the canonical project URL. Only the domain-root `https://tianfuwang.tech/robots.txt` controls crawlers; a project-level `docs/robots.txt` would not. The domain-root file lives in the separate `GeminiLight/geminilight.github.io` repository.
+
+The author will provide the renamed public PDF later. Do not add `citation_pdf_url` pointing to the anonymous draft or an external PDF: Google Scholar expects a same-directory full-text file for that tag. For now, full-text links lead to the unversioned arXiv record. See [SEO and research-discovery notes](SEO_GEO.md) for indexing checks and the source-consistency follow-up.
+
+## Additional interaction checks
+
+- The mobile Contents menu supports Escape, focus return, and direct section links.
+- BibTeX copy confirms success, or selects the text when clipboard access is unavailable.
+- Questions and citation disclosure work without JavaScript.
+- Source HTML contains six default result rows and all fifteen citation authors.
+- Downloaded BibTeX, RIS, and CSV agree with visible metadata and reported numbers.

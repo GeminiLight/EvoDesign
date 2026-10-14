@@ -1,0 +1,25 @@
+backbone,method,representation,content_fidelity,concept_logic,semantic_relevance,visual_aesthetics,styling_consistency,flow_coherence,space_balance,cognitive_ease,comprehension_accuracy,self_contained_explanation,content_mean,visual_mean,cognitive_mean,source
+GPT-4o-Image (fixed pixel baseline),GPT-4o-Image,Pixel-based,2.111,2.349,2.444,3.810,3.635,3.651,3.571,4.048,2.270,2.921,2.301,3.667,3.080,Supplied manuscript Table 1
+GPT-5.5,LaTeX TikZ,Code-based,3.404,3.421,3.579,2.667,2.579,3.246,2.930,3.772,3.035,2.789,3.468,2.856,3.199,Supplied manuscript Table 1
+GPT-5.5,DiagramAgent,Agentic,2.000,2.476,1.921,2.778,2.825,2.683,2.540,2.349,2.508,2.492,2.132,2.707,2.450,Supplied manuscript Table 1
+GPT-5.5,SciSketch,Agentic,4.048,3.794,3.587,2.984,3.063,2.921,2.841,3.159,3.540,3.222,3.810,2.952,3.307,Supplied manuscript Table 1
+GPT-5.5,Schema prompting,One-shot schema,3.884,3.566,3.612,2.463,2.891,2.512,2.064,2.806,2.965,2.486,3.687,2.482,2.752,Supplied manuscript Table 1
+GPT-5.5,EvoDesign,Canvas-native,4.118,4.052,4.126,3.612,3.786,3.704,3.536,3.912,3.512,3.086,4.099,3.659,3.503,Supplied manuscript Table 1
+GPT-4o-Image (fixed pixel baseline),GPT-4o-Image,Pixel-based,2.111,2.349,2.444,3.810,3.635,3.651,3.571,4.048,2.270,2.921,2.301,3.667,3.080,Supplied manuscript Table 1
+Gemini-3.1-Pro,LaTeX TikZ,Code-based,4.021,3.932,4.018,3.184,3.438,3.512,3.076,3.704,3.352,2.604,3.990,3.303,3.220,Supplied manuscript Table 1
+Gemini-3.1-Pro,DiagramAgent,Agentic,2.842,3.102,2.784,3.042,3.168,3.044,2.861,2.934,2.886,2.612,2.909,3.029,2.811,Supplied manuscript Table 1
+Gemini-3.1-Pro,SciSketch,Agentic,4.108,3.906,3.784,3.214,3.302,3.182,3.014,3.426,3.612,3.264,3.933,3.178,3.434,Supplied manuscript Table 1
+Gemini-3.1-Pro,Schema prompting,One-shot schema,3.812,3.741,3.829,2.752,3.116,2.866,2.351,3.168,3.034,2.604,3.794,2.771,2.935,Supplied manuscript Table 1
+Gemini-3.1-Pro,EvoDesign,Canvas-native,4.062,4.018,4.097,3.526,3.714,3.681,3.472,3.861,3.486,3.054,4.059,3.598,3.467,Supplied manuscript Table 1
+GPT-4o-Image (fixed pixel baseline),GPT-4o-Image,Pixel-based,2.111,2.349,2.444,3.810,3.635,3.651,3.571,4.048,2.270,2.921,2.301,3.667,3.080,Supplied manuscript Table 1
+DeepSeek-V4-Pro,LaTeX TikZ,Code-based,3.884,3.792,3.946,3.012,3.214,3.281,2.846,3.486,3.186,2.482,3.874,3.088,3.051,Supplied manuscript Table 1
+DeepSeek-V4-Pro,DiagramAgent,Agentic,2.716,2.948,2.663,2.884,3.031,2.872,2.702,2.781,2.741,2.486,2.776,2.872,2.669,Supplied manuscript Table 1
+DeepSeek-V4-Pro,SciSketch,Agentic,4.006,3.832,3.712,3.072,3.188,3.064,2.902,3.281,3.496,3.146,3.850,3.056,3.308,Supplied manuscript Table 1
+DeepSeek-V4-Pro,Schema prompting,One-shot schema,3.738,3.664,3.758,2.557,2.998,2.674,2.136,2.914,2.898,2.376,3.720,2.591,2.729,Supplied manuscript Table 1
+DeepSeek-V4-Pro,EvoDesign,Canvas-native,3.936,3.887,4.012,3.317,3.562,3.421,3.213,3.674,3.342,2.891,3.945,3.378,3.302,Supplied manuscript Table 1
+GPT-4o-Image (fixed pixel baseline),GPT-4o-Image,Pixel-based,2.111,2.349,2.444,3.810,3.635,3.651,3.571,4.048,2.270,2.921,2.301,3.667,3.080,Supplied manuscript Table 1
+DeepSeek-V4-Flash,LaTeX TikZ,Code-based,3.526,3.412,3.561,2.702,2.954,2.986,2.512,3.108,2.714,2.206,3.500,2.789,2.676,Supplied manuscript Table 1
+DeepSeek-V4-Flash,DiagramAgent,Agentic,2.346,2.624,2.281,2.641,2.812,2.563,2.418,2.512,2.438,2.214,2.417,2.609,2.388,Supplied manuscript Table 1
+DeepSeek-V4-Flash,SciSketch,Agentic,3.724,3.514,3.408,2.812,2.986,2.824,2.657,3.014,3.146,2.884,3.549,2.820,3.015,Supplied manuscript Table 1
+DeepSeek-V4-Flash,Schema prompting,One-shot schema,3.438,3.274,3.371,2.276,2.742,2.412,1.886,2.586,2.482,2.008,3.361,2.329,2.359,Supplied manuscript Table 1
+DeepSeek-V4-Flash,EvoDesign,Canvas-native,3.684,3.602,3.758,3.038,3.326,3.082,2.842,3.386,3.012,2.548,3.681,3.072,2.982,Supplied manuscript Table 1

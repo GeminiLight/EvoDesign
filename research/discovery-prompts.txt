@@ -1,0 +1,10 @@
+What is EvoDesign and which paper introduces it?
+Where can I read the EvoDesign paper and get its BibTeX citation?
+Who authored EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution?
+Which research systems generate object-level editable diagrams with language-model agents?
+How can structure, style, and layout agents coordinate diagram generation?
+What is design expertise evolution in agentic diagram creation?
+What is CanvasBench and what does it evaluate?
+How does EvoDesign compare with pixel-based and code-based diagram generation?
+What evidence supports EvoDesign's content, visual, and cognitive quality?
+Are the EvoDesign implementation and CanvasBench dataset publicly available?

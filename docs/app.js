@@ -49,8 +49,10 @@ function renderResults() {
     return `<tr${i === 5 ? ' class="ours"' : ''}><th scope="row">${methodLabels[i][0]}</th><td>${methodLabels[i][1]}</td>${means.map(v => `<td class="score-cell">${v.toFixed(3)}<span class="score-meter" aria-hidden="true"><i style="width:${v / 5 * 100}%"></i></span></td>`).join('')}</tr>`;
   }).join('');
   document.querySelector('#results-caption').textContent = `Mean score within each dimension · ${modelSelect.selectedOptions[0].textContent} backbone for non-pixel methods · higher is better`;
+  document.querySelector('#results-status').textContent = `Showing ${modelSelect.selectedOptions[0].textContent} · 6 methods · 3 dimensions`;
   document.dispatchEvent(new Event('results:rendered'));
 }
+modelSelect.disabled = false;
 modelSelect.addEventListener('change', renderResults);
 renderResults();
 

@@ -2,7 +2,7 @@
 
 <img src="docs/assets/social-preview.svg" alt="EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution" width="900">
 
-**[Project page](https://tianfuwang.tech/EvoDesign/)** · **Code coming soon** · **[Paper (arXiv)](https://arxiv.org/abs/2604.09568)**
+**[Project page](https://tianfuwang.tech/EvoDesign/)** · **[Cite](https://tianfuwang.tech/EvoDesign/#citation)** · **Code coming soon** · **[Paper (arXiv)](https://arxiv.org/abs/2604.09568)**
 
 <sub>Tianfu Wang¹ · Leilei Ding² · Ziyang Tao² · Yi Zhan² · Zhiyuan Ma² · Wei Wu² · Yuxuan Lei² · Junyang Wang² · Yin Wu¹ · Yizhao Xu³ · Hongyuan Zhu² · Qi Liu² · Nicholas Jing Yuan¹ · Yanyong Zhang² · Hui Xiong¹˒⁴</sub>
 
@@ -12,7 +12,7 @@
 
 ## Overview
 
-**EvoDesign** is an agentic framework for editable diagram creation through **design expertise evolution**. It represents a diagram as a machine-actionable, human-editable canvas manifest, connecting generation, diagnostic verification, localized refinement, and reusable design knowledge.
+EvoDesign is an agentic framework for editable diagram generation that coordinates structure, style, and layout agents and evolves reusable design expertise. It represents a diagram as a machine-actionable, human-editable canvas manifest, connecting generation, diagnostic verification, localized refinement, and reusable design knowledge.
 
 - **Create:** structure, style, and layout agents coordinate semantic topology, visual encoding, and spatial arrangement.
 - **Verify:** objective checks and VLM critique identify visual-spatial defects and guide local repairs.
@@ -58,7 +58,7 @@ The table below summarizes manuscript Table 1 for the GPT-5.5 backbone. Each val
 | Schema prompting | 3.687 | 2.482 | 2.752 |
 | **EvoDesign** | **4.099** | **3.659** | **3.503** |
 
-Under GPT-5.5, EvoDesign improves over one-shot schema prompting by **+1.472** on space balance and **+1.106** on cognitive ease. These are differences in individual metric scores.
+Under GPT-5.5, EvoDesign improves over one-shot schema prompting by **+1.472** on space balance and **+1.106** on cognitive ease. These are differences in individual metric scores. [Download all reported metrics as CSV](docs/results.csv).
 
 ## Website development
 
@@ -70,6 +70,41 @@ python3 -m http.server 8000 --directory docs
 
 Open `http://localhost:8000`. See [website maintenance](WEBSITE.md) for author, paper, results, and deployment updates.
 
-## Citation and contact
+## Citation
+
+[Copy the citation](https://tianfuwang.tech/EvoDesign/#citation) or download [BibTeX](docs/citation.bib) / [RIS](docs/citation.ris).
+
+<!-- CITATION:START -->
+
+```bibtex
+@misc{wang2026evodesign,
+  title = {{EvoDesign}: Agentic Editable Diagram Creation via Design Expertise Evolution},
+  author = {Wang, Tianfu and
+            Ding, Leilei and
+            Tao, Ziyang and
+            Zhan, Yi and
+            Ma, Zhiyuan and
+            Wu, Wei and
+            Lei, Yuxuan and
+            Wang, Junyang and
+            Wu, Yin and
+            Xu, Yizhao and
+            Zhu, Hongyuan and
+            Liu, Qi and
+            Yuan, Nicholas Jing and
+            Zhang, Yanyong and
+            Xiong, Hui},
+  year = {2026},
+  eprint = {2604.09568},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.HC},
+  doi = {10.48550/arXiv.2604.09568},
+  url = {https://arxiv.org/abs/2604.09568}
+}
+```
+
+<!-- CITATION:END -->
+
+## Contact
 
 The paper is available at [arXiv:2604.09568](https://arxiv.org/abs/2604.09568). For research inquiries, contact [Hui Xiong](mailto:xionghui@ust.hk).

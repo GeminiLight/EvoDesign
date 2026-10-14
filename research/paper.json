@@ -1,0 +1,127 @@
+{
+  "title": "EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution",
+  "description": "EvoDesign is an agentic framework for editable diagram generation that coordinates structure, style, and layout agents and evolves reusable design expertise.",
+  "year": 2026,
+  "arxiv": "2604.09568",
+  "doi": "10.48550/arXiv.2604.09568",
+  "primaryClass": "cs.HC",
+  "url": "https://tianfuwang.tech/EvoDesign/",
+  "paperUrl": "https://arxiv.org/abs/2604.09568",
+  "repository": "https://github.com/GeminiLight/EvoDesign",
+  "pageModified": "2026-10-15",
+  "authors": [
+    {
+      "given": "Tianfu",
+      "family": "Wang",
+      "affiliations": [
+        1
+      ]
+    },
+    {
+      "given": "Leilei",
+      "family": "Ding",
+      "affiliations": [
+        2
+      ]
+    },
+    {
+      "given": "Ziyang",
+      "family": "Tao",
+      "affiliations": [
+        2
+      ]
+    },
+    {
+      "given": "Yi",
+      "family": "Zhan",
+      "affiliations": [
+        2
+      ]
+    },
+    {
+      "given": "Zhiyuan",
+      "family": "Ma",
+      "affiliations": [
+        2
+      ]
+    },
+    {
+      "given": "Wei",
+      "family": "Wu",
+      "affiliations": [
+        2
+      ]
+    },
+    {
+      "given": "Yuxuan",
+      "family": "Lei",
+      "affiliations": [
+        2
+      ]
+    },
+    {
+      "given": "Junyang",
+      "family": "Wang",
+      "affiliations": [
+        2
+      ]
+    },
+    {
+      "given": "Yin",
+      "family": "Wu",
+      "affiliations": [
+        1
+      ]
+    },
+    {
+      "given": "Yizhao",
+      "family": "Xu",
+      "affiliations": [
+        3
+      ]
+    },
+    {
+      "given": "Hongyuan",
+      "family": "Zhu",
+      "affiliations": [
+        2
+      ]
+    },
+    {
+      "given": "Qi",
+      "family": "Liu",
+      "affiliations": [
+        2
+      ]
+    },
+    {
+      "given": "Nicholas Jing",
+      "family": "Yuan",
+      "affiliations": [
+        1
+      ]
+    },
+    {
+      "given": "Yanyong",
+      "family": "Zhang",
+      "affiliations": [
+        2
+      ]
+    },
+    {
+      "given": "Hui",
+      "family": "Xiong",
+      "affiliations": [
+        1,
+        4
+      ]
+    }
+  ],
+  "affiliations": [
+    "The Hong Kong University of Science and Technology (Guangzhou)",
+    "University of Science and Technology of China",
+    "Peking University",
+    "The Hong Kong University of Science and Technology"
+  ],
+  "abstract": "High-fidelity diagram creation requires coordinated visual-spatial decisions over semantic topology, visual styling, and geometric layout. Existing methods face a representation gap: pixel-based generation offers limited object-level control, while code-based synthesis provides executable structure at the cost of intuitive manipulation. We introduce EvoDesign, an agentic framework for editable diagram creation through an intermediate canvas schema that is both machine-actionable and directly manipulable by users. EvoDesign first constructs a diagram manifest through coordinated structure, style, and layout agents, and then renders the manifest in a diagnostic verification environment. This environment produces objective defect signals and VLM-based critique, enabling localized refinement of the current diagram while also providing evidence for long-term design expertise evolution. The evolution mechanism distills refinement traces into a three-tier design expertise memory, where candidate strategies are linked to the verification evidence that supports them and are promoted into broader guidelines and principles only through repeated cross-context support. We further define CanvasBench, a canvas-recoverable benchmark and evaluation protocol with content, visual, and cognitive dimensions. Experiments across pixel, code-based, agentic, one-shot schema, and canvas-native methods show that EvoDesign provides the strongest overall balance across content fidelity, visual organization, and cognitive usability."
+}
