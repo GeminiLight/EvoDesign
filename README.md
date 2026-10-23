@@ -2,7 +2,7 @@
 
 <img src="docs/assets/social-preview.svg" alt="EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution" width="900">
 
-**[Project page](https://tianfuwang.tech/EvoDesign/)** · **[Cite](https://tianfuwang.tech/EvoDesign/#citation)** · **Code coming soon** · **[Paper (arXiv)](https://arxiv.org/abs/2604.09568)**
+**[Project page](https://tianfu.wang/EvoDesign/)** · **[Cite](https://tianfu.wang/EvoDesign/#citation)** · **Code coming soon** · **[Paper (arXiv)](https://arxiv.org/abs/2604.09568)**
 
 <sub>Tianfu Wang¹ · Leilei Ding² · Ziyang Tao² · Yi Zhan² · Zhiyuan Ma² · Wei Wu² · Yuxuan Lei² · Junyang Wang² · Yin Wu¹ · Yizhao Xu³ · Hongyuan Zhu² · Qi Liu² · Nicholas Jing Yuan¹ · Yanyong Zhang² · Hui Xiong¹˒⁴</sub>
 
@@ -26,7 +26,7 @@ This repository currently hosts the project website. The research implementation
 
 | Resource | Status |
 | --- | --- |
-| Project website | [Available](https://tianfuwang.tech/EvoDesign/) |
+| Project website | [Available](https://tianfu.wang/EvoDesign/) |
 | Research implementation | Coming soon |
 | Research paper | [arXiv:2604.09568](https://arxiv.org/abs/2604.09568) |
 | CanvasBench release details | Forthcoming |
@@ -72,7 +72,7 @@ Open `http://localhost:8000`. See [website maintenance](WEBSITE.md) for author, 
 
 ## Citation
 
-[Copy the citation](https://tianfuwang.tech/EvoDesign/#citation) or download [BibTeX](docs/citation.bib) / [RIS](docs/citation.ris).
+[Copy the citation](https://tianfu.wang/EvoDesign/#citation) or download [BibTeX](docs/citation.bib) / [RIS](docs/citation.ris).
 
 <!-- CITATION:START -->
 

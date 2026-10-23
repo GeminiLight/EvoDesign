@@ -32,7 +32,7 @@ The local generic SEO audit misidentified the inline SVG title as the page title
 ## Source consistency to finish with the paper update
 
 - The [arXiv record](https://arxiv.org/abs/2604.09568) has the EvoDesign title and the supplied 15-author order, but its abstract still uses the previous project name and links to the previous repository. Those fields should be updated by the paper owner in the next arXiv revision; the website cannot change them. Search results already reproduce this older abstract.
-- The author’s [publications page](https://tianfuwang.tech/publications/) contains an EvoDesign entry, but its displayed author list differs from the supplied author image/arXiv record. Do not silently merge the lists. Align the publication entry with the finalized author list during the paper update.
+- The author’s [publications page](https://tianfu.wang/publications/) contains an EvoDesign entry, but its displayed author list differs from the supplied author image/arXiv record. Do not silently merge the lists. Align the publication entry with the finalized author list during the paper update.
 - Keep all Paper links unversioned. Update the arXiv code link to `https://github.com/GeminiLight/EvoDesign` and add the project-page link to the paper’s public record when editing it.
 - Once the renamed public PDF is supplied, host it beside this abstract page and add a same-directory `citation_pdf_url`. The anonymous draft has not been republished. Until then, arXiv remains the public full-text source; project-page Scholar inclusion is not asserted.
 
@@ -42,7 +42,7 @@ A discovery spot-check on 14 October found the author’s homepage/publication e
 
 First manual follow-up: **22 October 2026**, after deployment. This is a suggested measurement date, not an automatic reminder or background task.
 
-1. Submit `https://tianfuwang.tech/EvoDesign/sitemap.xml` in the existing Google Search Console and Bing Webmaster Tools properties; inspect the canonical URL. Their account state and access were not supplied in this task. Root robots discovery is configured independently.
+1. Submit `https://tianfu.wang/EvoDesign/sitemap.xml` in the existing Google Search Console and Bing Webmaster Tools properties; inspect the canonical URL. Their account state and access were not supplied in this task. Root robots discovery is configured independently.
 2. Record query impressions/clicks, selected canonical, indexed state, and arXiv/title search coverage. Use the same intervals for subsequent comparisons; do not interpret one search result page as index coverage.
 3. Run the adjacent [prompt panel](research/discovery-prompts.txt) on ChatGPT search and Perplexity: three paraphrases per intent, three runs each. Record whether the project is named, which exact URL is cited, and competing sources. Do not derive an AI visibility percentage from the spot-check above.
 4. Recheck monthly and after a paper/code/data release. Compare changes that persist across paraphrases and runs. Academic citation counts should be tracked separately using the paper’s stable identifier in Scholar/Semantic Scholar; changes cannot be causally attributed to this website alone.

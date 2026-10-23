@@ -16,9 +16,9 @@ The static website uses relative asset URLs so it works under the `/EvoDesign/` 
 
 GitHub Pages serves `main` → `/docs`. Pushing changes to `docs/` triggers GitHub's Pages build and deployment. The `.nojekyll` file disables Jekyll processing.
 
-Public URL: https://tianfuwang.tech/EvoDesign/
+Public URL: https://tianfu.wang/EvoDesign/
 
-GitHub Pages inherits the account’s existing `tianfuwang.tech` domain. The default `geminilight.github.io/EvoDesign/` address redirects there. No repository-level custom domain or DNS change is required.
+GitHub Pages inherits the account’s existing `tianfu.wang` domain. The default `geminilight.github.io/EvoDesign/` address redirects there. No repository-level custom domain or DNS change is required.
 
 Local preview:
 
@@ -72,7 +72,7 @@ This updates the scholarly meta tags and JSON-LD, the default results in raw HTM
 
 The citation block supports clipboard copy, a readable fallback, and downloads. The default GPT-5.5 results remain available without JavaScript; other backbone settings are also available in the CSV. The CSV transcribes the supplied manuscript and is not the CanvasBench dataset.
 
-`docs/sitemap.xml` lists the canonical project URL. Only the domain-root `https://tianfuwang.tech/robots.txt` controls crawlers; a project-level `docs/robots.txt` would not. The domain-root file lives in the separate `GeminiLight/geminilight.github.io` repository.
+`docs/sitemap.xml` lists the canonical project URL. Only the domain-root `https://tianfu.wang/robots.txt` controls crawlers; a project-level `docs/robots.txt` would not. The domain-root file lives in the separate `GeminiLight/geminilight.github.io` repository.
 
 The author will provide the renamed public PDF later. Do not add `citation_pdf_url` pointing to the anonymous draft or an external PDF: Google Scholar expects a same-directory full-text file for that tag. For now, full-text links lead to the unversioned arXiv record. See [SEO and research-discovery notes](SEO_GEO.md) for indexing checks and the source-consistency follow-up.
 
