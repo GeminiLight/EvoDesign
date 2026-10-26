@@ -1,0 +1,35 @@
+{
+  "styling_design_principle": {
+    "visual_tone_principle": {
+      "visual_tone": "Hand-Drawn UML",
+      "description": "Use font='draw' for a friendly look. Clean lines, consistent shapes."
+    },
+    "hierarchy_principle": {
+      "hierarchy_strategy": "Monochromatic Depth",
+      "description": "Within a color family: Sig 3 -> fill: solid (Darker/Richer). Sig 2 -> fill: semi (Lighter). Sig 1 -> fill: none. Avoid changing the hue."
+    },
+    "color_principle": {
+      "color_strategy": "Strict Group Inheritance",
+      "description": "CRITICAL: If Group 'Risks' is Red, all nodes inside MUST be Red. Use fill opacity to distinguish items, NOT color. Maintain high text contrast."
+    },
+    "shape_principle": {
+      "shape_vocabulary": "UML Uniformity",
+      "shape_mapping": {
+        "class": "rectangle"
+      },
+      "description": "Force 'rectangle' for all UML classes to ensure alignment. Uniform width."
+    },
+    "connection_principle": {
+      "connection_strategy": "Clean Flow",
+      "arrow_defaults": {
+        "arrowheadStart": "none",
+        "arrowheadEnd": "arrow"
+      },
+      "description": "Use black or grey arrows. Keep them simple."
+    },
+    "detailed_comments": {
+      "Source_A_StylingDesignAgent_generated": "No explicit groups in topology; treat entire diagram as single monochromatic family. Assign blue palette to all classes: Account (solid), AddressBook (semi), Contact (none), ContactGroup (semi). Use white text on solid fills, black elsewhere. Arrows black.",
+      "Source_B_StylingReflector_Summary": ""
+    }
+  }
+}

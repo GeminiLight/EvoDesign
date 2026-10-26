@@ -11,6 +11,8 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const write = (file, text) => fs.writeFileSync(path.join(root, file), text);
 const paper = JSON.parse(read('research/paper.json'));
 const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const productTitle = 'EvoDesign — Turn ideas into editable diagrams';
+const productDescription = 'Generate, refine and edit diagrams in an open-source AI workspace. Run locally with your own model, optional icons and personal design memory. Built on EvoDesign research.';
 const fullName = author => `${author.given} ${author.family}`;
 const bibtex = `@misc{wang2026evodesign,
   title = {${paper.title.replace('EvoDesign', '{EvoDesign}')}},
@@ -43,7 +45,7 @@ ${cffAuthors('    ')}
   journal: "arXiv"
   doi: "${paper.doi}"
   url: "${paper.paperUrl}"
-  notes: "arXiv:${paper.arxiv}; research implementation forthcoming."
+  notes: "arXiv:${paper.arxiv}; source code available in the project repository."
 `);
 
 const article = {
@@ -57,21 +59,21 @@ const article = {
   keywords: ['editable diagram generation', 'multi-agent systems', 'design expertise evolution', 'CanvasBench', 'canvas-based diagramming'],
 };
 const structured = { '@context': 'https://schema.org', '@graph': [
-  { '@type': 'WebPage', '@id': paper.url, url: paper.url, name: paper.title, description: paper.description, inLanguage: 'en', dateModified: paper.pageModified, mainEntity: { '@id': `${paper.url}#paper` }, relatedLink: [paper.paperUrl, paper.repository], primaryImageOfPage: { '@type': 'ImageObject', url: `${paper.url}assets/social-preview.png`, width: 1200, height: 630 } }, article
+  { '@type': 'WebPage', '@id': paper.url, url: paper.url, name: productTitle, description: productDescription, inLanguage: 'en', dateModified: paper.pageModified, mainEntity: { '@id': `${paper.url}#software` }, about: { '@id': `${paper.url}#paper` }, relatedLink: [paper.paperUrl, paper.repository], primaryImageOfPage: { '@type': 'ImageObject', url: `${paper.url}assets/social-preview.png`, width: 1200, height: 630 } }, { '@type': 'SoftwareSourceCode', '@id': `${paper.url}#software`, name: 'EvoDesign', description: productDescription, codeRepository: paper.repository, url: paper.url, programmingLanguage: ['Python', 'TypeScript'], runtimePlatform: 'Python 3.11+ and Node.js 22.12+', license: `${paper.repository}/blob/main/LICENSE`, citation: { '@id': `${paper.url}#paper` } }, article
 ] };
 const meta = (name, content, property = false) => `<meta ${property ? 'property' : 'name'}="${name}" content="${escape(content)}">`;
 const tags = [
-  meta('description', paper.description), `<link rel="canonical" href="${paper.url}">`,
+  meta('description', productDescription), `<link rel="canonical" href="${paper.url}">`,
   `<link rel="sitemap" type="application/xml" href="${paper.url}sitemap.xml">`,
   meta('robots', 'index, follow, max-image-preview:large'),
-  meta('og:type', 'website', true), meta('og:title', paper.title, true),
-  meta('og:description', paper.description, true), meta('og:url', paper.url, true),
+  meta('og:type', 'website', true), meta('og:title', productTitle, true),
+  meta('og:description', productDescription, true), meta('og:url', paper.url, true),
   meta('og:site_name', 'EvoDesign', true), meta('og:locale', 'en_US', true),
   meta('og:image', `${paper.url}assets/social-preview.png`, true),
   meta('og:image:width', '1200', true), meta('og:image:height', '630', true),
   meta('og:image:alt', 'EvoDesign — editable diagrams, evolving design expertise.', true),
-  meta('twitter:card', 'summary_large_image'), meta('twitter:title', paper.title),
-  meta('twitter:description', paper.description), meta('twitter:image', `${paper.url}assets/social-preview.png`),
+  meta('twitter:card', 'summary_large_image'), meta('twitter:title', productTitle),
+  meta('twitter:description', productDescription), meta('twitter:image', `${paper.url}assets/social-preview.png`),
   meta('twitter:image:alt', 'EvoDesign — editable diagrams, evolving design expertise.'),
   meta('citation_title', paper.title), ...paper.authors.map(a => meta('citation_author', fullName(a))),
   meta('citation_publication_date', String(paper.year)), meta('citation_doi', paper.doi),

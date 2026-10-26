@@ -1,0 +1,70 @@
+# ============================================================================
+# EvoDesign — Application Settings
+# ============================================================================
+#
+# Non-LLM application configuration. LLM provider/model definitions live in
+# configs/models.yaml. This file maps runtime roles to those model definitions
+# and holds project-level defaults.
+#
+# Each supported value can be overridden by its corresponding environment
+# variable where noted. CLI --settings can select an alternate file.
+#
+# Usage:
+#   python -m evo_diagram.agentic_system.main --example 1 --settings configs/settings.yaml
+# ============================================================================
+
+experiment:
+  # Custom experiment name. If unset / empty / "exp", falls back to date
+  # (YYYY-MM-DD). Override via EVO_EXPERIMENT_ID.
+  id: "exp"
+
+services:
+  render_url: "http://localhost:3000"       # env: RENDER_SERVICE_URL
+  tool_service_url: "http://localhost:3000" # env: TOOL_SERVICE_URL
+
+canvas:
+  library: "excalidraw"                     # env: CANVAS_LIBRARY
+
+design_memory:
+  vector_db_path: "../data/knowledge"            # env: DESIGN_MEMORY_VECTOR_DB_PATH
+  embedding_model: "Qwen/Qwen3-Embedding-0.6B"  # env: DESIGN_MEMORY_EMBEDDING_MODEL
+
+user_preference:
+  memory_path: "../data/user_preferences"        # env: USER_PREFERENCE_MEMORY_PATH
+  embedding_model: "Qwen/Qwen3-Embedding-0.6B"  # env: USER_PREFERENCE_EMBEDDING_MODEL
+
+generation:
+  mode: "multiagent"                # env: GENERATION_MODE
+  enable_refiner: true              # env: ENABLE_REFINER
+  use_icons: false                  # env: USE_ICONS
+  structure_self_consistency_n: 1   # env: STRUCTURE_SELF_CONSISTENCY_N
+  full_domain_knowledge: true       # env: FULL_DOMAIN_KNOWLEDGE
+
+render:
+  fix_zorder: true
+  icon_base_url: "http://localhost:3000/icons/material-design-icons/{color}/{icon}.svg"
+
+retriever:
+  utility_weight: 0.25
+  diversity_weight: 0.20
+  exploration_weight: 0.10
+
+evaluation:
+  role: eval
+  default_metrics:
+    - content_dimension
+    - visual_dimension
+    - cognitive_dimension
+    - judge_preference
+
+# For research evaluation, configure an independent judge-vlm and set eval below.
+# The default uses the generation model and is only a convenience smoke setup.
+roles:
+  default: configured-model
+  fast: configured-model
+  eval: configured-model
+  generator: configured-model
+  refiner: configured-model
+  verifier: configured-model
+  distiller: configured-model
+  router: configured-model

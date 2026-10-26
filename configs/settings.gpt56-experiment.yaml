@@ -1,0 +1,56 @@
+# Reproducible fixed-sample experiment profile.
+#
+# This profile keeps the application defaults unchanged while routing every
+# LLM-backed role through the gpt-5.6 alias in configs/models.yaml.
+
+experiment:
+  id: "quality-iteration-gpt56"
+
+services:
+  render_url: "http://localhost:3000"
+  tool_service_url: "http://localhost:3000"
+
+canvas:
+  library: "excalidraw"
+
+design_memory:
+  vector_db_path: "../data/knowledge"
+  embedding_model: "Qwen/Qwen3-Embedding-0.6B"
+
+user_preference:
+  memory_path: "../data/user_preferences"
+  embedding_model: "Qwen/Qwen3-Embedding-0.6B"
+
+generation:
+  mode: "multiagent"
+  enable_refiner: true
+  use_icons: false
+  structure_self_consistency_n: 1
+  full_domain_knowledge: true
+
+render:
+  fix_zorder: true
+  icon_base_url: "http://localhost:3000/icons/material-design-icons/{color}/{icon}.svg"
+
+retriever:
+  utility_weight: 0.25
+  diversity_weight: 0.20
+  exploration_weight: 0.10
+
+evaluation:
+  role: gpt-5.6
+  default_metrics:
+    - content_dimension
+    - visual_dimension
+    - cognitive_dimension
+    - judge_preference
+
+roles:
+  default: gpt-5.6
+  fast: gpt-5.6
+  eval: gpt-5.6
+  generator: gpt-5.6
+  refiner: gpt-5.6
+  verifier: gpt-5.6
+  distiller: gpt-5.6
+  router: gpt-5.6

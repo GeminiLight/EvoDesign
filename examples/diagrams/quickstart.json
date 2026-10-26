@@ -1,0 +1,9 @@
+[
+  {
+    "id": "quickstart-service",
+    "diagram_type": "Architecture Diagram",
+    "content": "A user accesses a web application. The web application calls an API service. The API reads and writes a database.",
+    "query": "Create a clean left-to-right architecture diagram: User \u2192 Web app \u2192 API service \u2192 Database. Use concise labels, blue-violet accents and plenty of whitespace.",
+    "vertical_domain": "Software Engineering"
+  }
+]

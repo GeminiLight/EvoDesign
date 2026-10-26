@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/evodiagram.svg" />
+    <link rel="icon" type="image/svg+xml" href="/evodiagram-dark.svg" media="(prefers-color-scheme: dark)" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="EvoDesign turns a written description into an editable architecture, flow, sequence, or mind-map diagram, then refines it with you on the canvas." />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f8fbff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#030712" media="(prefers-color-scheme: dark)" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="EvoDesign" />
+    <meta property="og:description" content="Describe a system, get an editable diagram. EvoDesign generates structure, styling, and layout, then refines the result with you on the canvas." />
+    <meta property="og:image" content="/evodiagram.svg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>EvoDesign</title>
+    <script>
+      // Apply the stored theme before first paint. Without this the app renders
+      // one light frame before the Header effect runs, which flashes white on
+      // every load for dark-mode users.
+      (function () {
+        try {
+          var stored = localStorage.getItem('smartdiagram_theme');
+          var mode = stored === 'dark' || stored === 'light' || stored === 'system' ? stored : 'system';
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (mode === 'dark' || (mode === 'system' && prefersDark)) {
+            document.documentElement.classList.add('dark');
+          }
+          var lang = localStorage.getItem('smartdiagram_language');
+          if (lang === 'zh') document.documentElement.lang = 'zh-Hans';
+        } catch (e) { /* storage unavailable; fall back to light */ }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

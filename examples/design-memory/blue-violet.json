@@ -1,0 +1,70 @@
+{
+  "format": "evodesign.design-memory",
+  "version": 1,
+  "rules": [
+    {
+      "cabin_id": "structure",
+      "title": "Boundary naming: make domain edges explicit",
+      "preview": "Label module boundaries in complex systems to keep responsibilities clear.",
+      "source": "manual",
+      "enabled": false,
+      "pinned": false
+    },
+    {
+      "cabin_id": "structure",
+      "title": "Connection style: bidirectional request/response",
+      "preview": "Use bidirectional semantics for request-response relationships to reduce ambiguity.",
+      "source": "manual",
+      "enabled": true,
+      "pinned": false
+    },
+    {
+      "cabin_id": "structure",
+      "title": "Hierarchy depth: default to three layers",
+      "preview": "Use presentation, logic, and data layers as the preferred architecture skeleton.",
+      "source": "ai",
+      "enabled": true,
+      "pinned": false
+    },
+    {
+      "cabin_id": "structure",
+      "title": "Naming preference: User over Client",
+      "preview": "Prefer User as the primary actor name in system diagrams.",
+      "source": "ai",
+      "enabled": true,
+      "pinned": true
+    },
+    {
+      "cabin_id": "style",
+      "title": "Annotation placement: quiet bottom-right notes",
+      "preview": "Keep notes below the main flow hierarchy so they do not steal focus.",
+      "source": "manual",
+      "enabled": false,
+      "pinned": false
+    },
+    {
+      "cabin_id": "style",
+      "title": "Geometry: 12px corner radius",
+      "preview": "Keep cards and nodes on a consistent radius for a calmer visual system.",
+      "source": "manual",
+      "enabled": true,
+      "pinned": false
+    },
+    {
+      "cabin_id": "style",
+      "title": "Line baseline: 1.5px",
+      "preview": "Use 1.5px strokes in dense diagrams to balance sharpness and readability.",
+      "source": "ai",
+      "enabled": true,
+      "pinned": false
+    },
+    {
+      "cabin_id": "style",
+      "title": "Primary palette: blue-violet gradient",
+      "preview": "Use brand blue-violet on core nodes and avoid high-saturation red unless needed.",
+      "source": "ai",
+      "enabled": true,
+      "pinned": true
+    }
+  ]
+}

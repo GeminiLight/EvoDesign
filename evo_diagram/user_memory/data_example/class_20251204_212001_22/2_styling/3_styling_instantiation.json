@@ -1,0 +1,118 @@
+{
+  "node:Account": {
+    "type": "geo",
+    "rotation": 0,
+    "opacity": 1,
+    "props": {
+      "geo": "rectangle",
+      "color": "blue",
+      "labelColor": "black",
+      "fill": "solid",
+      "dash": "draw",
+      "size": "m",
+      "font": "draw",
+      "text": "Account",
+      "align": "middle",
+      "verticalAlign": "middle"
+    }
+  },
+  "node:AddressBook": {
+    "type": "geo",
+    "rotation": 0,
+    "opacity": 1,
+    "props": {
+      "geo": "rectangle",
+      "color": "blue",
+      "labelColor": "black",
+      "fill": "semi",
+      "dash": "draw",
+      "size": "m",
+      "font": "draw",
+      "text": "AddressBook",
+      "align": "middle",
+      "verticalAlign": "middle"
+    }
+  },
+  "node:Contact": {
+    "type": "geo",
+    "rotation": 0,
+    "opacity": 1,
+    "props": {
+      "geo": "rectangle",
+      "color": "blue",
+      "labelColor": "black",
+      "fill": "none",
+      "dash": "draw",
+      "size": "m",
+      "font": "draw",
+      "text": "Contact",
+      "align": "middle",
+      "verticalAlign": "middle"
+    }
+  },
+  "node:ContactGroup": {
+    "type": "geo",
+    "rotation": 0,
+    "opacity": 1,
+    "props": {
+      "geo": "rectangle",
+      "color": "blue",
+      "labelColor": "black",
+      "fill": "semi",
+      "dash": "draw",
+      "size": "m",
+      "font": "draw",
+      "text": "ContactGroup",
+      "align": "middle",
+      "verticalAlign": "middle"
+    }
+  },
+  "edge:Account2AddressBook": {
+    "type": "arrow",
+    "props": {
+      "source": "Account",
+      "target": "AddressBook",
+      "arrowheadStart": "none",
+      "arrowheadEnd": "arrow",
+      "color": "black",
+      "dash": "draw",
+      "bend": 0
+    }
+  },
+  "edge:AddressBook2Contact": {
+    "type": "arrow",
+    "props": {
+      "source": "AddressBook",
+      "target": "Contact",
+      "arrowheadStart": "none",
+      "arrowheadEnd": "arrow",
+      "color": "black",
+      "dash": "draw",
+      "bend": 0
+    }
+  },
+  "edge:AddressBook2ContactGroup": {
+    "type": "arrow",
+    "props": {
+      "source": "AddressBook",
+      "target": "ContactGroup",
+      "arrowheadStart": "none",
+      "arrowheadEnd": "arrow",
+      "color": "black",
+      "dash": "draw",
+      "bend": 0
+    }
+  },
+  "edge:ContactGroup2ContactGroup": {
+    "type": "arrow",
+    "props": {
+      "source": "ContactGroup",
+      "target": "ContactGroup",
+      "arrowheadStart": "none",
+      "arrowheadEnd": "arrow",
+      "color": "black",
+      "dash": "draw",
+      "bend": 0
+    }
+  }
+}

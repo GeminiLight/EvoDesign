@@ -1,0 +1,2 @@
+# Preserve the imported dataset CSV byte-for-byte, including its CRLF endings.
+dataset_construction/diagram_type.csv whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

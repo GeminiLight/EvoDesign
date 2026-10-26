@@ -1,0 +1,270 @@
+[
+  {
+    "id": "architecture",
+    "diagram_type": "architecture",
+    "context": "Draw the architecture of a research diagram service. Exactly 10 components in four horizontal layers: Clients contains Web App and CLI; Access contains API Gateway and Auth Service; Processing contains Orchestrator, Model Worker and Render Worker; Storage contains Project DB, Job Queue and Object Store. Preserve all 12 named directed dependencies: Web App -> API Gateway (HTTPS), CLI -> API Gateway (HTTPS), API Gateway -> Auth Service (Validate token), API Gateway -> Orchestrator (Submit job), Orchestrator -> Model Worker (Generate), Model Worker -> Render Worker (Scene), Orchestrator -> Project DB (Save project), Orchestrator -> Job Queue (Enqueue), Job Queue -> Model Worker (Consume), Render Worker -> Object Store (Save image), Model Worker -> Object Store (Read assets), Orchestrator -> Render Worker (Preview). Show the queue-to-worker feedback dependency explicitly even though it points upward. No invented relay nodes or missing dependencies.",
+    "labels": [
+      "Web App",
+      "CLI",
+      "API Gateway",
+      "Auth Service",
+      "Orchestrator",
+      "Model Worker",
+      "Render Worker",
+      "Project DB",
+      "Job Queue",
+      "Object Store"
+    ],
+    "edges": [
+      [
+        "Web App",
+        "API Gateway"
+      ],
+      [
+        "CLI",
+        "API Gateway"
+      ],
+      [
+        "API Gateway",
+        "Auth Service"
+      ],
+      [
+        "API Gateway",
+        "Orchestrator"
+      ],
+      [
+        "Orchestrator",
+        "Model Worker"
+      ],
+      [
+        "Model Worker",
+        "Render Worker"
+      ],
+      [
+        "Orchestrator",
+        "Project DB"
+      ],
+      [
+        "Orchestrator",
+        "Job Queue"
+      ],
+      [
+        "Job Queue",
+        "Model Worker"
+      ],
+      [
+        "Render Worker",
+        "Object Store"
+      ],
+      [
+        "Model Worker",
+        "Object Store"
+      ],
+      [
+        "Orchestrator",
+        "Render Worker"
+      ]
+    ],
+    "icon_labels": [
+      "Web App",
+      "Auth Service",
+      "Model Worker",
+      "Project DB"
+    ]
+  },
+  {
+    "id": "sequence",
+    "diagram_type": "sequence_diagram",
+    "return_messages": [4, 5, 8, 10],
+    "context": "Draw a UML-style sequence diagram for asynchronous diagram generation, with exactly five participants in this left-to-right order: Researcher, Web App, API, Worker, Storage. One participant header and dashed vertical lifeline per actor. Show these 10 messages in exactly this chronological order from top to bottom: 1. Researcher -> Web App: Submit prompt; 2. Web App -> API: POST job; 3. API -> Storage: Save job; 4. Storage -> API: Job ID; 5. API -> Web App: Accepted; 6. API -> Worker: Dispatch; 7. Worker -> Storage: Save diagram; 8. Worker -> API: Complete; 9. Web App -> API: Get result; 10. API -> Web App: Diagram ready. Return messages 4, 5, 8 and 10 use dashed arrows. All message arrows are horizontal and labels readable. Do not turn the messages into ordinary flowchart boxes. Chronology must remain unchanged during refinement.",
+    "labels": [
+      "Researcher",
+      "Web App",
+      "API",
+      "Worker",
+      "Storage"
+    ],
+    "messages": [
+      "Submit prompt",
+      "POST job",
+      "Save job",
+      "Job ID",
+      "Accepted",
+      "Dispatch",
+      "Save diagram",
+      "Complete",
+      "Get result",
+      "Diagram ready"
+    ],
+    "edges": [
+      [
+        "Researcher",
+        "Web App"
+      ],
+      [
+        "Web App",
+        "API"
+      ],
+      [
+        "API",
+        "Storage"
+      ],
+      [
+        "Storage",
+        "API"
+      ],
+      [
+        "API",
+        "Web App"
+      ],
+      [
+        "API",
+        "Worker"
+      ],
+      [
+        "Worker",
+        "Storage"
+      ],
+      [
+        "Worker",
+        "API"
+      ],
+      [
+        "Web App",
+        "API"
+      ],
+      [
+        "API",
+        "Web App"
+      ]
+    ],
+    "icon_labels": [
+      "Researcher",
+      "Web App",
+      "Worker",
+      "Storage"
+    ]
+  },
+  {
+    "id": "complex_flow",
+    "diagram_type": "flowchart",
+    "branch_labels": [
+      ["Valid?", "Request Details", "No"],
+      ["Valid?", "Classify Severity", "Yes"],
+      ["Critical?", "Page On-call", "Yes"],
+      ["Critical?", "Queue Triage", "No"],
+      ["Root Cause Found?", "Collect Evidence", "No"],
+      ["Root Cause Found?", "Apply Fix", "Yes"],
+      ["Healthy?", "Roll Back", "No"],
+      ["Healthy?", "Document", "Yes"]
+    ],
+    "context": "Draw an incident-response workflow with exactly 17 nodes, preserving the labels and these directed flows. Receive Alert -> Validate Input -> Valid?; Valid? --No--> Request Details -> Validate Input (input correction loop); Valid? --Yes--> Classify Severity -> Critical?; Critical? --Yes--> Page On-call -> Investigate; Critical? --No--> Queue Triage -> Investigate; Investigate -> Root Cause Found?; Root Cause Found? --No--> Collect Evidence -> Investigate (evidence loop); Root Cause Found? --Yes--> Apply Fix -> Health Check -> Healthy?; Healthy? --No--> Roll Back -> Investigate (recovery loop); Healthy? --Yes--> Document -> Close Incident. The four questions are decision diamonds. Receive Alert and Close Incident are terminal nodes. Keep all 20 arrows and all three feedback loops. Use an easy-to-follow top-to-bottom main flow with side branches and distinct return corridors. Do not simplify away a decision or invent steps.",
+    "labels": [
+      "Receive Alert",
+      "Validate Input",
+      "Valid?",
+      "Request Details",
+      "Classify Severity",
+      "Critical?",
+      "Page On-call",
+      "Queue Triage",
+      "Investigate",
+      "Root Cause Found?",
+      "Collect Evidence",
+      "Apply Fix",
+      "Health Check",
+      "Healthy?",
+      "Roll Back",
+      "Document",
+      "Close Incident"
+    ],
+    "edges": [
+      [
+        "Receive Alert",
+        "Validate Input"
+      ],
+      [
+        "Validate Input",
+        "Valid?"
+      ],
+      [
+        "Valid?",
+        "Request Details"
+      ],
+      [
+        "Request Details",
+        "Validate Input"
+      ],
+      [
+        "Valid?",
+        "Classify Severity"
+      ],
+      [
+        "Classify Severity",
+        "Critical?"
+      ],
+      [
+        "Critical?",
+        "Page On-call"
+      ],
+      [
+        "Page On-call",
+        "Investigate"
+      ],
+      [
+        "Critical?",
+        "Queue Triage"
+      ],
+      [
+        "Queue Triage",
+        "Investigate"
+      ],
+      [
+        "Investigate",
+        "Root Cause Found?"
+      ],
+      [
+        "Root Cause Found?",
+        "Collect Evidence"
+      ],
+      [
+        "Collect Evidence",
+        "Investigate"
+      ],
+      [
+        "Root Cause Found?",
+        "Apply Fix"
+      ],
+      [
+        "Apply Fix",
+        "Health Check"
+      ],
+      [
+        "Health Check",
+        "Healthy?"
+      ],
+      [
+        "Healthy?",
+        "Roll Back"
+      ],
+      [
+        "Roll Back",
+        "Investigate"
+      ],
+      [
+        "Healthy?",
+        "Document"
+      ],
+      [
+        "Document",
+        "Close Incident"
+      ]
+    ],
+    "icon_labels": [
+      "Receive Alert",
+      "Investigate",
+      "Apply Fix",
+      "Document"
+    ]
+  }
+]

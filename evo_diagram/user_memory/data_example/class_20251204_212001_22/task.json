@@ -1,0 +1,10 @@
+    {
+        "id": "class_20251204_212001_22",
+        "diagram_type": "class",
+        "image_url": "./dataset/images/diagrams/class_20251204_212001_22.jpg",
+        "content_area": "Software Engineering",
+        "content": "The AddressBook system models a hierarchical contact management structure where user accounts are granted access to address books, which in turn organize contacts and contact groups. Each account is associated with exactly one address book through an access relationship, while the address book maintains a collection of contacts and supports grouping functionality via ContactGroup entities. Contacts may exist independently or be nested within groups, and each group can contain multiple contacts while also being optionally nested under a parent group, forming a recursive tree-like hierarchy for organizational flexibility.\n\nThe system enforces referential integrity through bidirectional relationships: an address book contains contacts and groups, and each contact or group explicitly references its containing address book. Grouping behavior is further governed by cardinality constraints that permit zero or more contacts per group and allow groups to have at most one parent, enabling scalable nesting without circular dependencies. The architecture supports both flat and hierarchical organization of contact data, with methods exposed for retrieval, insertion, and modification of names, email addresses, fax numbers, and primary contact methods, ensuring consistent state management across all entities.",
+        "vertical_domain": "architecture",
+        "query_v1": "Design a UML class diagram for a contact management system with account-based access, nested groups, and contact containment",
+        "query": "Design a class diagram of the AddressBook system."
+    }

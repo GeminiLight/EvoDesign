@@ -73,4 +73,4 @@ preferred-citation:
   journal: "arXiv"
   doi: "10.48550/arXiv.2604.09568"
   url: "https://arxiv.org/abs/2604.09568"
-  notes: "arXiv:2604.09568; research implementation forthcoming."
+  notes: "arXiv:2604.09568; source code available in the project repository."

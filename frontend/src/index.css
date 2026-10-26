@@ -1,0 +1,769 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #0f172a;
+  background: #f6f7fb;
+  font-family: Aptos, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: inherit;
+}
+
+html[data-guest-import-prompt="visible"] {
+  scroll-padding-bottom: var(--guest-import-prompt-offset, 10rem);
+}
+
+html[data-guest-import-prompt="visible"] body {
+  padding-bottom: var(--guest-import-prompt-offset, 10rem);
+}
+
+html.dark {
+  color: #e2e8f0;
+  background: radial-gradient(900px 520px at 8% -12%, rgba(49, 141, 255, 0.14) 0%, transparent 60%), radial-gradient(920px 560px at 110% 4%, rgba(20, 184, 166, 0.08) 0%, transparent 62%), #030712;
+}
+
+html.dark body {
+  background: inherit;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* The global thumb above is a light grey, which reads as a bright bar on the
+   near-black dark surface. Give dark mode its own thumb. */
+html.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Firefox has no ::-webkit-scrollbar; it needs the standard properties. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+html.dark * {
+  scrollbar-color: #334155 transparent;
+}
+
+/* `custom-scrollbar` is applied to 11 scroll containers across the app but was
+   never defined, so those panes fell back to the platform scrollbar. It marks
+   an inner pane whose scrollbar should recede until the pane is hovered. */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 160ms ease;
+}
+.custom-scrollbar:hover,
+.custom-scrollbar:focus-within {
+  scrollbar-color: #cbd5e1 transparent;
+}
+html.dark .custom-scrollbar:hover,
+html.dark .custom-scrollbar:focus-within {
+  scrollbar-color: #334155 transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 3px;
+}
+.custom-scrollbar:hover::-webkit-scrollbar-thumb,
+.custom-scrollbar:focus-within::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+html.dark .custom-scrollbar:hover::-webkit-scrollbar-thumb,
+html.dark .custom-scrollbar:focus-within::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+/* Excalidraw decides whether to show the "Library" text next to its sidebar
+   trigger from the viewport width, but here it is embedded in a panel that is
+   much narrower than the window. On a 1440px screen the panel is ~738px and the
+   label overflows the rounded clip, so it renders visibly sliced. A container
+   query measures the space the canvas actually has and drops the label to its
+   icon before that happens. */
+.canvas-embed {
+  container-type: inline-size;
+  container-name: canvas-embed;
+}
+
+@container canvas-embed (max-width: 900px) {
+  .excalidraw .sidebar-trigger__label-element {
+    display: none;
+  }
+}
+
+@layer base {
+  ::selection {
+    background-color: rgba(82, 174, 255, 0.35);
+    color: #0f172a;
+  }
+
+  html.dark ::selection {
+    background-color: rgba(82, 174, 255, 0.4);
+    color: #f8fafc;
+  }
+
+  :focus-visible {
+    outline: 2px solid #318dff;
+    outline-offset: 2px;
+  }
+  html.dark :focus-visible {
+    outline-color: #84cbff;
+  }
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+@layer components {
+  /* Menus, popovers and dialogs. These five surfaces previously used four
+     different white opacities, three border treatments and four shadows; the
+     search-suggestion panel was translucent enough that results behind it
+     showed through its own text. One role keeps them agreeing. */
+  .surface-overlay {
+    @apply border border-slate-200/80 bg-white/95 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/95;
+  }
+
+  .card-glass {
+    @apply rounded-xl border border-slate-200 bg-white shadow-e1 dark:border-slate-700 dark:bg-slate-900 dark:shadow-none;
+  }
+
+  .surface-glass {
+    @apply rounded-xl border border-slate-200 bg-white shadow-e1 dark:border-slate-700 dark:bg-slate-900 dark:shadow-none;
+  }
+
+  .bg-soft-mesh {
+    background-image: radial-gradient(800px 420px at 50% -120px, rgba(99, 102, 241, 0.07), transparent 80%);
+  }
+
+  .bg-soft-mesh-dark {
+    background-image: radial-gradient(900px 500px at -5% -10%, rgba(49, 141, 255, 0.18) 0%, transparent 62%), radial-gradient(900px 500px at 110% 10%, rgba(20, 184, 166, 0.1) 0%, transparent 64%), linear-gradient(180deg, rgba(15,23,42,0.1), rgba(2,6,23,0.8));
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_28px_rgba(49,141,255,0.24)] transition-all hover:-translate-y-0.5 hover:bg-brand-500 hover:shadow-[0_16px_34px_rgba(49,141,255,0.3)] active:translate-y-0 focus-visible:ring-2 focus-visible:ring-brand-200 disabled:cursor-not-allowed disabled:opacity-70;
+  }
+
+  .btn-muted {
+    @apply inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition-all hover:border-brand-300 hover:text-brand-600 hover:bg-slate-50 active:bg-slate-100;
+  }
+
+  .skip-link {
+    @apply fixed left-4 top-3 z-[10000] inline-flex min-h-11 -translate-y-16 items-center rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white shadow-lg transition focus:translate-y-0 dark:bg-white dark:text-slate-950;
+  }
+
+  .state-panel {
+    @apply rounded-2xl border border-dashed border-slate-200/80 bg-white/70 p-6 backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/75;
+  }
+
+}
+
+@keyframes appLoadingTrack {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(410%);
+  }
+}
+
+@keyframes heroRiseIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes galleryTimelapse {
+  0% {
+    opacity: 0.3;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.3;
+    transform: scale(0.92);
+  }
+}
+
+@keyframes galleryEdgeDraw {
+  from {
+    stroke-dashoffset: 80;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes galleryModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes gallerySkeletonPulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes gallerySearchHintFade {
+  0%, 100% {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  15%, 85% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gallerySearchStream {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(200%);
+    opacity: 0;
+  }
+}
+
+@keyframes galleryCrossFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes dnaHelixDrift {
+  0% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-6px);
+    opacity: 0.5;
+  }
+}
+
+@keyframes dnaHelixRungFade {
+  0%, 100% {
+    opacity: 0.06;
+  }
+  50% {
+    opacity: 0.18;
+  }
+}
+
+@keyframes dnaEvoScanline {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes dnaEvoStatusDot {
+  0%, 100% {
+    opacity: 0.5;
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 0 3px transparent;
+  }
+}
+
+@keyframes toastSlideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes dnaScanSweep {
+  0% {
+    top: -2px;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.5;
+  }
+  90% {
+    opacity: 0.5;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes dnaScanIconPulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes dnaScanDotPulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.4);
+  }
+}
+
+@keyframes dnaScanRingExpand1 {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+
+@keyframes dnaScanRingExpand2 {
+  0% {
+    opacity: 0.25;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+@keyframes dnaScanRingExpand3 {
+  0% {
+    opacity: 0.15;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
+}
+
+@layer utilities {
+  /* Keeps a control visually compact on a mouse and grows it to the 44px touch
+     minimum where that minimum applies. Blanket `h-11 w-11` made desktop
+     toolbars and menu rows clumsy; this fixes the ergonomics without inflating
+     the drawn size. The width clause covers phone-sized viewports that report a
+     fine pointer. Deliberately does not set `position`, so it is safe on
+     absolutely positioned controls. */
+  @media (pointer: coarse), (max-width: 640px) {
+    .tap-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+
+  .app-loading-track {
+    animation: appLoadingTrack 1.25s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+.dna-helix-strand {
+    animation: dnaHelixDrift 8s ease-in-out infinite alternate;
+  }
+
+  .dna-helix-rung {
+    animation: dnaHelixRungFade 4s ease-in-out infinite;
+  }
+
+  .dna-evo-scanline {
+    animation: dnaEvoScanline 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  .dna-evo-status-dot {
+    animation: dnaEvoStatusDot 2.4s ease-in-out infinite;
+  }
+
+.hero-fade-up {
+    animation: heroRiseIn 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .hero-delay-1 {
+    animation-delay: 80ms;
+  }
+
+  .hero-delay-2 {
+    animation-delay: 140ms;
+  }
+
+  .hero-delay-3 {
+    animation-delay: 210ms;
+  }
+
+  .hero-delay-4 {
+    animation-delay: 280ms;
+  }
+
+  .hero-delay-5 {
+    animation-delay: 350ms;
+  }
+
+  .gallery-timelapse-node {
+    animation: galleryTimelapse 2.4s ease-in-out infinite;
+  }
+
+  .gallery-timelapse-edge {
+    stroke-dasharray: 80;
+    stroke-dashoffset: 80;
+    animation: galleryEdgeDraw 1.2s ease-out forwards;
+  }
+
+  .gallery-modal-enter {
+    animation: galleryModalIn 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+.gallery-skeleton {
+    animation: gallerySkeletonPulse 1.6s ease-in-out infinite;
+  }
+
+  .gallery-search-hint {
+    animation: gallerySearchHintFade 4s ease-in-out infinite;
+  }
+
+  .gallery-search-stream {
+    animation: gallerySearchStream 1.2s cubic-bezier(.22,1,.36,1) forwards;
+  }
+
+  .gallery-cross-fade-in {
+    animation: galleryCrossFadeIn 400ms cubic-bezier(.22,1,.36,1) both;
+  }
+
+  .toast-slide-in {
+    animation: toastSlideIn 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .toast-slide-out {
+    animation: toastSlideOut 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .dna-scan-line {
+    animation: dnaScanSweep 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  .dna-scan-icon {
+    animation: dnaScanIconPulse 2s ease-in-out infinite;
+  }
+
+  .dna-scan-dot {
+    animation: dnaScanDotPulse 2s ease-in-out infinite;
+  }
+
+  .dna-scan-ring-1 {
+    animation: dnaScanRingExpand1 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  .dna-scan-ring-2 {
+    animation: dnaScanRingExpand2 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+    animation-delay: 0.4s;
+  }
+
+  .dna-scan-ring-3 {
+    animation: dnaScanRingExpand3 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+    animation-delay: 0.8s;
+  }
+
+  .gallery-masonry {
+    columns: 1;
+  }
+
+  .gallery-card-break {
+    break-inside: avoid;
+    margin-bottom: 1.25rem;
+  }
+
+  @media (min-width: 640px) {
+    .gallery-masonry {
+      columns: 2;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .gallery-masonry {
+      columns: 3;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-loading-track {
+    animation: none !important;
+    width: 100% !important;
+  }
+  .hero-fade-up,
+  .hero-delay-1,
+  .hero-delay-2,
+  .hero-delay-3,
+  .hero-delay-4,
+  .hero-delay-5,
+  .dna-helix-strand,
+  .dna-helix-rung,
+  .dna-evo-scanline,
+  .dna-evo-status-dot,
+  .gallery-timelapse-node,
+  .gallery-timelapse-edge,
+  .gallery-modal-enter,
+  .gallery-skeleton,
+  .gallery-search-hint,
+  .gallery-search-stream,
+  .gallery-cross-fade-in {
+    animation: none !important;
+  }
+
+  .toast-slide-in,
+  .toast-slide-out {
+    animation: none !important;
+  }
+
+  .dna-scan-line,
+  .dna-scan-icon,
+  .dna-scan-dot,
+  .dna-scan-ring-1,
+  .dna-scan-ring-2,
+  .dna-scan-ring-3,
+  .group-hover\/card\:animate-\[pulse_1\.2s_ease-in-out_infinite\],
+  .motion-safe\:animate-\[pulse_1\.6s_ease-in-out_infinite\] {
+    animation: none !important;
+  }
+
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@layer components {
+  .tool-button {
+    @apply inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-45 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800;
+  }
+  .tool-button-accent {
+    @apply border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100 dark:border-brand-700 dark:bg-brand-950 dark:text-brand-200 dark:hover:bg-brand-900;
+  }
+}
+
+/* Text inputs inside tool panels should remain readable in dense layouts. */
+textarea::placeholder { opacity: 1; }
+@media (pointer: coarse) { .tool-button { min-height: 44px; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; }
+}
+
+/* Workspace: one document surface, quiet supporting panels, clear edit scope. */
+@layer components {
+  .workspace-shell { background: #f4f5fa; }
+  .dark .workspace-shell { background: #101421; }
+  .workspace-main {
+    @apply flex h-[calc(100dvh-3.5rem-1px)] min-h-0 w-full flex-col p-3;
+  }
+  .workspace-grid {
+    @apply grid min-h-0 flex-1 gap-3;
+    grid-template-columns: minmax(0, 1fr) 336px;
+  }
+  .workspace-project-pane, .workspace-chat-pane { @apply min-h-0 min-w-0; }
+  .workspace-canvas-pane { @apply flex min-h-0 min-w-0 flex-col; }
+  .workspace-project-sidebar {
+    @apply relative flex h-full min-h-0 flex-col rounded-2xl border border-slate-200/70 bg-white dark:border-slate-700/70 dark:bg-slate-900;
+  }
+  .workspace-canvas-pane .canvas-embed {
+    @apply rounded-2xl border-slate-200/80 shadow-[0_2px_12px_-4px_rgba(39,44,83,0.1)] dark:border-slate-700/70;
+  }
+  .canvas-toolbar {
+    @apply relative z-20 flex min-h-14 shrink-0 items-center gap-2 border-b border-slate-100 bg-white px-4 dark:border-slate-800 dark:bg-slate-900;
+  }
+  .canvas-toolbar > p { @apply text-[13px]; }
+  .canvas-toolbar .workspace-project-toggle { @apply mr-1 shrink-0 border-r border-r-slate-200 pr-3 dark:border-r-slate-700; }
+  .canvas-toolbar .tool-button { @apply border-transparent bg-transparent text-slate-500 hover:bg-slate-100 dark:bg-transparent dark:text-slate-300 dark:hover:bg-slate-800; }
+  .canvas-toolbar .tool-button-accent {
+    @apply border-indigo-200/70 bg-indigo-50/80 px-3 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-500/25 dark:bg-indigo-500/15 dark:text-indigo-200 dark:hover:bg-indigo-500/25;
+  }
+  .generation-report[data-compact='true'] {
+    @apply static m-0 shrink-0 rounded-lg border-0 bg-transparent dark:bg-transparent;
+  }
+  .generation-report[data-compact='true'] summary {
+    @apply min-h-9 flex-nowrap gap-1.5 rounded-lg px-2 py-1 text-slate-500 transition-colors hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800;
+  }
+  .generation-report[data-compact='true'] summary .report-memory,
+  .generation-report[data-compact='true'] summary .report-quality { display: none; }
+  .generation-report[data-compact='true'] summary .report-label { @apply text-xs text-slate-500 no-underline dark:text-slate-400; }
+  .generation-report[data-compact='true'] .report-content {
+    @apply absolute right-3 top-full z-30 mt-2 max-h-[65dvh] overflow-auto rounded-2xl border border-slate-200 bg-white p-5 text-slate-700 shadow-e4 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200;
+    width: min(440px, calc(100% - 24px));
+    animation: workspaceReveal 160ms ease-out;
+  }
+  .assistant-panel {
+    @apply relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white dark:border-slate-700/70 dark:bg-slate-900;
+  }
+  .assistant-header { @apply flex min-h-[76px] shrink-0 items-center gap-3 px-5 pr-12; }
+  .assistant-avatar {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-indigo-100 bg-gradient-to-br from-blue-50 to-violet-100 text-indigo-600 dark:border-indigo-500/20 dark:from-blue-500/15 dark:to-violet-500/20 dark:text-indigo-300;
+  }
+  .assistant-rail { @apply flex h-full flex-col items-center gap-4 rounded-2xl border border-slate-200/70 bg-white py-3 dark:border-slate-700/70 dark:bg-slate-900; }
+  .assistant-rail button { @apply h-9 w-9 rounded-xl border-0 bg-transparent shadow-none; }
+  .assistant-feed { @apply min-h-0 flex-1 overflow-y-auto px-5 pb-4; }
+  .assistant-welcome { @apply pb-4 pt-6; }
+  .assistant-welcome-symbol {
+    @apply mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-indigo-100 bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50 text-indigo-500 dark:border-indigo-500/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-violet-500/10 dark:text-indigo-300;
+  }
+  .assistant-welcome h3 { @apply text-base font-semibold tracking-tight text-slate-800 dark:text-slate-100; }
+  .assistant-welcome > p { @apply mt-2 max-w-[28rem] text-[13px] leading-6 text-slate-500 dark:text-slate-400; }
+  .assistant-suggestions { @apply mt-7; }
+  .assistant-suggestions-label { @apply mb-2.5 text-[11px] font-medium text-slate-400 dark:text-slate-500; }
+  .assistant-prompt-grid { @apply grid grid-cols-2 gap-2; }
+  .assistant-prompt-grid button {
+    @apply min-h-11 justify-start gap-2 rounded-xl border-slate-100 bg-slate-50/80 px-2.5 py-2 text-[11px] font-medium leading-5 text-slate-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300 dark:hover:border-indigo-500/30 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-200;
+  }
+  .assistant-prompt-grid button svg { @apply h-3 w-3 text-indigo-400; }
+  .assistant-composer { @apply shrink-0 p-3 pt-2; }
+  .assistant-composer-box {
+    @apply overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_2px_8px_rgba(39,44,83,0.03)] transition focus-within:border-indigo-300 focus-within:ring-4 focus-within:ring-indigo-50 dark:border-slate-700 dark:bg-slate-900 dark:focus-within:border-indigo-500/60 dark:focus-within:ring-indigo-500/10;
+  }
+  .assistant-scope { @apply border-b px-3 py-2.5; }
+  .assistant-textarea {
+    @apply block min-h-[76px] w-full resize-none border-0 bg-transparent px-3 pb-1 pt-3 text-[13px] leading-6 text-slate-700 outline-none placeholder:text-slate-400 focus:ring-0 dark:text-slate-100 dark:placeholder:text-slate-500;
+  }
+  .assistant-composer-actions { @apply flex items-center justify-between gap-2 px-3 pb-2.5 pt-1; }
+  .assistant-send {
+    @apply inline-flex min-h-9 shrink-0 items-center justify-center gap-1 rounded-xl bg-indigo-600 px-3 text-xs font-semibold text-white transition hover:bg-indigo-500 active:scale-95 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 dark:bg-indigo-500 dark:disabled:bg-slate-800 dark:disabled:text-slate-500;
+  }
+  .assistant-followups { @apply mb-2; }
+  .assistant-followups summary { @apply mb-2 flex cursor-pointer list-none items-center gap-1.5 px-1 text-xs text-slate-500 dark:text-slate-400; }
+  .assistant-followups summary::-webkit-details-marker { display: none; }
+  .assistant-followups[open] summary svg { transform: rotate(180deg); }
+  .assistant-message { animation: workspaceReveal 180ms ease-out; }
+  .workspace-mobile-nav { display: none; }
+  .workspace-selection-dot { @apply h-1.5 w-1.5 rounded-full bg-indigo-500; }
+}
+@keyframes workspaceReveal {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (min-width: 1024px) {
+  .workspace-grid[data-project-collapsed='true'] > .workspace-project-pane { display: none; }
+  .workspace-grid[data-project-collapsed='false'] { grid-template-columns: 240px minmax(0, 1fr) 336px; }
+  .workspace-grid[data-chat-collapsed='true'] { grid-template-columns: minmax(0, 1fr) 56px; }
+  .workspace-grid[data-project-collapsed='false'][data-chat-collapsed='true'] { grid-template-columns: 240px minmax(0, 1fr) 56px; }
+  .workspace-grid[data-focus='true'] { grid-template-columns: minmax(0, 1fr); }
+  .workspace-grid[data-focus='true'] > .workspace-project-pane,
+  .workspace-grid[data-focus='true'] > .workspace-chat-pane { display: none; }
+}
+@container canvas-embed (max-width: 760px) {
+  .canvas-fit-label, .generation-report[data-compact='true'] summary .report-label { display: none; }
+  .workspace-project-toggle span { display: none; }
+}
+@media (max-width: 1023px) {
+  .workspace-main { padding: 8px; }
+  .workspace-grid { display: flex; flex-direction: column; }
+  .workspace-grid > * { flex: 1; }
+  .workspace-grid[data-mobile-pane='canvas'] > :not(.workspace-canvas-pane),
+  .workspace-grid[data-mobile-pane='chat'] > :not(.workspace-chat-pane),
+  .workspace-grid[data-mobile-pane='projects'] > :not(.workspace-project-pane) { display: none; }
+  .workspace-mobile-nav { display: flex; flex-shrink: 0; gap: 4px; padding: 3px; margin-bottom: 8px; border-radius: 12px; background: #e9ebf3; }
+  .workspace-mobile-nav button { display: flex; flex: 1; align-items: center; justify-content: center; gap: 7px; min-height: 40px; border-radius: 9px; font-size: 12px; font-weight: 600; color: #64748b; transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease; }
+  .workspace-mobile-nav button[aria-pressed='true'] { color: #4f46e5; background: white; box-shadow: 0 1px 4px #37306312; }
+  .dark .workspace-mobile-nav { background: #1e2536; }
+  .dark .workspace-mobile-nav button { color: #94a3b8; }
+  .dark .workspace-mobile-nav button[aria-pressed='true'] { color: #c7d2fe; background: #30394e; }
+  .canvas-focus-button { display: none !important; }
+  .workspace-project-toggle { display: none !important; }
+  .canvas-toolbar { min-height: 52px; gap: 4px; padding-inline: 10px; }
+  .canvas-toolbar > p { font-size: 12px; }
+  .assistant-welcome { padding-top: 12px; }
+  .assistant-composer { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+}
+
+.workspace-settings-dialog {
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 24px 80px #0f172a26;
+}
+.workspace-settings-dialog[open] { animation: workspaceReveal 160ms ease-out; }
+.workspace-settings-dialog::backdrop { background: #0f172a55; backdrop-filter: blur(4px); }
+.dark .workspace-settings-dialog { background: #0f172a; border-color: #334155; }

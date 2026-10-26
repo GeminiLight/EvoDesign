@@ -1,0 +1,35 @@
+# EvoDesign: one explicit endpoint for the CLI and web application.
+# Choose a model that supports both text and image input.
+providers:
+  custom:
+    provider: openai
+    base_url: $LLM_ENDPOINT_URL
+    api_key: $LLM_API_KEY
+  stepfun:
+    provider: openai
+    base_url: https://api.stepfun.com/v1
+    api_key: $STEPFUN_API_KEY
+  judge:
+    provider: openai
+    base_url: $JUDGE_ENDPOINT_URL
+    api_key: $JUDGE_API_KEY
+models:
+  configured-model:
+    provider: custom
+    model_name: $LLM_MODEL_NAME
+    capabilities: [text, vision]
+    temperature: 1
+    max_tokens: 16384
+    timeout: 600
+  step-3.7-flash:
+    provider: stepfun
+    model_name: step-3.7-flash
+    capabilities: [text, vision]
+    temperature: 0
+    timeout: 600
+  judge-vlm:
+    provider: judge
+    model_name: $JUDGE_MODEL_NAME
+    capabilities: [text, vision]
+    temperature: 0
+    timeout: 600
