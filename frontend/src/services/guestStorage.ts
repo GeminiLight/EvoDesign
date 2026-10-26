@@ -503,28 +503,13 @@ const normalizeDnaRuleLocale = (locale?: string | null): DnaRuleLocale => (
   locale && DNA_RULE_LOCALES.has(locale) ? locale as DnaRuleLocale : DEFAULT_DNA_LOCALE
 );
 
-const toPublicSeedRule = (seed: SeedRule, locale: DnaRuleLocale): Rule => {
-  const localized = seed.copy[locale];
-  return {
-    id: seed.id,
-    title: localized.title,
-    preview: localized.preview,
-    source: seed.source,
-    enabled: seed.enabled,
-    pinned: seed.pinned,
-    usageCount: seed.usageCount,
-    updatedAt: seed.updatedAt,
-  };
-};
-
-const buildInitialRules = (locale?: string | null): Record<CabinId, Rule[]> => {
-  const normalizedLocale = normalizeDnaRuleLocale(locale);
-  return {
-    structure: seedRules.structure.map((rule) => toPublicSeedRule(rule, normalizedLocale)),
-    style: seedRules.style.map((rule) => toPublicSeedRule(rule, normalizedLocale)),
-    layout: [],
-  };
-};
+// New scopes start with the user's own preferences, never fabricated activity.
+// The legacy seed copy below is retained only to localize already-saved rules.
+const buildInitialRules = (): Record<CabinId, Rule[]> => ({
+  structure: [],
+  style: [],
+  layout: [],
+});
 
 const matchesSeedCopy = (rule: Rule, seed: SeedRule): boolean => (
   Object.values(seed.copy).some((copy) => (
@@ -569,14 +554,14 @@ export function hasDnaRulesForScope(scopeId?: string | null): boolean {
 export function loadDnaRulesForScope(scopeId?: string | null, locale?: string | null): Record<CabinId, Rule[]> {
   try {
     const raw = localStorage.getItem(dnaRulesKey(scopeId));
-    if (!raw) return buildInitialRules(locale);
+    if (!raw) return buildInitialRules();
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object' && ('structure' in parsed)) {
       return localizeSeedRules(parsed as Record<CabinId, Rule[]>, locale);
     }
-    return buildInitialRules(locale);
+    return buildInitialRules();
   } catch {
-    return buildInitialRules(locale);
+    return buildInitialRules();
   }
 }
 

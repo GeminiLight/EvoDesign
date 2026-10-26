@@ -8,7 +8,7 @@
 
 Describe it. Refine it. Make it yours.
 
-![EvoDesign overview](docs/assets/social-preview.png)
+![EvoDesign local workspace](docs/assets/workspace-preview.png)
 
 </div>
 

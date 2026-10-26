@@ -19,7 +19,7 @@ const { mergeDeltaIntoSchema, getSnapshotDocSignature } = await load('src/utils/
 const { documentAppState, inPlaceAppState, retainedSelection, sceneFiles } = await load('src/utils/excalidrawScene.ts');
 const { workspaceAuthTransition, canRestoreWorkspaceDraft } = await load('src/utils/workspaceAuth.ts');
 const { normalizeBackendTimestamp, snapshotSourceKey, generatedProjectTitle } = await load('src/utils/projectHistory.ts');
-const { guestSaveDiagram, guestExportProjects, guestSyncProjectSchema, guestFetchProjectSnapshots } = await load('src/services/guestStorage.ts');
+const { guestSaveDiagram, guestExportProjects, guestSyncProjectSchema, guestFetchProjectSnapshots, guestLoadDnaRules, guestSaveDnaRules } = await load('src/services/guestStorage.ts');
 const { fetchRecentDiagrams, fetchProjectDiagram, fetchProjectSnapshots, syncProjectSchema, saveDnaRules, loadDnaRules } = await load('src/services/backendApi.ts');
 const { notifyAuthInvalidated } = await load('src/features/auth/authEvents.ts');
 const { shouldSubmitOnEnter } = await load('src/utils/keyboard.ts');
@@ -329,4 +329,16 @@ test('intentional sign-out is distinguishable from session expiry without changi
   assert.equal(events[0].type, events[1].type);
   assert.equal(events[0].detail.reason, 'expired');
   assert.equal(events[1].detail.reason, 'signed-out');
+});
+
+
+test('new design-memory scopes start empty without changing previously saved preferences', () => {
+  const empty = { structure: [], style: [], layout: [] };
+  assert.deepEqual(guestLoadDnaRules('new-account', 'en'), empty);
+  assert.deepEqual(guestLoadDnaRules('new-account', 'zh'), empty);
+  const saved = { structure: [{ id: 900, title: 'My naming preference', preview: 'Use service names.', source: 'manual', enabled: true, pinned: true, usageCount: 2, updatedAt: '2026-10-27' }], style: [], layout: [] };
+  guestSaveDnaRules(saved, 'existing-account');
+  assert.deepEqual(guestLoadDnaRules('existing-account', 'en'), saved);
+  assert.deepEqual(guestLoadDnaRules('another-account', 'en'), empty);
+  values.delete('evodiagram_user_dna_existing-account');
 });

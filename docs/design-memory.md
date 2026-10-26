@@ -12,7 +12,7 @@ User constraints and active personal rules participate in the web generation qua
 
 ## A portable example
 
-[`blue-violet.json`](../examples/design-memory/blue-violet.json) contains eight curated rules from a local validation profile: naming, hierarchy, connections, notes, geometry, stroke weight and blue-violet color. Two are deliberately disabled. These are examples, not universal defaults, and are **not automatically installed into new accounts**. The public example contains no account IDs, email, projects, images, tokens, or vector databases.
+[`blue-violet.json`](../examples/design-memory/blue-violet.json) contains eight curated rules adapted from the application’s demonstration profile: naming, hierarchy, connections, notes, geometry, stroke weight and blue-violet color. Two are deliberately disabled. These are examples, not universal defaults, and are **not automatically installed into new accounts**. The public example contains no account IDs, email, projects, images, tokens, or vector databases.
 
 Validate without a server or API key:
 

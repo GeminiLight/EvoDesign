@@ -2,6 +2,8 @@
 
 EvoDesign now includes the editable web workspace, backend, agentic generation/refinement engine, renderer, optional icons, shared expertise and personal design memory in one public repository. Training and test data are deferred; the one-task example is authored for trying the software.
 
+New personal-memory libraries start empty; demonstration rules and made-up usage history are no longer automatically assigned to new users. Existing saved preferences remain intact.
+
 The README and website lead with the product workflow and local setup. The paper, authors, method, reported results and citation remain available as research context. Personal rules can be exported without account identifiers and additively imported through the included utility.
 
 Public configuration requires the user's own model endpoint. Local setup generates unique secrets without overwriting existing files. Optional provider and renderer dependencies retain their upstream terms. The maintained implementation is not presented as an exact rerun of the manuscript experiments.
