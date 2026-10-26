@@ -1,78 +1,121 @@
 <div align="center">
 
-<img src="docs/assets/social-preview.svg" alt="EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution" width="900">
+# EvoDesign
 
-**[Project page](https://tianfu.wang/EvoDesign/)** · **[Cite](https://tianfu.wang/EvoDesign/#citation)** · **Code coming soon** · **[Paper (arXiv)](https://arxiv.org/abs/2604.09568)**
+### Turn ideas into diagrams you can keep editing.
 
-<sub>Tianfu Wang¹ · Leilei Ding² · Ziyang Tao² · Yi Zhan² · Zhiyuan Ma² · Wei Wu² · Yuxuan Lei² · Junyang Wang² · Yin Wu¹ · Yizhao Xu³ · Hongyuan Zhu² · Qi Liu² · Nicholas Jing Yuan¹ · Yanyong Zhang² · Hui Xiong¹˒⁴</sub>
+**[Get started](#run-locally) · [Website](https://tianfu.wang/EvoDesign/) · [中文入门](docs/quickstart-zh.md) · [Paper](https://arxiv.org/abs/2604.09568)**
 
-<sub>¹ The Hong Kong University of Science and Technology (Guangzhou)<br>² University of Science and Technology of China · ³ Peking University<br>⁴ The Hong Kong University of Science and Technology</sub>
+Describe it. Refine it. Make it yours.
+
+![EvoDesign overview](docs/assets/social-preview.png)
 
 </div>
 
-## Overview
+EvoDesign is an open-source workspace for creating editable diagrams with AI. Describe an architecture, sequence or process, generate a first draft, then refine and edit it on the canvas. Save your work, reopen it later, and export it when it is ready. Personal design memory helps you carry your preferences into the next diagram.
 
-EvoDesign is an agentic framework for editable diagram generation that coordinates structure, style, and layout agents and evolves reusable design expertise. It represents a diagram as a machine-actionable, human-editable canvas manifest, connecting generation, diagnostic verification, localized refinement, and reusable design knowledge.
+Run it locally with your own model endpoint. The project builds on our research in agentic diagram creation and evolving design expertise; the [paper](https://arxiv.org/abs/2604.09568) explains the method and evaluation.
 
-- **Create:** structure, style, and layout agents coordinate semantic topology, visual encoding, and spatial arrangement.
-- **Verify:** objective checks and VLM critique identify visual-spatial defects and guide local repairs.
-- **Evolve:** verified refinement traces become sample strategies, domain guidelines, and general principles, with evidence preserved through promotion and maintenance.
+## From an idea to a finished diagram
 
-The project, paper, and algorithm are named **EvoDesign**. **CanvasBench** is the associated benchmark.
+1. **Describe what you need.** Start with your own content or the included quick-start example. Choose whether to include icons.
+2. **Review and refine.** Automatic checks and visual feedback guide focused improvements to the draft.
+3. **Make the final edits.** Move and restyle canvas elements, or ask for a local change. The result stays editable.
+4. **Save, export and reuse.** Reopen projects and manage reusable style, structure and layout preferences in Your DNA.
 
-## Release status
+## What is included
 
-This repository currently hosts the project website. The research implementation will be added here in a future release.
-
-| Resource | Status |
+| Component | What you can do |
 | --- | --- |
-| Project website | [Available](https://tianfu.wang/EvoDesign/) |
-| Research implementation | Coming soon |
-| Research paper | [arXiv:2604.09568](https://arxiv.org/abs/2604.09568) |
-| CanvasBench release details | Forthcoming |
+| **Diagram engine** | Generate architecture, sequence, flow and other diagram types; evaluate and refine their design |
+| **Web workspace** | Generate, edit, save, reopen and export diagrams; turn icons on or off |
+| **Personal design memory** | Manage structure, style and layout preferences; learn from edits; import and export portable rules |
+| **Design expertise** | Retrieve reusable strategies from 126 bundled seed entries and evolve knowledge through feedback |
+| **Research tooling** | Run baseline adapters, ablations and evaluation with your own data |
 
-The interactive canvas on the website is a browser-local illustration of editability, not a live deployment of the research system. No installation commands, model checkpoints, or dataset downloads are claimed at this stage.
+Excalidraw is the default canvas. TLDraw remains an optional adapter. Icons are optional and the default curated catalog is bundled. The Python import path `evo_diagram` is retained for compatibility; the project and algorithm are **EvoDesign**.
 
-## CanvasBench
+## Run locally
 
-CanvasBench contains **6,273 validated samples** across **21 diagram types** and **30 content domains**. The training/evolution split has 5,853 samples, and the balanced held-out test split has 420 samples (20 per diagram type).
-
-Evaluation covers ten metrics across three dimensions:
-
-| Dimension | Metrics |
-| --- | --- |
-| Content integrity | Content fidelity, concept logic, semantic relevance |
-| Visual presentation | Visual aesthetics, styling consistency, flow coherence, space balance |
-| Cognitive utility | Cognitive ease, comprehension accuracy, self-contained explanation |
-
-## Reported results
-
-The table below summarizes manuscript Table 1 for the GPT-5.5 backbone. Each value is the arithmetic mean of the metrics within that dimension, on a 1–5 scale. Results are reported by the manuscript, not independently reproduced here. The website includes all four reported backbone settings.
-
-| Method | Content | Visual | Cognitive |
-| --- | ---: | ---: | ---: |
-| GPT-4o-Image (pixel baseline) | 2.301 | 3.667 | 3.080 |
-| LaTeX TikZ | 3.468 | 2.856 | 3.199 |
-| DiagramAgent | 2.132 | 2.707 | 2.450 |
-| SciSketch | 3.810 | 2.952 | 3.307 |
-| Schema prompting | 3.687 | 2.482 | 2.752 |
-| **EvoDesign** | **4.099** | **3.659** | **3.503** |
-
-Under GPT-5.5, EvoDesign improves over one-shot schema prompting by **+1.472** on space balance and **+1.106** on cognitive ease. These are differences in individual metric scores. [Download all reported metrics as CSV](docs/results.csv).
-
-## Website development
-
-The website is static HTML, CSS, and JavaScript in [`docs/`](docs/). It has no build step or runtime dependencies.
+Requires **Python 3.11+**, **Node.js 22.12+** and a vision-capable model endpoint. Model calls use your own provider account. These instructions install from source; there is no hosted generation API included.
 
 ```sh
-python3 -m http.server 8000 --directory docs
+git clone https://github.com/GeminiLight/EvoDesign.git
+cd EvoDesign
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[backend,test]"
+npm ci --prefix frontend
+npm ci --prefix evo_diagram/agentic_system/tool_services
+python scripts/setup_local.py
 ```
 
-Open `http://localhost:8000`. See [website maintenance](WEBSITE.md) for author, paper, results, and deployment updates.
+Fill **`LLM_MODEL_NAME`**, **`LLM_ENDPOINT_URL`** and **`LLM_API_KEY`** in the generated root `.env`, then:
+
+```sh
+./scripts/start_service.sh
+```
+
+Open **http://localhost:5175**. The API is on port 3010 and rendering service on 3000. Stop with `./scripts/stop_service.sh`. The local setup creates unique secrets and matching guest configuration. Existing `.env` files are never overwritten. See [configuration](docs/configuration.md) for provider selection, optional features and hosted deployment boundaries.
+
+The renderer needs Playwright Chromium for image export. On a machine without it, run `cd evo_diagram/agentic_system/tool_services && npx playwright install chromium`. Linux may need `npx playwright install --with-deps chromium` and native Canvas libraries (`libcairo2-dev`, `libpango1.0-dev`, `libjpeg-dev`, `libgif-dev`, `librsvg2-dev`, `pkg-config`). The first design-memory run may download its embedding model.
+
+### Use the engine without the web UI
+
+With the Python environment, model configuration and renderer running:
+
+```sh
+python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json
+# Icons are opt-in:
+python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json --use-icons
+```
+
+Use `--help` for custom input, refinement, ablations and personal edit-learning options. [Reproducibility notes](docs/reproducibility.md) explain model/judge configuration, experiment records and the distinction between this maintained release and the manuscript's reported scores.
+
+## Personal design memory
+
+The complete memory implementation is included: preference extraction, storage, retrieval, scoped DNA rules and web management. Start with the [design-memory guide](docs/design-memory.md) and the [eight-rule blue-violet example](examples/design-memory/blue-violet.json):
+
+```sh
+python scripts/design_memory.py validate examples/design-memory/blue-violet.json
+```
+
+Signed-in users can export and additively import rules through the same utility. Guest preferences stay in the browser. Private account databases, generated diagrams and live vector stores are not bundled.
+
+## Research behind the product
+
+EvoDesign is based on **Agentic Editable Diagram Creation via Design Expertise Evolution**. Structure, style and layout agents coordinate over an editable canvas representation; verification and refinement provide feedback for reusable design expertise. Read the [paper](https://arxiv.org/abs/2604.09568) for the algorithm and CanvasBench evaluation.
+
+The repository includes the implementation, evaluation tools and baseline adapters. **Training and test datasets will be released separately.** The one-task quick-start example is for trying the software, not benchmarking it. The website's research scores are manuscript-reported results; this maintained code release does not claim a fresh reproduction of the full experiment. See [reproducibility notes](docs/reproducibility.md) for research use.
+
+## Repository map
+
+```text
+evo_diagram/          Core agents, refinement, memory and renderer service
+backend/              FastAPI, projects, authentication and personal DNA
+frontend/             React workspace and editable canvas adapters
+configs/              Model roles and application settings
+dataset_construction/ Dataset preparation utilities
+evaluation/           Evaluation and analysis
+baselines/            Comparison methods and adapters
+examples/             Quick-start task and portable personal-memory example
+scripts/              Setup, services, quality checks and experiments
+docs/                 Paper website and public guides
+research/             Authoritative paper metadata
+```
+
+## Development
+
+```sh
+python -m pip install -e ".[dev]"
+./scripts/check_quality.sh all
+```
+
+See [contributing](CONTRIBUTING.md), [configuration](docs/configuration.md) and [third-party notices](THIRD_PARTY_NOTICES.md). Please include a minimal input, model identifier, release commit and relevant redacted logs when reporting a bug. Do not attach API keys, account databases or private prompts.
 
 ## Citation
 
-[Copy the citation](https://tianfu.wang/EvoDesign/#citation) or download [BibTeX](docs/citation.bib) / [RIS](docs/citation.ris).
+If you use EvoDesign or CanvasBench, please cite the paper. GitHub's **Cite this repository** action is backed by `CITATION.cff`.
 
 <!-- CITATION:START -->
 
@@ -105,6 +148,6 @@ Open `http://localhost:8000`. See [website maintenance](WEBSITE.md) for author, 
 
 <!-- CITATION:END -->
 
-## Contact
+## License
 
-The paper is available at [arXiv:2604.09568](https://arxiv.org/abs/2604.09568). For research inquiries, contact [Hui Xiong](mailto:xionghui@ust.hk).
+Original EvoDesign software contributions are released under [MIT](LICENSE). Dependencies, bundled fonts/icons and incorporated third-party material retain their own terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). In particular, the optional TLDraw SDK uses its upstream license. The software license does not relicense the paper or third-party dataset source material.

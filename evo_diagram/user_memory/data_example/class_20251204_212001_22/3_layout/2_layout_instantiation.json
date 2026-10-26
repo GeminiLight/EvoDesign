@@ -1,0 +1,162 @@
+{
+  "node:Account": {
+    "type": "geo",
+    "rotation": 0,
+    "opacity": 1,
+    "props": {
+      "geo": "rectangle",
+      "color": "blue",
+      "labelColor": "black",
+      "fill": "solid",
+      "dash": "draw",
+      "size": "m",
+      "font": "draw",
+      "text": "Account",
+      "align": "middle",
+      "verticalAlign": "middle",
+      "w": 264,
+      "h": 62
+    },
+    "x": 200,
+    "y": 60
+  },
+  "node:AddressBook": {
+    "type": "geo",
+    "rotation": 0,
+    "opacity": 1,
+    "props": {
+      "geo": "rectangle",
+      "color": "blue",
+      "labelColor": "black",
+      "fill": "semi",
+      "dash": "draw",
+      "size": "m",
+      "font": "draw",
+      "text": "AddressBook",
+      "align": "middle",
+      "verticalAlign": "middle",
+      "w": 264,
+      "h": 62
+    },
+    "x": 200,
+    "y": 160
+  },
+  "node:Contact": {
+    "type": "geo",
+    "rotation": 0,
+    "opacity": 1,
+    "props": {
+      "geo": "rectangle",
+      "color": "blue",
+      "labelColor": "black",
+      "fill": "none",
+      "dash": "draw",
+      "size": "m",
+      "font": "draw",
+      "text": "Contact",
+      "align": "middle",
+      "verticalAlign": "middle",
+      "w": 264,
+      "h": 62
+    },
+    "x": 150,
+    "y": 260
+  },
+  "node:ContactGroup": {
+    "type": "geo",
+    "rotation": 0,
+    "opacity": 1,
+    "props": {
+      "geo": "rectangle",
+      "color": "blue",
+      "labelColor": "black",
+      "fill": "semi",
+      "dash": "draw",
+      "size": "m",
+      "font": "draw",
+      "text": "ContactGroup",
+      "align": "middle",
+      "verticalAlign": "middle",
+      "w": 264,
+      "h": 62
+    },
+    "x": 450,
+    "y": 260
+  },
+  "edge:Account2AddressBook": {
+    "type": "arrow",
+    "props": {
+      "source": "Account",
+      "target": "AddressBook",
+      "arrowheadStart": "none",
+      "arrowheadEnd": "arrow",
+      "color": "black",
+      "dash": "draw",
+      "bend": 0
+    },
+    "x": 100,
+    "y": 300
+  },
+  "edge:AddressBook2Contact": {
+    "type": "arrow",
+    "props": {
+      "source": "AddressBook",
+      "target": "Contact",
+      "arrowheadStart": "none",
+      "arrowheadEnd": "arrow",
+      "color": "black",
+      "dash": "draw",
+      "bend": 0
+    },
+    "x": 100,
+    "y": 350
+  },
+  "edge:AddressBook2ContactGroup": {
+    "type": "arrow",
+    "props": {
+      "source": "AddressBook",
+      "target": "ContactGroup",
+      "arrowheadStart": "none",
+      "arrowheadEnd": "arrow",
+      "color": "black",
+      "dash": "draw",
+      "bend": 0
+    },
+    "x": 100,
+    "y": 400
+  },
+  "edge:ContactGroup2ContactGroup": {
+    "type": "arrow",
+    "props": {
+      "source": "ContactGroup",
+      "target": "ContactGroup",
+      "arrowheadStart": "none",
+      "arrowheadEnd": "arrow",
+      "color": "black",
+      "dash": "draw",
+      "bend": 0
+    },
+    "x": 100,
+    "y": 450
+  },
+  "edge:Account_AddressBook": {
+    "props": {},
+    "start": "bottom",
+    "end": "top"
+  },
+  "edge:AddressBook_Contact": {
+    "props": {},
+    "start": "bottom",
+    "end": "top"
+  },
+  "edge:AddressBook_ContactGroup": {
+    "props": {},
+    "start": "bottom",
+    "end": "top"
+  },
+  "edge:ContactGroup_parent": {
+    "props": {},
+    "start": "right",
+    "end": "right"
+  }
+}

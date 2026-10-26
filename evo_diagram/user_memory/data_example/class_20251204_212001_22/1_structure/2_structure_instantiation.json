@@ -1,0 +1,56 @@
+{
+  "chart_type": "class",
+  "nodes": [
+    {
+      "id": "node:Account",
+      "label": "Account",
+      "type": "class"
+    },
+    {
+      "id": "node:AddressBook",
+      "label": "AddressBook",
+      "type": "class"
+    },
+    {
+      "id": "node:Contact",
+      "label": "Contact",
+      "type": "class"
+    },
+    {
+      "id": "node:ContactGroup",
+      "label": "ContactGroup",
+      "type": "class"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:Account_AddressBook",
+      "source": "node:Account",
+      "target": "node:AddressBook",
+      "relation": "owns",
+      "label": null
+    },
+    {
+      "id": "edge:AddressBook_Contact",
+      "source": "node:AddressBook",
+      "target": "node:Contact",
+      "relation": "contains",
+      "label": null
+    },
+    {
+      "id": "edge:AddressBook_ContactGroup",
+      "source": "node:AddressBook",
+      "target": "node:ContactGroup",
+      "relation": "contains",
+      "label": null
+    },
+    {
+      "id": "edge:ContactGroup_parent",
+      "source": "node:ContactGroup",
+      "target": "node:ContactGroup",
+      "relation": "parents",
+      "label": null
+    }
+  ],
+  "groups": []
+}

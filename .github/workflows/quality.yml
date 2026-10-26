@@ -1,0 +1,128 @@
+name: Quality
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "codex/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python Architecture And Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # Hosted runners have no GPU. Avoid downloading the CUDA stack
+          # pulled in by the default Linux torch/torchvision distributions.
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+          python -m pip install -e ".[backend,test]"
+
+      - name: Run architecture quality gate
+        run: ./scripts/check_quality.sh architecture
+
+      - name: Run backend quality gate
+        run: ./scripts/check_quality.sh backend
+
+      - name: Run engine quality gate
+        run: ./scripts/check_quality.sh engine
+
+      - name: Run evaluation quality gate
+        run: ./scripts/check_quality.sh evaluation
+
+      - name: Run baseline quality gate
+        run: ./scripts/check_quality.sh baselines
+
+      - name: Run user memory quality gate
+        run: ./scripts/check_quality.sh user-memory
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Python test dependency
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend
+
+      - name: Run frontend quality gate
+        run: ./scripts/check_quality.sh frontend
+
+  renderer:
+    name: Renderer
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install native canvas dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libcairo2-dev \
+            libgif-dev \
+            libjpeg-dev \
+            libpango1.0-dev \
+            librsvg2-dev \
+            pkg-config
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Python test dependency
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: evo_diagram/agentic_system/tool_services/package-lock.json
+
+      - name: Install renderer dependencies
+        run: npm ci --prefix evo_diagram/agentic_system/tool_services
+
+      - name: Run renderer quality gate
+        run: ./scripts/check_quality.sh renderer

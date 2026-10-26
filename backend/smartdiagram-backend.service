@@ -1,0 +1,18 @@
+[Unit]
+Description=EvoDiagram Backend API
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/evodiagram-backend
+ExecStart=/usr/bin/node /var/www/evodiagram-backend/src/index.js
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=evodiagram-backend
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target

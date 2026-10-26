@@ -1,0 +1,15 @@
+{
+  "selected_diagram_type": "class",
+  "visual_rationale": "A clean, single-column UML class diagram that shows only the containment/ownership hierarchy (Account → AddressBook → Contact & ContactGroup) and the single recursive parent link on ContactGroup, hiding all bidirectional navigability to avoid visual clutter.",
+  "structuring_design_principle": {
+    "primary_flow_strategy": {
+      "strategy_name": "Ownership_Hierarchy_Top_Down",
+      "description": "Classes are stacked top-to-bottom in order of ownership: Account at the top, AddressBook below it, and Contact plus ContactGroup at the bottom as contents."
+    },
+    "edge_pruning_strategy": {
+      "strategy_name": "Navigability_Suppression",
+      "description": "Draw only the owning-side associations (Account-AddressBook, AddressBook-Contact, AddressBook-ContactGroup, ContactGroup-parent); omit the inverse navigability arrows to keep the diagram sparse."
+    },
+    "grouping_logic": "No extra containers; the vertical stack itself acts as an implicit ownership lane."
+  }
+}

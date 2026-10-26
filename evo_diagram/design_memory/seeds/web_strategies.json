@@ -1,0 +1,2126 @@
+[
+  {
+    "agent": "Layout",
+    "title": "Radial hub with columnar satellite distribution",
+    "description": "Preserves a verified radial mind-map arrangement that keeps many satellite nodes balanced and readable around a central hub. It shows how to distribute a large odd count of child nodes without crowding or connector crossings.",
+    "content": "Place the hub node at canvas center, then distribute satellites as two vertical columns flanking it (left and right, roughly equal counts) plus single anchor nodes directly above and below. Connect the top/bottom anchors with vertical straight lines and the nearest column pills with horizontal lines, letting remaining column pills use short diagonal dashes that radiate cleanly from the hub.",
+    "when_to_use": "Use for mind-map or hub-and-spoke concept diagrams where one central node connects to roughly 7-13 peer-level child nodes that must stay balanced and non-overlapping.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "concept",
+    "provenance": {
+      "record_id": "concept_accounting_03",
+      "combo": "concept|Accounting"
+    },
+    "id": "ks_001"
+  },
+  {
+    "agent": "Styling",
+    "title": "DFD three-tier visual grammar",
+    "description": "Preserves the shape-plus-color encoding that makes a data flow diagram instantly readable: each DFD element category gets a distinct, consistent visual form so reviewers can tell entities, processes, and stores apart without reading labels.",
+    "content": "Render external entities as flat rectangles in a muted accent fill (e.g., light teal), processes as rounded rectangles with a contrasting dark header band holding the process name, and data stores as open-ended pale rectangles with a small 'D' tab marker; keep fills light and reserve the darkest color for process headers so the eye lands on processing steps first.",
+    "when_to_use": "When generating a data flow diagram (DFD) that mixes external entities, processes, and data stores and needs a standards-flavored, immediately legible visual vocabulary.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "dataflow",
+    "provenance": {
+      "record_id": "dataflow_accounting_05",
+      "combo": "dataflow|Accounting"
+    },
+    "id": "ks_002"
+  },
+  {
+    "agent": "Structure",
+    "title": "Role-labeled duplicate entity boxes for multi-role foreign keys",
+    "description": "Preserves the tactic of rendering one logical table (GLACCOUNT) as multiple separate entity boxes, each labeled by its business role (Revenue, Accounts Receivable, Deferred Revenue), so every FK role gets its own clean relationship line.",
+    "content": "When several foreign keys from one or more tables reference the same target table in different business roles, draw one box per role with an identical attribute list plus a role label above it, and route each FK (e.g., ACCOUNTKEY, REVACCTKEY, DEFERREDREVACCTKEY) to its corresponding role box instead of converging many edges on a single box.",
+    "when_to_use": "In ER diagrams where a single lookup/reference table (e.g., GL account, currency, status) is referenced multiple times with distinct semantics and converging lines would cause clutter or ambiguity.",
+    "confidence": 0.87,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "er",
+    "provenance": {
+      "record_id": "er_accounting_04",
+      "combo": "er|Accounting"
+    },
+    "id": "ks_003"
+  },
+  {
+    "agent": "Structure",
+    "title": "Shape-coded fishbone hierarchy with balanced bone split",
+    "description": "Preserves the node-shape vocabulary and branch distribution that made this six-category fishbone readable: a circle for the effect, boxed labels for categories, and dot-anchored text for sub-causes.",
+    "content": "Render the problem as a large circle at the right end of a horizontal spine; split categories evenly (e.g., 3 above, 3 below) as diagonal bones ending in colored rectangular label boxes; attach each sub-cause as horizontal text beside a small dot placed directly on its bone.",
+    "when_to_use": "Fishbone/Ishikawa requests with 4-8 cause categories each carrying multiple sub-causes, especially when the user asks for the problem shown as a circle at the fish head.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "fishbone",
+    "provenance": {
+      "record_id": "fishbone_accounting_01",
+      "combo": "fishbone|Accounting"
+    },
+    "id": "ks_004"
+  },
+  {
+    "agent": "Structure",
+    "title": "Recurring tasks as segmented bars on one row",
+    "description": "Preserves how periodic/recurring activities are modeled in a Gantt: one task row containing multiple short, disconnected bars at each occurrence instead of a single misleading continuous bar.",
+    "content": "When a task recurs (e.g., quarterly forecasting in Mar/Sep/Dec, tax planning in Apr–May and Nov–Dec), create one row per task and emit a separate bar segment for each active window aligned to the correct month columns; reserve single continuous bars only for truly continuous tasks (e.g., monthly close spanning Jan–Dec).",
+    "when_to_use": "Building Gantt charts where the user's task list mixes continuous, one-off, and recurring/seasonal activities over a shared timeline.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "gantt",
+    "provenance": {
+      "record_id": "gantt_accounting_02",
+      "combo": "gantt|Accounting"
+    },
+    "id": "ks_005"
+  },
+  {
+    "agent": "Structure",
+    "title": "Lettered off-page connectors for cross-lane handoffs",
+    "description": "Preserves how this sample keeps a three-department purchase-to-payment flow readable by handing work between swimlanes via paired lettered connectors (A, B) instead of arrows crossing lane dividers.",
+    "content": "When a process step's output is consumed in another lane, end the source lane's flow with a lettered off-page connector circle placed right after the final artifact, then place the matching same-letter connector at the top of the target lane feeding the received artifact (re-instantiate the handed-off document there if needed); keep each lane's internal flow strictly top-to-bottom so no edge ever crosses a lane divider.",
+    "when_to_use": "Multi-lane swimlane or system flowcharts where a sequential process passes documents/data between departments and direct cross-lane arrows would tangle the layout.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "flowchart",
+    "provenance": {
+      "record_id": "flowchart_accounting_04",
+      "combo": "flowchart|Accounting"
+    },
+    "id": "ks_006"
+  },
+  {
+    "agent": "Structure",
+    "title": "Side-Leak Loss Channels Draining into a Collection Basin",
+    "description": "Preserves how this funnel keeps its forward flow legible by rendering parallel value losses (refunds, cancellations, payment failures, chargebacks) as literal leaks through the funnel wall rather than as extra tiers, and by terminating the funnel in a basin node that represents the settled end state.",
+    "content": "When a funnel stage sheds value through multiple parallel, non-sequential exit paths, punch small holes in the funnel wall on one flank, show thematic particles (dollar bills, coins) escaping through them, and stack the loss labels vertically alongside in logical order; then close the funnel with a wide basin shape containing the destination icon (e.g., bank building) so surviving value visibly 'collects' at the bottom.",
+    "when_to_use": "Funnels where items are lost to several concurrent causes mid-process (finance, accounting, e-commerce, sales pipelines) instead of simply filtering into the next stage.",
+    "confidence": 0.87,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "funnel",
+    "provenance": {
+      "record_id": "funnel_accounting_05",
+      "combo": "funnel|Accounting"
+    },
+    "id": "ks_007"
+  },
+  {
+    "agent": "Styling",
+    "title": "Hierarchy-Depth Monochrome Coding with Neutral Outsourced Outlier",
+    "description": "Preserves the color-semantics tactic of encoding org-chart authority levels as a single-hue light-to-dark gradient while using neutral gray to visually segregate outsourced/external functions from the internal team.",
+    "content": "Assign each hierarchy level a distinct shade from one blue family, darkest at the top (navy for ownership, medium blue for controller, light blue for staff roles), keeping identical thin light borders and white text for cohesion; render outsourced/adjunct boxes in flat gray so they read as structurally connected but organizationally external.",
+    "when_to_use": "When a user requests an org chart or hierarchy diagram that must color-code authority tiers and distinguish internal roles from outsourced or third-party functions.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "hybrid",
+    "provenance": {
+      "record_id": "hybrid_accounting_01",
+      "combo": "hybrid|Accounting"
+    },
+    "id": "ks_008"
+  },
+  {
+    "agent": "Structure",
+    "title": "Syllabus-mirroring mindmap skeleton with controlled depth",
+    "description": "Preserves how this sample scaled a course-outline mindmap to ten branches and ~50 nodes without losing clarity: the hierarchy mirrors the source outline directly, depth is capped, and non-concept items are folded in as leaves.",
+    "content": "Map each requested main topic 1:1 to a first-level branch of the central node, give every branch 3-7 leaf subtopics drawn from the domain outline, and allow one extra nesting level only for named high-importance subtopics (e.g., Stock-based Compensation → Earnings Per Share). Represent attachments, cases, and disclosure examples as ordinary leaf nodes so the tree stays uniform.",
+    "when_to_use": "Use when the user requests a comprehensive mindmap of a structured body of knowledge (course, textbook, framework) listing many explicit main branches with example subtopics.",
+    "confidence": 0.85,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "mindmap",
+    "provenance": {
+      "record_id": "mindmap_accounting_03",
+      "combo": "mindmap|Accounting"
+    },
+    "id": "ks_009"
+  },
+  {
+    "agent": "Structure",
+    "title": "Denormalized one-row-per-mapping-path with group-spanning side blocks",
+    "description": "Preserves how to structure a multi-level rollup/mapping matrix: flatten the hierarchy so each complete source-to-target chain gets its own row, and encode row-group membership as a tall colored label block spanning the contiguous row range rather than per-row repetition.",
+    "content": "When entities map through intermediate levels (detailed → management → GAAP), emit one row per full mapping path and repeat shared parents/duplicated sources verbatim (e.g., 'Cost 2' appears twice, 'Current Liabilities' thrice); then place each group label ('P&L Accounts', 'BS Accounts') as a single vertically-stretched block beside its contiguous rows, with colored header bars above each mapping column.",
+    "when_to_use": "Use for chart-of-accounts, taxonomy, or hierarchy-rollup mapping matrices where many-to-one relationships across 2+ mapping levels must be shown row-by-row with visually grouped sections.",
+    "confidence": 0.85,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "matrix",
+    "provenance": {
+      "record_id": "matrix_accounting_03",
+      "combo": "matrix|Accounting"
+    },
+    "id": "ks_010"
+  },
+  {
+    "agent": "Styling",
+    "title": "Rank-Encoded Level Coloring",
+    "description": "Preserves how this org chart satisfied the 'color-coded levels' requirement: every node at the same hierarchy depth shares one fill color, so color unambiguously encodes rank rather than decorating individual nodes.",
+    "content": "Assign exactly one distinct fill color per hierarchy level (e.g., red=board, orange=CEO, blue=VP/CFO, green=staff), order the palette by visual intensity from top authority downward, and keep all connectors neutral gray with downward arrowheads so the fill color alone carries the rank semantics.",
+    "when_to_use": "Multi-level org charts where the user explicitly requests color-coded levels/ranks or where the hierarchy has 3+ distinct tiers that benefit from instant visual differentiation.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "orgchart",
+    "provenance": {
+      "record_id": "orgchart_accounting_05",
+      "combo": "orgchart|Accounting"
+    },
+    "id": "ks_011"
+  },
+  {
+    "agent": "Structure",
+    "title": "Merge parallel base roles into one tier with pipe separators",
+    "description": "Preserves how this 7-tier accounting pyramid honored the exact requested tier count by consolidating four peer functions (A/P, A/R, Payroll, Bookkeeping) into a single base tier separated by vertical bars rather than adding extra tiers.",
+    "content": "When the bottom level of a hierarchy contains multiple parallel roles, render them as one base tier divided by vertical bars (e.g., 'A/P | A/R | Payroll | Bookkeeping') to preserve the requested tier count and seniority gradient; wrap long mid-tier labels onto two lines so text fits the narrowing tier widths.",
+    "when_to_use": "Pyramid or hierarchy diagrams where the user specifies a fixed number of tiers but the lowest level comprises several same-rank parallel roles or functions.",
+    "confidence": 0.85,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "pyramid",
+    "provenance": {
+      "record_id": "pyramid_accounting_02",
+      "combo": "pyramid|Accounting"
+    },
+    "id": "ks_012"
+  },
+  {
+    "agent": "Structure",
+    "title": "Forward sync chain with mirrored reply cascade",
+    "description": "Preserves the canonical structure for multi-hop request/authorization flows: a chain of synchronous requests propagating forward through intermediaries, answered by a reverse cascade of dashed return messages, with activation bars scoped to each participant's processing window.",
+    "content": "Model the flow as N solid-arrow synchronous messages chaining forward (A→B→C→D→E, reusing the same message name when forwarding), then emit N-1 dashed open-arrowhead replies unwinding the exact reverse path, ending with a distinctly-named final response to the originator; start each participant's activation bar on request receipt and end it when its reply is sent, producing nested activations.",
+    "when_to_use": "Sequence diagrams where a request is forwarded through layered intermediaries (e.g., payment authorization, proxy chains, approval workflows) and responses unwind the same path.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "sequence",
+    "provenance": {
+      "record_id": "sequence_accounting_05",
+      "combo": "sequence|Accounting"
+    },
+    "id": "ks_013"
+  },
+  {
+    "agent": "Layout",
+    "title": "Perimeter routing and directional edge lanes for dense state machines",
+    "description": "Preserves how this sample kept a transition-heavy protocol state machine readable: the longest edge to the common sink state was routed around the canvas's outer edge, and bidirectional transitions between the same state pair were split into stacked directional lanes.",
+    "content": "When several states converge on one sink (e.g., 'Closed'), route the longest source-to-sink edge around the diagram perimeter (far left/right, then down) instead of crossing interior states; between bidirectional state pairs, stack all A→B edges in parallel lanes on one side and all B→A edges on the other, with evenly spaced '[guard] effect/' labels.",
+    "when_to_use": "UML state machine diagrams with dense transition sets, especially when a terminal state is reachable from many states or a state pair exchanges multiple labeled transitions in both directions.",
+    "confidence": 0.87,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "state",
+    "provenance": {
+      "record_id": "state_accounting_04",
+      "combo": "state|Accounting"
+    },
+    "id": "ks_014"
+  },
+  {
+    "agent": "Layout",
+    "title": "Outward-Flanking Text Blocks Around a Central Node Grid",
+    "description": "Preserves the tactic of keeping a 2x2 letter-node grid compact and centered while anchoring each quadrant's heading and bullet list on the node's outer side, creating balanced left/right reading columns.",
+    "content": "Place the four letter nodes (e.g., S/W/O/T) as a connected 2x2 grid in the canvas center, then position each node's heading + bullets outward: text goes LEFT of the left-column nodes and RIGHT of the right-column nodes, vertically aligned with its node. Color-match each heading and bullet marker to its node's accent color so the association reads clearly without extra connector lines.",
+    "when_to_use": "When building SWOT or any 2x2 quadrant diagram where each cell pairs a small labeled shape with a multi-line bullet list that must stay readable and balanced.",
+    "confidence": 0.87,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "swot",
+    "provenance": {
+      "record_id": "swot_accounting_05",
+      "combo": "swot|Accounting"
+    },
+    "id": "ks_015"
+  },
+  {
+    "agent": "Layout",
+    "title": "Forward happy path, backward exception routing in swimlanes",
+    "description": "Preserves how this 5-lane workflow stays readable despite two decision diamonds with rework loops, by assigning a consistent spatial meaning to flow direction.",
+    "content": "Order lanes to match the handoff sequence (Client → Sales → Contracts → Construction → Handover) so the success path reads left-to-right, ending in the rightmost lane; route each decision's 'No'/rework branch backward (leftward) or downward into a separate visual band, and route 'Yes' branches to rejoin or advance the main flow (e.g., 'Terms accepted? Yes' arrows upward into 'Construction starts').",
+    "when_to_use": "Swimlane activity diagrams with decision diamonds and rejection/rework loops that span multiple actor lanes.",
+    "confidence": 0.87,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "swimlane",
+    "provenance": {
+      "record_id": "swimlane_accounting_01",
+      "combo": "swimlane|Accounting"
+    },
+    "id": "ks_016"
+  },
+  {
+    "agent": "Layout",
+    "title": "Parity-alternating spine timeline",
+    "description": "Preserves the tactic of zig-zagging step cards around a single central vertical spine so long sequences fit the canvas without wasted horizontal space, while card side and accent color redundantly encode step parity for instant reading order.",
+    "content": "Draw one central vertical line with evenly spaced numbered circular markers; from each marker extend a short horizontal connector to a rounded card, placing odd-numbered cards on the left and even-numbered on the right, and color markers/connectors/card accents by parity (e.g., odd=warm pink, even=cool teal) so position and hue jointly signal sequence and reading flows top-to-bottom.",
+    "when_to_use": "Vertical timelines with roughly 6-12 ordered steps where each step needs a title plus a multi-line description that would overcrowd a single-column stack.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "timeline",
+    "provenance": {
+      "record_id": "timeline_accounting_05",
+      "combo": "timeline|Accounting"
+    },
+    "id": "ks_017"
+  },
+  {
+    "agent": "Layout",
+    "title": "Trunk-and-Elbow Horizontal Tree Indentation",
+    "description": "Preserves the spatial recipe that makes a left-to-right tree read cleanly: a single left trunk, fixed x-indent per depth level, and elbow connectors that drop vertically before running horizontally into each child box.",
+    "content": "Anchor one vertical trunk line near the left margin, assign every tree depth a constant x-offset (indent step), and stack sibling children top-to-bottom in query order. Connect each parent to its children with elbow lines: a vertical segment from the parent's branch point down to the child's y, then a horizontal segment into the child box's left edge; enclose the whole tree in a thin outer border.",
+    "when_to_use": "User requests a horizontal / left-to-right tree or indented hierarchical breakdown (e.g., account, cost, or category decompositions) rather than a top-down org chart.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "tree",
+    "provenance": {
+      "record_id": "tree_accounting_05",
+      "combo": "tree|Accounting"
+    },
+    "id": "ks_018"
+  },
+  {
+    "agent": "Styling",
+    "title": "Contrasting circle fills with a neutral overlap zone",
+    "description": "Preserves the color strategy that makes a two-set comparison Venn instantly scannable: each set gets its own saturated solid hue while the intersection is treated as a third, visually distinct neutral region rather than a blend.",
+    "content": "Fill the left and right circles with high-contrast complementary hues (e.g., solid blue vs. solid pink/magenta), render the overlapping lens as a separate flat neutral grey, and keep the background a clean white with a subtle dotted grid so text in all three zones stays legible.",
+    "when_to_use": "When generating a two-circle Venn diagram comparing two entities whose exclusive traits go in the circles and shared traits go in the intersection.",
+    "confidence": 0.85,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "venn",
+    "provenance": {
+      "record_id": "venn_accounting_03",
+      "combo": "venn|Accounting"
+    },
+    "id": "ks_019"
+  },
+  {
+    "agent": "Layout",
+    "title": "Agriculture hub-and-flow layout",
+    "description": "Aggregates layout conventions across the agriculture architecture, UML, concept-map, and DFD samples: diagrams are organized around an agricultural control/theme core with field, farm, sensor, or admin inputs feeding it and information/decision outputs leaving it.",
+    "content": "Put the primary agriculture system, controller, or theme (e.g., Arduino, farm stack, 'Agricultural revolution') at the visual center or upper-center, route inputs from the left/inbound side and outputs to the right/outbound side, and distribute satellite sensors/modules/concepts evenly around the hub with explicit connectors.",
+    "when_to_use": "Use when generating agriculture diagrams that show monitoring/management flow, farm input-output systems, or radial concept explanations.",
+    "confidence": 0.82,
+    "tier": "domain_guideline",
+    "domain": "Agriculture",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_agriculture_01",
+      "class_agriculture_05",
+      "concept_agriculture_02",
+      "dataflow_agriculture_04"
+    ],
+    "id": "kg_020"
+  },
+  {
+    "agent": "Styling",
+    "title": "White canvas with single accent color",
+    "description": "Aggregates the color palette and background conventions shared across the architecture diagram samples, covering background treatment, fill palettes, and how emphasis is applied.",
+    "content": "Render architecture diagrams on a plain white background using a restrained palette (grayscale or single-color fills such as yellow class boxes or pale-green zones), and reserve exactly one vivid accent color (e.g., a red volume) to mark the focal element. Add soft gray ground shadows and dashed leader lines for depth and labeling instead of introducing more colors.",
+    "when_to_use": "When styling any architecture-domain diagram—concept, exploded axonometric, zoning, class, or dataflow—where clarity and a professional minimal look are expected.",
+    "confidence": 0.85,
+    "tier": "domain_guideline",
+    "domain": "Architecture",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_architecture_01",
+      "class_architecture_02",
+      "concept_architecture_04",
+      "dataflow_architecture_04"
+    ],
+    "id": "kg_021"
+  },
+  {
+    "agent": "Layout",
+    "title": "Central hub with color-coded satellites and bottom title banner",
+    "description": "Aggregates the recurring compositional pattern across Art domain diagrams: a dominant central element with categorized satellite nodes arranged around it, plus conventional title placement.",
+    "content": "Compose Art diagrams around a single central hub (cloud, central node, or process circle) with categorized satellite elements arranged radially around it, assigning each category its own distinct color; place the diagram title/caption inside a labeled rectangular banner at the bottom.",
+    "when_to_use": "When generating Art domain diagrams that organize multiple categories, entities, or subcomponents around a core subject (mindmaps, context DFDs, system overviews).",
+    "confidence": 0.75,
+    "tier": "domain_guideline",
+    "domain": "Art",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_art_03",
+      "class_art_05",
+      "concept_art_01",
+      "dataflow_art_01"
+    ],
+    "id": "kg_022"
+  },
+  {
+    "agent": "Structure",
+    "title": "Notation-first accounting diagram mapping",
+    "description": "Aggregates the structural vocabulary expected in accounting/finance diagrams across cycle, UML class, concept, and DFD views. It treats correct domain shapes and typed accounting artifacts as mandatory before color or polish.",
+    "content": "Choose the subgenre’s standard accounting notation and keep artifacts explicit: UML class boxes with visibility-marked typed attributes (including List<T> account collections), DFD external entities/processes/data stores as flat rectangles/rounded header-band processes/open D-tab stores, and accounting cycles as a labeled hub with numbered clockwise step nodes. Apply a restrained white-background blue/teal/green finance palette only after these mappings are correct, using warm accents mainly for cycle hub/step emphasis.",
+    "when_to_use": "Use whenever generating an accounting-domain diagram whose requested type implies a standard notation or finance visual language.",
+    "confidence": 0.9,
+    "tier": "domain_guideline",
+    "domain": "Accounting",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_accounting_01",
+      "class_accounting_03",
+      "concept_accounting_03",
+      "dataflow_accounting_05"
+    ],
+    "id": "kg_023"
+  },
+  {
+    "agent": "Structure",
+    "title": "Strict notation fidelity per formalism",
+    "description": "Aggregates the structural/notation layer across samples: Art Theory diagrams are pedagogical artifacts whose correctness depends on using each underlying formalism's canonical primitives rather than generic shapes.",
+    "content": "Render every diagram with its formalism's mandated symbols: UML classes as three-compartment boxes with <<stereotypes>> and +/- visibility markers on attributes and operations; DFDs as circles for processes, rectangles for external entities, and labeled directed flows; neural architectures as distinct layered groups of circular units (e.g., Reset Unit, F₁ input layer); conceptual models as nested or framing geometry (e.g., a circle enclosing a labeled triangle). Never substitute generic boxes or decorative shapes for these notation-defined elements, and always label each element with its formal role.",
+    "when_to_use": "Applies whenever generating an Art Theory diagram that instantiates a recognized formal notation or canonical scholarly model (UML, DFD, ART networks, Abrams' coordinates).",
+    "confidence": 0.85,
+    "tier": "domain_guideline",
+    "domain": "Art Theory",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_art-theory_01",
+      "class_art-theory_04",
+      "concept_art-theory_01",
+      "dataflow_art-theory_02"
+    ],
+    "id": "kg_024"
+  },
+  {
+    "agent": "Layout",
+    "title": "Top-to-bottom flow with convergence hubs in biology diagrams",
+    "description": "Aggregates the directional layout conventions shared by biology taxonomy charts, metabolic/dataflow schematics, and concept maps, where reading order encodes specificity or reaction sequence.",
+    "content": "Arrange biology diagrams to read top-to-bottom: taxonomic ranks descend from broadest (domain) to most specific (species) using stacked, narrowing shapes; metabolic pathways flow downward from source molecules through intermediates, with parallel color-coded columns converging into a single central hub node for shared intermediates (e.g., acetyl-CoA). For concept maps, place the system title at the top and let labeled relationship edges branch downward to subordinate nodes.",
+    "when_to_use": "When generating biology diagrams involving classification hierarchies, catabolic/metabolic pathways, or concept maps of physiological systems.",
+    "confidence": 0.82,
+    "tier": "domain_guideline",
+    "domain": "Biology",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_biology_01",
+      "class_biology_05",
+      "concept_biology_03",
+      "dataflow_biology_02"
+    ],
+    "id": "kg_025"
+  },
+  {
+    "agent": "Structure",
+    "title": "Use canonical notation primitives for each medical diagram type",
+    "description": "Aggregates the notation-layer conventions across Basic Medical Science samples, where every diagram type strictly follows its established visual grammar rather than ad-hoc shapes.",
+    "content": "Build each diagram from its notation's canonical building blocks: UML class diagrams use three-compartment boxes (name, typed attributes, methods) with +/- visibility markers; DFDs use a single numbered central process (e.g., '0') drawn as a rounded rectangle with plain-rectangle external entities; concept overviews use a labeled central hub node (optionally with a medical symbol icon such as the Bowl of Hygieia) connected to color-coded category branches.",
+    "when_to_use": "When generating any Basic Medical Science diagram, to select the correct node and connector primitives before layout and styling are applied.",
+    "confidence": 0.78,
+    "tier": "domain_guideline",
+    "domain": "Basic Medical Science",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_basic-medical-science_04",
+      "class_basic-medical-science_03",
+      "concept_basic-medical-science_01",
+      "dataflow_basic-medical-science_04"
+    ],
+    "id": "kg_026"
+  },
+  {
+    "agent": "Styling",
+    "title": "Blue monochrome palette on white for chemistry diagrams",
+    "description": "Aggregates the dominant visual styling norm observed across chemistry process-flow, class, and concept-map samples, where a single blue hue on white carries the whole diagram and accents are rare exceptions.",
+    "content": "Render chemistry diagrams in blue monochrome (nodes, connectors, labels) on a plain white background; reserve any contrasting accent (e.g., a yellow border) for at most one highlighted or root element, and use italic text for edge/relationship labels.",
+    "when_to_use": "Whenever generating any chemistry-domain diagram (process flow, concept map, or entity-relationship) that lacks an explicit user color specification.",
+    "confidence": 0.82,
+    "tier": "domain_guideline",
+    "domain": "Chemistry",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_chemistry_01",
+      "class_chemistry_04",
+      "concept_chemistry_03",
+      "dataflow_chemistry_01"
+    ],
+    "id": "kg_027"
+  },
+  {
+    "agent": "Layout",
+    "title": "Central clinical hub with symmetric satellite arrangement",
+    "description": "Aggregates the recurring compositional pattern across Clinical Medicine diagrams in which one dominant clinical system or concept anchors the figure and all peripheral elements are organized around it.",
+    "content": "Place the core clinical artifact (EHR/EMR system, context-level process '0', or central concept like 'Clinical Practice') at the visual center—optionally inside a labeled system-boundary container—and arrange external entities, category nodes, or subsystems symmetrically around it (balanced left/right columns or an even horizontal band), connecting each satellite directly to the hub with straight lines.",
+    "when_to_use": "When generating architecture, context-level DFD, or concept-map diagrams for clinical/healthcare domains that feature a single central system or concept with multiple interacting parties or categories.",
+    "confidence": 0.85,
+    "tier": "domain_guideline",
+    "domain": "Clinical Medicine",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_clinical-medicine_01",
+      "class_clinical-medicine_03",
+      "concept_clinical-medicine_03",
+      "dataflow_clinical-medicine_05"
+    ],
+    "id": "kg_028"
+  },
+  {
+    "agent": "Styling",
+    "title": "Encode semantics via consistent shape/color/line-style mapping with a legend",
+    "description": "Aggregates the styling conventions shared across CS diagram types (architecture block diagrams, UML class diagrams, DFDs), where meaning is carried by a deliberate visual vocabulary rather than arbitrary decoration.",
+    "content": "Assign each element type a fixed shape and fill color (e.g., blue rectangles = external entities, green rounded rectangles = processes, three-compartment boxes = classes) and each relationship type a distinct line style (solid = control/commands, dotted/dashed = data flow or annotations); whenever multiple encodings coexist, include a legend mapping styles to meanings.",
+    "when_to_use": "When styling any Computer Science diagram that contains more than one node type or relationship type, especially architecture, UML, and dataflow diagrams.",
+    "confidence": 0.85,
+    "tier": "domain_guideline",
+    "domain": "Computer Science",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_computer-science_04",
+      "class_computer-science_03",
+      "concept_computer-science_02",
+      "dataflow_computer-science_04"
+    ],
+    "id": "kg_029"
+  },
+  {
+    "agent": "Structure",
+    "title": "Use canonical notation vocabulary per diagram type",
+    "description": "Aggregates the notation and shape-vocabulary conventions shared across Diagnostics domain samples spanning architecture, class, concept, and dataflow diagram types.",
+    "content": "Always render each diagram with its standardized notation: UML class diagrams must use +/- visibility prefixes, typed attributes, method compartments, and filled-diamond composition with multiplicities; DFDs must distinguish circular processes, rectangular external entities, and open parallel-line data stores with labeled flow arrows; layered architectures must group components into labeled horizontal bands; concept maps must use a central hub node with radiating satellite nodes. Never substitute ad-hoc shapes for these established notational elements.",
+    "when_to_use": "Applies whenever generating any Diagnostics-domain diagram, at the stage of selecting node shapes, connector types, and compartment structures before layout or styling.",
+    "confidence": 0.88,
+    "tier": "domain_guideline",
+    "domain": "Diagnostics",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_diagnostics_05",
+      "class_diagnostics_04",
+      "concept_diagnostics_02",
+      "dataflow_diagnostics_02"
+    ],
+    "id": "kg_030"
+  },
+  {
+    "agent": "Structure",
+    "title": "Use type-correct notation semantics",
+    "description": "Aggregates the Design-domain expectation that each diagram family has fixed node/edge semantics before any decorative styling. It also notes that hierarchy is expressed through placement and size on a clean light canvas.",
+    "content": "For Design diagrams, choose the exact notation for the requested type and keep role-to-shape mapping unambiguous: UML classes in a tabbed package frame with attribute compartments/markers, Gane-Sarson DFDs with rectangles=external entities, circles=processes, open-ended rectangles=data stores, architecture nodes with role shapes, and adjacency bubbles as labeled circles. Put the primary subject centrally or start flow at the left/top, use directed edges for relationships, and style everything on a light background with one dominant outline/arrow color plus fills only to encode categories.",
+    "when_to_use": "Apply whenever generating or editing Design-domain diagrams such as UML/class, architecture/network, DFD, or space-planning bubble diagrams.",
+    "confidence": 0.88,
+    "tier": "domain_guideline",
+    "domain": "Design",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_design_02",
+      "class_design_02",
+      "concept_design_02",
+      "dataflow_design_05"
+    ],
+    "id": "kg_031"
+  },
+  {
+    "agent": "Layout",
+    "title": "Closed-loop arrangement for economics flow models",
+    "description": "Aggregates the dominant layout convention across Economics circular-flow samples: labeled entity and market boxes positioned on a loop with circulating directional arrows.",
+    "content": "Arrange actor and market boxes (e.g., HOUSEHOLDS, FIRMS, FACTOR MARKET, PRODUCT MARKET) at the top/right/bottom/left positions of a closed loop, alternating actors with markets, and draw directional arrows so real flows (goods, factors) and monetary flows (spending, income) circulate in opposite, clearly readable directions around the loop.",
+    "when_to_use": "When generating Economics diagrams that depict exchanges between economic actors and markets, such as circular-flow-of-income or payment-loop diagrams.",
+    "confidence": 0.72,
+    "tier": "domain_guideline",
+    "domain": "Economics",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_economics_01",
+      "class_economics_02",
+      "concept_economics_01",
+      "dataflow_economics_01"
+    ],
+    "id": "kg_032"
+  },
+  {
+    "agent": "Styling",
+    "title": "Semantic color-coding over neutral structure",
+    "description": "Aggregates styling norms seen across electronics block/signal-chain diagrams and dataflow diagrams, where color carries categorical meaning while structural elements remain visually neutral.",
+    "content": "Assign a distinct, consistent color to each functional category (e.g., green vs. salmon arrows for vertical/horizontal polarization paths in an LNB signal chain; blue/green/purple fills for external entities, processes, and data stores in DFDs), and keep containers and connectors neutral (gray blocks, black orthogonal arrows) so the color semantics are unambiguous.",
+    "when_to_use": "Whenever an electronics diagram contains multiple node types or signal paths that must be distinguished by function rather than by labels alone.",
+    "confidence": 0.82,
+    "tier": "domain_guideline",
+    "domain": "Electronics",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_electronics_05",
+      "class_electronics_03",
+      "concept_electronics_03",
+      "dataflow_electronics_04"
+    ],
+    "id": "kg_033"
+  },
+  {
+    "agent": "Layout",
+    "title": "Horizontal left-to-right energy chain progression",
+    "description": "Aggregates the dominant spatial convention across Energy diagrams: staged processes and tiered structures are arranged in horizontal bands flowing left to right, with a bold title anchored at the top.",
+    "content": "Lay out Energy diagrams horizontally so the energy value chain reads left to right—primary sources (coal, oil, solar) on the left, conversion/transmission stages in the middle, end uses and consumers on the right—and place a bold uppercase title at top center above the flow.",
+    "when_to_use": "Applies whenever generating Energy domain diagrams depicting energy sources, transformation, distribution, or tiered energy-management architectures.",
+    "confidence": 0.8,
+    "tier": "domain_guideline",
+    "domain": "Energy",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_energy_04",
+      "class_energy_01",
+      "concept_energy_04",
+      "dataflow_energy_03"
+    ],
+    "id": "kg_034"
+  },
+  {
+    "agent": "Structure",
+    "title": "Enforce notation-standard element typing",
+    "description": "Aggregates the notation conventions shared across Finance diagrams (UML class, enterprise architecture, DFD, mind map), where every element category carries a prescribed shape, marker, and labeling idiom rather than ad-hoc boxes.",
+    "content": "Map each element category to its notation-mandated visual form and never blend idioms: UML classes use three compartments with visibility modifiers (+/#) and typed attributes, compositions use filled diamonds with role labels ('Made up of'), and DFDs strictly separate external entities (flat rectangles), processes (rounded rectangles with header bands), and data stores (open-ended rectangles with a 'D' tab).",
+    "when_to_use": "When generating any Finance-domain diagram that follows a formal notation (UML, DFD, EA), to select correct node shapes, relationship markers, and compartment contents.",
+    "confidence": 0.85,
+    "tier": "domain_guideline",
+    "domain": "Finance",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_finance_02",
+      "class_finance_05",
+      "concept_finance_02",
+      "dataflow_finance_03"
+    ],
+    "id": "kg_035"
+  },
+  {
+    "agent": "Styling",
+    "title": "Color-code nodes by semantic role on light, neutral canvases",
+    "description": "Aggregates the shared visual-styling convention across Geography concept trees, dataflow diagrams, and annotated UML models, where color carries semantic meaning rather than decoration.",
+    "content": "Use a light or white canvas (dotted grids acceptable) and assign each semantic category—external entity, process, data store, hierarchy level, or motivation type—a distinct outline/fill color, keeping node styling minimal (outlined or lightly filled boxes). Reserve a contrasting accent color (e.g., red) strictly for annotations and explanatory labels so they never blend with the model's structural colors.",
+    "when_to_use": "Applies whenever a Geography diagram mixes multiple node types, hierarchy levels, or explanatory annotations that the reader must visually distinguish at a glance.",
+    "confidence": 0.62,
+    "tier": "domain_guideline",
+    "domain": "Geography",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_geography_03",
+      "class_geography_01",
+      "concept_geography_05",
+      "dataflow_geography_04"
+    ],
+    "id": "kg_036"
+  },
+  {
+    "agent": "Layout",
+    "title": "Chronological left-to-right ordering with explicit periodization",
+    "description": "Aggregates the layout conventions common to History-domain diagrams, where temporal sequence and period grouping drive the spatial arrangement (timeline arrow flow, numbered period branches on a mind map).",
+    "content": "Make chronology the primary organizing axis: timelines must flow left-to-right from oldest to newest along a single horizontal arrow with evenly spaced vertical tick marks, and in radial or hierarchical diagrams, order and number branches by historical period (e.g., Pre-historic → Ancient → Modern) so sequence is unambiguous.",
+    "when_to_use": "Applies to any History diagram conveying events, eras, or evolution over time, regardless of diagram type (timeline, mind map, or structural view).",
+    "confidence": 0.72,
+    "tier": "domain_guideline",
+    "domain": "History",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_history_03",
+      "class_history_01",
+      "concept_history_05",
+      "dataflow_history_03"
+    ],
+    "id": "kg_037"
+  },
+  {
+    "agent": "Structure",
+    "title": "Honor Each Notation's Shape Vocabulary",
+    "description": "Aggregates the notation requirements observed across Literature-domain samples (process flowchart, UML class diagram, concept map, and DFD), where each diagram family enforces a fixed mapping between shape and semantic role.",
+    "content": "Assign shapes strictly per the target notation and never mix vocabularies: DFDs use rectangles for external entities, circles for processes, and open-ended stores for data; UML class diagrams use three-compartment rectangles (name / attributes / methods); concept maps use a prominent central node with labeled branches radiating to category and leaf nodes; literature-review process flows chain stage shapes (hexagons, chevrons) in reading order. Label every node and connector with its semantic role so the notation stays machine-checkable.",
+    "when_to_use": "Whenever generating a Literature-domain diagram that follows a formal notation such as a DFD, UML class diagram, concept map, or staged process flowchart.",
+    "confidence": 0.87,
+    "tier": "domain_guideline",
+    "domain": "Literature",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_literature_03",
+      "class_literature_05",
+      "concept_literature_03",
+      "dataflow_literature_05"
+    ],
+    "id": "kg_038"
+  },
+  {
+    "agent": "Structure",
+    "title": "Match shapes to the diagram's notation standard",
+    "description": "Aggregates the notation requirements shared across Management diagram samples (UML class, Gane-Sarson DFD, concept map, system architecture), where each diagram type enforces a strict, standardized shape vocabulary.",
+    "content": "Assign every element the shape mandated by its notation standard: compartmented rectangles for UML classes (with attribute/method sections) and architecture containers, circles for DFD processes and concept-map nodes, open-ended rectangles for DFD data stores, plain rectangles for external entities, and diamonds for UML aggregation/composition; connect elements with directed arrows or association lines and label each shape with its name in bold text.",
+    "when_to_use": "Whenever generating a typed Management diagram (class, DFD, concept map, architecture) whose notation standard prescribes specific shapes for specific element roles.",
+    "confidence": 0.85,
+    "tier": "domain_guideline",
+    "domain": "Management",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_management_02",
+      "class_management_03",
+      "concept_management_04",
+      "dataflow_management_05"
+    ],
+    "id": "kg_039"
+  },
+  {
+    "agent": "Styling",
+    "title": "Color-and-shape encode semantic role",
+    "description": "Aggregates the visual-encoding convention shared across Marketing diagrams: node fill color and shape consistently signal each element's semantic type, while connector style stays neutral.",
+    "content": "Assign every semantic node type a distinct, consistent fill color and shape (e.g., blue rectangles for classes/external entities, green rounded rectangles for processes, purple for data stores, peach/pastel boxes for channel tiers, saturated colored circles for concept categories); render the primary or central node as dark blue with white uppercase text, and keep connectors neutral (black orthogonal arrows or blue double-headed arrows for bidirectional flow).",
+    "when_to_use": "Whenever generating a Marketing diagram containing multiple node types—layered architectures, DFDs, concept maps, or class diagrams—so viewers can decode element roles from color and shape alone.",
+    "confidence": 0.9,
+    "tier": "domain_guideline",
+    "domain": "Marketing",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_marketing_03",
+      "class_marketing_03",
+      "concept_marketing_04",
+      "dataflow_marketing_03"
+    ],
+    "id": "kg_040"
+  },
+  {
+    "agent": "Structure",
+    "title": "Display governing equation before algorithm flow",
+    "description": "Aggregates the recurring structural pattern in Math diagrams where the governing formula is presented as a prominent content element ahead of any procedural or decision logic, spanning flowcharts and dataflow samples.",
+    "content": "Place the governing mathematical equation (e.g., 'ax² + bx + c = 0') directly beneath the title as its own labeled element, before any input boxes, terminators, or decision diamonds; render notation faithfully with superscripts and proper symbols, and begin algorithm flows by validating inputs against degenerate cases (e.g., decision diamond 'a = 0?').",
+    "when_to_use": "When generating Math domain diagrams that illustrate algorithms or procedures tied to a specific formula or equation.",
+    "confidence": 0.85,
+    "tier": "domain_guideline",
+    "domain": "Math",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_math_02",
+      "class_math_01",
+      "concept_math_04",
+      "dataflow_math_02"
+    ],
+    "id": "kg_041"
+  },
+  {
+    "agent": "Layout",
+    "title": "Central-concept hub-and-spoke arrangement",
+    "description": "Aggregates the recurring spatial composition across mechanical engineering relationship, concept, and data-flow diagrams, where one dominant subject anchors the canvas and all secondary elements orbit or descend from it.",
+    "content": "Anchor the primary subject (technology, principle, or process) as a large central or top-center node and distribute satellite nodes evenly around it (radially) or in parallel columns fanned below it; use straight, directional, labeled connectors, and reserve the periphery for external entities (e.g., ovals in Gane-Sarson DFDs) so visual hierarchy mirrors system hierarchy.",
+    "when_to_use": "When generating mechanical engineering architecture, concept-map, or dataflow diagrams that explain one core entity in terms of its multiple related components, principles, or interacting systems.",
+    "confidence": 0.85,
+    "tier": "domain_guideline",
+    "domain": "Mechanical Engineering",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_mechanical-engineering_05",
+      "class_mechanical-engineering_01",
+      "concept_mechanical-engineering_03",
+      "dataflow_mechanical-engineering_04"
+    ],
+    "id": "kg_042"
+  },
+  {
+    "agent": "Styling",
+    "title": "Semantic color-coding by element category",
+    "description": "Aggregates the recurring styling convention across Materials-domain diagrams where fill color encodes element type or taxonomic category (material families in concept maps, class roles in UML, node types in flowcharts).",
+    "content": "Assign a distinct fill color to every element category and keep it consistent throughout the diagram: e.g., purple for terminators, green for processes, yellow for data/root nodes, and unique hues per material family (Wood, Metal, Plastic) or per class. Pair colors with the correct notation shapes (UML rectangles with multiplicities, flowchart parallelograms for data, rounded boxes for terminators) so color reinforces rather than replaces standard notation.",
+    "when_to_use": "When generating any Materials-domain diagram that contains multiple distinguishable element types, categories, or classification branches.",
+    "confidence": 0.82,
+    "tier": "domain_guideline",
+    "domain": "Materials",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_materials_02",
+      "class_materials_03",
+      "concept_materials_02",
+      "dataflow_materials_05"
+    ],
+    "id": "kg_043"
+  },
+  {
+    "agent": "Layout",
+    "title": "Anchor the dominant entity as the visual hub",
+    "description": "Aggregates the recurring spatial organization across Music-domain diagrams of different notations (concept map, DFD, class, architecture): every sample is built around one dominant node that anchors the composition.",
+    "content": "Place the dominant Music-domain entity (root topic like 'SONG TOPIC', central process like 'Online Music Store', or core class like 'User') at the canonical anchor position — top-center for hierarchies, geometric center for star/hub arrangements — and distribute satellite elements (subtopics, external entities, related classes, network nodes) in tiers below or radially around it, using straight connectors that clearly radiate from the hub.",
+    "when_to_use": "Whenever a Music diagram has a single clear central concept, process, or actor around which all other elements relate.",
+    "confidence": 0.82,
+    "tier": "domain_guideline",
+    "domain": "Music",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_music_02",
+      "class_music_03",
+      "concept_music_04",
+      "dataflow_music_05"
+    ],
+    "id": "kg_044"
+  },
+  {
+    "agent": "Styling",
+    "title": "Color-code nodes by semantic role",
+    "description": "Aggregates the consistent styling norm across Pharmacy architecture, concept, class, and dataflow diagrams where fill color encodes each element's role or type within the system.",
+    "content": "Assign a distinct, consistent fill color to each element role: use a saturated/dark hue (e.g., dark purple, cyan) for the central system or root node and lighter neutral tones for satellite modules; blue rectangles for external entities and yellow shapes for processes in DFDs; blue-gradient three-compartment boxes for UML classes; and layered hues (pink categories, green sub-themes, purple leaves) for mind-map hierarchy levels.",
+    "when_to_use": "Apply whenever generating a Pharmacy-domain diagram containing multiple element types, actors, or hierarchy levels that must be visually distinguished.",
+    "confidence": 0.85,
+    "tier": "domain_guideline",
+    "domain": "Pharmacy",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_pharmacy_01",
+      "class_pharmacy_04",
+      "concept_pharmacy_05",
+      "dataflow_pharmacy_02"
+    ],
+    "id": "kg_045"
+  },
+  {
+    "agent": "Styling",
+    "title": "Render mathematical notation faithfully",
+    "description": "Aggregates the notation conventions shared across Physics diagrams, where equations, Greek symbols, and sub/superscripted variables carry the core domain meaning in every diagram type (architecture, class, mind map, flowchart).",
+    "content": "Always display governing equations prominently (e.g., 'ax² + bx + c = 0') and render variables with mathematically correct typography: Greek letters (Θ, σ), subscripts/superscripts (σ₁₁, x²), and coordinate symbols (x, y, z, t). Label nodes, input fields, and parameters with their symbolic variable names (e.g., 'a =', 'NN(x, y, z, t, ...; Θ)') rather than prose alone.",
+    "when_to_use": "Whenever a Physics diagram contains equations, physical quantities, coordinates, or parameters that must be labeled or annotated.",
+    "confidence": 0.85,
+    "tier": "domain_guideline",
+    "domain": "Physics",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_physics_01",
+      "class_physics_03",
+      "concept_physics_04",
+      "dataflow_physics_04"
+    ],
+    "id": "kg_046"
+  },
+  {
+    "agent": "Styling",
+    "title": "Color- and shape-code nodes by semantic role, bold key terms",
+    "description": "Aggregates the recurring visual-encoding convention across Psychology diagrams, where node color and shape consistently signal the semantic category of content rather than decoration.",
+    "content": "Assign distinct colors and shapes to semantic roles (e.g., dark neutral shape for the central thesis, colored circles for surrounding themes, ellipses for core concepts, rectangles for factors, clouds for definitions, red boxes for topic branches) and keep the mapping consistent across the whole diagram; bold the pivotal psychology/technology terms inside node text to mark conceptual emphasis.",
+    "when_to_use": "When generating any Psychology-domain diagram that mixes a central concept with peripheral categories, factors, or definitions and needs role differentiation at a glance.",
+    "confidence": 0.82,
+    "tier": "domain_guideline",
+    "domain": "Psychology",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_psychology_01",
+      "class_psychology_03",
+      "concept_psychology_01",
+      "dataflow_psychology_04"
+    ],
+    "id": "kg_047"
+  },
+  {
+    "agent": "Styling",
+    "title": "Muted fills with strong dark outlines and italic annotations",
+    "description": "Aggregates the recurring visual styling pattern across Public Health architecture, class, concept, and dataflow diagrams: soft pastel fills paired with high-contrast dark borders, plus italic type for secondary labels.",
+    "content": "Use muted pastel fills (pink, sage green, beige, light blue) for nodes and bands, bounded by strong dark outlines (thick black or navy) for definition; reserve italic text for flow labels, section/group headers, and contextual annotations, keeping primary node labels in regular bold type.",
+    "when_to_use": "When styling any Public Health diagram, regardless of notation type (UML, DFD, conceptual framework, layered architecture).",
+    "confidence": 0.78,
+    "tier": "domain_guideline",
+    "domain": "Public Health",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_public-health_03",
+      "class_public-health_03",
+      "concept_public-health_03",
+      "dataflow_public-health_05"
+    ],
+    "id": "kg_048"
+  },
+  {
+    "agent": "Styling",
+    "title": "Color-Coded Categories on Light Background with Bold Top Title",
+    "description": "Aggregates the visual styling conventions shared across Sociology diagrams: concept maps, social-structure hierarchies, functionalist flowcharts, and DFDs all rely on semantic color-coding over a light canvas.",
+    "content": "Place a large, bold, dark (navy or black) title centered at the top on a white or light background, and assign each conceptual category or node type its own saturated fill color (e.g., institutions vs. statuses vs. groups; race vs. class vs. culture), keeping node text dark and high-contrast.",
+    "when_to_use": "When generating any Sociology diagram that distinguishes multiple social categories, levels, or entity types and needs an immediately readable, classroom-friendly appearance.",
+    "confidence": 0.82,
+    "tier": "domain_guideline",
+    "domain": "Sociology",
+    "diagram_type": "various",
+    "promoted_from": [
+      "architecture_sociology_04",
+      "class_sociology_01",
+      "concept_sociology_01",
+      "dataflow_sociology_01"
+    ],
+    "id": "kg_049"
+  },
+  {
+    "agent": "Structure",
+    "title": "Exploded axonometric program stack with ground-plane circulation",
+    "description": "Preserves the spatial organization strategy of an exploded axonometric concept diagram: vertically separated building layers ordered by program height, with labels pulled to the perimeter and movement routes drawn on the ground plane.",
+    "content": "Float each program layer at increasing vertical offsets in axonometric view, ordered top-to-bottom by real building position (roof-level program at top, garage/base at bottom), and place any accent volume at the front so it doesn't occlude the stack. Reserve the ground plane exclusively for site-level information (vehicle/pedestrian dashed routes, entrance highlights, stairs) and connect perimeter labels to layers with dashed leader lines so the stack stays uncluttered.",
+    "when_to_use": "When the user requests an exploded axonometric or layered architectural concept diagram showing stacked programs plus circulation or site access information.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "architecture",
+    "provenance": {
+      "record_id": "architecture_architecture_01",
+      "combo": "architecture|Architecture"
+    },
+    "id": "ks_050"
+  },
+  {
+    "agent": "Structure",
+    "title": "I/O frame with level-mapped arrows",
+    "description": "Preserves the pattern of wrapping the whole system in an outer boundary labeled INPUT (left) and OUTPUT (right), where each external flow is routed horizontally to the exact internal sub-component it feeds or receives from.",
+    "content": "Draw a large enclosing rectangle with bold 'INPUT'/'OUTPUT' side labels; align each entering/exiting arrow vertically with its target internal box (e.g., 'Support services' -> top box, 'Raw materials' -> middle box, 'Technology devices' -> bottom box) so flows read as direct mappings rather than generic boundary crossings.",
+    "when_to_use": "Use for system/block architecture diagrams where the user specifies external inputs and outputs that correspond to distinct internal layers or components.",
+    "confidence": 0.85,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "architecture",
+    "provenance": {
+      "record_id": "architecture_agriculture_01",
+      "combo": "architecture|Agriculture"
+    },
+    "id": "ks_051"
+  },
+  {
+    "agent": "Layout",
+    "title": "Clock-face radial placement for cycle diagrams",
+    "description": "Preserves the verified approach for rendering N-step cyclic processes as a hub-and-ring layout: a central hub circle with steps evenly distributed at clock positions and external curved arrows conveying rotation direction.",
+    "content": "Place the cycle title in a distinctively colored hub circle at the canvas center, then position the N step circles on an imaginary circle around it starting at 12 o'clock and proceeding clockwise (angle step = 360/N). Add thin curved gray arrows along the outer left and right of the ring (right side pointing down, left side pointing up) to indicate clockwise flow without cluttering the node ring.",
+    "when_to_use": "Use whenever the user requests a circular/cycle diagram of a sequential process with a named central concept and a fixed number of ordered steps.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "architecture",
+    "provenance": {
+      "record_id": "architecture_accounting_01",
+      "combo": "architecture|Accounting"
+    },
+    "id": "ks_052"
+  },
+  {
+    "agent": "Layout",
+    "title": "Hub-and-spoke radial placement for controller-centric class diagrams",
+    "description": "Preserves the layout tactic of placing a dominant central class (the microcontroller) in the middle and distributing its composition-linked satellite classes around its perimeter so each connector enters a distinct edge without crossings.",
+    "content": "Place the central controller class at canvas center, then position each composition-connected class at a compass point (top-left, top, top-right, right, lower-right, bottom-right, etc.) so each composition line runs straight into a different edge of the hub with the filled diamond on the hub end; reserve the remaining sides (e.g., left, bottom) for plain-association peripherals (GSM, LCD) and chain secondary actors (user above GSM, motor at bottom-left via an elbow line) on an outer ring.",
+    "when_to_use": "Use when a class diagram has one dominant aggregator/controller class with 5+ composition-connected satellite classes plus a few loosely associated peripheral classes.",
+    "confidence": 0.85,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "class",
+    "provenance": {
+      "record_id": "class_agriculture_05",
+      "combo": "class|Agriculture"
+    },
+    "id": "ks_053"
+  },
+  {
+    "agent": "Structure",
+    "title": "UML connector-endpoint grammar",
+    "description": "Preserves the exact visual encoding that let this banking class diagram pass review: every relationship type uses its distinct, correctly-oriented UML endpoint glyph so semantics are readable at a glance.",
+    "content": "Map each relationship to its canonical endpoint and direction: generalization = solid line with hollow triangle pointing INTO the parent; aggregation = hollow diamond on the 'whole' side (Bank/Customer), plain end at the part (BankAccount); composition = filled black diamond on the owner (BankAccount), plain end at the owned (Transaction); dependency = dashed line with open arrow toward the depended-on class. When the same pair has two semantics (e.g., BankAccount–Transaction has both composition and dependency), draw two separate edges rather than merging them.",
+    "when_to_use": "Any UML class diagram that mixes inheritance, aggregation, composition, association, and dependency—especially when one class pair carries multiple relationship types.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Accounting",
+    "diagram_type": "class",
+    "provenance": {
+      "record_id": "class_accounting_03",
+      "combo": "class|Accounting"
+    },
+    "id": "ks_054"
+  },
+  {
+    "agent": "Structure",
+    "title": "Converge-then-radiate hub inside a cloud container",
+    "description": "Preserves a pipeline topology in which multiple heterogeneous inputs converge on a central processing node nested inside a cloud-shaped container, then results radiate outward across the container boundary to separate output modules, making the processing stages and flow direction unmistakable.",
+    "content": "For N-input → one central processor → M-output pipelines: draw a large cloud/oval container, place both the input source nodes and a distinct central hub node (e.g., 3D cube) inside it, point every input edge inward to the hub, then draw output edges from the hub/container outward to a fan of rectangular module nodes arranged around the perimeter.",
+    "when_to_use": "Architecture diagrams where several input sources feed a single central processing stage (often described as happening 'inside a cloud') that then distributes results to multiple downstream modules.",
+    "confidence": 0.85,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "architecture",
+    "provenance": {
+      "record_id": "architecture_art_03",
+      "combo": "architecture|Art"
+    },
+    "id": "ks_055"
+  },
+  {
+    "agent": "Structure",
+    "title": "Diamond-at-owner attribute-backed relationships",
+    "description": "Preserves how to render UML aggregation/composition semantics precisely: diamonds anchored at the owning class, hollow vs filled to distinguish aggregation from composition, with attribute names as edge labels and correct multiplicities.",
+    "content": "For each owner-to-part relationship derived from an attribute, draw an edge with the diamond anchored at the owner (whole) end—hollow diamond for aggregation, filled diamond for composition—label the edge with the attribute name including visibility (e.g. '# controls'), and set multiplicity to 1 at the owner end and 1 (single reference) or 0..* (collection element) at the part end. Mirror the owner class's own attribute compartment so the edge label and the declared attribute stay consistent.",
+    "when_to_use": "When a class diagram spec describes classes holding other types as attributes with one-to-one or one-to-many container semantics (e.g., a Page composing its controls List and model Map, or collections aggregating their elements).",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "class",
+    "provenance": {
+      "record_id": "class_architecture_02",
+      "combo": "class|Architecture"
+    },
+    "id": "ks_056"
+  },
+  {
+    "agent": "Layout",
+    "title": "Topology-mirrored grid with trunk-and-branch fan-out routing",
+    "description": "Preserves how eight UML class boxes were placed in a three-tier grid that mirrors the relationship graph, so every association renders as a short horizontal or vertical line with zero crossings. Also captures the orthogonal trunk-and-branch pattern used for the one-to-many aggregation.",
+    "content": "Place classes so relationship neighbors sit adjacent: put linear chains (Role-Permission-Gallery) in one horizontal row, drop dependent classes straight below their parent (User under Role, Payment under Gallery), and align a bottom row (Customer-Order-Arts) so its associations are horizontal. For a one-to-many aggregation, draw a single vertical trunk down from the diamond, then branch orthogonally left and right to each child; reserve a full-width rectangle at the very bottom for the caption.",
+    "when_to_use": "When generating a UML class diagram with roughly 6-10 classes whose associations form chains plus one fan-out, and the user requires typed attribute/method compartments and a bottom caption.",
+    "confidence": 0.87,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "class",
+    "provenance": {
+      "record_id": "class_art_05",
+      "combo": "class|Art"
+    },
+    "id": "ks_057"
+  },
+  {
+    "agent": "Layout",
+    "title": "Balanced bilateral mindmap with vertical child lists",
+    "description": "Preserves a reproducible radial mindmap arrangement where an even number of branches is split evenly on the left and right of the central node, and each branch's sub-items stack vertically under their parent rather than radiating further.",
+    "content": "Place the central node mid-canvas, distribute branches evenly (e.g., 3 left, 3 right for six branches) ordered top-to-bottom, connect with curved connectors, and hang each branch's leaf items as a plain-text vertical list beneath its pill node using a thin vertical bracket line instead of individual curved edges.",
+    "when_to_use": "When rendering a mindmap or hub-and-spoke concept diagram with a single central topic and multiple one-level-deep branches that each carry a short list of child items.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "concept",
+    "provenance": {
+      "record_id": "concept_art_01",
+      "combo": "concept|Art"
+    },
+    "id": "ks_058"
+  },
+  {
+    "agent": "Layout",
+    "title": "Hub-and-Spoke Fan-Out with Offset Side Flow",
+    "description": "Preserves the spatial organization of a two-level DFD: a linear process chain feeding a single dispatcher process that fans out to many sub-modules, with an independent secondary flow separated from the main path.",
+    "content": "Arrange the primary chain (external entity -> sequential processes) horizontally left-to-center, terminating in one enlarged hub process; fan the hub out to all sub-modules as a right-aligned vertical stack with even spacing and short direct arrows. Route any independent flow from the same entity (e.g., Forgot Password) downward beneath the entity so its arrows never cross the main chain.",
+    "when_to_use": "When a DFD or flow diagram has one central process distributing to many (5+) sibling sub-modules plus a separate auxiliary flow originating from the same external entity.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "dataflow",
+    "provenance": {
+      "record_id": "dataflow_agriculture_04",
+      "combo": "dataflow|Agriculture"
+    },
+    "id": "ks_059"
+  },
+  {
+    "agent": "Layout",
+    "title": "Central hub with satellite service boxes and edge-entry arrows",
+    "description": "Preserves the spatial organization tactic of an architectural bubble/adjacency diagram: a central circulation hub block surrounded by main program blocks, with small amenity/storage/ETC boxes docked to the edges of their host blocks and large labeled entry arrows arriving from the canvas edges.",
+    "content": "Place the shared circulation element (e.g., UNDER GROUND HALL) at the canvas center, arrange main colored program blocks around it, and snap small auxiliary boxes (amenity, storage, ETC) flush against the edge of their parent block with short double arrows; route thick double-headed circulation arrows from hub to each main block and position large labeled entry arrows (WALKING, DRIVING) pointing inward from opposite canvas edges toward their arrival blocks.",
+    "when_to_use": "When generating bubble/zoning/adjacency diagrams where a primary circulation space links multiple program blocks, each with attached service functions and distinct pedestrian/vehicular entrances.",
+    "confidence": 0.87,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "concept",
+    "provenance": {
+      "record_id": "concept_architecture_04",
+      "combo": "concept|Architecture"
+    },
+    "id": "ks_060"
+  },
+  {
+    "agent": "Layout",
+    "title": "Clock-face radial distribution with size-anchored balance",
+    "description": "Preserves the arrangement strategy for placing a large number of satellite nodes (10+) evenly around a central hub in a spider/mind map while keeping visual balance and readability.",
+    "content": "Distribute satellites clockwise starting at top-left; anchor 3-4 larger ovals at widely spaced positions (e.g., top-center, bottom-right, bottom-left) and fill the remaining gaps with smaller ovals sized to fit their labels. Connect every satellite to the hub with a straight line whose arrowhead points outward from the center, keeping the central oval horizontally dominant and labels horizontal for legibility.",
+    "when_to_use": "When generating a radial mind map or spider diagram with one central concept and roughly 8 or more surrounding concept nodes.",
+    "confidence": 0.85,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "concept",
+    "provenance": {
+      "record_id": "concept_agriculture_02",
+      "combo": "concept|Agriculture"
+    },
+    "id": "ks_061"
+  },
+  {
+    "agent": "Layout",
+    "title": "Hub-and-Spoke Compass Layout for Context DFDs",
+    "description": "Preserves the radial placement scheme that makes a zero-level/context DFD with one central process and many satellite entities readable and balanced. It fixes satellite positions to compass points so bidirectional flows never cross.",
+    "content": "Place the single central process (circle) at the canvas center, then position each surrounding entity at one of six compass slots (top, upper-left, upper-right, lower-left, lower-right, bottom) at roughly equal radial distance, drawing each bidirectional arrow straight along its radial axis; reserve a corner/bottom-edge strip for the title banner so it never collides with nodes.",
+    "when_to_use": "Use whenever a diagram has exactly one hub node connected to 4-8 peer satellite nodes, such as context-level DFDs, star topologies, or central-system integration overviews.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "dataflow",
+    "provenance": {
+      "record_id": "dataflow_art_01",
+      "combo": "dataflow|Art"
+    },
+    "id": "ks_062"
+  },
+  {
+    "agent": "Structure",
+    "title": "Parallel lane replication with tiered stages and shared sink",
+    "description": "Preserves how this sample handles three near-identical pipelines (streaming/saving/periodic) by cloning one canonical stage chain per lane, aligning same-role nodes into horizontal tiers, and converging all terminal stages into a single shared state store.",
+    "content": "When the spec lists N pipelines differing only by variant name, define one stage chain (client -> API -> queue -> worker), replicate it per lane with identical node shapes and systematic labels ('<variant> API', '<variant> queue'), keep edge labels consistent per stage ('send', 'receive'), and route every lane's final stage into one shared sink node using a single labeled edge type ('persist') rather than duplicate sinks.",
+    "when_to_use": "Architecture/dataflow requests describing multiple homogeneous pipelines that run in parallel, share the same processing stages, and persist to a common destination.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "dataflow",
+    "provenance": {
+      "record_id": "dataflow_architecture_04",
+      "combo": "dataflow|Architecture"
+    },
+    "id": "ks_063"
+  },
+  {
+    "agent": "Layout",
+    "title": "Zone-based zoning: ISA tree aside, relationship spine on top, hubs below",
+    "description": "Preserves the spatial organization that kept this dense Chen ER diagram crossing-free: the specialization hierarchy occupies a dedicated side zone, the main 1:N entity chain forms a horizontal spine, and attribute-heavy hub entities anchor the center-bottom.",
+    "content": "Cluster the superclass and all its ISA specializations/subclasses (including 'd' circles and composite-attribute ovals) in one vertical side zone (e.g., left); run the principal relationship chain (e.g., MANAGER–MANAGES–GREEN_HOUSE–PLANTED_IN–PLANT) as a horizontal spine across the top; place entities bearing many relationship attributes and M:N diamonds (PLANTING_CYCLE, TOOL) in the center-bottom so each diamond sits between its parent entities without edges crossing the ISA arcs.",
+    "when_to_use": "Chen-notation ER diagrams combining ISA/disjoint specialization hierarchies with several cardinality-labeled relationship chains and relationship attributes.",
+    "confidence": 0.85,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "er",
+    "provenance": {
+      "record_id": "er_agriculture_03",
+      "combo": "er|Agriculture"
+    },
+    "id": "ks_064"
+  },
+  {
+    "agent": "Layout",
+    "title": "Hub-entity-centered radial placement",
+    "description": "Preserves the layout tactic of anchoring the most-connected entity at canvas center and fanning the remaining entities around it, yielding short relationship links with no crossings. The sample places Gallery centrally, with Exhibition (top-left), ArtWork (top-right), Artist (bottom-left), and Customer (bottom-right) radiating outward.",
+    "content": "Compute each entity's relationship count, place the highest-degree entity (here Gallery) at the canvas center, and assign the remaining entities to top-left/top-right/bottom-left/bottom-right slots so every relationship diamond sits on a short direct segment between its two entities. Start the reading flow at the top-left entity and keep attribute ovals clustered tightly around their owner entity to preserve the hub's clear radial structure.",
+    "when_to_use": "ER or node-link diagrams where one entity participates in three or more relationships and the remaining entities each connect to one or two hubs.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "er",
+    "provenance": {
+      "record_id": "er_art_02",
+      "combo": "er|Art"
+    },
+    "id": "ks_065"
+  },
+  {
+    "agent": "Structure",
+    "title": "Canonical Ishikawa skeleton: right-facing head with alternating category bones",
+    "description": "Preserves the standard fishbone topology that passed reproducibility review: effect box at the right-side fish head, a single horizontal spine from a left tail, and category bones alternating above and below the spine.",
+    "content": "Draw the effect in a highlighted (e.g., yellow) box at the fish head on the right, run one horizontal spine from a left fish tail to the head, attach six category bones as diagonals (three above, three below, in user-specified order), place each category name in a labeled box at the bone's outer end, and render each sub-cause as a short horizontal feeder line with text that connects into its diagonal category bone.",
+    "when_to_use": "When the user requests a fishbone/Ishikawa cause-and-effect diagram with multiple cause categories and sub-causes converging on a single stated effect.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "fishbone",
+    "provenance": {
+      "record_id": "fishbone_agriculture_04",
+      "combo": "fishbone|Agriculture"
+    },
+    "id": "ks_066"
+  },
+  {
+    "agent": "Structure",
+    "title": "Canonical Chen glyph mapping for every ER construct",
+    "description": "Preserves the complete shape-to-concept vocabulary that makes a Chen-notation ER diagram pass review: each modeling construct in the prompt is translated into its one correct glyph rather than a generic box-and-line approximation.",
+    "content": "Map constructs strictly: strong entity=single rectangle, weak entity=double rectangle, relationship=diamond, identifying relationship=double diamond, attribute=ellipse, key attribute=ellipse with underlined label, multivalued attribute=double ellipse, composite attribute=ellipse with child ellipses branching off it, relationship attribute=ellipse attached to the diamond, union/category specialization=circle labeled 'U' linking superclass to subclass rectangles; annotate edges with cardinality (1, 0..*, 1..*) next to each participating entity.",
+    "when_to_use": "Whenever the user query asks for an ER diagram in Chen notation, especially one mixing weak entities, composite/multivalued attributes, relationship attributes, and ISA/union specialization.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "er",
+    "provenance": {
+      "record_id": "er_architecture_01",
+      "combo": "er|Architecture"
+    },
+    "id": "ks_067"
+  },
+  {
+    "agent": "Structure",
+    "title": "Canonical fishbone skeleton with alternating category bones",
+    "description": "Preserves the standard Ishikawa anatomy that makes fishbone diagrams instantly readable: a single horizontal spine flowing into a right-side effect head, with category bones alternating top/bottom and each carrying short unlabeled sub-branches.",
+    "content": "Build the diagram as: thick horizontal spine with arrowhead into a large fish-head shape (the effect) on the right, triangular tail on the far left, then six diagonal bones alternating three-above/three-below (top L→R: Measurement, Methods, Personnel; bottom L→R: Environment, Machines, Materials), each bone capped with a color-coded rounded-rectangle label and carrying 3-4 short horizontal empty sub-branch lines.",
+    "when_to_use": "Use whenever the user requests a fishbone / Ishikawa / cause-and-effect diagram, especially as an empty template where categories are named but causes are left blank.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "fishbone",
+    "provenance": {
+      "record_id": "fishbone_art_02",
+      "combo": "fishbone|Art"
+    },
+    "id": "ks_068"
+  },
+  {
+    "agent": "Styling",
+    "title": "Category color-coding echoed across all visual elements",
+    "description": "Preserves the tactic of assigning each cause category a distinct color and consistently reusing that color in the category's chevron label, its bone junction node, and a matching segment of a decorative footer strip, creating strong visual grouping.",
+    "content": "Give each category bone its own hue (e.g., teal, orange, light-green, blue), apply it to the chevron/arrow label and the small circle node where the bone meets the label, and repeat the full color set as a segmented footer strip; keep spine, header bar, and effect head in neutral gray with dotted gray leader lines so the category colors carry the grouping signal.",
+    "when_to_use": "Use for fishbone/Ishikawa or any multi-category cause-effect diagram where 3-6 categories need to be instantly distinguishable and the design should feel cohesive and polished.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "fishbone",
+    "provenance": {
+      "record_id": "fishbone_architecture_02",
+      "combo": "fishbone|Architecture"
+    },
+    "id": "ks_069"
+  },
+  {
+    "agent": "Layout",
+    "title": "Horizontal bus-bar fan-out for wide tree branches",
+    "description": "Preserves the connector-routing pattern that keeps a wide top-down hierarchy readable: each multi-child parent drops one vertical line to a shared horizontal connector (bus bar), from which short downward arrows enter each child. Also captures the overflow variant where one deep branch (Irrigation) extends a long vertical trunk to a separate bottom-row bus to avoid crowding the mid-level.",
+    "content": "For any parent with 3+ horizontally spread children, route edges as: vertical drop from parent's bottom center -> single horizontal bus line spanning the children's x-range -> short downward arrows into each child's top center; if one child's subtree is deeper or wider than siblings, extend its vertical trunk past the sibling level and place its bus + children on a dedicated lower row to balance canvas height.",
+    "when_to_use": "Top-down hierarchical trees/flowcharts where parents have wide fan-out (3 or more children) or uneven subtree depths, especially with boxless plain-text nodes joined by elbow connectors.",
+    "confidence": 0.88,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "flowchart",
+    "provenance": {
+      "record_id": "flowchart_agriculture_04",
+      "combo": "flowchart|Agriculture"
+    },
+    "id": "ks_070"
+  },
+  {
+    "agent": "Styling",
+    "title": "Network-domain shape vocabulary with solid/dashed path semantics",
+    "description": "Preserves the convention of mapping node roles to standard network-diagram shapes and encoding the physical vs logical nature of connections through line style, so readers can parse the architecture at a glance.",
+    "content": "Assign role-specific shapes: hexagon for the ISP/internet source, diamond for security/monitoring appliances (IDS), oval for routing boundary, cylinder for storage/servers (Server Room), rectangles for switches, and rounded rectangles for endpoint devices. Draw primary physical data flow (ISP→Firewall→Router→Switch→endpoints) with solid arrows and logical/segregated paths (Router→Guest Switch→Guest Devices) with dashed lines and arrowheads, keeping the duality consistent across the whole canvas.",
+    "when_to_use": "When generating network or IT-infrastructure architecture diagrams where node roles (ingress, security, routing, switching, storage, endpoints) and physical-versus-logical connection types must be visually distinguishable.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "flowchart",
+    "provenance": {
+      "record_id": "flowchart_architecture_01",
+      "combo": "flowchart|Architecture"
+    },
+    "id": "ks_071"
+  },
+  {
+    "agent": "Layout",
+    "title": "Cross-Cutting Concerns as Flanking Diagonal Arrows",
+    "description": "Preserves the tactic of representing orthogonal, always-on concerns (e.g., Monitoring, Access Controls, Logging, Encryption) as large diagonal arrows running alongside a vertical funnel rather than as extra funnel layers.",
+    "content": "Arrange the main sequential flow as a centered top-to-bottom funnel of narrowing stacked bands; then place 1-2 thick diagonal arrows on each side pointing downward, spanning the funnel's full height, each labeled with a cross-cutting capability to signal it applies at every layer.",
+    "when_to_use": "Use when a funnel/filtering architecture diagram must show both progressive stages and global qualities or policies that apply uniformly across all stages.",
+    "confidence": 0.87,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "funnel",
+    "provenance": {
+      "record_id": "funnel_architecture_05",
+      "combo": "funnel|Architecture"
+    },
+    "id": "ks_072"
+  },
+  {
+    "agent": "Layout",
+    "title": "Flanking label-and-bullet annotation for multi-tier pyramids",
+    "description": "Preserves the verified arrangement pattern for dense pyramid funnels: tier interiors stay minimal (single centered white icon per color band) while all text is externalized to aligned side annotations.",
+    "content": "Place each stage name in a rounded-rectangle chip on the left, vertically centered with its tier; place the action bullet list on the right at matching heights, linked to its tier with dotted leader lines. Reserve tier interiors for one centered contrasting icon only, so wide-bottom/narrow-top geometry never crowds text.",
+    "when_to_use": "Pyramid or funnel diagrams with 5+ stacked tiers where every stage carries both a label and multiple supporting bullet points.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "funnel",
+    "provenance": {
+      "record_id": "funnel_agriculture_03",
+      "combo": "funnel|Agriculture"
+    },
+    "id": "ks_073"
+  },
+  {
+    "agent": "Styling",
+    "title": "Level-and-branch visual encoding in classification trees",
+    "description": "Preserves the tactic of making hierarchy depth and subtree membership readable at a glance by assigning each level/branch a distinct node shape and fill color, with leaf items styled as colored bulleted lists instead of full nodes.",
+    "content": "For hierarchical classification diagrams, map each depth to a unique fill color (e.g., root red, level-2 yellow, level-3 orange vs green per subtree) and give sibling subtrees distinct shapes (rectangles vs diamonds, ovals for upper levels); render terminal items as red uppercase bulleted text lists rather than individual nodes, keeping all category labels bold black uppercase.",
+    "when_to_use": "Use when building top-down tree or taxonomy diagrams with 3+ levels and multiple leaf items per category, where visual distinction of depth and branch prevents clutter and misreading.",
+    "confidence": 0.88,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "flowchart",
+    "provenance": {
+      "record_id": "flowchart_art_01",
+      "combo": "flowchart|Art"
+    },
+    "id": "ks_074"
+  },
+  {
+    "agent": "Layout",
+    "title": "Baseline-track rows with proportional pills and in-bar status labels",
+    "description": "Preserves the row-construction recipe that made this Gantt chart reproducible: every task row gets a thin full-width baseline track, then a rounded pill bar whose position and width are computed directly from the month grid, with the status label placed inside the pill.",
+    "content": "For each task, first draw a thin (1–2px) horizontal line spanning the full Jan–Dec timeline width as a track; overlay a rounded-corner pill whose x-offset = (start_month_index / 12) × timeline_width and width = (duration_months / 12) × timeline_width, and render the status text in high-contrast white, left-aligned at the pill's leading end. Keep the left 'Task List' column vertically aligned row-by-row with these tracks.",
+    "when_to_use": "When generating Gantt or timeline charts where task bars must align exactly to a month/date header grid and each bar carries a status or phase label.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "gantt",
+    "provenance": {
+      "record_id": "gantt_architecture_02",
+      "combo": "gantt|Architecture"
+    },
+    "id": "ks_075"
+  },
+  {
+    "agent": "Styling",
+    "title": "Uniform dark top-face for flat 3D depth",
+    "description": "Preserves the trick of simulating 3D extrusion on flat colored shapes by capping each with a dark charcoal top face, avoiding gradients, shadows, or complex lighting.",
+    "content": "Render each funnel layer as an inverted trapezoid in its stage color, then overlay a dark charcoal top face (a thin trapezoid/ellipse band along the layer's upper edge); use one identical dark tone for every top face and the terminal downward triangle so all layers read as slices of a single extruded 3D object.",
+    "when_to_use": "When a flat, minimal diagram (funnel, pyramid, or stacked-layer graphic) needs a 3D look while keeping a clean palette and simple geometry.",
+    "confidence": 0.85,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "funnel",
+    "provenance": {
+      "record_id": "funnel_art_02",
+      "combo": "funnel|Art"
+    },
+    "id": "ks_076"
+  },
+  {
+    "agent": "Layout",
+    "title": "Baseline-plus-pill Gantt row alignment",
+    "description": "Preserves the verified Gantt construction pattern: a fixed left label column whose rows align 1:1 with a right timeline grid, where every row carries a full-width thin baseline and a rounded pill positioned by month span.",
+    "content": "Split the canvas into a task-list column (dark header bar, task names) and a timeline area with an equal-width 12-month header grid; for each row draw a thin horizontal baseline spanning the full Jan–Dec width at the row's vertical center, then overlay a rounded pill whose x = (startMonth-1)*colWidth and width = monthSpan*colWidth, and place the status label in white at the pill's left end. Keep row heights identical across both columns so task names, baselines, and pills stay horizontally aligned.",
+    "when_to_use": "Whenever generating a Gantt/timeline chart where tasks have month (or time-unit) ranges plus a per-task status or label that must sit on the bar.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "gantt",
+    "provenance": {
+      "record_id": "gantt_agriculture_01",
+      "combo": "gantt|Agriculture"
+    },
+    "id": "ks_077"
+  },
+  {
+    "agent": "Structure",
+    "title": "Explicit trust-boundary crossing via edge-mounted tunnel nodes",
+    "description": "Preserves how this sample makes the hybrid cloud/on-prem security boundary a first-class visual element rather than an implicit line hop. Boundary-crossing connectivity is modeled as dedicated nodes anchored on the container edge, with a physical barrier shape between zones.",
+    "content": "For hybrid cloud diagrams, place pill-shaped 'Secure Tunnel' nodes straddling the boundary edge of the cloud container (one per calling region/service), render the firewall as thick vertical bars in the gap between the cloud and datacenter containers, and route every cross-boundary arrow through a tunnel node so no line bypasses the firewall; terminate the chain with a connector node (e.g., Cloud Connector) inside the datacenter container linked up to the backend system.",
+    "when_to_use": "Use whenever an architecture spans a public cloud platform and an on-premises/private datacenter and the query mentions secure tunnels, firewalls, or connectivity services bridging the two.",
+    "confidence": 0.88,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "hybrid",
+    "provenance": {
+      "record_id": "hybrid_architecture_04",
+      "combo": "hybrid|Architecture"
+    },
+    "id": "ks_078"
+  },
+  {
+    "agent": "Structure",
+    "title": "Bracket fan-out/fan-in for grouped column mappings",
+    "description": "Preserves the technique of using vertical brackets to map a few source nodes onto disjoint subsets of a multi-item list, then collect the whole list into a single onward arrow, avoiding arrow spaghetti between columns.",
+    "content": "Give each source box a short horizontal stub terminating in a vertical bracket that spans only its target items' vertical range; draw one short arrow per target from that bracket, and add a mirror collecting bracket on the panel's far edge that merges all items into one bold arrow to the next stage (e.g., the MAS hub). Keep source brackets visually distinct per source so the 3-vs-4 item grouping is readable at a glance.",
+    "when_to_use": "In multi-column framework/flow diagrams where a small set of upstream nodes each feed a defined subset of items in an intermediate list panel, and the entire panel then feeds one downstream node.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "hybrid",
+    "provenance": {
+      "record_id": "hybrid_agriculture_05",
+      "combo": "hybrid|Agriculture"
+    },
+    "id": "ks_079"
+  },
+  {
+    "agent": "Structure",
+    "title": "Baseline-Plus-Pill Gantt Row Anatomy",
+    "description": "Preserves the row construction pattern that made this Gantt chart reproducible: every task row combines a full-width thin baseline with an overlaid rounded pill covering only its scheduled months. Also captures the paired header treatment (dark navy bars for both the 'Task List' column and the Jan–Dec month header) that visually locks the two-column grid together.",
+    "content": "Build each Gantt row as two layers: first a thin horizontal line spanning the entire month range (Jan–Dec) as the track, then a rounded pill bar positioned over only the task's active months, with the status label ('Done'/'On Progress') rendered in white at the pill's left end. Anchor the chart with matching dark header bars over the left task-name column and the month timeline so column alignment is explicit.",
+    "when_to_use": "When generating a Gantt or timeline chart where each task has a month/date range plus a categorical status label, and the layout uses a left task-list column beside a shared time axis.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "gantt",
+    "provenance": {
+      "record_id": "gantt_art_02",
+      "combo": "gantt|Art"
+    },
+    "id": "ks_080"
+  },
+  {
+    "agent": "Structure",
+    "title": "Central tiered funnel with tier-targeted side modules",
+    "description": "Preserves a hub-and-spoke architecture where a vertical multi-tier funnel (or pipeline) is the semantic anchor and each side module box is wired to the exact tier it modifies, making refinement flow legible at a glance.",
+    "content": "Build a central vertical stack of 3 translucent, downward-tapering trapezoid tiers (distinct pastel hues: blue top, green middle, yellow-green bottom) with a small icon per tier; flank it with dashed-border module boxes on left/right, group each box's sub-labels with under-braces, and draw a solid arrow from every module into the specific tier it feeds (top/middle/bottom).",
+    "when_to_use": "Use when the query describes a model-refinement or feature-processing pipeline where multiple named modules each act on a different stage of a central sequential structure.",
+    "confidence": 0.87,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "hybrid",
+    "provenance": {
+      "record_id": "hybrid_art_01",
+      "combo": "hybrid|Art"
+    },
+    "id": "ks_081"
+  },
+  {
+    "agent": "Layout",
+    "title": "Hierarchical Angular Allocation for Concentric (Onion) Rings",
+    "description": "Preserves the wedge-placement math that makes a multi-level onion matrix readable: each outer-ring wedge must sit within the angular span of its parent middle-ring segment, and labels must follow the radial orientation.",
+    "content": "Assign each middle-ring segment a contiguous angular span (e.g., 120° each for 3 categories), then subdivide that span equally among its child wedges so every outer wedge nests radially under its parent. Place each outer label at the wedge's mid-angle, rotate text along the radial direction (flip 180° on the left half to avoid upside-down reading), keep the center title horizontal, and leave thin white gaps between adjacent wedges to delineate segments.",
+    "when_to_use": "When building concentric circle (onion) diagrams or radial matrices where many leaf items must be visually grouped under a few mid-level categories around a central theme.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "matrix",
+    "provenance": {
+      "record_id": "matrix_agriculture_02",
+      "combo": "matrix|Agriculture"
+    },
+    "id": "ks_082"
+  },
+  {
+    "agent": "Structure",
+    "title": "Diamond half-matrix for symmetric relationship encoding",
+    "description": "This sample shows how to render an N×N symmetric relationship set (space adjacencies) as a triangular half-matrix of 45°-rotated squares, eliminating redundant mirrored cells while keeping every pairwise relationship readable.",
+    "content": "List the N items vertically on a labeled left axis (optionally grouped under a bracketed sidebar such as Interior/Exterior), mirror them as column headers, then draw only the lower/upper triangle as a diamond grid where row i meets column j; encode relationship strength by diamond fill color (e.g., green=mandatory, light blue=desirable, white=neutral, red=negative) and add a compact legend keyed to those colors.",
+    "when_to_use": "When the user asks for an adjacency/relationship matrix among many symmetric entities (rooms, departments, systems) where full N×N duplication would waste space and clutter the reading flow.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "matrix",
+    "provenance": {
+      "record_id": "matrix_architecture_02",
+      "combo": "matrix|Architecture"
+    },
+    "id": "ks_083"
+  },
+  {
+    "agent": "Structure",
+    "title": "Directional spokes encode input→outcome semantics",
+    "description": "In radial mindmaps, connector arrowhead direction and satellite placement can carry semantic meaning, not just connectivity. This sample preserves the tactic of splitting satellites into cause/input nodes (left/top, arrows pointing inward) and effect/outcome nodes (right/bottom, arrows pointing outward).",
+    "content": "Cluster input/condition satellite nodes on the left and upper arc of the central node and aim their spoke arrowheads inward toward the center; cluster outcome/result nodes on the right and lower arc with arrowheads pointing outward from the center. This yields a left-to-right cause→effect reading flow while keeping single straight spokes per node.",
+    "when_to_use": "When a mindmap's central concept has satellites that mix prerequisites/inputs with consequences/outputs and the user asks for an inputs-to-outcomes reading flow around the hub.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "mindmap",
+    "provenance": {
+      "record_id": "mindmap_agriculture_04",
+      "combo": "mindmap|Agriculture"
+    },
+    "id": "ks_084"
+  },
+  {
+    "agent": "Layout",
+    "title": "Two-tier radial fan-out for many-branch mindmaps",
+    "description": "Preserves the placement approach that lets a single-hub mindmap cleanly accommodate 15+ satellites: a full outer ring plus a small inner ring of nodes hugging the hub. This avoids cramped, overlapping labels that a single ring would cause at high branch counts.",
+    "content": "Order branches clockwise around the hub on an outer elliptical ring at generous angular spacing, then place any overflow nodes (3-5 of them) on a tighter inner ring just off the hub's edge, filling gaps in the outer ring's angular coverage. Draw each connector as a single curve from the hub edge to its satellite with no sub-branches or cross-links.",
+    "when_to_use": "Use when a radial mindmap has more than roughly 10-12 first-level branches and a single ring would force overlapping labels or uneven angular gaps.",
+    "confidence": 0.85,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "mindmap",
+    "provenance": {
+      "record_id": "mindmap_architecture_01",
+      "combo": "mindmap|Architecture"
+    },
+    "id": "ks_085"
+  },
+  {
+    "agent": "Styling",
+    "title": "L-Band Header Highlighting",
+    "description": "Preserves the two-tone color scheme that makes an L-shaped matrix instantly readable: one accent color spans the corner cell, entire header row, and entire header column so the axes literally draw an 'L', while body cells stay neutral.",
+    "content": "Fill the corner cell (e.g., 'Requirements'), the full header row, and the full header column with a single accent color such as yellow, and keep all body cells white with dark text so the intersection values stand out and row-to-column mappings remain scannable.",
+    "when_to_use": "When rendering an L-shaped (single row-axis × single column-axis) matrix that needs unmistakable visual separation between axis labels and intersection data.",
+    "confidence": 0.85,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "matrix",
+    "provenance": {
+      "record_id": "matrix_art_01",
+      "combo": "matrix|Art"
+    },
+    "id": "ks_086"
+  },
+  {
+    "agent": "Layout",
+    "title": "Offset staff nodes from the reporting drop line",
+    "description": "Preserves the org-chart convention of distinguishing staff/advisory roles (e.g., Administrative Assistant/Payroll) from line-management direct reports through placement rather than node styling.",
+    "content": "Place staff/assistant nodes to the side of the vertical connector dropping from the superior to the management tier (e.g., left of the drop line), connected with a short stub edge, while keeping true direct reports horizontally arrayed on the tier below; then align all leaf nodes on a shared bottom row even when subtree widths differ.",
+    "when_to_use": "When an org chart query includes an assistant, secretary, or staff role attached to a top executive alongside multiple direct-report managers.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "orgchart",
+    "provenance": {
+      "record_id": "orgchart_agriculture_01",
+      "combo": "orgchart|Agriculture"
+    },
+    "id": "ks_087"
+  },
+  {
+    "agent": "Layout",
+    "title": "Balanced bilateral radial fan-out",
+    "description": "Preserves the spatial organization that made this six-branch mindmap reproducible and readable: branches split evenly on both sides of the central node with a clear top-to-bottom reading order.",
+    "content": "For mindmaps with 4+ second-level nodes, place the central topic mid-canvas and distribute branches evenly left/right (e.g., 3 per side for 6 branches) in the query's listed order, top to bottom; connect with curved lines, then stack each branch's leaf items vertically beside its parent node using thin vertical bracket lines.",
+    "when_to_use": "When generating a mindmap whose central node has many (>=4) equal-weight branches that would crowd or tangle if fanned out on one side only.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "mindmap",
+    "provenance": {
+      "record_id": "mindmap_art_01",
+      "combo": "mindmap|Art"
+    },
+    "id": "ks_088"
+  },
+  {
+    "agent": "Styling",
+    "title": "Border-only branch color coding",
+    "description": "Preserves the tactic of distinguishing org-chart reporting branches purely through box border colors while keeping fills, text, and connectors uniform. This avoids visual clutter and makes each subtree instantly traceable by its inherited color.",
+    "content": "Assign one border color per branch and apply it consistently to every node in that subtree (department head and all descendants), while keeping all box fills white/neutral, all text dark, and all connector lines a single neutral color (e.g., black right-angle elbows). Reusing a color across two branches is acceptable if the branches are spatially separated, but adjacent sibling branches should differ.",
+    "when_to_use": "When an org chart or hierarchy diagram has multiple distinct teams/branches and the user asks for color-coding or visual branch differentiation without compromising readability.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "orgchart",
+    "provenance": {
+      "record_id": "orgchart_architecture_01",
+      "combo": "orgchart|Architecture"
+    },
+    "id": "ks_089"
+  },
+  {
+    "agent": "Layout",
+    "title": "Column-per-Report Fan-Out for Wide Org Charts",
+    "description": "Preserves how this sample keeps a 9-report, deeply uneven museum hierarchy readable: each direct report owns a narrow vertical column, and nested clusters are absorbed inside the column rather than widening it.",
+    "content": "Center the root at top, drop one horizontal distribution line to space all direct reports evenly left-to-right, then stack each report's departments vertically in its own column using right-angle elbow connectors. When a department clusters sub-units (e.g., 'Curatorial' over six divisions, 'Facilities' over four services), insert it as an intermediate in-column parent and hang the children beneath it, so every subtree remains a slim vertical strip regardless of depth differences.",
+    "when_to_use": "Org charts with many (6+) top-level direct reports whose subordinate units vary widely in count and depth, where side-by-side subtree layouts would cause crowding or imbalance.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "orgchart",
+    "provenance": {
+      "record_id": "orgchart_art_01",
+      "combo": "orgchart|Art"
+    },
+    "id": "ks_090"
+  },
+  {
+    "agent": "Structure",
+    "title": "Flanking opposing-trend arrows for pyramid diagrams",
+    "description": "Preserves the tactic of pairing a progression pyramid with two tall side arrows that encode inverse trends rising toward opposite ends. This lets a single canvas convey both the staged hierarchy and the trade-off between two moving variables.",
+    "content": "When a pyramid represents an evolution or progression, add a tall upward arrow on the left labeled with the qualities that increase toward the apex (e.g., instability/vulnerability) and a tall downward arrow on the right labeled with the qualities that increase toward the base (e.g., stability/resilience); use distinct muted arrow colors (light blue, lavender) so they read as annotations, not tiers, and stack multi-word labels along the arrow direction.",
+    "when_to_use": "Use whenever a pyramid or tiered diagram needs to communicate not just stage hierarchy but also two opposing gradients or trade-offs that vary along its vertical axis.",
+    "confidence": 0.85,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "pyramid",
+    "provenance": {
+      "record_id": "pyramid_agriculture_02",
+      "combo": "pyramid|Agriculture"
+    },
+    "id": "ks_091"
+  },
+  {
+    "agent": "Layout",
+    "title": "Bilateral annotation rails for tiered pyramids",
+    "description": "Preserves the pattern of flanking a multi-tier pyramid with two complementary side rails: color-coded guiding questions on the left and vision/zone labels on the right. Each tier thus reads as the answer to its question while the central content stays uncluttered.",
+    "content": "Align one guiding question per tier on the left at the tier's vertical center (color-code each question to its tier), and place tier vision labels (WHY/WHAT/HOW) on the right; render inter-tier dividers as labeled dashed lines (e.g., 'Allocation relations') and add zone markers like OUTSIDE/INSIDE beside the topmost boundary.",
+    "when_to_use": "When a pyramid or layered diagram must convey both per-level content and the top-down narrative/rationale linking levels, such as architecture visions or strategy-to-execution mappings.",
+    "confidence": 0.86,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "pyramid",
+    "provenance": {
+      "record_id": "pyramid_architecture_02",
+      "combo": "pyramid|Architecture"
+    },
+    "id": "ks_092"
+  },
+  {
+    "agent": "Layout",
+    "title": "Side-bracket superordinate grouping",
+    "description": "Preserves the technique of overlaying a secondary categorical hierarchy onto a pyramid by placing vertical grouping brackets in a dedicated right-side gutter, keeping tier interiors uncluttered.",
+    "content": "Reserve a right-side margin (roughly 15-20% of canvas width) and draw one vertical square bracket per group, with bracket endpoints aligned exactly to the outer edges of the first and last tier it spans; place each group label at the bracket's vertical midpoint, ordered so brackets read top-to-bottom in the same sequence as the groups they cover.",
+    "when_to_use": "When a pyramid (or stacked-layer diagram) needs tiers grouped into higher-level categories in addition to their individual labels.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "pyramid",
+    "provenance": {
+      "record_id": "pyramid_art_04",
+      "combo": "pyramid|Art"
+    },
+    "id": "ks_093"
+  },
+  {
+    "agent": "Structure",
+    "title": "Alt-Fragment Branching for Mutually Exclusive Outcomes",
+    "description": "Preserves the tactic of modeling a decision point with two or more mutually exclusive results as a single 'alt' combined fragment with one operand per outcome, rather than drawing unconditional parallel messages.",
+    "content": "When a flow diverges (e.g., valid vs invalid login), wrap the diverging messages in one alt fragment spanning exactly the lifelines involved; split it with a dashed horizontal separator, guard each operand with a bracketed condition like [Login Valid], and place exactly the outcome's message(s) inside its operand while keeping the shared trigger (Verify) above the fragment.",
+    "when_to_use": "Use for sequence diagrams where a request leads to distinct conditional response paths (success/failure, found/not-found, authorized/denied).",
+    "confidence": 0.88,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "sequence",
+    "provenance": {
+      "record_id": "sequence_architecture_02",
+      "combo": "sequence|Architecture"
+    },
+    "id": "ks_094"
+  },
+  {
+    "agent": "Structure",
+    "title": "Canonical repeated interaction block per operation",
+    "description": "Preserves the tactic of modeling each user operation as an identical three-lifeline exchange (actor request → system forwards to database → self-check → dashed returns back through the chain), so many similar operations read as clean stacked repetitions of one block.",
+    "content": "For each actor operation, emit the same block: solid arrow Actor→System, solid arrow System→Database, optional self-message on Database, then dashed 'Response' Database→System and dashed 'Display message' System→Actor; reuse identical return labels ('Response', 'Display message') and vary only the initiating request label per block.",
+    "when_to_use": "When a sequence diagram spec lists many homogeneous admin/CRUD-style operations against the same system and database lifelines.",
+    "confidence": 0.88,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "sequence",
+    "provenance": {
+      "record_id": "sequence_art_04",
+      "combo": "sequence|Art"
+    },
+    "id": "ks_095"
+  },
+  {
+    "agent": "Structure",
+    "title": "Flow-Ordered Lifelines with Numbered Messages",
+    "description": "Preserves the sample's tactic of ordering lifelines left-to-right to mirror the dominant call direction and numbering every message so the diagram reads top-to-bottom as a single traceable scenario.",
+    "content": "Place the external actor at the far left, then arrange internal lifelines in the order they are invoked (e.g., Operators → CPN Controller → ANN Inputs Controller → Farm Details → ANN Outputs Controller) so most arrows point rightward with minimal crossing; label each message with a sequential number, use dashed return arrows for success/error outcomes, and model validations as self-messages (e.g., 'Workflow successful?') with activation bars only on active lifelines.",
+    "when_to_use": "When a user requests a sequence diagram with many lifelines (5+) and an explicitly numbered or step-wise message flow describing one end-to-end business scenario.",
+    "confidence": 0.87,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "sequence",
+    "provenance": {
+      "record_id": "sequence_agriculture_05",
+      "combo": "sequence|Agriculture"
+    },
+    "id": "ks_096"
+  },
+  {
+    "agent": "Layout",
+    "title": "Horizontal spine with stacked feedback return loops",
+    "description": "Preserves the layout pattern for system/flow diagrams that combine a main left-to-right process chain with multiple feedback loops returning to an upstream decision node.",
+    "content": "Place the primary flow on a single horizontal spine (inputs converge → decision → process → outputs → fanned-out outcome boxes stacked vertically at the right), then route each feedback loop on its own horizontal band above or below the spine, inserting a labeled box mid-loop so the loop's meaning is readable as text on the path back to the decision node.",
+    "when_to_use": "Use when a state/flowchart diagram has one dominant forward pipeline plus two or more labeled feedback loops (e.g., positive/negative, equilibrium/disequilibrium) that must return to an earlier node without crossing or cluttering the main flow.",
+    "confidence": 0.87,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "state",
+    "provenance": {
+      "record_id": "state_agriculture_01",
+      "combo": "state|Agriculture"
+    },
+    "id": "ks_097"
+  },
+  {
+    "agent": "Structure",
+    "title": "Composite region with internal initial and boundary exit",
+    "description": "Preserves how to model a convergent sub-lifecycle in a UML state machine: group the inner states into one named composite region and route abnormal global exits from the region border rather than from individual inner states.",
+    "content": "When multiple top-level states (e.g., Composed via [Send], Save via [Send]) funnel into the same multi-stage flow, draw that flow as a composite state with a tab label in its top-left corner, give it its own internal initial pseudostate chaining into the first inner state, and attach exceptional exits (e.g., 'Account Limit Reached [HighPriority] /SendMessage' -> Archived) to the region's outer edge. Use full 'trigger [guard] /effect' labels on such transitions to encode UML semantics explicitly.",
+    "when_to_use": "A state machine diagram where several entry transitions converge on a shared sub-flow that also has region-wide exceptional exits.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "state",
+    "provenance": {
+      "record_id": "state_architecture_01",
+      "combo": "state|Architecture"
+    },
+    "id": "ks_098"
+  },
+  {
+    "agent": "Styling",
+    "title": "Hub-spoke visual hierarchy with externalized captions and decoding legend",
+    "description": "Preserves a proven styling scheme for hub-and-spoke diagrams: a high-contrast central hub, uniform lighter satellite nodes, muted edge labels, italic sub-captions carrying detail outside the circles, and a legend that decodes the color/typography encoding.",
+    "content": "Render the hub in a dark saturated fill (e.g., navy) with bold white text, all spokes in one lighter tint of the same hue with dark text, and arrows in neutral gray with short verb-phrase labels; place multi-item details as italic gray captions beneath each spoke circle instead of inside it, and add a small legend box mapping 'colored circle = category A' and 'italic caption = category B'.",
+    "when_to_use": "Use for hub-and-spoke/radial diagrams where one central concept connects to several peer nodes that each carry secondary list-like details and the viewer needs an explicit key to the visual encoding.",
+    "confidence": 0.87,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "state",
+    "provenance": {
+      "record_id": "state_art_01",
+      "combo": "state|Art"
+    },
+    "id": "ks_099"
+  },
+  {
+    "agent": "Structure",
+    "title": "Backward rejection path with merge-back edges",
+    "description": "Preserves how this sample topologically organizes multi-decision swimlanes: the happy path advances forward across lanes (left-to-right, top-to-bottom) while rejection branches form a distinct backward return path (right-to-left) through the lanes responsible for rework/notification, and recovery branches rejoin existing nodes instead of duplicating them.",
+    "content": "Route each decision's YES branch forward to the next stage and place NO branches on a separate lower/backtrack row flowing right-to-left through the responsible lanes (e.g., Construction -> Contracts -> Sales), ending at the notifier node. When a later decision rejoins the main flow (e.g., 'Terms accepted?' YES), draw an upward edge into the already-placed downstream node rather than creating a duplicate.",
+    "when_to_use": "When a swimlane activity diagram has approval/review decisions whose rejection triggers rework, delay, or notification steps owned by earlier lanes.",
+    "confidence": 0.86,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "swimlane",
+    "provenance": {
+      "record_id": "swimlane_agriculture_01",
+      "combo": "swimlane|Agriculture"
+    },
+    "id": "ks_100"
+  },
+  {
+    "agent": "Layout",
+    "title": "Row-Banded Branch Separation for Swimlane Loops",
+    "description": "Preserves the spatial plan that kept this five-lane workflow readable: the forward 'happy path' and the rejection/rework loop occupy separate horizontal bands so arrows never cross.",
+    "content": "Assign the main start-to-end flow (start node → chained processes → Yes branches → end node) to the top row of the lanes, and route every No/rework branch (e.g., 'Terms accepted? No → return files → delayed → notify client') along a dedicated lower row, connecting bands with short vertical arrows inside the responsible lane. Keep each decision diamond in the lane of the deciding actor, send forward flow left-to-right/downward, and send loop-back flow leftward only within the lower band.",
+    "when_to_use": "Multi-lane swimlane activity diagrams where decision diamonds produce both a forward continuation and a backward rework/rejection loop spanning several lanes.",
+    "confidence": 0.88,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "swimlane",
+    "provenance": {
+      "record_id": "swimlane_architecture_01",
+      "combo": "swimlane|Architecture"
+    },
+    "id": "ks_101"
+  },
+  {
+    "agent": "Layout",
+    "title": "Mid-height merge node with bottom-routed rejection backflow",
+    "description": "Preserves how to lay out converging decision branches and cross-lane rework loops in a swimlane activity diagram so that forward and backward flows never tangle or duplicate nodes.",
+    "content": "Place the shared convergence node (e.g., 'Construction starts') at an intermediate vertical position so the happy path enters it from above and the approved-rework path enters with a short upward arrow from below; route the rejection chain (Construction → Contracts → Sales, right-to-left) along a lower band beneath the main left-to-right flow so backward edges run parallel under, and never cross, forward edges.",
+    "when_to_use": "Swimlane or activity diagrams with multiple decision diamonds whose branches reconverge on one node, or where a NO/rejection branch must flow backward across lanes to earlier-stage lanes.",
+    "confidence": 0.85,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "swimlane",
+    "provenance": {
+      "record_id": "swimlane_art_01",
+      "combo": "swimlane|Art"
+    },
+    "id": "ks_102"
+  },
+  {
+    "agent": "Layout",
+    "title": "Central color-echoed ring anchoring a 2x2 quadrant grid",
+    "description": "A radial SWOT composition where a central ring, split into four arcs color-matched to each quadrant, acts as the visual hub, while text blocks and corner badges radiate outward to reinforce grouping and reading order.",
+    "content": "Place four rounded-square panels in a 2x2 grid around a central circular ring divided into four arcs, each arc colored to match its corresponding quadrant; put a diagonal ribbon with a white letter badge (S/W/O/T) on each panel's OUTER corner, an icon inside the panel, and the bold heading plus description paragraph on the panel's OUTER side (left for left column, right for right column).",
+    "when_to_use": "Use for SWOT or any four-part quadrant analysis where categories need strong color-coded identity, a clear S→W→O→T reading flow, and a central thematic icon anchoring the composition.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "swot",
+    "provenance": {
+      "record_id": "swot_architecture_05",
+      "combo": "swot|Architecture"
+    },
+    "id": "ks_103"
+  },
+  {
+    "agent": "Layout",
+    "title": "Alternating-side anchor blocks in stacked bands",
+    "description": "Preserves the zigzag band pattern used in this vertical SWOT: four stacked horizontal rows where the solid colored letter square alternates sides (S left, W right, O left, T right) against a bordered text panel, creating visual rhythm without breaking the strict top-to-bottom reading order.",
+    "content": "When stacking N repeated horizontal bands (one per quadrant/item), keep each band structurally identical (colored square with white letter + adjacent bordered text panel of fixed height) but flip the anchor block to the opposite side on alternate rows; maintain consistent band heights, gutter spacing, and border/accent color so the alternation reads as intentional rhythm rather than inconsistency.",
+    "when_to_use": "Use for vertical SWOT or similar multi-quadrant templates (Pestle, 4-section frameworks) where the user requests stacked bands and wants visual variety while preserving sequential reading flow.",
+    "confidence": 0.9,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "swot",
+    "provenance": {
+      "record_id": "swot_agriculture_01",
+      "combo": "swot|Agriculture"
+    },
+    "id": "ks_104"
+  },
+  {
+    "agent": "Layout",
+    "title": "Center-Hub Overlap with Mirrored Quadrant Anchors",
+    "description": "Preserves how this SWOT sample unifies a 2x2 matrix: a large title circle placed exactly over the quadrant intersection acts as a visual hub, while badge/label pairs are mirrored left-to-right across quadrants for balance.",
+    "content": "For 2x2 matrix diagrams, place a large circle (filled with the darkest palette color) centered precisely on the quadrant intersection and stack the diagram title inside it on two lines. Then mirror each quadrant's anchor elements: badge-then-label on left-side quadrants, label-then-badge right-aligned on right-side quadrants, so all four corners feel symmetric around the hub.",
+    "when_to_use": "Use when generating 2x2 matrix templates (SWOT, Eisenhower, BCG-style grids) that need a strong central anchor and clean symmetry without connectors.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "swot",
+    "provenance": {
+      "record_id": "swot_art_05",
+      "combo": "swot|Art"
+    },
+    "id": "ks_105"
+  },
+  {
+    "agent": "Layout",
+    "title": "Serpentine row-wrapping for dense timelines",
+    "description": "Preserves the S-shaped folding pattern that lets a long chronological sequence (10 nodes) fit on one canvas while keeping a single unbroken connector and unambiguous reading order. Also captures the per-row label mirroring that prevents text from colliding with the winding line.",
+    "content": "Split nodes into horizontal rows that alternate flow direction (left-to-right, then right-to-left, then left-to-right), joining them with one continuous thin connector that curves down at each row end. Keep node anatomy identical (colored circle, white pictogram, bold year, short caption) but mirror label anchoring per row so years sit on the incoming-flow side and captions hang below, clear of the connector.",
+    "when_to_use": "Use when a timeline has too many events (roughly 7 or more) to remain legible on a single straight horizontal or vertical axis.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "timeline",
+    "provenance": {
+      "record_id": "timeline_agriculture_02",
+      "combo": "timeline|Agriculture"
+    },
+    "id": "ks_106"
+  },
+  {
+    "agent": "Layout",
+    "title": "Alternating mirrored annotation columns around a central spine",
+    "description": "For vertical timelines with many nodes, this sample balances dense per-node content by splitting each node's annotation into two mirrored blocks: the bold label + date range on one side of the spine and an italic theme phrase + bullet list on the opposite side, alternating sides node to node.",
+    "content": "Place each node's primary label (bold name + date range) on alternating left/right sides of the central vertical line, and put the secondary annotation (italic theme phrase plus indented bullet list) on the opposite side of the same node, connecting both with short horizontal connector lines so each era is read as a left+right pair.",
+    "when_to_use": "Vertical timeline with 6+ nodes where each node carries both a title/date and supplementary text or bullet lists that would overcrowd a single side.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "timeline",
+    "provenance": {
+      "record_id": "timeline_art_03",
+      "combo": "timeline|Art"
+    },
+    "id": "ks_107"
+  },
+  {
+    "agent": "Layout",
+    "title": "Gantt timeline with era bands and shared gridline axis",
+    "description": "Preserves the layout system that made this timeline readable: a bottom time axis with uniform tick intervals, full-height vertical gridlines, and a top header row of era columns that partition the same horizontal scale.",
+    "content": "Place the year axis at the bottom with equal-interval ticks (e.g., 20 years), draw thin vertical gridlines up from each tick across the canvas, and align a colored era-header row on top so each era column spans its exact tick range; render each entry as a horizontal bar spanning its start–end years, stacking bars at increasing vertical offsets to prevent overlap, and push supplementary detail (sub-style lists, captions) into a bottom-corner footnote legend keyed by an asterisk on the relevant bar.",
+    "when_to_use": "Use whenever a Gantt-style or multi-era timeline must show many overlapping date spans against one continuous time scale, especially when entries group into named eras and some need enumerated sub-items.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "timeline",
+    "provenance": {
+      "record_id": "timeline_architecture_05",
+      "combo": "timeline|Architecture"
+    },
+    "id": "ks_108"
+  },
+  {
+    "agent": "Styling",
+    "title": "Depth-role color coding for semantic trees",
+    "description": "Preserves the sample's consistent color-by-semantic-role system that keeps a dense linguistic tree scannable: each tree depth/function gets its own hue, while connectors stay neutral.",
+    "content": "Assign fixed node colors by role/depth (red = root's main branches, green = sub-meanings/senses, blue = leaf explanations/notes, purple small dots = word forms/synonym hubs), render all edges as thin gray lines, and use a light background; keep purple nodes small/dot-like so synonym starbursts read as secondary annotations rather than primary structure.",
+    "when_to_use": "When building radial or left-to-right semantic/syntax tree mind maps with 4+ node categories (branches, senses, explanations, synonyms) that must remain legible at high node counts.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "tree",
+    "provenance": {
+      "record_id": "tree_art_03",
+      "combo": "tree|Art"
+    },
+    "id": "ks_109"
+  },
+  {
+    "agent": "Structure",
+    "title": "Columnar cause-and-effect map with selective connectivity",
+    "description": "Organizes a cause-and-effect diagram as labeled category columns of sticky-note boxes rather than a strict hierarchy, with causal arrows crossing columns to show how problem domains interrelate. Preserves the choice to leave nodes unconnected when no relationship is stated.",
+    "content": "Group nodes into vertical columns under bold uppercase category headers, then draw causal arrows horizontally (or diagonally) across columns between related notes; render uncertain relationships as dashed arrows annotated with '?' and deliberately leave any node with no specified relationship unconnected instead of forcing links.",
+    "when_to_use": "The user requests a cause-and-effect or problem-analysis diagram organized into explicitly named categories (e.g., themed columns) with some specified and some uncertain relationships.",
+    "confidence": 0.85,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "tree",
+    "provenance": {
+      "record_id": "tree_agriculture_02",
+      "combo": "tree|Agriculture"
+    },
+    "id": "ks_110"
+  },
+  {
+    "agent": "Styling",
+    "title": "Color-code node semantics with an explicit legend",
+    "description": "This sample preserves the tactic of assigning distinct fill colors to semantically different node types (yellow = decision/Test, orange = terminal/Outcome) and pairing the encoding with a legend box so the color meaning is self-documenting.",
+    "content": "When a diagram contains two or more semantic node categories, assign each category a consistent, visually distinct fill color (e.g., yellow for internal decision nodes, orange for terminal outcome nodes), apply it uniformly across all nodes of that type, and place a small legend box (colored swatch + label) in a free corner of the canvas explaining each color.",
+    "when_to_use": "Use whenever the user specifies (or the domain implies) categorical node types in a tree/flowchart—such as tests vs. outcomes, decisions vs. terminals, or states vs. actions—especially if the user requests a legend or color explanation.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "tree",
+    "provenance": {
+      "record_id": "tree_architecture_03",
+      "combo": "tree|Architecture"
+    },
+    "id": "ks_111"
+  },
+  {
+    "agent": "Styling",
+    "title": "Additive-blend overlap fills with white center",
+    "description": "Preserves the technique of rendering Venn overlaps via additive color mixing (blue+yellow=green, blue+red=purple, yellow+red=orange) while reserving the triple intersection as white space for the key takeaway label.",
+    "content": "Fill each Venn circle with a semi-transparent primary-like color (blue, yellow, red/pink) so pairwise overlaps naturally blend into secondary colors, and explicitly leave the central triple-overlap region white (or near-white) so the conclusion text there stands out in black; keep thin black circle outlines and black uppercase labels for legibility against saturated fills.",
+    "when_to_use": "When building a multi-circle Venn diagram whose intersections carry meaning, especially when the center region must display an emphasized conclusion label.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Art",
+    "diagram_type": "venn",
+    "provenance": {
+      "record_id": "venn_art_02",
+      "combo": "venn|Art"
+    },
+    "id": "ks_112"
+  },
+  {
+    "agent": "Layout",
+    "title": "Triangular three-circle Venn with full seven-zone item placement",
+    "description": "Preserves the spatial recipe for a three-set Venn where every combination zone is populated: two circles on top, one centered below, so all pairwise-only overlaps and the triple overlap remain distinct, readable regions.",
+    "content": "Arrange the three ellipses in a triangle (set A top-left, set B top-right, set C bottom-center) with roughly 40-50% pairwise overlap; then stack each item as centered multi-line text inside its exact zone—unique items near the outer crescent, pairwise-only items in the lens areas offset from center, and the triple-overlap item in the small central lens—shrinking font size for zones with multiple entries.",
+    "when_to_use": "When a user requests a three-set Venn diagram specifying items for unique zones, all three pairwise-only intersections, and the central triple intersection.",
+    "confidence": 0.92,
+    "tier": "sample_strategy",
+    "domain": "Agriculture",
+    "diagram_type": "venn",
+    "provenance": {
+      "record_id": "venn_agriculture_04",
+      "combo": "venn|Agriculture"
+    },
+    "id": "ks_113"
+  },
+  {
+    "agent": "Styling",
+    "title": "Discrete zone-fills with numbered legend for Venn overlaps",
+    "description": "Preserves the tactic of treating each Venn intersection as an individually styled zone (flat pastel fill + bold numeral + directional arrows) instead of relying on transparent circle blends, plus a swatch legend that decodes the numbers.",
+    "content": "Fill each pairwise lens with its own flat, muted pastel and the central triple-overlap with a dark charcoal fill using reversed white marks for contrast; stamp every zone with a bold number, add small double-headed arrows in lenses (radiating arrows in the center) for visual interest, and mirror the exact swatches in a vertical side legend mapping numbers to meanings.",
+    "when_to_use": "Multi-circle Venn diagrams where each intersection carries a distinct labeled meaning that must be referenced in a legend or keyed narrative, especially conceptual or humorous diagrams.",
+    "confidence": 0.87,
+    "tier": "sample_strategy",
+    "domain": "Architecture",
+    "diagram_type": "venn",
+    "provenance": {
+      "record_id": "venn_architecture_04",
+      "combo": "venn|Architecture"
+    },
+    "id": "ks_114"
+  },
+  {
+    "agent": "Structure",
+    "title": "Canonical Notation Fidelity",
+    "description": "Every diagram formalism has a mandated shape vocabulary; use it exactly and never substitute decorative or ad-hoc shapes for notation-defined primitives.",
+    "content": "Before placing any element, identify the target notation and map each element category to its prescribed form: compartmented rectangles for classes with visibility markers and typed attributes, circles/rounded forms for processes, flat rectangles for external entities, open-ended stores for data, diamonds for decisions or composition, terminators, parallelograms, chevrons as specified. Render mandated adornments (stereotypes, multiplicities, filled diamonds, header bands) faithfully. If an element cannot be expressed in the notation, re-express the concept rather than inventing a shape.",
+    "when_to_use": "Always, for any diagram belonging to a defined notation system (UML, DFD, flowchart, architecture, concept map); the check applies to every node and edge before styling begins.",
+    "confidence": 0.95,
+    "tier": "general_principle",
+    "domain": "Universal",
+    "diagram_type": "Universal",
+    "promoted_from": [
+      "Agriculture hub-and-flow layout",
+      "White canvas with single accent color",
+      "Central hub with color-coded satellites and bottom title banner",
+      "Notation-first accounting diagram mapping",
+      "Strict notation fidelity per formalism",
+      "Top-to-bottom flow with convergence hubs in biology diagrams"
+    ],
+    "id": "kp_115"
+  },
+  {
+    "agent": "Structure",
+    "title": "Deterministic Role-to-Form Mapping",
+    "description": "Each semantic role maps to exactly one visual form, held constant across the entire diagram; never blend idioms or let one form serve two meanings.",
+    "content": "Define the full element taxonomy up front (entity, process, store, class, category level, annotation) and assign each a unique, unambiguous shape and line style: e.g., solid lines for one relationship type, dashed/dotted for another. Enforce the mapping globally — the same role drawn in two places must look identical, and two different roles must never share a form. Relationship types get distinct connector styles just as node types get distinct shapes.",
+    "when_to_use": "Whenever a diagram contains two or more element or relationship categories; resolve the complete mapping before drawing any instances.",
+    "confidence": 0.92,
+    "tier": "general_principle",
+    "domain": "Universal",
+    "diagram_type": "Universal",
+    "promoted_from": [
+      "Agriculture hub-and-flow layout",
+      "White canvas with single accent color",
+      "Central hub with color-coded satellites and bottom title banner",
+      "Notation-first accounting diagram mapping",
+      "Strict notation fidelity per formalism",
+      "Top-to-bottom flow with convergence hubs in biology diagrams"
+    ],
+    "id": "kp_116"
+  },
+  {
+    "agent": "Structure",
+    "title": "Complete Labeling of Nodes and Edges",
+    "description": "Every element and every connector must carry an explicit textual identity — a name, and where applicable its formal role — so the diagram is machine-checkable and self-explanatory.",
+    "content": "Label every node with its name (bold where primary) and role qualifier (stereotype, number, type); label every edge with its relationship or flow content; mark directionality on all flows with arrowheads. Use symbolic variable names, typed attributes, and correct mathematical typography where the content is formal rather than prose approximations. An unlabeled shape or line is treated as an error, not a stylistic choice.",
+    "when_to_use": "Universally, at structure definition time; verify in a final pass that no node, edge, group, or container lacks an identifying label.",
+    "confidence": 0.9,
+    "tier": "general_principle",
+    "domain": "Universal",
+    "diagram_type": "Universal",
+    "promoted_from": [
+      "Agriculture hub-and-flow layout",
+      "White canvas with single accent color",
+      "Central hub with color-coded satellites and bottom title banner",
+      "Notation-first accounting diagram mapping",
+      "Strict notation fidelity per formalism",
+      "Top-to-bottom flow with convergence hubs in biology diagrams"
+    ],
+    "id": "kp_117"
+  },
+  {
+    "agent": "Layout",
+    "title": "Single Dominant Visual Anchor",
+    "description": "Establish exactly one primary element as the diagram's anchor — at the geometric center or top-center — so visual hierarchy mirrors conceptual hierarchy.",
+    "content": "Identify the single most important artifact (root concept, central system, governing equation, primary process) and place it at the canonical anchor position: center for hub/star arrangements, top-center for hierarchies and flows. Make it the visually heaviest element (largest, darkest, or sole accent). All secondary elements position relative to it: satellites radiate around it, tiers descend below it, flows depart from or converge to it. Exactly one anchor per diagram — competing focal points destroy hierarchy.",
+    "when_to_use": "Every diagram; decide the anchor first, before positioning anything else, regardless of whether the composition ends up radial, hierarchical, or linear.",
+    "confidence": 0.9,
+    "tier": "general_principle",
+    "domain": "Universal",
+    "diagram_type": "Universal",
+    "promoted_from": [
+      "Agriculture hub-and-flow layout",
+      "White canvas with single accent color",
+      "Central hub with color-coded satellites and bottom title banner",
+      "Notation-first accounting diagram mapping",
+      "Strict notation fidelity per formalism",
+      "Top-to-bottom flow with convergence hubs in biology diagrams"
+    ],
+    "id": "kp_118"
+  },
+  {
+    "agent": "Layout",
+    "title": "One Consistent Reading Axis",
+    "description": "Choose a single primary direction of reading aligned with the content's inherent ordering — and never violate it within the diagram.",
+    "content": "Determine the content's natural sequence (chronology, value chain, causal flow, abstraction hierarchy, algorithm steps) and map it to one axis: left-to-right for timelines and pipelines, top-to-bottom for hierarchies and descending specificity, clockwise for cycles. Inputs/inbound elements enter from the start side (left/top), outputs exit at the end side (right/bottom). All primary flows run along the axis; secondary flows may branch but must not reverse the reading direction ambiguously. Number sequential steps explicitly.",
+    "when_to_use": "Any diagram encoding sequence, flow, progression, or ranking; select the axis during layout planning and audit all connectors against it afterward.",
+    "confidence": 0.88,
+    "tier": "general_principle",
+    "domain": "Universal",
+    "diagram_type": "Universal",
+    "promoted_from": [
+      "Agriculture hub-and-flow layout",
+      "White canvas with single accent color",
+      "Central hub with color-coded satellites and bottom title banner",
+      "Notation-first accounting diagram mapping",
+      "Strict notation fidelity per formalism",
+      "Top-to-bottom flow with convergence hubs in biology diagrams"
+    ],
+    "id": "kp_119"
+  },
+  {
+    "agent": "Layout",
+    "title": "Balanced Even Distribution of Satellites",
+    "description": "Distribute secondary elements evenly and symmetrically around the anchor or along the flow so no region is crowded and no side is visually heavier.",
+    "content": "Arrange peripheral nodes in balanced configurations: symmetric left/right columns, even radial spacing around a hub, or uniformly spaced tiers and ticks along an axis. Keep inter-node gaps consistent; mirror element counts across the midline where possible. Balance is compositional, not just geometric — equalize visual weight (size x color saturation) across regions, not merely node counts.",
+    "when_to_use": "Whenever three or more sibling elements surround a hub or populate a band; apply as a layout constraint and re-check after any node is added or removed.",
+    "confidence": 0.85,
+    "tier": "general_principle",
+    "domain": "Universal",
+    "diagram_type": "Universal",
+    "promoted_from": [
+      "Agriculture hub-and-flow layout",
+      "White canvas with single accent color",
+      "Central hub with color-coded satellites and bottom title banner",
+      "Notation-first accounting diagram mapping",
+      "Strict notation fidelity per formalism",
+      "Top-to-bottom flow with convergence hubs in biology diagrams"
+    ],
+    "id": "kp_120"
+  },
+  {
+    "agent": "Layout",
+    "title": "Modular Containment with Explicit Boundaries",
+    "description": "Group related elements into labeled containers, bands, or frames with clear spatial separation between groups, so subsystem structure is visible at a glance.",
+    "content": "Identify cohesive subsystems (layers, packages, phases, categories) and enclose each in a drawn boundary — labeled horizontal bands for layers, tabbed frames for packages, boundary boxes for system scope. Give every container its own label. Maintain exclusion zones: whitespace gutters between groups that no connector or node occupies casually; crossings between containers should be intentional, minimal, and routed orthogonally. External entities stay outside the boundary, internal parts inside.",
+    "when_to_use": "Whenever the model has more than one subsystem, layer, phase, or category; essential for architectures, scoped systems, and multi-category compositions.",
+    "confidence": 0.83,
+    "tier": "general_principle",
+    "domain": "Universal",
+    "diagram_type": "Universal",
+    "promoted_from": [
+      "Agriculture hub-and-flow layout",
+      "White canvas with single accent color",
+      "Central hub with color-coded satellites and bottom title banner",
+      "Notation-first accounting diagram mapping",
+      "Strict notation fidelity per formalism",
+      "Top-to-bottom flow with convergence hubs in biology diagrams"
+    ],
+    "id": "kp_121"
+  },
+  {
+    "agent": "Styling",
+    "title": "Restrained Palette on a Neutral Canvas with One Reserved Accent",
+    "description": "Render on a plain light/white background with a minimal palette, and reserve exactly one vivid accent color for the single focal element or one designated highlight class.",
+    "content": "Start from a white or near-white canvas. Build the palette from grayscale or one monochrome family plus muted fills; add at most one saturated accent (e.g., a single red volume or yellow border) assigned to the anchor or to one highlight/annotation class — never both, never scattered. Depth and emphasis come from soft shadows, outline weight, and spacing, not from additional hues. If a second vivid color seems necessary, encode the distinction by shape or line style instead.",
+    "when_to_use": "Always as the default styling baseline; relax only when a category-coding scheme legitimately requires multiple hues, and even then keep saturation low and counts small.",
+    "confidence": 0.88,
+    "tier": "general_principle",
+    "domain": "Universal",
+    "diagram_type": "Universal",
+    "promoted_from": [
+      "Agriculture hub-and-flow layout",
+      "White canvas with single accent color",
+      "Central hub with color-coded satellites and bottom title banner",
+      "Notation-first accounting diagram mapping",
+      "Strict notation fidelity per formalism",
+      "Top-to-bottom flow with convergence hubs in biology diagrams"
+    ],
+    "id": "kp_122"
+  },
+  {
+    "agent": "Styling",
+    "title": "Consistent Semantic Color Encoding with Neutral Connectors",
+    "description": "When color encodes meaning, assign each category one distinct fill/outline color, keep it constant everywhere, and keep structural scaffolding neutral so the color semantics stay unambiguous.",
+    "content": "Assign a unique color per semantic category (entity types, hierarchy levels, material families, flow paths) and apply it uniformly to every member of that category across the whole diagram. Keep containers, connectors, and arrows in neutral black/gray so they never compete with or contaminate the color code. Never reuse a category color for a different meaning or for decoration; never let annotation colors collide with structural colors. Node text stays dark and high-contrast against any fill.",
+    "when_to_use": "Whenever the diagram has two or more semantic categories worth distinguishing; define the color legend alongside the role-to-form mapping before rendering.",
+    "confidence": 0.93,
+    "tier": "general_principle",
+    "domain": "Universal",
+    "diagram_type": "Universal",
+    "promoted_from": [
+      "Agriculture hub-and-flow layout",
+      "White canvas with single accent color",
+      "Central hub with color-coded satellites and bottom title banner",
+      "Notation-first accounting diagram mapping",
+      "Strict notation fidelity per formalism",
+      "Top-to-bottom flow with convergence hubs in biology diagrams"
+    ],
+    "id": "kp_123"
+  },
+  {
+    "agent": "Styling",
+    "title": "Typographic Hierarchy Encodes Content Type",
+    "description": "Use type weight and style to classify content — bold for primary labels and titles, regular for body text, italic for annotations and edge labels — and render formal symbols with full typographic fidelity.",
+    "content": "Set the diagram title in large bold type at its canonical position; bold the pivotal terms and primary node labels; keep secondary node text regular; reserve italic strictly for flow labels, group headers, and contextual annotations so readers can classify any text at a glance. Render formal notation faithfully: superscripts/subscripts, Greek letters, operators, and symbolic variable names exactly as the discipline writes them. Never use italics decoratively or bold randomly — every typographic deviation must signal a content class.",
+    "when_to_use": "Universally; apply after content placement, and audit that each text element's style matches its role (title, primary label, secondary label, annotation).",
+    "confidence": 0.85,
+    "tier": "general_principle",
+    "domain": "Universal",
+    "diagram_type": "Universal",
+    "promoted_from": [
+      "Agriculture hub-and-flow layout",
+      "White canvas with single accent color",
+      "Central hub with color-coded satellites and bottom title banner",
+      "Notation-first accounting diagram mapping",
+      "Strict notation fidelity per formalism",
+      "Top-to-bottom flow with convergence hubs in biology diagrams"
+    ],
+    "id": "kp_124"
+  },
+  {
+    "agent": "Refiner",
+    "title": "Legend for Compound Encodings",
+    "description": "Whenever more than one visual encoding channel is active simultaneously (multiple shapes, colors, or line styles), include a legend that maps each style to its meaning.",
+    "content": "After structure and styling are complete, enumerate every active encoding: node shapes, fill/outline colors, arrow and line styles, boundary types. If two or more channels coexist, add a compact legend in a consistent corner position mapping each visual style to its semantic role. Then verify the reverse: every style appearing in the diagram appears in the legend, and every legend entry is actually used. Single-notation diagrams with universally known symbols may omit it, but mixed or augmented idioms may not.",
+    "when_to_use": "In the finalization pass of any diagram combining multiple notations, color-coded categories, or more than one connector style; mandatory for multi-encoding compositions.",
+    "confidence": 0.8,
+    "tier": "general_principle",
+    "domain": "Universal",
+    "diagram_type": "Universal",
+    "promoted_from": [
+      "Agriculture hub-and-flow layout",
+      "White canvas with single accent color",
+      "Central hub with color-coded satellites and bottom title banner",
+      "Notation-first accounting diagram mapping",
+      "Strict notation fidelity per formalism",
+      "Top-to-bottom flow with convergence hubs in biology diagrams"
+    ],
+    "id": "kp_125"
+  },
+  {
+    "agent": "Refiner",
+    "title": "Density Control and Annotation-Layer Separation",
+    "description": "Cap visual density per region, preserve deliberate whitespace, and keep the annotation layer visually distinct from the structural layer so explanations never masquerade as model elements.",
+    "content": "Audit the finished diagram: enforce even spacing, eliminate overlaps and unnecessary connector crossings, and split or abstract any region exceeding comfortable element counts (roughly 5-9 siblings per group). Maintain exclusion zones around the anchor and between modules. Render all explanatory content — notes, leader lines, contextual remarks — in a reserved style distinct from the structural encoding (e.g., dashed leaders, a single reserved annotation color, italic text), so annotation can never be confused with model structure. Remove redundant ink: shadows, grids, and decorations only where they aid depth or alignment.",
+    "when_to_use": "As the final quality pass on every diagram, and iteratively whenever elements are added; especially critical for information-rich compositions with notes, highlights, or mixed audiences.",
+    "confidence": 0.84,
+    "tier": "general_principle",
+    "domain": "Universal",
+    "diagram_type": "Universal",
+    "promoted_from": [
+      "Agriculture hub-and-flow layout",
+      "White canvas with single accent color",
+      "Central hub with color-coded satellites and bottom title banner",
+      "Notation-first accounting diagram mapping",
+      "Strict notation fidelity per formalism",
+      "Top-to-bottom flow with convergence hubs in biology diagrams"
+    ],
+    "id": "kp_126"
+  }
+]

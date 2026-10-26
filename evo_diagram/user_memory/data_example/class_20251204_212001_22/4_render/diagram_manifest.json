@@ -1,0 +1,560 @@
+{
+  "document": {
+    "store": {
+      "document:document": {
+        "gridSize": 10,
+        "name": "",
+        "meta": {
+          "edge_hints": {
+            "edge:Account2AddressBook": {
+              "type": "arrow",
+              "props": {
+                "source": "Account",
+                "target": "AddressBook",
+                "arrowheadStart": "none",
+                "arrowheadEnd": "arrow",
+                "color": "black",
+                "dash": "draw",
+                "bend": 0
+              },
+              "x": 100,
+              "y": 300
+            },
+            "edge:AddressBook2Contact": {
+              "type": "arrow",
+              "props": {
+                "source": "AddressBook",
+                "target": "Contact",
+                "arrowheadStart": "none",
+                "arrowheadEnd": "arrow",
+                "color": "black",
+                "dash": "draw",
+                "bend": 0
+              },
+              "x": 100,
+              "y": 350
+            },
+            "edge:AddressBook2ContactGroup": {
+              "type": "arrow",
+              "props": {
+                "source": "AddressBook",
+                "target": "ContactGroup",
+                "arrowheadStart": "none",
+                "arrowheadEnd": "arrow",
+                "color": "black",
+                "dash": "draw",
+                "bend": 0
+              },
+              "x": 100,
+              "y": 400
+            },
+            "edge:ContactGroup2ContactGroup": {
+              "type": "arrow",
+              "props": {
+                "source": "ContactGroup",
+                "target": "ContactGroup",
+                "arrowheadStart": "none",
+                "arrowheadEnd": "arrow",
+                "color": "black",
+                "dash": "draw",
+                "bend": 0
+              },
+              "x": 100,
+              "y": 450
+            },
+            "edge:Account_AddressBook": {
+              "props": {},
+              "start": "bottom",
+              "end": "top"
+            },
+            "edge:AddressBook_Contact": {
+              "props": {},
+              "start": "bottom",
+              "end": "top"
+            },
+            "edge:AddressBook_ContactGroup": {
+              "props": {},
+              "start": "bottom",
+              "end": "top"
+            },
+            "edge:ContactGroup_parent": {
+              "props": {},
+              "start": "right",
+              "end": "right"
+            }
+          }
+        },
+        "id": "document:document",
+        "typeName": "document"
+      },
+      "page:page": {
+        "meta": {},
+        "id": "page:page",
+        "name": "Page 1",
+        "index": "a1",
+        "typeName": "page"
+      },
+      "shape:node:Account": {
+        "x": 200,
+        "y": 60,
+        "rotation": 0,
+        "isLocked": false,
+        "opacity": 1,
+        "meta": {},
+        "id": "shape:node:Account",
+        "type": "geo",
+        "props": {
+          "w": 264,
+          "h": 62,
+          "geo": "rectangle",
+          "color": "blue",
+          "labelColor": "black",
+          "fill": "solid",
+          "dash": "draw",
+          "size": "m",
+          "font": "draw",
+          "text": "Account",
+          "align": "middle",
+          "verticalAlign": "middle",
+          "growY": 0,
+          "url": "",
+          "scale": 1
+        },
+        "parentId": "page:page",
+        "index": "a2",
+        "typeName": "shape"
+      },
+      "shape:node:AddressBook": {
+        "x": 200,
+        "y": 160,
+        "rotation": 0,
+        "isLocked": false,
+        "opacity": 1,
+        "meta": {},
+        "id": "shape:node:AddressBook",
+        "type": "geo",
+        "props": {
+          "w": 264,
+          "h": 62,
+          "geo": "rectangle",
+          "color": "blue",
+          "labelColor": "black",
+          "fill": "semi",
+          "dash": "draw",
+          "size": "m",
+          "font": "draw",
+          "text": "AddressBook",
+          "align": "middle",
+          "verticalAlign": "middle",
+          "growY": 0,
+          "url": "",
+          "scale": 1
+        },
+        "parentId": "page:page",
+        "index": "a3",
+        "typeName": "shape"
+      },
+      "shape:node:Contact": {
+        "x": 150,
+        "y": 260,
+        "rotation": 0,
+        "isLocked": false,
+        "opacity": 1,
+        "meta": {},
+        "id": "shape:node:Contact",
+        "type": "geo",
+        "props": {
+          "w": 264,
+          "h": 62,
+          "geo": "rectangle",
+          "color": "blue",
+          "labelColor": "black",
+          "fill": "none",
+          "dash": "draw",
+          "size": "m",
+          "font": "draw",
+          "text": "Contact",
+          "align": "middle",
+          "verticalAlign": "middle",
+          "growY": 0,
+          "url": "",
+          "scale": 1
+        },
+        "parentId": "page:page",
+        "index": "a4",
+        "typeName": "shape"
+      },
+      "shape:node:ContactGroup": {
+        "x": 450,
+        "y": 260,
+        "rotation": 0,
+        "isLocked": false,
+        "opacity": 1,
+        "meta": {},
+        "id": "shape:node:ContactGroup",
+        "type": "geo",
+        "props": {
+          "w": 264,
+          "h": 62,
+          "geo": "rectangle",
+          "color": "blue",
+          "labelColor": "black",
+          "fill": "semi",
+          "dash": "draw",
+          "size": "m",
+          "font": "draw",
+          "text": "ContactGroup",
+          "align": "middle",
+          "verticalAlign": "middle",
+          "growY": 0,
+          "url": "",
+          "scale": 1
+        },
+        "parentId": "page:page",
+        "index": "a5",
+        "typeName": "shape"
+      },
+      "shape:b5e81811fc244cb0945d": {
+        "x": 332.0,
+        "y": 122,
+        "rotation": 0,
+        "isLocked": false,
+        "opacity": 1,
+        "meta": {},
+        "id": "shape:b5e81811fc244cb0945d",
+        "type": "arrow",
+        "parentId": "page:page",
+        "index": "b6554b",
+        "typeName": "shape",
+        "props": {
+          "dash": "draw",
+          "size": "m",
+          "fill": "none",
+          "color": "black",
+          "labelColor": "black",
+          "kind": "elbow",
+          "elbowMidPoint": 0.5,
+          "bend": 0,
+          "start": {
+            "x": 0.0,
+            "y": 0
+          },
+          "end": {
+            "x": 0.0,
+            "y": 38
+          },
+          "arrowheadStart": "none",
+          "arrowheadEnd": "arrow",
+          "text": "",
+          "labelPosition": 0.5,
+          "font": "draw",
+          "scale": 1
+        }
+      },
+      "binding:4839283ad174499aa039": {
+        "meta": {},
+        "id": "binding:4839283ad174499aa039",
+        "type": "arrow",
+        "fromId": "shape:b5e81811fc244cb0945d",
+        "toId": "shape:node:Account",
+        "props": {
+          "isPrecise": true,
+          "isExact": true,
+          "normalizedAnchor": {
+            "x": 0.5,
+            "y": 1.0
+          },
+          "terminal": "start",
+          "snap": null
+        },
+        "typeName": "binding"
+      },
+      "binding:ed41737dcd374f3f97c6": {
+        "meta": {},
+        "id": "binding:ed41737dcd374f3f97c6",
+        "type": "arrow",
+        "fromId": "shape:b5e81811fc244cb0945d",
+        "toId": "shape:node:AddressBook",
+        "props": {
+          "isPrecise": true,
+          "isExact": true,
+          "normalizedAnchor": {
+            "x": 0.5,
+            "y": 0.0
+          },
+          "terminal": "end"
+        },
+        "typeName": "binding"
+      },
+      "shape:b54fb422b6314a6a80c3": {
+        "x": 282.0,
+        "y": 222,
+        "rotation": 0,
+        "isLocked": false,
+        "opacity": 1,
+        "meta": {},
+        "id": "shape:b54fb422b6314a6a80c3",
+        "type": "arrow",
+        "parentId": "page:page",
+        "index": "b7abe9",
+        "typeName": "shape",
+        "props": {
+          "dash": "draw",
+          "size": "m",
+          "fill": "none",
+          "color": "black",
+          "labelColor": "black",
+          "kind": "elbow",
+          "elbowMidPoint": 0.5,
+          "bend": 0,
+          "start": {
+            "x": 50.0,
+            "y": 0
+          },
+          "end": {
+            "x": 0.0,
+            "y": 38
+          },
+          "arrowheadStart": "none",
+          "arrowheadEnd": "arrow",
+          "text": "",
+          "labelPosition": 0.5,
+          "font": "draw",
+          "scale": 1
+        }
+      },
+      "binding:046e3106034145af8ccf": {
+        "meta": {},
+        "id": "binding:046e3106034145af8ccf",
+        "type": "arrow",
+        "fromId": "shape:b54fb422b6314a6a80c3",
+        "toId": "shape:node:AddressBook",
+        "props": {
+          "isPrecise": true,
+          "isExact": true,
+          "normalizedAnchor": {
+            "x": 0.5,
+            "y": 1.0
+          },
+          "terminal": "start",
+          "snap": null
+        },
+        "typeName": "binding"
+      },
+      "binding:9059c55a7e1a4d2384e6": {
+        "meta": {},
+        "id": "binding:9059c55a7e1a4d2384e6",
+        "type": "arrow",
+        "fromId": "shape:b54fb422b6314a6a80c3",
+        "toId": "shape:node:Contact",
+        "props": {
+          "isPrecise": true,
+          "isExact": true,
+          "normalizedAnchor": {
+            "x": 0.5,
+            "y": 0.0
+          },
+          "terminal": "end"
+        },
+        "typeName": "binding"
+      },
+      "shape:a19af425b2734d9aa087": {
+        "x": 332.0,
+        "y": 222,
+        "rotation": 0,
+        "isLocked": false,
+        "opacity": 1,
+        "meta": {},
+        "id": "shape:a19af425b2734d9aa087",
+        "type": "arrow",
+        "parentId": "page:page",
+        "index": "b23b1b",
+        "typeName": "shape",
+        "props": {
+          "dash": "draw",
+          "size": "m",
+          "fill": "none",
+          "color": "black",
+          "labelColor": "black",
+          "kind": "elbow",
+          "elbowMidPoint": 0.5,
+          "bend": 0,
+          "start": {
+            "x": 0.0,
+            "y": 0
+          },
+          "end": {
+            "x": 250.0,
+            "y": 38
+          },
+          "arrowheadStart": "none",
+          "arrowheadEnd": "arrow",
+          "text": "",
+          "labelPosition": 0.5,
+          "font": "draw",
+          "scale": 1
+        }
+      },
+      "binding:9a736a3b15664cdbbd76": {
+        "meta": {},
+        "id": "binding:9a736a3b15664cdbbd76",
+        "type": "arrow",
+        "fromId": "shape:a19af425b2734d9aa087",
+        "toId": "shape:node:AddressBook",
+        "props": {
+          "isPrecise": true,
+          "isExact": true,
+          "normalizedAnchor": {
+            "x": 0.5,
+            "y": 1.0
+          },
+          "terminal": "start",
+          "snap": null
+        },
+        "typeName": "binding"
+      },
+      "binding:c4271dfecc7141c29167": {
+        "meta": {},
+        "id": "binding:c4271dfecc7141c29167",
+        "type": "arrow",
+        "fromId": "shape:a19af425b2734d9aa087",
+        "toId": "shape:node:ContactGroup",
+        "props": {
+          "isPrecise": true,
+          "isExact": true,
+          "normalizedAnchor": {
+            "x": 0.5,
+            "y": 0.0
+          },
+          "terminal": "end"
+        },
+        "typeName": "binding"
+      },
+      "shape:d9bd35af660c402ab363": {
+        "x": 714,
+        "y": 291.0,
+        "rotation": 0,
+        "isLocked": false,
+        "opacity": 1,
+        "meta": {},
+        "id": "shape:d9bd35af660c402ab363",
+        "type": "arrow",
+        "parentId": "page:page",
+        "index": "bec910",
+        "typeName": "shape",
+        "props": {
+          "dash": "draw",
+          "size": "m",
+          "fill": "none",
+          "color": "black",
+          "labelColor": "black",
+          "kind": "elbow",
+          "elbowMidPoint": 0.5,
+          "bend": 0,
+          "start": {
+            "x": 0,
+            "y": 0.0
+          },
+          "end": {
+            "x": 0,
+            "y": 0.0
+          },
+          "arrowheadStart": "none",
+          "arrowheadEnd": "arrow",
+          "text": "",
+          "labelPosition": 0.5,
+          "font": "draw",
+          "scale": 1
+        }
+      },
+      "binding:72c111d05c9f41dab9df": {
+        "meta": {},
+        "id": "binding:72c111d05c9f41dab9df",
+        "type": "arrow",
+        "fromId": "shape:d9bd35af660c402ab363",
+        "toId": "shape:node:ContactGroup",
+        "props": {
+          "isPrecise": true,
+          "isExact": true,
+          "normalizedAnchor": {
+            "x": 1.0,
+            "y": 0.5
+          },
+          "terminal": "start",
+          "snap": null
+        },
+        "typeName": "binding"
+      },
+      "binding:9cecec34a1094a899535": {
+        "meta": {},
+        "id": "binding:9cecec34a1094a899535",
+        "type": "arrow",
+        "fromId": "shape:d9bd35af660c402ab363",
+        "toId": "shape:node:ContactGroup",
+        "props": {
+          "isPrecise": true,
+          "isExact": true,
+          "normalizedAnchor": {
+            "x": 1.0,
+            "y": 0.5
+          },
+          "terminal": "end"
+        },
+        "typeName": "binding"
+      }
+    },
+    "schema": {
+      "schemaVersion": 2,
+      "sequences": {
+        "com.tldraw.store": 4,
+        "com.tldraw.asset": 1,
+        "com.tldraw.camera": 1,
+        "com.tldraw.document": 2,
+        "com.tldraw.instance": 25,
+        "com.tldraw.instance_page_state": 5,
+        "com.tldraw.page": 1,
+        "com.tldraw.instance_presence": 6,
+        "com.tldraw.pointer": 1,
+        "com.tldraw.shape": 4,
+        "com.tldraw.asset.bookmark": 2,
+        "com.tldraw.asset.image": 5,
+        "com.tldraw.asset.video": 5,
+        "com.tldraw.shape.group": 0,
+        "com.tldraw.shape.text": 2,
+        "com.tldraw.shape.bookmark": 2,
+        "com.tldraw.shape.draw": 2,
+        "com.tldraw.shape.geo": 9,
+        "com.tldraw.shape.note": 8,
+        "com.tldraw.shape.line": 5,
+        "com.tldraw.shape.frame": 0,
+        "com.tldraw.shape.arrow": 6,
+        "com.tldraw.shape.highlight": 1,
+        "com.tldraw.shape.embed": 4,
+        "com.tldraw.shape.image": 4,
+        "com.tldraw.shape.video": 2,
+        "com.tldraw.binding.arrow": 0
+      }
+    }
+  },
+  "session": {
+    "version": 0,
+    "currentPageId": "page:page",
+    "exportBackground": true,
+    "isFocusMode": false,
+    "isDebugMode": false,
+    "isToolLocked": false,
+    "isGridMode": false,
+    "pageStates": [
+      {
+        "pageId": "page:page",
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "z": 1
+        },
+        "selectedShapeIds": [],
+        "focusedGroupId": null
+      }
+    ]
+  }
+}

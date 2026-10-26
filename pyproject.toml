@@ -1,0 +1,133 @@
+
+[build-system]
+requires = ["setuptools>=70.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evodesign"
+version = "0.1.0"
+description = "EvoDesign - AI-powered diagram generation and refinement system"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+
+dependencies = [
+    # Core Framework
+    "langchain-core>=1.4.6,<2.0.0",
+    "langchain>=1.3.8,<2.0.0",
+    "langchain-community>=0.4.2,<1.0.0",
+    "langchain-chroma>=1.1.0,<2.0.0",
+    "langchain-huggingface>=1.2.2,<2.0.0",
+    "langchain-docling>=2.0.0,<3.0.0",
+    "langchain-openai>=1.3.0,<2.0.0",
+    "langgraph>=1.2.4,<2.0.0",
+    "langgraph-checkpoint>=4.1.1,<5.0.0",
+
+    # Configuration & Utilities
+    "hydra-core",
+    "tenacity",
+    "python-dotenv",
+    "omegaconf",
+
+    # Vector Database & Embeddings
+    "chromadb",
+    "sentence-transformers",
+
+    # Data Processing & Validation
+    "pydantic>=2.0.0",
+
+    # PDF Processing
+    "PyPDF2",
+    "pdfplumber",
+
+    # Text Processing
+    "pypinyin",
+    "spacy",
+    "langdetect",
+
+    # Image Processing
+    "Pillow",
+    "opencv-python-headless",
+
+    # HTTP & API
+    "requests",
+    "httpx",
+
+    # Progress Bars
+    "tqdm",
+
+    # Diagram Rendering
+    "kroki",
+
+    # OpenAI
+    "openai",
+    "tiktoken",
+
+    # User Memory
+    "mem0ai",
+]
+
+[project.optional-dependencies]
+backend = [
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "sqlalchemy[asyncio]>=2.0.25",
+    "asyncpg>=0.29.0",
+    "aiosqlite>=0.19.0",
+    "pydantic-settings>=2.1.0",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "httpx-oauth>=0.13.0",
+    "stripe>=7.10.0",
+    "loguru>=0.7.2",
+    "python-multipart>=0.0.6",
+    "email-validator>=2.1.0",
+    "slowapi>=0.1.9",
+    "alembic>=1.13.0",
+]
+baselines = [
+    # Google AI (used by baselines/pixel/gemini_image_generator.py)
+    "google-genai",
+]
+test = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.23.0",
+]
+dev = [
+    "evodesign[backend]",
+    "evodesign[test]",
+    "evodesign[baselines]",
+]
+
+[project.scripts]
+evobase-direct = "baselines.direct_llm.main:main"
+evobase-mermaid = "baselines.programmic.mermaid.main:main"
+evobase-tlkz = "baselines.programmic.tlkz.main:main"
+evobase-gemini = "baselines.pixel.gemini_image_generator:main"
+evobase-diagramagent = "baselines.diagramagent.DiagramAgentEvaluator:main"
+evobase-scisketch = "baselines.scisketch.src.custom_main:main"
+
+[tool.setuptools.packages.find]
+include = ["evo_diagram*", "backend*", "evaluation*", "baselines*"]
+
+[tool.setuptools.package-data]
+evo_diagram = [
+    "**/*.yaml",
+    "**/*.json",
+    "**/*.txt",
+    "**/*.md",
+    "resources/fonts/*.ttf",
+    "resources/fonts/*.woff2",
+    "agentic_system/tool_services/package.json",
+    "agentic_system/tool_services/next-env.d.ts",
+    "agentic_system/tool_services/next.config.js",
+    "agentic_system/tool_services/scripts/*.ts",
+    "agentic_system/tool_services/src/**/*.ts",
+    "agentic_system/tool_services/src/**/*.tsx",
+    "agentic_system/tool_services/src/**/*.css",
+    "agentic_system/tool_services/src/**/*.ico",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["backend", "."]
+testpaths = ["evo_diagram/tests", "tests"]
