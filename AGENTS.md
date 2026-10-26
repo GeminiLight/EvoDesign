@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-`evo_diagram/` contains the core diagram engine. Use `agentic_system/` for structure, styling, layout, render, and refiner workflows; `evaluation/` and `scripts/` for analysis utilities; `resources/` for assets; and `dataset/test/data.json` as the default sample dataset.
+`evo_diagram/` contains the core diagram engine. Use `agentic_system/` for structure, styling, layout, render, and refiner workflows; `evaluation/` and `scripts/` for analysis utilities; `resources/` for assets; and `examples/diagrams/quickstart.json` as the included usage example. Training and test datasets are released separately.
 
 `backend/app/` is the FastAPI service, organized by `api/`, `services/`, `models/`, `schemas/`, and `db/`. Runtime schema bootstrap is owned by `backend/app/db/bootstrap.py`; historical Supabase SQL lives under `backend/docs/archive/supabase/`.
 
@@ -14,7 +14,7 @@ Use `./scripts/start_service.sh` from the repo root to launch the full stack: ba
 - `cd frontend && npm run build && npm run lint` builds the app and runs ESLint.
 - `cd evo_diagram/agentic_system/tool_services && npm run dev` starts the renderer service.
 - `cd backend && python -m uvicorn app.main:app --reload --port 3010` runs the API.
-- `python -m evo_diagram.agentic_system.main --example 1 --dataset-path dataset/test/data.json` runs the diagram pipeline on sample data.
+- `python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json` runs the diagram pipeline on sample data.
 
 ## Coding Style & Naming Conventions
 Python uses 4-space indentation, `snake_case` for modules and functions, and type hints on public interfaces. Follow the existing import grouping and keep docstrings brief and purposeful.
