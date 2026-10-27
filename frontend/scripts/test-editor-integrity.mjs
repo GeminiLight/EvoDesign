@@ -22,7 +22,8 @@ const { normalizeBackendTimestamp, snapshotSourceKey, generatedProjectTitle } = 
 const { guestSaveDiagram, guestExportProjects, guestSyncProjectSchema, guestFetchProjectSnapshots, guestLoadDnaRules, guestSaveDnaRules } = await load('src/services/guestStorage.ts');
 const { fetchRecentDiagrams, fetchProjectDiagram, fetchProjectSnapshots, syncProjectSchema, saveDnaRules, loadDnaRules } = await load('src/services/backendApi.ts');
 const { notifyAuthInvalidated } = await load('src/features/auth/authEvents.ts');
-const { shouldSubmitOnEnter } = await load('src/utils/keyboard.ts');
+const { shouldSubmitOnEnter, shouldSubmitOnModifiedEnter } = await load('src/utils/keyboard.ts');
+const { saveWorkspacePreflightDraft, loadWorkspacePreflightDraft } = await load('src/services/workspacePreflightDraft.ts');
 const { rememberDnaDraft, readDnaDraft, clearDnaDraft, isLatestDnaDraft, sameDnaPreferences } = await load('src/utils/dnaSyncDraft.ts');
 rmSync(temp, { recursive: true });
 
@@ -92,6 +93,20 @@ test('fresh titles replace placeholders from either language while retaining nam
 const values = new Map([['auth_token', 'local-test-token']]);
 globalThis.localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
 globalThis.window = { localStorage: globalThis.localStorage };
+test('preflight reload preserves icon choice and supports older drafts without enabling icons', () => {
+  const session = new Map();
+  globalThis.window.sessionStorage = { getItem: key => session.get(key) ?? null, setItem: (key, value) => session.set(key, value), removeItem: key => session.delete(key) };
+  const draft = { kind: 'gallery', promptText: 'Describe a service', diagramType: 'architecture', llmConfigId: 'test-model', canvasMode: 'excalidraw', source: 'gallery', rules: [], ruleCount: 0 };
+  saveWorkspacePreflightDraft({ ...draft, useIcons: true });
+  assert.equal(loadWorkspacePreflightDraft().useIcons, true);
+  saveWorkspacePreflightDraft({ ...draft, useIcons: false });
+  assert.equal(loadWorkspacePreflightDraft().useIcons, false);
+  saveWorkspacePreflightDraft(draft);
+  assert.equal(loadWorkspacePreflightDraft().useIcons, false);
+  saveWorkspacePreflightDraft({ ...draft, canvasMode: 'tldraw', useIcons: true });
+  assert.equal(loadWorkspacePreflightDraft().useIcons, false);
+  delete globalThis.window.sessionStorage;
+});
 test('project list and snapshot history carry server revisions to the first editor save', async () => {
   globalThis.fetch = async () => new Response(JSON.stringify({ projects: [{ project_id: 'p', version: 7, canvas_engine: 'excalidraw' }] }));
   const projects = await fetchRecentDiagrams();
@@ -202,6 +217,18 @@ test('IME composition and Shift+Enter never submit while plain Enter does', () =
   assert.equal(shouldSubmitOnEnter({ key: 'Enter', keyCode: 229 }), false);
   assert.equal(shouldSubmitOnEnter({ key: 'Enter', nativeEvent: { keyCode: 229 } }), false);
   assert.equal(shouldSubmitOnEnter({ key: 'a' }), false);
+});
+
+test('multiline creation requires Command/Control+Enter and never submits IME or line breaks', () => {
+  assert.equal(shouldSubmitOnModifiedEnter({ key: 'Enter' }), false);
+  assert.equal(shouldSubmitOnModifiedEnter({ key: 'Enter', shiftKey: true }), false);
+  assert.equal(shouldSubmitOnModifiedEnter({ key: 'Enter', metaKey: true }), true);
+  assert.equal(shouldSubmitOnModifiedEnter({ key: 'Enter', ctrlKey: true }), true);
+  assert.equal(shouldSubmitOnModifiedEnter({ key: 'Enter', ctrlKey: true, shiftKey: true }), false);
+  assert.equal(shouldSubmitOnModifiedEnter({ key: 'Enter', metaKey: true, nativeEvent: { isComposing: true } }), false);
+  assert.equal(shouldSubmitOnModifiedEnter({ key: 'Enter', ctrlKey: true, keyCode: 229 }), false);
+  assert.equal(shouldSubmitOnModifiedEnter({ key: 'Enter', metaKey: true, nativeEvent: { keyCode: 229 } }), false);
+  assert.equal(shouldSubmitOnModifiedEnter({ key: 'a', ctrlKey: true }), false);
 });
 
 test('DNA loads use the captured owner and wait for an earlier queued save', async () => {

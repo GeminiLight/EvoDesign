@@ -95,6 +95,7 @@ type FailedGenerationDraft = {
 type GenerationPreparationResult = 'ready' | 'failed' | 'cancelled';
 
 type CreatePreflightDraftOverrides = {
+  useIcons?: boolean;
   promptText?: string;
   diagramType?: DiagramType;
   modelIndex?: number;
@@ -421,6 +422,7 @@ export function WorkspacePage() {
       diagramType: overrides.diagramType ?? selectedCreateDiagramType,
       llmConfigId: selectedLlmConfigId,
       canvasMode: selectedCanvasMode,
+      useIcons: (overrides.useIcons ?? createUseIcons) && selectedCanvasMode === 'excalidraw',
       updatedAt: Date.now(),
     });
   }, [
@@ -430,6 +432,7 @@ export function WorkspacePage() {
     createModelIndex,
     createModelOptions,
     createPrompt,
+    createUseIcons,
     selectedCreateDiagramType,
   ]);
   const shouldOfferGenerationRecovery = Boolean(preview?.persistError && !preview.projectId);
@@ -1464,6 +1467,7 @@ export function WorkspacePage() {
     setCreateSelectedPillId(diagramTypeToPillId[diagramType] ?? 'adaptive');
     setCreateModelIndex(modelIndex);
     setCreateCanvasIndex(selectedCanvasMode === 'tldraw' ? 1 : 0);
+    setCreateUseIcons(activePreflight.useIcons === true);
     setActiveCreatePreflight(activePreflight);
     setShowCreateDialog(true);
     navigate(location.pathname, { replace: true, state: {} });
@@ -2590,7 +2594,10 @@ export function WorkspacePage() {
 
       <CreateDiagramDialog
         useIcons={createUseIcons}
-        onUseIconsChange={setCreateUseIcons}
+        onUseIconsChange={(value) => {
+          setCreateUseIcons(value);
+          persistCreatePreflightDraft({ useIcons: value });
+        }}
         open={showCreateDialog}
         onClose={() => {
           setShowCreateDialog(false);

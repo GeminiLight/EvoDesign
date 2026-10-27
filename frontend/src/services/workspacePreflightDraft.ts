@@ -31,6 +31,7 @@ export type WorkspacePreflightGeneration = {
   diagramType: DiagramType;
   llmConfigId: string;
   canvasMode: CanvasMode;
+  useIcons?: boolean;
   source: WorkspacePreflightSource;
   sourceName?: string;
   sourceDescription?: string;
@@ -140,6 +141,7 @@ const normalizeDraft = (value: unknown): WorkspacePreflightGeneration | null => 
     diagramType: raw.diagramType,
     llmConfigId,
     canvasMode: raw.canvasMode,
+    useIcons: raw.useIcons === true && raw.canvasMode === 'excalidraw',
     source: normalizeSource(raw.source),
     sourceName: normalizeOptionalText(raw.sourceName),
     sourceDescription: normalizeOptionalText(raw.sourceDescription),
