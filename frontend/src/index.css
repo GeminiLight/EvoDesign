@@ -792,3 +792,35 @@ textarea::placeholder { opacity: 1; }
     @apply outline-none ring-2 ring-indigo-400 ring-offset-2 ring-offset-slate-50 dark:ring-offset-slate-950;
   }
 }
+
+/* Inspiration library: quiet controls, readable schematics, consistent rhythm. */
+@layer components {
+  .inspiration-tab { @apply relative min-h-11 border-b-2 border-transparent px-1 pb-3 pt-2 text-[13px] font-medium text-slate-500 transition-colors hover:text-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-400 dark:text-slate-400 dark:hover:text-indigo-300; }
+  .inspiration-tab-active { @apply border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300; }
+  .inspiration-select { @apply min-h-11 rounded-lg border-0 bg-transparent py-2 pl-2 pr-8 text-xs text-slate-500 focus:ring-2 focus:ring-indigo-400 dark:text-slate-400; }
+  .inspiration-select option { @apply bg-white text-slate-700 dark:bg-slate-900 dark:text-slate-200; }
+  .inspiration-preview-button { @apply relative block w-full overflow-hidden rounded-xl border border-slate-200/80 text-left transition-colors duration-200 hover:border-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 dark:border-white/[0.08] dark:hover:border-indigo-400/40 dark:focus-visible:ring-offset-slate-950; }
+  .inspiration-preview { @apply flex h-48 w-full items-center justify-center bg-[#f0f3fa] px-5 py-4 dark:bg-[#11182a]; background-image: radial-gradient(ellipse at 8% 5%, rgb(165 243 252 / 6%), transparent 55%), radial-gradient(ellipse at 100% 100%, rgb(196 181 253 / 6%), transparent 60%); }
+  .inspiration-preview-cue { @apply absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/75 text-slate-500 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 dark:bg-white/5 dark:text-slate-400; }
+  .inspiration-use { @apply inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-1 text-[11px] font-medium text-indigo-600 transition-colors hover:text-indigo-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-400 dark:text-indigo-300 dark:hover:text-indigo-200; }
+  .inspiration-dialog { @apply fixed m-auto max-h-[calc(100dvh-2rem)] w-[min(640px,calc(100vw-24px))] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-0 text-slate-800 shadow-2xl dark:border-white/10 dark:bg-[#111827] dark:text-slate-200; }
+  .inspiration-dialog::backdrop { background: rgb(8 13 27 / 55%); backdrop-filter: blur(5px); }
+  .inspiration-diagram { color: #8c98b6; }
+  .inspiration-edge { stroke: #a3afc6; }
+  .inspiration-edge-label { fill: #66728d; }
+  .inspiration-node rect { fill: #e7eefc; stroke: #a9bde8; }
+  .inspiration-node text { fill: #405c8e; }
+  .inspiration-node-1 rect { fill: #e8e5f8; stroke: #bdb1e2; }
+  .inspiration-node-1 text { fill: #63508c; }
+  .inspiration-node-2 rect { fill: #ddf0f0; stroke: #98c9cf; }
+  .inspiration-node-2 text { fill: #366d76; }
+  .dark .inspiration-diagram { color: #71809d; }
+  .dark .inspiration-edge { stroke: #475574; }
+  .dark .inspiration-edge-label { fill: #8e9cb8; }
+  .dark .inspiration-node rect { fill: #1c2b47; stroke: #3d5681; }
+  .dark .inspiration-node text { fill: #b5cbf0; }
+  .dark .inspiration-node-1 rect { fill: #2a2447; stroke: #5c4d83; }
+  .dark .inspiration-node-1 text { fill: #c9bce9; }
+  .dark .inspiration-node-2 rect { fill: #18313c; stroke: #3a6672; }
+  .dark .inspiration-node-2 text { fill: #a4d2da; }
+}

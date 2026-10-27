@@ -1,9 +1,9 @@
-import type { KeyboardEvent } from 'react';
+import { useRef } from 'react';
+import { ChevronDown, SlidersHorizontal, X } from 'lucide-react';
 import type { IndustryTag, ComplexityTag } from '../../data/galleryMockData';
 import { INDUSTRY_TAGS, COMPLEXITY_TAGS } from '../../data/galleryMockData';
 
 type SortValue = 'trending' | 'newest' | 'mostCloned';
-
 interface GalleryFilterBarProps {
   t: (key: string) => string;
   activeTab: 'works' | 'dna';
@@ -14,159 +14,36 @@ interface GalleryFilterBarProps {
   sortBy: SortValue;
   onSortChange: (sort: SortValue) => void;
   resultCount: number;
+  onResetFilters: () => void;
 }
 
-const INDUSTRY_I18N: Record<IndustryTag, string> = {
-  fintech: 'gallery.filterFintech',
-  healthcare: 'gallery.filterHealthcare',
-  ecommerce: 'gallery.filterEcommerce',
-  devops: 'gallery.filterDevops',
-  education: 'gallery.filterEducation',
-  gaming: 'gallery.filterGaming',
-  saas: 'gallery.filterSaas',
-  iot: 'gallery.filterIot',
-};
-
-const COMPLEXITY_I18N: Record<ComplexityTag, string> = {
-  simple: 'gallery.complexitySimple',
-  medium: 'gallery.complexityMedium',
-  complex: 'gallery.complexityComplex',
-};
-
-const SORT_OPTIONS: Array<{ value: SortValue; key: string }> = [
-  { value: 'trending', key: 'gallery.sortTrending' },
-  { value: 'newest', key: 'gallery.sortNewest' },
-  { value: 'mostCloned', key: 'gallery.sortMostCloned' },
-];
-
-const SORT_BUTTON_IDS: Record<SortValue, string> = {
-  trending: 'gallery-sort-trending',
-  newest: 'gallery-sort-newest',
-  mostCloned: 'gallery-sort-most-cloned',
-};
-
-export const GalleryFilterBar = ({
-  t,
-  activeTab,
-  selectedIndustryTags,
-  onToggleIndustry,
-  selectedComplexity,
-  onSetComplexity,
-  sortBy,
-  onSortChange,
-  resultCount,
-}: GalleryFilterBarProps) => {
-  // Glassmorphism pill styles
-  const pillBase =
-    'inline-flex min-h-11 shrink-0 items-center rounded-xl border px-3 py-2 text-xs font-medium transition-all cursor-pointer select-none backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-brand-500 dark:focus-visible:ring-offset-slate-900';
-  const pillOff =
-    'border-white/40 bg-white/50 text-slate-600 shadow-sm hover:border-brand-300/60 hover:text-brand-600 hover:bg-white/70 dark:border-slate-600/50 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:border-brand-500/50 dark:hover:text-brand-400 dark:hover:bg-slate-700/50';
-  const pillOn =
-    'border-brand-300/60 bg-brand-50/70 text-brand-700 shadow-sm shadow-brand-200/20 dark:border-brand-500/50 dark:bg-brand-500/15 dark:text-brand-300';
-
-  const handleSortKeyDown = (event: KeyboardEvent<HTMLButtonElement>, value: SortValue) => {
-    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-
-    event.preventDefault();
-    const currentIndex = SORT_OPTIONS.findIndex((opt) => opt.value === value);
-    let nextValue: SortValue;
-
-    if (event.key === 'Home') {
-      nextValue = SORT_OPTIONS[0].value;
-    } else if (event.key === 'End') {
-      nextValue = SORT_OPTIONS[SORT_OPTIONS.length - 1].value;
-    } else {
-      const direction = event.key === 'ArrowRight' ? 1 : -1;
-      nextValue = SORT_OPTIONS[(currentIndex + direction + SORT_OPTIONS.length) % SORT_OPTIONS.length].value;
-    }
-
-    onSortChange(nextValue);
-    window.requestAnimationFrame(() => document.getElementById(SORT_BUTTON_IDS[nextValue])?.focus());
-  };
-
+export const GalleryFilterBar = ({ t, activeTab, selectedIndustryTags, onToggleIndustry, selectedComplexity, onSetComplexity, sortBy, onSortChange, resultCount, onResetFilters }: GalleryFilterBarProps) => {
+  const filters = useRef<HTMLDetailsElement>(null);
+  const count = selectedIndustryTags.length + Number(Boolean(selectedComplexity));
+  const labelKey = (prefix: string, tag: string) => `gallery.${prefix}${tag[0].toUpperCase()}${tag.slice(1)}`;
   return (
-    <div className="space-y-3">
-      {/* Filter rows — one category per row */}
-      {activeTab === 'works' && (
-        <div className="space-y-2">
-          {/* Row 1: Industry */}
-          <div
-            role="group"
-            aria-label={t('gallery.filterIndustryLabel')}
-            className="custom-scrollbar -mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0"
-          >
-            <span className="mr-1 text-[10px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              {t('gallery.filterIndustryLabel')}
-            </span>
-            {INDUSTRY_TAGS.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                aria-pressed={selectedIndustryTags.includes(tag)}
-                onClick={() => onToggleIndustry(tag)}
-                className={`${pillBase} ${selectedIndustryTags.includes(tag) ? pillOn : pillOff}`}
-              >
-                {t(INDUSTRY_I18N[tag])}
-              </button>
-            ))}
-          </div>
-
-          {/* Row 2: Complexity */}
-          <div
-            role="group"
-            aria-label={t('gallery.filterComplexityLabel')}
-            className="custom-scrollbar -mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0"
-          >
-            <span className="mr-1 text-[10px] font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              {t('gallery.filterComplexityLabel')}
-            </span>
-            {COMPLEXITY_TAGS.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                aria-pressed={selectedComplexity === tag}
-                onClick={() => onSetComplexity(selectedComplexity === tag ? null : tag)}
-                className={`${pillBase} ${selectedComplexity === tag ? pillOn : pillOff}`}
-              >
-                {t(COMPLEXITY_I18N[tag])}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Row 2: Result count + sort */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <span className="text-xs text-slate-500 dark:text-slate-400" aria-live="polite" aria-atomic="true">
-          {t('gallery.resultCount').replace('{count}', String(resultCount))}
-        </span>
-
-        <div
-          role="radiogroup"
-          aria-label={t('gallery.sortByLabel')}
-          className="custom-scrollbar flex max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-white/40 bg-white/60 p-0.5 shadow-sm backdrop-blur-sm dark:border-slate-700/40 dark:bg-slate-800/60"
-        >
-          {SORT_OPTIONS.map((opt) => (
-            <button
-              id={SORT_BUTTON_IDS[opt.value]}
-              key={opt.value}
-              type="button"
-              role="radio"
-              aria-checked={sortBy === opt.value}
-              tabIndex={sortBy === opt.value ? 0 : -1}
-              onClick={() => onSortChange(opt.value)}
-              onKeyDown={(event) => handleSortKeyDown(event, opt.value)}
-              className={`min-h-11 shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-brand-500 dark:focus-visible:ring-offset-slate-900 ${
-                sortBy === opt.value
-                  ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-slate-100'
-                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-              }`}
-            >
-              {t(opt.key)}
-            </button>
-          ))}
-        </div>
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="mr-2 text-xs text-slate-500 dark:text-slate-400" aria-live="polite" aria-atomic="true">{t('gallery.resultCount').replace('{count}', String(resultCount))}</span>
+        {activeTab === 'works' && <>
+          <details ref={filters} className="relative" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false; }} onKeyDown={(event) => { if (event.key === 'Escape') { event.currentTarget.open = false; event.currentTarget.querySelector('summary')?.focus(); } }}>
+            <summary className="studio-secondary list-none cursor-pointer [&::-webkit-details-marker]:hidden"><SlidersHorizontal size={14} />{t('gallery.filters')}{count > 0 && <span className="text-indigo-600 dark:text-indigo-300">{count}</span>}<ChevronDown size={12} /></summary>
+            <div className="absolute -left-16 top-full z-20 sm:left-0 mt-1 w-64 rounded-xl border border-slate-200 bg-white p-4 shadow-lg shadow-slate-900/5 dark:border-white/10 dark:bg-[#151b2c]">
+              <fieldset><legend className="mb-2 text-xs font-medium text-slate-500">{t('gallery.filterIndustryLabel')}</legend>
+                <div className="grid grid-cols-2 gap-x-3">{INDUSTRY_TAGS.map((tag) => <label key={tag} className="flex min-h-10 cursor-pointer items-center gap-2 text-xs text-slate-600 dark:text-slate-300"><input type="checkbox" checked={selectedIndustryTags.includes(tag)} onChange={() => onToggleIndustry(tag)} className="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-400 dark:border-slate-600 dark:bg-slate-800" />{t(labelKey('filter', tag))}</label>)}</div>
+              </fieldset>
+              <label className="mt-3 block text-xs font-medium text-slate-500">{t('gallery.filterComplexityLabel')}<select className="inspiration-select mt-2 w-full" value={selectedComplexity ?? ''} onChange={(event) => onSetComplexity(event.target.value as ComplexityTag || null)}><option value="">{t('gallery.filterAll')}</option>{COMPLEXITY_TAGS.map((tag) => <option key={tag} value={tag}>{t(labelKey('complexity', tag))}</option>)}</select></label>
+              <button type="button" className="studio-secondary mt-2 w-full" onClick={() => { if (filters.current) { filters.current.open = false; filters.current.querySelector('summary')?.focus(); } }}>{t('gallery.done')}</button>
+            </div>
+          </details>
+          {count > 0 && <button type="button" onClick={onResetFilters} className="studio-secondary"><X size={13} />{t('gallery.resetFilters')}</button>}
+        </>}
       </div>
+      <select aria-label={t('gallery.sortByLabel')} className="inspiration-select max-w-full" value={sortBy} onChange={(event) => onSortChange(event.target.value as SortValue)}>
+        <option value="trending">{t('gallery.sortTrending')}</option>
+        {activeTab === 'works' && <option value="newest">{t('gallery.sortNewest')}</option>}
+        <option value="mostCloned">{t('gallery.sortMostCloned')}</option>
+      </select>
     </div>
   );
 };
