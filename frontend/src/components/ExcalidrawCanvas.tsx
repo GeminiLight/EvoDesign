@@ -8,6 +8,7 @@ import { useLanguage } from '../i18n/LanguageProvider';
 import { normalizeLegacyOrder } from '../utils/excalidrawOrder';
 import type { GenerationReport } from '../utils/generationReport';
 import { CanvasToolbar } from './DiagramCanvas/CanvasToolbar';
+import { fitExcalidraw } from '../utils/fitExcalidraw';
 import { documentAppState, inPlaceAppState, retainedSelection, sceneFiles } from '../utils/excalidrawScene';
 
 const LazyExcalidraw = lazy(async () => {
@@ -268,16 +269,9 @@ export function ExcalidrawCanvas({ sceneData, sceneIdentity, onSceneChange, onSe
     if (!shouldFitSceneRef.current || controlsDisabled) return;
     const normalized = normalizeScene(sceneData);
     if (apiRef.current && normalized.elements.length > 0) {
-      const timer = window.setTimeout(() => {
+      const timer = window.setTimeout(async () => {
         try {
-          apiRef.current?.scrollToContent(normalized.elements, {
-            fitToContent: true,
-            // Fit inside the usable canvas, keeping headers and terminal nodes
-            // clear of the native top toolbar and bottom zoom/undo controls.
-            canvasOffsets: { top: 80, bottom: 64, left: 24, right: 24 },
-            animate: !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-            duration: 320,
-          });
+          if (apiRef.current) await fitExcalidraw(apiRef.current, normalized.elements, 320);
           shouldFitSceneRef.current = false;
         } catch (error) {
           const normalizedError = error instanceof Error ? error : new Error('Excalidraw scroll failed');

@@ -94,6 +94,7 @@ export function GenerationReport({ report, t, compact = false }: { report: Repor
       <div className="report-content border-t border-brand-100/80 px-4 pb-4 pt-3 text-xs dark:border-brand-500/20">
         {compact && <div className="mb-3 flex flex-wrap gap-x-4 gap-y-2 text-brand-700 dark:text-brand-300"><span>{memory}</span><span>{edited ? t('workspace.qualityEditedShort') : refinement}</span></div>}
         {edited && <p className="mb-2 text-slate-600 dark:text-slate-300">{t('workspace.qualityEdited')}</p>}
+        {report.browserEdition && report.refinement.reason && <p className="mb-2 text-amber-700 dark:text-amber-300">{report.refinement.reason}</p>}
         {report.qualityStatus === 'needs_attention' && (
           <p className="mb-2 text-amber-700 dark:text-amber-300">{t('workspace.qualityNeedsAttention')}</p>
         )}
@@ -107,7 +108,7 @@ export function GenerationReport({ report, t, compact = false }: { report: Repor
         )}
         <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3">
           {Object.entries(report.timings).map(([stage, ms]) => (
-            <div key={stage} className="flex justify-between gap-2"><dt className="text-slate-500 dark:text-slate-400">{t(`landing.${stageKeys[stage]}`)}</dt><dd className="tabular-nums">{formatGenerationDuration(ms!)}</dd></div>
+            <div key={stage} className="flex justify-between gap-2"><dt className="text-slate-500 dark:text-slate-400">{t(report.browserEdition ? `browser.${stage === 'structure' ? 'planStage' : stage === 'refining' ? 'reviewStage' : 'layoutStage'}` : `landing.${stageKeys[stage]}`)}</dt><dd className="tabular-nums">{formatGenerationDuration(ms!)}</dd></div>
           ))}
         </dl>
       </div>

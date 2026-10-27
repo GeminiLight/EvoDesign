@@ -3,7 +3,7 @@ import type { StreamStage } from '../types/api';
 export interface GenerationReport {
   browserEdition?: boolean;
   memory: { status: string; retrievedCount: number };
-  refinement: { status: string; fixesApplied: number };
+  refinement: { status: string; fixesApplied: number; reason?: string };
   learning: { status: string; savedCount: number; jobId?: string };
   qualityStatus?: string;
   beforeScore?: number;

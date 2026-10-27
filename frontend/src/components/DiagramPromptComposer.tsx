@@ -1,3 +1,4 @@
+import { BROWSER_MODE } from '../services/browser/runtime';
 import { shouldSubmitOnEnter } from '../utils/keyboard';
 import {
   Activity,
@@ -345,7 +346,7 @@ export function DiagramPromptComposer({
                     ref={modelTriggerRef}
                     type="button"
                     disabled={controlsDisabled || modelOptions.length <= 1}
-                    title={modelOptions.length <= 1 ? t?.('home.serverModelHint') : undefined}
+                    title={modelOptions.length <= 1 ? t?.(BROWSER_MODE ? 'browser.modelHint' : 'home.serverModelHint') : undefined}
                     onClick={() => {
                       setModelMenuOpen((prev) => !prev);
                       setCanvasMenuOpen(false);

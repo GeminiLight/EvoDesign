@@ -1,3 +1,4 @@
+import { useBrowserModelLabel } from '../hooks/useBrowserModelLabel';
 import { BROWSER_MODE } from '../services/browser/runtime';
 import { parseGenerationReport } from '../utils/generationReport';
 import { GenerationReport } from '../components/GenerationReport';
@@ -138,6 +139,7 @@ const buildPromptAfterPillSelection = (
 
 export function WorkspacePage() {
   const { t } = useLanguage();
+  const modelLabel = useBrowserModelLabel(t);
   const { showToast } = useToast();
   const { user, loading: authLoading } = useBackendAuth();
   const location = useLocation();
@@ -366,6 +368,18 @@ export function WorkspacePage() {
     return selectedNodeIds.filter((id) => currentNodeIds.has(id));
   }, [selectedNodeIds]);
   const validSelectedNodeIdsForChat = getValidSelectedNodeIds(latestSnapshotRef.current);
+  const sceneElementsForChat = Array.isArray(latestSnapshotRef.current?.elements)
+    ? latestSnapshotRef.current.elements as Array<{ id: string; type?: string; text?: string; originalText?: string; containerId?: string }> : [];
+  const selectedElementForChat = validSelectedNodeIdsForChat.length === 1
+    ? sceneElementsForChat.find(element => element.id === validSelectedNodeIdsForChat[0]) : undefined;
+  const selectedTextForChat = selectedElementForChat?.type === 'text' ? selectedElementForChat
+    : sceneElementsForChat.find(element => element.type === 'text' && element.containerId === selectedElementForChat?.id);
+  const selectedLabelForChat = (selectedTextForChat?.originalText || selectedTextForChat?.text || '').replace(/\s+/g, ' ').slice(0, 120);
+  const selectionLabelForChat = selectedElementForChat
+    ? ['arrow', 'line'].includes(selectedElementForChat.type || '')
+      ? `${t('workspace.selectedConnection')}${selectedLabelForChat ? `: ${selectedLabelForChat}` : ''}`
+      : selectedLabelForChat ? t('workspace.selectedLabel').replace('{label}', selectedLabelForChat) : undefined
+    : undefined;
   const staleSelectedCountForChat = Math.max(
     0,
     selectedNodeIds.length - validSelectedNodeIdsForChat.length,
@@ -445,14 +459,13 @@ export function WorkspacePage() {
     diagramType: DiagramType,
     selectedCanvasMode: CanvasMode,
   ) => {
-    const modelLabel = t('home.serverModel');
     setActiveGenerationSummary({
       prompt: promptText.trim(),
       diagramTypeLabel: getDiagramTypeLabel(diagramType, t),
       modelLabel,
       canvasLabel: getCanvasModeLabel(selectedCanvasMode),
     });
-  }, [getCanvasModeLabel, t]);
+  }, [getCanvasModeLabel, modelLabel, t]);
   const buildFailedGenerationDraft = useCallback((
     promptText: string,
     diagramType: DiagramType,
@@ -573,6 +586,8 @@ export function WorkspacePage() {
   }, [canvasMode, latestSnapshotRef, preview?.projectId, request.useIcons]);
 
   const getLocalEditFailureMessage = useCallback((err: unknown) => {
+    // The browser adapter sanitizes provider failures; show its actionable reason.
+    if (BROWSER_MODE && err instanceof Error) return err.message;
     if (isApiError(err)) {
       switch (err.code) {
         case 'local_edit_auth_expired':
@@ -1999,6 +2014,8 @@ export function WorkspacePage() {
         if (getGenerationRunGuard() !== runGuard
           && !(isAuthExpiredLocalEdit && activeAuthIdentityRef.current === null)) return;
         const failureMessage = getLocalEditFailureMessage(err);
+        // Preserve a failed instruction without overwriting a newer draft.
+        setChatInput(draft => draft || content);
         setError(failureMessage);
         showToast(failureMessage, 'error');
         setChatMessages((prev) => [...prev, {
@@ -2215,7 +2232,7 @@ export function WorkspacePage() {
                       {getDiagramTypeLabel(failedGenerationDraft.diagramType, t)}
                     </span>
                     <span className="rounded-lg border border-amber-200/80 bg-white/65 px-2 py-1.5 font-medium dark:border-amber-500/30 dark:bg-slate-950/30">
-                      {t('home.serverModel')}
+                      {modelLabel}
                     </span>
                     <span className="rounded-lg border border-amber-200/80 bg-white/65 px-2 py-1.5 font-medium dark:border-amber-500/30 dark:bg-slate-950/30">
                       {getCanvasModeLabel(failedGenerationDraft.canvasMode)}
@@ -2555,6 +2572,7 @@ export function WorkspacePage() {
               isGenerating={workspaceInteractionBlocked}
               busyKind={canvasBusyKind}
               selectedCount={validSelectedNodeIdsForChat.length}
+              selectionLabel={selectionLabelForChat}
               staleSelectedCount={staleSelectedCountForChat}
               preflightReviewActive={preflightReviewActive}
               startPromptsHandledElsewhere={onboardingVisible && !onboardingDismissed}

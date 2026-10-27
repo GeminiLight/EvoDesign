@@ -1,3 +1,4 @@
+import { useBrowserModelLabel } from './useBrowserModelLabel';
 import { BROWSER_MODE } from '../services/browser/runtime';
 import { useMemo, useState } from 'react';
 import type { DiagramRequest, DiagramType } from '../types/api';
@@ -10,6 +11,7 @@ export function useCreateDialog(
   canvasMode: CanvasMode,
   t: (key: string) => string,
 ) {
+  const modelLabel = useBrowserModelLabel(t);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [createPrompt, setCreatePrompt] = useState('');
   const [createSelectedPillId, setCreateSelectedPillId] = useState('adaptive');
@@ -33,8 +35,8 @@ export function useCreateDialog(
 
   const createModelOptions = useMemo<PromptOption[]>(() => defaultConfigs.map((cfg) => ({
     id: cfg.id,
-    label: BROWSER_MODE ? t('browser.yourModel') : t('home.serverModel'),
-  })), [t]);
+    label: modelLabel,
+  })), [modelLabel]);
 
   const createCanvasOptions = useMemo<PromptOption[]>(() => [
     { id: 'excalidraw', label: t('home.canvasExcalidraw') },

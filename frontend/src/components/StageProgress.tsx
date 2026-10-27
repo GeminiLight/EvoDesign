@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { formatGenerationDuration } from '../utils/generationReport';
 import type { StreamStageExtended } from '../types/app';
 import type { GenerationProgress } from '../types/app';
+import { BROWSER_MODE } from '../services/browser/runtime';
 
 const STAGE_DEFS: { key: StreamStageExtended; labelKey: string }[] = [
   { key: 'memory', labelKey: 'landing.workflowMemory' },
@@ -29,7 +30,11 @@ export function StageProgress({ progress, t }: { progress: GenerationProgress; t
     progress.completedStages.includes('refining') ||
     Boolean(progress.refineComplete);
 
-  const visibleStages = STAGE_DEFS.filter(
+  const visibleStages = BROWSER_MODE ? [
+    { key: 'structure', labelKey: 'browser.planStage' },
+    ...(progress.totalStages === 2 ? [] : [{ key: 'refining', labelKey: 'browser.reviewStage' }]),
+    { key: 'layout', labelKey: 'browser.layoutStage' },
+  ] as typeof STAGE_DEFS : STAGE_DEFS.filter(
     (stage) =>
       stage.key === 'refining' ? refinerActive || refinerSkipped
         : ['final_verification', 'learning'].includes(stage.key)

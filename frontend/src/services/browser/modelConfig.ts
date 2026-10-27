@@ -4,6 +4,7 @@ export interface BrowserModelConfig {
   apiKey: string;
   rememberKey: boolean;
   refine: boolean;
+  reasoningEffort?: 'low' | 'medium' | 'high';
 }
 
 const SETTINGS_KEY = 'evodesign.browser-model.v1';
@@ -33,6 +34,7 @@ export function loadModelConfig(): BrowserModelConfig {
       apiKey: saved.rememberKey === true && typeof saved.apiKey === 'string' ? saved.apiKey
         : session.baseUrl === baseUrl && typeof session.apiKey === 'string' ? session.apiKey : '',
       rememberKey: saved.rememberKey === true, refine: saved.refine !== false,
+      reasoningEffort: ['low', 'medium', 'high'].includes(saved.reasoningEffort) ? saved.reasoningEffort : undefined,
     };
   } catch {
     return { ...emptyModelConfig };
@@ -59,36 +61,67 @@ export function parseModelJson(text: string): unknown {
   try { return JSON.parse(clean); } catch { throw new Error('The model did not return valid diagram JSON. Try again or choose a model with reliable JSON output.'); }
 }
 
-export async function callBrowserModel(
-  config: BrowserModelConfig, system: string, user: string, signal?: AbortSignal, maxTokens = 8192,
-): Promise<string> {
+type Completion = { message?: { content?: unknown }; finish_reason?: string };
+
+function waitForRetry(seconds: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    signal.throwIfAborted();
+    const finish = () => { signal.removeEventListener('abort', abort); resolve(); };
+    const timer = setTimeout(finish, seconds * 1000);
+    const abort = () => { clearTimeout(timer); reject(signal.reason); };
+    signal.addEventListener('abort', abort, { once: true });
+  });
+}
+
+async function requestCompletion(
+  config: BrowserModelConfig, system: string, user: string, signal: AbortSignal | undefined,
+  maxTokens: number, timeoutMs: number, onWait?: (seconds: number) => void,
+): Promise<Completion> {
   if (!config.model.trim()) throw new Error('Configure your model in Model settings first.');
   const controller = new AbortController();
   const abort = () => controller.abort(signal?.reason);
   if (signal?.aborted) abort();
   else signal?.addEventListener('abort', abort, { once: true });
-  const timer = setTimeout(() => controller.abort(new Error('The model request timed out.')), 180_000);
+  const timer = setTimeout(() => controller.abort(new Error('The model request timed out.')), timeoutMs);
   try {
-    const response = await fetch(completionUrl(config.baseUrl), {
+    const send = () => fetch(completionUrl(config.baseUrl), {
       method: 'POST', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer',
       headers: { 'Content-Type': 'application/json', ...(config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {}) },
-      body: JSON.stringify({ model: config.model, messages: [{ role: 'system', content: system }, { role: 'user', content: user }], max_tokens: maxTokens, stream: false }),
+      body: JSON.stringify({ model: config.model, messages: [{ role: 'system', content: system }, { role: 'user', content: user }], max_tokens: maxTokens, stream: false,
+        ...(config.reasoningEffort ? { reasoning_effort: config.reasoningEffort } : {}) }),
       signal: controller.signal,
     });
+    let response = await send();
+    const wait = Number(response.headers.get('Retry-After'));
+    // Retry only an explicit, short provider cooldown, once. Never retry a charge,
+    // ambiguous network failure, or a payment response without Retry-After.
+    if ((response.status === 429 || response.status === 402) && wait > 0 && wait <= 60) {
+      await response.body?.cancel();
+      onWait?.(Math.ceil(wait));
+      await waitForRetry(wait, controller.signal);
+      onWait?.(0);
+      response = await send();
+    }
     if (!response.ok) {
       // Do not echo upstream bodies: they may include prompts, credentials or HTML.
-      const hint = response.status === 401 || response.status === 403 ? 'Check your API key and model access.'
+      const retryAfter = Number(response.headers.get('Retry-After'));
+      const hint = (response.status === 402 || response.status === 429) && retryAfter > 0 && retryAfter <= 3600
+        ? `Provider request limit reached. Retry in ${Math.ceil(retryAfter)} seconds.`
+        : response.status === 402 ? 'Check your provider balance or free-tier allowance.'
+        : response.status === 401 || response.status === 403 ? 'Check your API key and model access.'
         : response.status === 429 ? 'Provider quota or rate limit reached. Try again later.'
           : response.status === 404 ? 'Check the API base URL and model identifier.' : 'Check your provider settings and try again.';
       throw new Error(`Model request failed (${response.status}). ${hint}`);
     }
     const body = await response.text();
     if (body.length > 2_000_000) throw new Error('The model response is too large. Use a smaller diagram.');
-    const data = JSON.parse(body);
-    const message = data?.choices?.[0]?.message;
-    if (typeof message?.content !== 'string' || !message.content.trim()) throw new Error('The model returned no text. Choose a chat-completions compatible model.');
-    if (data.choices[0].finish_reason === 'length') throw new Error('The model output was truncated. Simplify the diagram or choose a model with a larger output limit.');
-    return message.content;
+    let data;
+    try { data = JSON.parse(body); } catch { throw new Error('The provider returned an invalid response. Check the API URL and try again.'); }
+    // Some providers report an error inside a successful HTTP response.
+    if (data?.error) throw new Error('The provider could not complete this request. Check its availability, model access and quota.');
+    const choice = data?.choices?.[0];
+    if (!choice || typeof choice !== 'object') throw new Error('The provider returned no completion. Check the model and Chat Completions API URL.');
+    return choice;
   } catch (error) {
     if (controller.signal.aborted) throw new Error(signal?.aborted ? 'Generation cancelled by user.' : 'The model request timed out. Try a smaller diagram.');
     if (error instanceof TypeError) throw new Error('Cannot reach this model from the browser. Check the URL, network and provider CORS support. No request is forwarded through an EvoDesign server.');
@@ -97,4 +130,21 @@ export async function callBrowserModel(
     clearTimeout(timer);
     signal?.removeEventListener('abort', abort);
   }
+}
+
+export async function callBrowserModel(
+  config: BrowserModelConfig, system: string, user: string, signal?: AbortSignal, maxTokens = 8192, onWait?: (seconds: number) => void,
+): Promise<string> {
+  const choice = await requestCompletion(config, system, user, signal, maxTokens, 180_000, onWait);
+  // Reasoning models may exhaust their output budget before producing any text.
+  if (choice.finish_reason === 'length') throw new Error('The model exhausted its output budget. Simplify the diagram or choose a model that needs less reasoning.');
+  if (typeof choice.message?.content !== 'string' || !choice.message.content.trim()) throw new Error('The model returned no text. Choose a chat-completions compatible model.');
+  return choice.message.content;
+}
+
+export async function testBrowserModelConnection(config: BrowserModelConfig, signal?: AbortSignal): Promise<'ready' | 'limited'> {
+  const choice = await requestCompletion(config, 'Reply with OK.', 'Connection test.', signal, 256, 60_000);
+  if (choice.finish_reason === 'length') return 'limited';
+  if (typeof choice.message?.content !== 'string' || !choice.message.content.trim()) throw new Error('The model returned no text. Choose a chat-completions compatible model.');
+  return 'ready';
 }

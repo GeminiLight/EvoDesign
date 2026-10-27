@@ -1,3 +1,4 @@
+import { useBrowserModelLabel } from '../hooks/useBrowserModelLabel';
 import { BROWSER_MODE, openModelSettings } from '../services/browser/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -63,6 +64,7 @@ export const HomePage = () => {
   const { showToast } = useToast();
   const { user } = useBackendAuth();
   const { t } = useLanguage();
+  const modelLabel = useBrowserModelLabel(t);
   const authIdentity = user?.user_id ?? null;
   const activeAuthIdentityRef = useRef<string | null>(authIdentity);
   const previousAuthIdentityRef = useRef<string | null | undefined>(undefined);
@@ -241,7 +243,7 @@ export const HomePage = () => {
   ];
 
 
-  const modelOptions = defaultConfigs.map((c) => ({ id: c.id, label: BROWSER_MODE ? t('browser.yourModel') : t('home.serverModel') }));
+  const modelOptions = defaultConfigs.map((c) => ({ id: c.id, label: modelLabel }));
 
   const canvasOptions: Array<{ id: 'tldraw' | 'excalidraw'; label: string }> = [
     { id: 'excalidraw', label: t('home.canvasExcalidraw') },

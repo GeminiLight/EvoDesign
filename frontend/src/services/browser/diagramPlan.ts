@@ -1,4 +1,5 @@
 import dagre from '@dagrejs/dagre';
+import { routeAroundNodes } from './edgeRouting';
 
 export type PlanNode = { id: string; label: string; shape: 'rectangle' | 'diamond' | 'ellipse'; color: string; icon?: string };
 export type PlanEdge = { source: string; target: string; label: string };
@@ -13,11 +14,20 @@ export function normalizePlan(value: unknown): DiagramPlan {
   const data = object(value);
   if (!Array.isArray(data.nodes) || !data.nodes.length || data.nodes.length > 60) throw new Error('A diagram must contain between 1 and 60 nodes.');
   if (!Array.isArray(data.edges) || data.edges.length > 120) throw new Error('A diagram supports up to 120 connections.');
-  const ids = new Set<string>();
+  const ids = new Map<string, string>();
+  const reserved = new Set(data.nodes.map(raw => text(object(raw).id, 80)));
   const nodes = data.nodes.map((raw, index): PlanNode => {
-    const n = object(raw); const id = text(n.id, 80); const label = text(n.label, 240);
-    if (!/^[a-zA-Z0-9_-]+$/.test(id) || ids.has(id) || !label) throw new Error('The model returned duplicate/missing node identifiers or labels.');
-    ids.add(id);
+    const n = object(raw); const originalId = text(n.id, 80); const label = text(n.label, 240);
+    if (!originalId || ids.has(originalId) || !label) throw new Error('The model returned duplicate/missing node identifiers or labels.');
+    // Models sometimes use readable labels as IDs. Remap those consistently
+    // instead of discarding a valid graph or asking for another paid call.
+    let id = originalId;
+    if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+      id = `node_${index + 1}`;
+      while (reserved.has(id)) id = `_${id}`;
+      reserved.add(id);
+    }
+    ids.set(originalId, id);
     return { id, label, shape: n.shape === 'diamond' || n.shape === 'ellipse' ? n.shape : 'rectangle',
       color: typeof n.color === 'string' && /^#[0-9a-f]{6}$/i.test(n.color) ? n.color : colors[index % colors.length],
       icon: text(n.icon, 60) || undefined };
@@ -25,7 +35,7 @@ export function normalizePlan(value: unknown): DiagramPlan {
   const edges = data.edges.map((raw): PlanEdge => {
     const e = object(raw); const source = text(e.source, 80); const target = text(e.target, 80);
     if (!ids.has(source) || !ids.has(target)) throw new Error('The model returned a connection to a missing node.');
-    return { source, target, label: text(e.label, 160) };
+    return { source: ids.get(source)!, target: ids.get(target)!, label: text(e.label, 160) };
   });
   return { title: text(data.title, 160) || 'Untitled diagram', kind: data.kind === 'sequence' ? 'sequence' : 'graph',
     direction: data.direction === 'LR' ? 'LR' : 'TB', nodes, edges };
@@ -91,5 +101,8 @@ export function layoutPlan(plan: DiagramPlan, icons: boolean): { nodes: PlacedNo
   plan.edges.forEach((e, i) => graph.setEdge(e.source, e.target, { width: e.label ? Math.min(200, e.label.length * 8) : 0, height: e.label ? 40 : 0 }, String(i)));
   dagre.layout(graph);
   nodes.forEach(n => { const p = graph.node(n.id); n.x = p.x - n.width / 2; n.y = p.y - n.height / 2; });
-  return { nodes, edges: plan.edges.map((e, i) => ({ ...e, points: graph.edge({ v: e.source, w: e.target, name: String(i) }).points })) };
+  const byId = new Map(nodes.map(n => [n.id, n]));
+  return { nodes, edges: plan.edges.map((e, i) => ({ ...e, points: routeAroundNodes(
+    graph.edge({ v: e.source, w: e.target, name: String(i) }).points, byId.get(e.source)!, byId.get(e.target)!, nodes, plan.direction,
+  ) })) };
 }

@@ -268,6 +268,7 @@ export const apiDiagramService: DiagramService = {
 };
 
 export interface StreamCallbacks {
+  onProviderWait?: (seconds: number) => void;
   onStageStart?: (event: StreamStageStartEvent) => void;
   onStageComplete?: (event: StreamStageCompleteEvent) => void;
   onRefineComplete?: (event: StreamRefineCompleteEvent) => void;
