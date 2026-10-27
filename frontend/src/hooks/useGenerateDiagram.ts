@@ -5,6 +5,7 @@ import type { CanvasMode } from '../components/DiagramCanvas/CanvasModeSelector'
 import { generateDiagramStream } from '../services/apiDiagramService';
 import { fetchRecentDiagrams, isApiError, saveDiagram } from '../services/backendApi';
 import { isGuest } from '../services/guestStorage';
+import { BROWSER_MODE } from '../services/browser/runtime';
 import { saveProjectName } from '../services/projectPreferences';
 import { generatedProjectTitle } from '../utils/projectHistory';
 import { createId } from '../constants/app';
@@ -216,6 +217,12 @@ export function useGenerateDiagram(deps: GenerateDiagramDeps) {
       const response = await generateDiagramStream(
         nextRequest,
         {
+          onProviderWait(seconds) {
+            if (!isCurrentRun()) return;
+            setProgress(prev => prev ? { ...prev, message: seconds
+              ? t('browser.providerWait').replace('{seconds}', String(seconds))
+              : t(`browser.stage_${prev.currentStage}`) } : prev);
+          },
           onStageStart(event) {
             if (!isCurrentRun()) return;
             setProgress((prev) => ({
@@ -225,7 +232,7 @@ export function useGenerateDiagram(deps: GenerateDiagramDeps) {
               currentStage: event.stage,
               stageIndex: event.stage_index,
               totalStages: event.total_stages,
-              message: t(`workspace.stage_${event.stage}`),
+              message: t(`${BROWSER_MODE ? 'browser' : 'workspace'}.stage_${event.stage}`),
               completedStages: prev?.completedStages ?? [],
             }));
           },
@@ -257,7 +264,7 @@ export function useGenerateDiagram(deps: GenerateDiagramDeps) {
             } : prev);
             if (event.status === 'completed' && event.fixes_applied > 0) {
               showToast(
-                t('workspace.autoFixedIssues').replace('{count}', String(event.fixes_applied)),
+                t(BROWSER_MODE ? 'browser.reviewChanges' : 'workspace.autoFixedIssues').replace('{count}', String(event.fixes_applied)),
                 'success',
               );
             }
@@ -335,7 +342,7 @@ export function useGenerateDiagram(deps: GenerateDiagramDeps) {
       lastSyncedDocSignatureRef.current = getSnapshotDocSignature(initialSnapshotPayload);
       activeEditingSnapshotIdRef.current = effectiveResponse.snapshotId ?? null;
       if (effectiveResponse.projectId) {
-        const title = generatedProjectTitle(projectName, promptText, isAddingToProject);
+        const title = generatedProjectTitle(projectName, BROWSER_MODE ? effectiveResponse.summary || promptText : promptText, isAddingToProject);
         saveProjectName(authIdentity, effectiveResponse.projectId, title);
       }
       setPreview(effectiveResponse);

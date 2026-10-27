@@ -6,6 +6,7 @@ import { useToast } from '../toastContext';
 import { GenerationReport } from '../GenerationReport';
 import type { GenerationReport as Report } from '../../utils/generationReport';
 import { documentAppState, sceneFiles } from '../../utils/excalidrawScene';
+import { fitExcalidraw } from '../../utils/fitExcalidraw';
 
 type Props = { projectNavigation?: ReactNode; api: ExcalidrawImperativeAPI | null; name: string; disabled?: boolean; report?: Report; isFocusMode?: boolean; onToggleFocus?: () => void };
 
@@ -91,9 +92,7 @@ export function CanvasToolbar({ projectNavigation, api, name, disabled = false, 
       <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100" title={name}>{name}</p>
       {report && <GenerationReport report={report} t={t} compact />}
       <button type="button" disabled={unavailable} className="tool-button" title={t('workspace.fitCanvas')}
-        onClick={() => api?.scrollToContent(api.getSceneElements(), { fitToContent: true,
-          canvasOffsets: { top: 80, bottom: 64, left: 24, right: 24 },
-          animate: !window.matchMedia('(prefers-reduced-motion: reduce)').matches, duration: 240 })}>
+        onClick={() => { if (api) void fitExcalidraw(api, api.getSceneElements()).catch(() => showToast(t('workspace.fitFailed'), 'error')); }}>
         <Maximize2 size={15} aria-hidden="true" /><span className="canvas-fit-label">{t('workspace.fitCanvas')}</span>
       </button>
       {onToggleFocus && <button type="button" className="tool-button canvas-focus-button" onClick={onToggleFocus}

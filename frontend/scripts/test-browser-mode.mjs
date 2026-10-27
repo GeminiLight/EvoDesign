@@ -17,6 +17,7 @@ async function load(relative) {
 }
 const model = await load('src/services/browser/modelConfig.ts');
 const { normalizePlan, layoutPlan, preservesContent } = await load('src/services/browser/diagramPlan.ts');
+const { crossesBox, routeAroundNodes } = await load('src/services/browser/edgeRouting.ts');
 const { sanitizeEdit } = await load('src/services/browser/diagramService.ts');
 const { preserveLockedElements } = await load('src/services/browser/scene.ts');
 const { mergeDeltaIntoSchema } = await load('src/utils/app.ts');
@@ -72,11 +73,74 @@ test('aborted requests and truncated output are reported instead of silently ren
   globalThis.fetch = async (_, options) => { options.signal.throwIfAborted(); };
   await assert.rejects(model.callBrowserModel(config, '', '', controller.signal), /cancelled/);
   globalThis.fetch = async () => new Response(JSON.stringify({ choices: [{ message: { content: '{"nodes":' }, finish_reason: 'length' }] }));
-  await assert.rejects(model.callBrowserModel(config, '', ''), /truncated/);
+  await assert.rejects(model.callBrowserModel(config, '', ''), /output budget/);
+});
+test('connection checks distinguish reasoning-budget exhaustion from an unreachable provider', async () => {
+  globalThis.fetch = async (_, options) => {
+    assert.equal(JSON.parse(options.body).max_tokens, 256);
+    return new Response(JSON.stringify({ choices: [{ message: { content: '' }, finish_reason: 'length' }] }));
+  };
+  assert.equal(await model.testBrowserModelConnection(config), 'limited');
+  globalThis.fetch = async () => new Response(JSON.stringify({ choices: [{ message: { content: '' }, finish_reason: 'length' }] }));
+  await assert.rejects(model.callBrowserModel(config, '', ''), /output budget/);
+  globalThis.fetch = async () => new Response(JSON.stringify({ choices: [{ message: { content: 'OK' }, finish_reason: 'stop' }] }));
+  assert.equal(await model.testBrowserModelConnection(config), 'ready');
+});
+test('provider errors in HTTP 200 and invalid payloads are actionable without echoing their contents', async () => {
+  for (const body of [JSON.stringify({ error: { message: 'secret-private-prompt' } }), '<html>secret-private-prompt</html>', '{}']) {
+    globalThis.fetch = async () => new Response(body);
+    await assert.rejects(model.callBrowserModel(config, '', ''), e => !/secret-private-prompt/.test(e.message) && /provider/i.test(e.message));
+  }
+  globalThis.fetch = async () => new Response('', { status: 402, headers: { 'Retry-After': '120' } });
+  await assert.rejects(model.callBrowserModel(config, '', ''), /Retry in 120 seconds/);
+});
+test('reasoning is opt-in, survives reopening, and is sent only when configured', async () => {
+  model.saveModelConfig({ ...config, reasoningEffort: 'low' });
+  assert.equal(model.loadModelConfig().reasoningEffort, 'low');
+  for (const effort of [undefined, 'low']) {
+    globalThis.fetch = async (_, options) => {
+      assert.equal(JSON.parse(options.body).reasoning_effort, effort);
+      return new Response(JSON.stringify({ choices: [{ message: { content: 'OK' } }] }));
+    };
+    await model.callBrowserModel({ ...config, reasoningEffort: effort }, '', '');
+  }
+});
+test('short provider cooldown retries once and cancellation stops the retry', async () => {
+  let calls = 0; const waits = [];
+  globalThis.fetch = async () => ++calls === 1
+    ? new Response('', { status: 429, headers: { 'Retry-After': '0.01' } })
+    : new Response(JSON.stringify({ choices: [{ message: { content: 'OK' } }] }));
+  assert.equal(await model.callBrowserModel(config, '', '', undefined, 8192, seconds => waits.push(seconds)), 'OK');
+  assert.equal(calls, 2); assert.deepEqual(waits, [1, 0]);
+  calls = 0;
+  globalThis.fetch = async () => { calls++; return new Response('', { status: 402, headers: { 'Retry-After': '0.01' } }); };
+  await assert.rejects(model.callBrowserModel(config, '', ''), /402/); assert.equal(calls, 2);
+  calls = 0;
+  const controller = new AbortController();
+  await assert.rejects(model.callBrowserModel(config, '', '', controller.signal, 8192, () => controller.abort()), /cancelled/);
+  assert.equal(calls, 1);
+  calls = 0; globalThis.fetch = async () => { calls++; return new Response('', { status: 402 }); };
+  await assert.rejects(model.callBrowserModel(config, '', ''), /balance/); assert.equal(calls, 1);
 });
 const sample = () => ({ title: 'Retry workflow', kind: 'graph', direction: 'TB', nodes: [
   { id: 'a', label: 'Start' }, { id: 'b', label: 'Request approved?', shape: 'diamond' }, { id: 'c', label: 'Notify user' },
 ], edges: [{ source: 'a', target: 'b' }, { source: 'b', target: 'c', label: 'Yes' }, { source: 'b', target: 'a', label: 'Retry' }] });
+test('readable model IDs are remapped without losing branches or colliding with stable IDs', () => {
+  const plan = normalizePlan({ nodes: [
+    { id: 'Paid?', label: 'Paid?' }, { id: 'node_1', label: 'Keep this ID' },
+    { id: '重试 支付', label: 'Retry payment' },
+  ], edges: [{ source: 'Paid?', target: '重试 支付', label: 'no' },
+    { source: '重试 支付', target: 'Paid?', label: 'retry' },
+    { source: 'Paid?', target: 'node_1', label: 'yes' }] });
+  assert.equal(new Set(plan.nodes.map(n => n.id)).size, 3);
+  assert.equal(plan.nodes[1].id, 'node_1');
+  assert.ok(plan.nodes.every(n => /^[a-zA-Z0-9_-]+$/.test(n.id)));
+  assert.deepEqual(plan.edges.map(e => [e.source, e.target]), [
+    [plan.nodes[0].id, plan.nodes[2].id], [plan.nodes[2].id, plan.nodes[0].id],
+    [plan.nodes[0].id, 'node_1'],
+  ]);
+  assert.deepEqual(normalizePlan(plan), plan);
+});
 test('untrusted plans reject missing endpoints, duplicate IDs and excessive size', () => {
   for (const data of [{ ...sample(), edges: [{ source: 'a', target: 'missing' }] }, { ...sample(), nodes: [{ id: 'a', label: 'A' }, { id: 'a', label: 'B' }] }, { ...sample(), nodes: Array.from({ length: 61 }, (_, i) => ({ id: String(i), label: 'Node' })) }]) assert.throws(() => normalizePlan(data));
   const plan = normalizePlan({ ...sample(), nodes: [{ id: 'a', label: '<script>plain text</script>', color: 'url(secret)', image: 'https://tracker' }], edges: [] });
@@ -102,6 +166,26 @@ test('sequence messages stay chronological, including self messages and replies'
   assert.equal(layout.edges[1].points.length, 4);
   assert.equal(preservesContent(plan, { ...plan, edges: [...plan.edges].reverse() }), false);
   assert.equal(preservesContent(plan, { ...plan, nodes: [...plan.nodes].reverse() }), false);
+});
+test('architecture fan-out and feedback routes do not run through unrelated nodes', () => {
+  const ids = ['web', 'mobile', 'cdn', 'gateway', 'identity', 'catalog', 'order', 'payment', 'inventory', 'bus', 'notify', 'postgres', 'redis', 'observe'];
+  const pairs = [['web','cdn'], ['mobile','cdn'], ['cdn','gateway'], ['gateway','identity'], ['gateway','catalog'], ['gateway','order'], ['catalog','redis'], ['catalog','postgres'], ['order','payment'], ['order','inventory'], ['order','postgres'], ['order','bus'], ['payment','bus'], ['inventory','bus'], ['bus','notify'], ...['gateway','identity','catalog','order','payment','inventory','notify'].map(id => [id,'observe'])];
+  for (const direction of ['LR', 'TB']) for (const icons of [false, true]) {
+    const plan = normalizePlan({ title: 'Architecture', direction, nodes: ids.map(id => ({ id, label: `${id}\nservice`, icon: 'database' })), edges: pairs.map(([source,target]) => ({source,target,label:'request'})) });
+    const layout = layoutPlan(plan, icons);
+    for (const edge of layout.edges) for (const [i,p] of edge.points.entries()) if (i) {
+      assert.ok(!layout.nodes.some(node => node.id !== edge.source && node.id !== edge.target && crossesBox(edge.points[i - 1],p,node)), `${direction} ${edge.source} → ${edge.target} crosses a node`);
+    }
+  }
+});
+test('routing detours preserve endpoints and leave unobstructed routes unchanged', () => {
+  const source = {id:'s',x:0,y:0,width:80,height:60}; const target = {id:'t',x:300,y:160,width:80,height:60};
+  const blocker = {id:'b',x:250,y:50,width:120,height:80};
+  const points = [{x:80,y:30},{x:180,y:30},{x:340,y:160}];
+  assert.equal(routeAroundNodes(points,source,target,[source,target],'LR'),points);
+  const routed = routeAroundNodes(points,source,target,[source,target,blocker],'LR');
+  assert.deepEqual(routed[0],{x:80,y:30}); assert.deepEqual(routed.at(-1),{x:300,y:190});
+  assert.ok(routed.every((p,i) => !i || !crossesBox(routed[i-1],p,blocker)));
 });
 test('review cannot drop nodes, branches or repeated connections', () => {
   const plan = normalizePlan(sample());

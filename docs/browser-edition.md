@@ -29,6 +29,16 @@ Browser diagrams are limited to 60 nodes and 120 connections. AI edits update ex
 - HTTPS endpoints are required. Loopback HTTP endpoints are allowed for local development, subject to the browser's local-network permissions. Redirects are rejected to avoid forwarding credentials to another destination.
 - Usage is billed by your provider. Generating with review uses two model calls; local editing uses one. “Test connection” also makes a small model call.
 
+### Tested browser connection options
+
+[OpenRouter](https://openrouter.ai/docs/quickstart) accepts browser requests at `https://openrouter.ai/api/v1` with your own key and an exact model ID from its catalog. The settings dialog includes a shortcut for this base URL; it does not supply a key or choose a paid model for you.
+
+For a key-free experiment, the [Pollinations Classic API](https://github.com/pollinations/pollinations/blob/master/APIDOCS.md) exposes `https://text.pollinations.ai/v1` with model `openai-fast`. Its anonymous service is best effort, has a small output budget and a per-IP cooldown. Use **Advanced model options → Reasoning effort → Low** for this model; the default reasoning consumed the output budget in our complex-diagram test. Send only non-sensitive examples to this public experimental service. Availability and limits can change.
+
+Reasoning effort is optional and omitted by default. Only set it for a provider/model that supports `reasoning_effort`. A successful connection check confirms reachability, not diagram quality or sufficient quota. When the provider returns an explicit `Retry-After` of up to 60 seconds with a rate-limit response, the app waits and retries once; cancellation interrupts the wait. Other failures are shown without automatic retries.
+
+Kimi Coding's endpoints did not allow browser cross-origin requests in our check. A working key in a coding client does not make that endpoint usable directly from the public website. The [six-case validation record](browser-validation-2026-10-27.md) distinguishes four direct-browser workflows from two Kimi workflows tested with a temporary local development connection, and documents provider outages and measured timings.
+
 ## Run or deploy the browser edition
 
 From the repository root:

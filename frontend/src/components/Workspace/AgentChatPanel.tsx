@@ -18,6 +18,7 @@ export interface AgentChatPanelProps {
   isGenerating?: boolean;
   busyKind?: AgentChatBusyKind | null;
   selectedCount?: number;
+  selectionLabel?: string;
   staleSelectedCount?: number;
   preflightReviewActive?: boolean;
   /** True while the canvas onboarding card is showing its own starter prompts. */
@@ -79,6 +80,7 @@ export function AgentChatPanel({
   isGenerating = false,
   busyKind = null,
   selectedCount = 0,
+  selectionLabel,
   staleSelectedCount = 0,
   preflightReviewActive = false,
   startPromptsHandledElsewhere = false,
@@ -414,6 +416,7 @@ export function AgentChatPanel({
               <EffectiveModeIcon className={`h-3.5 w-3.5 shrink-0 ${modeIconClass} ${isWorkspaceBusy ? 'animate-spin' : ''}`} />
               <p className="text-xs font-semibold">{modeTitle}</p>
             </div>
+            {modeTone === 'local' && selectionLabel && <p className="mt-1 truncate text-xs font-medium" title={selectionLabel}>{selectionLabel}</p>}
             <p className="mt-1 text-xs leading-relaxed">{modeDescription}</p>
           </div>
           <textarea

@@ -24,8 +24,11 @@ export async function generateBrowserDiagram(request: DiagramRequest, requiremen
   const stage = async <T>(name: StreamStage, index: number, run: () => Promise<T>): Promise<T> => {
     options.signal?.throwIfAborted();
     callbacks.onStageStart?.({ stage: name, stage_index: index, total_stages: config.refine ? 3 : 2, message: name });
-    const start = performance.now(); const result = await run();
-    options.signal?.throwIfAborted(); timings[name] = performance.now() - start;
+    const start = performance.now();
+    let result: T;
+    try { result = await run(); }
+    finally { timings[name] = performance.now() - start; }
+    options.signal?.throwIfAborted();
     callbacks.onStageComplete?.({ stage: name, stage_index: index, total_stages: config.refine ? 3 : 2, message: name, duration_ms: timings[name]! });
     return result;
   };
@@ -33,22 +36,26 @@ export async function generateBrowserDiagram(request: DiagramRequest, requiremen
   if (request.metadata?.currentSchema) { try { current = JSON.parse(request.metadata.currentSchema); } catch { /* Initial creation has no current scene. */ } }
   const context = Array.isArray(current?.elements) ? current.elements.filter(e => e && !e.isDeleted && e.type !== 'image').map(e => ({ id: e.id, type: e.type, text: e.text, x: e.x, y: e.y, containerId: e.containerId, startBinding: e.startBinding, endBinding: e.endBinding })) : [];
   const icons = request.useIcons ?? request.metadata?.useIcons === 'true';
-  const prompt = `${requirements}\nRequested style: ${request.style}. User constraints: ${JSON.stringify(request.constraints)}.\n${icons ? `Use a small relevant icon when appropriate. Allowed icon names: ${nodeIconNames.join(', ')}.` : 'Icons disabled: omit all icons.'}\n${context.length ? `Existing editable diagram context: ${JSON.stringify(context)}. Preserve existing IDs when revising a node. Locked IDs: ${JSON.stringify(request.lockedNodes || [])}.` : ''}\nUser content:\n${request.prompt}`;
-  let plan = await stage('structure', 1, async () => normalizePlan(parseModelJson(await callBrowserModel(config, PLAN_PROMPT, prompt, options.signal))));
-  let review = 'skipped'; let changed = 0;
+  // Legend/layout flags belong to the full renderer; the browser schema has no legend object.
+  const { includeLegend: _legend, autoLayout: _layout, preferOrthogonal: _orthogonal, ...constraints } = request.constraints || {};
+  void _legend; void _layout; void _orthogonal;
+  const prompt = `${requirements}\nRequested style: ${request.style}. User constraints: ${JSON.stringify(constraints)}. Do not add placeholder legend nodes.\n${icons ? `Use a small relevant icon when appropriate. Allowed icon names: ${nodeIconNames.join(', ')}.` : 'Icons disabled: omit all icons.'}\n${context.length ? `Existing editable diagram context: ${JSON.stringify(context)}. Preserve existing IDs when revising a node. Locked IDs: ${JSON.stringify(request.lockedNodes || [])}.` : ''}\nUser content:\n${request.prompt}`;
+  let plan = await stage('structure', 1, async () => normalizePlan(parseModelJson(await callBrowserModel(config, PLAN_PROMPT, prompt, options.signal, 8192, callbacks.onProviderWait))));
+  let review = 'skipped'; let changed = 0; let reviewReason: string | undefined;
   if (config.refine) {
     try {
       const candidate = await stage('refining', 2, async () => {
-        const answer = await callBrowserModel(config, PLAN_PROMPT, `Review this diagram against the user's request. Correct missing content, ambiguous labels and incorrect branches. Keep every existing node ID and connection; do not simplify away details. Return a complete corrected plan in the same schema. This is a semantic review, not an image review.\n${prompt}\nPlan:\n${JSON.stringify(plan)}`, options.signal);
+        const answer = await callBrowserModel(config, PLAN_PROMPT, `Review this diagram against the user's request. Correct missing content, ambiguous labels and incorrect branches. Keep every existing node ID and connection; do not simplify away details. Return a complete corrected plan in the same schema. This is a semantic review, not an image review.\n${prompt}\nPlan:\n${JSON.stringify(plan)}`, options.signal, 8192, callbacks.onProviderWait);
         return normalizePlan(parseModelJson(answer));
       });
       if (preservesContent(plan, candidate)) {
         changed = countChanges(plan, candidate); plan = candidate; review = 'completed';
-      } else { review = 'reverted'; }
+      } else { review = 'reverted'; reviewReason = 'The review removed or reordered required content. The original diagram was retained.'; }
     } catch (error) {
       if (options.signal?.aborted) throw error;
       review = 'failed';
-      callbacks.onRefineError?.({ message: 'Model review unavailable; the initial diagram was retained.', detail: error instanceof Error ? error.message : 'Review failed.' });
+      reviewReason = error instanceof Error ? error.message : 'Review failed.';
+      callbacks.onRefineError?.({ message: 'Model review unavailable; the initial diagram was retained.', detail: reviewReason });
     }
   }
   callbacks.onRefineComplete?.({ status: review === 'completed' ? 'completed' : review === 'skipped' ? 'skipped' : 'failed', fixes_applied: changed,
@@ -57,7 +64,7 @@ export async function generateBrowserDiagram(request: DiagramRequest, requiremen
   return {
     requestId: request.id, diagramId: `diagram_${crypto.randomUUID()}`, excalidrawPayload: JSON.stringify(scene), rawSchemaBlob: scene,
     summary: plan.title, previewImage: '', generatedAt: new Date().toISOString(),
-    generationReport: { browserEdition: true, memory: { status: 'local', retrievedCount: 0 }, refinement: { status: review, fixesApplied: changed },
+    generationReport: { browserEdition: true, memory: { status: 'local', retrievedCount: 0 }, refinement: { status: review, fixesApplied: changed, reason: reviewReason },
       learning: { status: 'disabled', savedCount: 0 }, qualityStatus: 'unverified', timings, durationMs: performance.now() - started },
   };
 }
