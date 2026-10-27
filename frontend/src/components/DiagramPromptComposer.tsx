@@ -79,6 +79,7 @@ type Props = {
   progress?: GenerationProgress | null;
   t?: (key: string) => string;
   autoFocusPrompt?: boolean;
+  promptFocusRequest?: number;
 };
 
 export function DiagramPromptComposer({
@@ -110,6 +111,7 @@ export function DiagramPromptComposer({
   progress,
   t,
   autoFocusPrompt = false,
+  promptFocusRequest = 0,
 }: Props) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const modelMenuRef = useRef<HTMLDivElement>(null);
@@ -147,16 +149,18 @@ export function DiagramPromptComposer({
   }, [prompt]);
 
   useEffect(() => {
-    if (!autoFocusPrompt) return;
+    if (!autoFocusPrompt && !promptFocusRequest) return;
     const textarea = textareaRef.current;
     if (!textarea) return;
 
     const frameId = window.requestAnimationFrame(() => {
-      textarea.focus();
+      textarea.focus({ preventScroll: promptFocusRequest > 0 });
+      if (promptFocusRequest) textarea.scrollIntoView({ block: 'center',
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
     });
 
     return () => window.cancelAnimationFrame(frameId);
-  }, [autoFocusPrompt]);
+  }, [autoFocusPrompt, promptFocusRequest]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
