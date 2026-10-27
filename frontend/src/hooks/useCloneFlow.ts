@@ -6,17 +6,6 @@ export interface CabinConfig {
   id: CabinId;
   name: string;
   tag: string;
-  code: string;
-  icon: React.ComponentType<{ className?: string }>;
-  color: {
-    accent: string;
-    border: string;
-    badge: string;
-    glow: string;
-    mask: string;
-    glowLightRgb: string;
-    glowDarkRgb: string;
-  };
 }
 
 type CloneCandidateErrors = Record<number, { title: boolean; preview: boolean }>;

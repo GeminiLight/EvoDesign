@@ -134,7 +134,7 @@ export const DiagramCanvasPanel = ({
 
   return (
     <section className="flex h-full min-h-0 flex-col">
-      <div className="canvas-embed relative min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700">
+      <div className="canvas-embed relative min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200/80 bg-white dark:border-white/10 dark:bg-[#101524]">
         <CanvasRenderBoundary resetKey={canvasResetKey} onRenderError={handleRenderError}>
           {canvasMode === 'tldraw' ? (
             <div className="flex h-full min-h-0 flex-col">

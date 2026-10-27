@@ -358,7 +358,7 @@ export function AgentChatPanel({
         aria-live="polite"
         className="assistant-feed custom-scrollbar"
       >
-        {isEmptyConversation && (
+        {isEmptyConversation && !startPromptsHandledElsewhere && (
           <div className="assistant-welcome">
             <div className="assistant-welcome-symbol" aria-hidden="true"><SquareDashedMousePointer size={25} strokeWidth={1.4} /></div>
             <h3>{t(hasContent ? 'workspace.assistantWelcome' : 'workspace.assistantStart')}</h3>
@@ -369,6 +369,9 @@ export function AgentChatPanel({
             </div>}
           </div>
         )}
+        {isEmptyConversation && startPromptsHandledElsewhere && <p className="pt-4 text-[13px] leading-6 text-slate-500 dark:text-slate-400">
+          {language === 'zh' ? '先在画布上创建图表。完成后，可以在这里调整整体，或选中元素进行局部修改。' : 'Start with an idea on the canvas. Then refine the whole diagram here, or select an element to edit it.'}
+        </p>}
         <div className="space-y-4">
           {conversationMessages.map((msg) =>
             msg.role === 'agent' ? (
@@ -404,7 +407,7 @@ export function AgentChatPanel({
         </div>
       </div>
 
-      <form className="assistant-composer" onSubmit={handleSubmit}>
+      {!startPromptsHandledElsewhere && <form className="assistant-composer" onSubmit={handleSubmit}>
         {!isEmptyConversation && showQuickPrompts && <details className="assistant-followups">
           <summary><ChevronDown size={13} aria-hidden="true" />{quickPromptGroupLabel}</summary>
           {promptButtons}
@@ -442,7 +445,7 @@ export function AgentChatPanel({
             </button>
           </div>
         </div>
-      </form>
+      </form>}
     </aside>
   );
 }
