@@ -106,6 +106,8 @@ research/             Authoritative paper metadata
 
 ## Development
 
+Start with the [contribution guide](CONTRIBUTING.md), [quality checks](sop/engineering-quality.md) and [backend API reference](sop/backend-api-surface.md). Contributions in English or Chinese are welcome.
+
 ```sh
 python -m pip install -e ".[dev]"
 ./scripts/check_quality.sh all
