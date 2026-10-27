@@ -8,8 +8,9 @@ const apiProxy = {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  define: { 'import.meta.env.VITE_RUNTIME_MODE': JSON.stringify(mode === 'browser' ? 'browser' : 'server') },
   plugins: [react()],
   server: { proxy: apiProxy },
   preview: { proxy: apiProxy },
-})
+}))

@@ -1,3 +1,4 @@
+import { BROWSER_MODE, openModelSettings } from '../services/browser/runtime';
 import { useState, useRef, useEffect } from 'react';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { Bell, CheckCircle2, Cloud, Languages, LogOut, Mail, Menu, Monitor, Moon, Settings2, Sparkles, Sun, X } from 'lucide-react';
@@ -367,7 +368,7 @@ export const Header = ({
                   {t('landing.tryAsGuest')}
                 </button>
               )}
-              {onEnterEmailAuth && (
+              {onEnterEmailAuth && !BROWSER_MODE && (
                 <button
                   type="button"
                   onClick={onEnterEmailAuth}
@@ -383,8 +384,9 @@ export const Header = ({
           {variant === 'app' && (
             <>
           {children}
+          {BROWSER_MODE && <button type="button" onClick={openModelSettings} className="tool-button min-h-10 gap-2 px-3"><Settings2 size={16} /><span className="hidden sm:inline">{t('browser.modelSettings')}</span><span className="sm:hidden">API</span></button>}
 
-          <div className="relative" ref={notificationsRef}>
+          {!BROWSER_MODE && <div className="relative" ref={notificationsRef}>
             <button
               ref={notificationsButtonRef}
               type="button"
@@ -463,7 +465,7 @@ export const Header = ({
                     <p className="mt-1 text-xs leading-relaxed text-amber-700 dark:text-amber-300">{t('notifications.guestSyncDesc')}</p>
                     <button
                       type="button"
-                      onClick={handleLoginToSync}
+                      onClick={BROWSER_MODE ? () => { setUserOpen(false); openModelSettings(); } : handleLoginToSync}
                       aria-disabled={authTransitionBlocked}
                       title={authTransitionBlocked ? t('workspace.authTransitionBlocked') : undefined}
                       className={`mt-3 min-h-11 w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 ${
@@ -472,7 +474,7 @@ export const Header = ({
                           : 'bg-brand-600 hover:bg-brand-500'
                       }`}
                     >
-                      {t('common.logInToSync')}
+                      {BROWSER_MODE ? t('browser.modelSettings') : t('common.logInToSync')}
                     </button>
                   </div>
                 )}
@@ -480,6 +482,7 @@ export const Header = ({
             )}
           </div>
 
+          }
           <div className="relative ml-2" ref={userRef}>
             <button
               ref={userButtonRef}
@@ -499,7 +502,7 @@ export const Header = ({
                 {user ? (user.username || user.email || 'U')[0].toUpperCase() : 'G'}
               </div>
               <span className="hidden max-w-[140px] truncate text-sm font-medium text-slate-700 sm:block dark:text-slate-200">
-                {user ? (user.username || user.email?.split('@')[0]) : t('common.guestMode')}
+                {user ? (user.username || user.email?.split('@')[0]) : (BROWSER_MODE ? t('browser.localMode') : t('common.guestMode'))}
               </span>
               <svg className="hidden h-4 w-4 text-slate-400 sm:block dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -530,7 +533,7 @@ export const Header = ({
                     <button
                       type="button"
                       role="menuitem"
-                      onClick={handleLoginToSync}
+                      onClick={BROWSER_MODE ? () => { setUserOpen(false); openModelSettings(); } : handleLoginToSync}
                       aria-disabled={authTransitionBlocked}
                       title={authTransitionBlocked ? t('workspace.authTransitionBlocked') : undefined}
                       className={`min-h-11 w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 ${
@@ -539,7 +542,7 @@ export const Header = ({
                           : 'bg-brand-600 hover:bg-brand-500'
                       }`}
                     >
-                      {t('common.logInToSync')}
+                      {BROWSER_MODE ? t('browser.modelSettings') : t('common.logInToSync')}
                     </button>
                   </div>
                 )}

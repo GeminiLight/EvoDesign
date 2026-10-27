@@ -500,6 +500,10 @@ export const mergeDeltaIntoSchema = (
     : []);
   if (canvasLibrary === 'excalidraw') {
     const current = (currentSchema.elements as Array<Record<string, unknown>>) || [];
+    // A selected container owns its bound label; AI text edits may update it.
+    for (const element of current) {
+      if (typeof element.containerId === 'string' && selected.has(element.containerId)) selected.add(String(element.id));
+    }
     const updates = (modifiedNodes.elements as Array<Record<string, unknown>>) || [];
     const existing = new Set(current.map(element => element.id));
     const changes = new Map(updates.filter(element => element && typeof element.id === 'string'

@@ -1,3 +1,4 @@
+import { BROWSER_MODE } from '../services/browser/runtime';
 import type { DiagramType, LLMProviderConfig, DiagramRequest } from '../types/api';
 import type { MoreDiagramOption } from '../types/app';
 
@@ -34,7 +35,7 @@ export const moreDiagramOptions: MoreDiagramOption[] = [
 // The generation API resolves credentials and model selection on the server.
 // Do not offer client-side model choices that the API does not accept.
 export const defaultConfigs: LLMProviderConfig[] = [
-  { id: 'provider_server', provider: 'custom', label: 'Server-configured model', model: 'server', temperature: 0, maxTokens: 16384 },
+  { id: 'provider_server', provider: 'custom', label: BROWSER_MODE ? 'Your model' : 'Server-configured model', model: 'server', temperature: 0, maxTokens: 16384 },
 ];
 
 export const initialRequest: DiagramRequest = {

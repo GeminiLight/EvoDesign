@@ -23,3 +23,7 @@ The local guest token is visible to the browser and is not a security boundary. 
 ## Research evaluation
 
 The default `eval` role shares the generation model for a basic smoke run. For reported experiments, use the independent `judge-vlm` alias with `JUDGE_MODEL_NAME`, `JUDGE_ENDPOINT_URL`, `JUDGE_API_KEY` and set `roles.eval: judge-vlm`. Record prompts, exact models, decoding parameters, dataset hashes, seeds where supported, and the release commit. Never treat convenience defaults as the manuscript's original experiment configuration.
+
+## Static browser edition
+
+The [browser edition](browser-edition.md) uses user-configured model endpoints directly from the page. Its Vercel deployment needs no backend or server-side model key. Build with `npm --prefix frontend run build:browser`; ordinary builds keep the full backend mode.

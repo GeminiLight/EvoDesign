@@ -1,3 +1,4 @@
+import { BROWSER_MODE } from '../services/browser/runtime';
 import { useMemo, useState } from 'react';
 import type { DiagramRequest, DiagramType } from '../types/api';
 import type { PromptOption, PromptPill } from '../components/DiagramPromptComposer';
@@ -32,12 +33,12 @@ export function useCreateDialog(
 
   const createModelOptions = useMemo<PromptOption[]>(() => defaultConfigs.map((cfg) => ({
     id: cfg.id,
-    label: t('home.serverModel'),
+    label: BROWSER_MODE ? t('browser.yourModel') : t('home.serverModel'),
   })), [t]);
 
   const createCanvasOptions = useMemo<PromptOption[]>(() => [
     { id: 'excalidraw', label: t('home.canvasExcalidraw') },
-    { id: 'tldraw', label: t('home.canvasTldraw') },
+    ...(!BROWSER_MODE ? [{ id: 'tldraw' as const, label: t('home.canvasTldraw') }] : []),
   ], [t]);
 
   const selectedCreatePillLabel = useMemo(

@@ -1,3 +1,5 @@
+import { BROWSER_MODE } from '../services/browser/runtime';
+import { BrowserPreferenceDialog } from '../components/DNA/BrowserPreferenceDialog';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BrainCircuit,
@@ -48,7 +50,7 @@ export function YourDNAPage() {
 
   const displayName = user
     ? (user.username || user.email?.split('@')[0] || 'User')
-    : t('common.guestMode');
+    : t(BROWSER_MODE ? 'browser.localMode' : 'common.guestMode');
 
   const {
     ruleLibrary, setRuleLibrary, evoStats, syncStatus, retrySync, acceptServerRules, canEditRules,
@@ -60,6 +62,7 @@ export function YourDNAPage() {
     drawerRules, drawerSelectedIds,
   } = useRuleLibrary();
 
+  const [addingPreference, setAddingPreference] = useState(false);
   const [heroOffset, setHeroOffset] = useState({ x: 0, y: 0 });
   const [cardGlow, setCardGlow] = useState<Record<string, { x: number; y: number; active: boolean }>>({});
   const cloneTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -195,7 +198,8 @@ export function YourDNAPage() {
 
   const openCloneFromButton = (event: React.MouseEvent<HTMLButtonElement>) => {
     cloneTriggerRef.current = event.currentTarget;
-    openCloneModal();
+    if (BROWSER_MODE) setAddingPreference(true);
+    else openCloneModal();
   };
 
   const closeCloneModal = () => {
@@ -399,9 +403,9 @@ export function YourDNAPage() {
               >
                 <span className="relative inline-flex items-center gap-2">
                   <WandSparkles className="h-4 w-4 transition-transform duration-300 group-hover/cta:rotate-12" />
-                  {t('dna.page.heroPrimaryAction')}
+                  {BROWSER_MODE ? (isZh ? '添加设计偏好' : 'Add a preference') : t('dna.page.heroPrimaryAction')}
                 </span>
-                <span className="relative text-xs opacity-70 font-normal">{t('dna.page.heroPrimaryActionDesc')}</span>
+                <span className="relative text-xs opacity-70 font-normal">{BROWSER_MODE ? (isZh ? '文字描述，本机保存' : 'Describe it. Keep it locally.') : t('dna.page.heroPrimaryActionDesc')}</span>
               </button>
               {/* Secondary — create with active DNA */}
               <button
@@ -513,10 +517,10 @@ export function YourDNAPage() {
                       <Radio className="h-3.5 w-3.5 dna-scan-icon" />
                       {t('dna.page.observeTitle')}
                     </div>
-                    <p className="font-mono text-[13px] leading-relaxed">{t('dna.page.emptyState')}</p>
+                    <p className="font-mono text-[13px] leading-relaxed">{BROWSER_MODE ? (isZh ? '还没有偏好。添加一条你希望模型遵循的设计规则。' : 'No preferences yet. Add a design rule for your model to follow.') : t('dna.page.emptyState')}</p>
                     <button type="button" onClick={openCloneFromButton} className={`mt-3 inline-flex min-h-11 items-center gap-1 rounded-lg border px-3 py-2 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950 ${cabin.id === 'structure' ? 'border-indigo-300/50 bg-indigo-100/55 text-indigo-700 focus-visible:ring-indigo-500/60 dark:border-indigo-500/35 dark:bg-indigo-500/12 dark:text-indigo-300' : cabin.id === 'style' ? 'border-violet-300/50 bg-violet-100/55 text-violet-700 focus-visible:ring-violet-500/60 dark:border-violet-500/35 dark:bg-violet-500/12 dark:text-violet-300' : 'border-teal-300/50 bg-teal-100/55 text-teal-700 focus-visible:ring-teal-500/60 dark:border-teal-500/35 dark:bg-teal-500/12 dark:text-teal-300'}`}>
                       <WandSparkles className="h-3.5 w-3.5" />
-                      {t('dna.page.clonePickHint')}
+                      {BROWSER_MODE ? (isZh ? '添加偏好' : 'Add preference') : t('dna.page.clonePickHint')}
                     </button>
                     {/* Scan pulse rings */}
                     <div className="pointer-events-none absolute -bottom-2 right-8 flex h-24 w-24 items-center justify-center">
@@ -718,6 +722,13 @@ export function YourDNAPage() {
         </aside>
       </div>
 
+      {addingPreference && <BrowserPreferenceDialog onClose={() => { setAddingPreference(false); cloneTriggerRef.current?.focus(); }} onSave={(category, title, description) => {
+        setRuleLibrary(previous => ({ ...previous, [category]: [...previous[category], {
+          id: Math.max(0, ...Object.values(previous).flat().map(rule => rule.id)) + 1,
+          title, preview: description, source: 'manual', enabled: true, pinned: true, usageCount: 0, updatedAt: isZh ? '刚刚' : 'just now',
+        }] }));
+        setAddingPreference(false); cloneTriggerRef.current?.focus();
+      }} />}
       {showCloneModal && (
         <CloneModal
           t={t}

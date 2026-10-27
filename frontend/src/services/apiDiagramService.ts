@@ -1,3 +1,4 @@
+import { BROWSER_MODE } from './browser/runtime';
 import { parseGenerationReport } from '../utils/generationReport';
 import type {
   DiagramRequest,
@@ -118,7 +119,7 @@ function getLocalEditErrorCode(response: Response, detail: string): string {
 function buildDiagramRequirements(request: DiagramRequest): string {
   const baseRequirement = `Create a ${request.diagramType} diagram that visualizes the provided text.`;
   const projectId = request.metadata?.projectId;
-  const userScopeId = localStorage.getItem(AUTH_USER_ID_STORAGE_KEY);
+  const userScopeId = BROWSER_MODE ? null : localStorage.getItem(AUTH_USER_ID_STORAGE_KEY);
   const dnaRuleLocale = getStoredDnaRuleLocale();
   const dnaRules = (
     projectId && guestLoadProjectDnaRules(projectId, userScopeId, dnaRuleLocale)
@@ -171,6 +172,10 @@ function buildGenerateDiagramPayload(
 
 export const apiDiagramService: DiagramService = {
   async generateDiagram(request: DiagramRequest): Promise<DiagramResponse> {
+    if (BROWSER_MODE) {
+      const { generateBrowserDiagram } = await import('./browser/diagramService');
+      return generateBrowserDiagram(request, buildDiagramRequirements(request));
+    }
     const authToken = getStoredAuthToken();
     const token = authToken || import.meta.env.VITE_GUEST_TOKEN || '';
     const isGuest = !authToken;
@@ -228,6 +233,10 @@ export const apiDiagramService: DiagramService = {
   },
 
   async editDiagramLocal(request: DiagramLocalEditRequest): Promise<DiagramLocalEditResponse> {
+    if (BROWSER_MODE) {
+      const { editBrowserDiagram } = await import('./browser/diagramService');
+      return editBrowserDiagram(request);
+    }
     const authToken = getStoredAuthToken();
     const token = authToken || import.meta.env.VITE_GUEST_TOKEN || '';
 
@@ -277,6 +286,10 @@ export async function generateDiagramStream(
   callbacks: StreamCallbacks,
   options: StreamOptions = {},
 ): Promise<DiagramResponse> {
+  if (BROWSER_MODE) {
+    const { generateBrowserDiagram } = await import('./browser/diagramService');
+    return generateBrowserDiagram(request, buildDiagramRequirements(request), callbacks, options);
+  }
   const authToken = getStoredAuthToken();
   const token = authToken || import.meta.env.VITE_GUEST_TOKEN || '';
   const isGuest = !authToken;

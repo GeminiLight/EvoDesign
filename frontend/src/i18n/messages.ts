@@ -1,5 +1,14 @@
 export const messages = {
   en: {
+    browser: {
+      startHint: 'Bring your own API key. Projects stay in this browser; export a copy to keep them safe.',
+      yourModel: 'Your model', modelSettings: 'Model settings', localMode: 'Browser workspace',
+      excalidrawOnly: 'Browser generation uses Excalidraw. The full local edition also supports TLDraw.',
+      edition: 'Browser edition', reviewDone: 'Content reviewed', reviewOff: 'Content review off',
+      reviewKept: 'Review unavailable · first draft kept',
+      scope: 'Generated with your model and laid out in this browser. Content review checks the diagram plan; it does not perform visual evaluation.',
+      memory: 'Your local design preferences are included. Automatic expertise learning requires the full local edition.',
+    },
     nav: {
       home: 'Home',
       projects: 'Projects',
@@ -1087,6 +1096,15 @@ export const messages = {
     },
   },
   zh: {
+    browser: {
+      startHint: '使用你自己的 API key。项目保存在此浏览器，建议导出一份备份。',
+      yourModel: '你的模型', modelSettings: '模型设置', localMode: '浏览器工作区',
+      excalidrawOnly: '浏览器版使用 Excalidraw 生成；完整本地版也支持 TLDraw。',
+      edition: '浏览器版', reviewDone: '内容评审完成', reviewOff: '内容评审已关闭',
+      reviewKept: '评审未采用 · 保留初稿',
+      scope: '由你的模型生成，在浏览器中完成布局。内容评审检查图的结构与语义，不进行视觉评分。',
+      memory: '已使用本机的设计偏好。自动经验学习请使用完整本地版。',
+    },
     nav: {
       home: '首页',
       projects: '项目',
