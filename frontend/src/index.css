@@ -826,14 +826,23 @@ textarea::placeholder { opacity: 1; }
 }
 
 @layer components {
-  .create-diagram-dialog { @apply fixed m-auto w-[min(600px,calc(100vw-24px))] max-h-none max-w-none overflow-hidden rounded-2xl border border-slate-200 bg-white p-0 text-slate-800 shadow-2xl dark:border-white/10 dark:bg-[#111827] dark:text-slate-200; }
-  .create-diagram-dialog::backdrop { background: rgb(8 13 27 / 60%); backdrop-filter: blur(6px); }
+  .create-diagram-dialog, .studio-dialog { @apply fixed m-auto w-[min(600px,calc(100vw-24px))] max-h-none max-w-none overflow-hidden rounded-2xl border border-slate-200 bg-white p-0 text-slate-800 shadow-2xl dark:border-white/10 dark:bg-[#111827] dark:text-slate-200; }
+  .create-diagram-dialog::backdrop, .studio-dialog::backdrop { background: rgb(8 13 27 / 60%); backdrop-filter: blur(6px); }
   .create-diagram-prompt { @apply block min-h-[140px] max-h-72 w-full resize-y rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-[13px] leading-6 text-slate-800 outline-none transition-colors placeholder:text-slate-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.02] dark:text-slate-100 dark:placeholder:text-slate-500; }
   .create-diagram-prompt:focus-visible { outline: none; }
   .create-diagram-select { @apply min-h-11 rounded-lg border border-slate-200/80 bg-slate-50/60 py-2 pl-3 pr-8 text-xs text-slate-700 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-[#182132] dark:text-slate-200; }
-  .create-diagram-switch { @apply relative h-5 w-8 shrink-0 rounded-full bg-slate-300 transition-colors after:absolute after:left-[3px] after:top-[3px] after:h-3.5 after:w-3.5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:bg-indigo-500 peer-checked:after:translate-x-3 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-indigo-400 dark:bg-slate-600; }
-  .create-diagram-details { @apply border-t border-slate-200/70 dark:border-white/[0.07]; }
-  .create-diagram-details > summary { @apply flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-sm text-xs text-slate-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-400 dark:text-slate-400; }
-  .create-diagram-details > summary::-webkit-details-marker { display: none; }
-  .create-diagram-details[open] > summary > svg { transform: rotate(180deg); }
+  .create-diagram-switch, .studio-switch { @apply relative h-5 w-8 shrink-0 rounded-full bg-slate-300 transition-colors after:absolute after:left-[3px] after:top-[3px] after:h-3.5 after:w-3.5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:bg-indigo-500 peer-checked:after:translate-x-3 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-indigo-400 dark:bg-slate-600; }
+  .create-diagram-details, .studio-details { @apply border-t border-slate-200/70 dark:border-white/[0.07]; }
+  .create-diagram-details > summary, .studio-details > summary { @apply flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded-sm text-xs text-slate-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-400 dark:text-slate-400; }
+  .create-diagram-details > summary::-webkit-details-marker, .studio-details > summary::-webkit-details-marker { display: none; }
+  .create-diagram-details[open] > summary > svg, .studio-details[open] > summary > svg { transform: rotate(180deg); }
+}
+
+@layer components {
+  .model-settings-dialog { width: min(560px, calc(100vw - 24px)); }
+  .studio-field-label { @apply text-xs font-medium text-slate-600 dark:text-slate-300; }
+  .studio-form-input { @apply block min-h-11 w-full rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-2 text-[13px] leading-6 text-slate-800 outline-none transition-colors placeholder:text-slate-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 dark:border-white/10 dark:bg-white/[0.02] dark:text-slate-100 dark:placeholder:text-slate-500; }
+  .studio-form-input:focus-visible { outline: none; }
+  .studio-form-input[aria-invalid="true"] { @apply border-rose-400 focus:ring-rose-400 dark:border-rose-400/70; }
+  .studio-field-error { @apply mt-1.5 text-[11px] leading-5 text-rose-600 dark:text-rose-300; }
 }
