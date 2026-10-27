@@ -1,119 +1,242 @@
 import { useEffect, useRef, useState } from 'react';
-import { Check, ExternalLink, Eye, EyeOff, KeyRound, Loader2, ShieldCheck, X } from 'lucide-react';
+import { Check, ChevronDown, CircleAlert, Eye, EyeOff, Loader2, X } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageProvider';
 import { completionUrl, forgetModelKey, loadModelConfig, saveModelConfig, testBrowserModelConnection } from '../services/browser/modelConfig';
+import type { BrowserModelConfig } from '../services/browser/modelConfig';
 import { MODEL_CONFIG_EVENT, MODEL_SETTINGS_EVENT } from '../services/browser/runtime';
 
+type Feedback = { kind: 'idle' | 'testing' | 'success' | 'limited' | 'error' | 'notice'; message?: string };
+
+function connectionError(error: unknown, zh: boolean): string {
+  const message = error instanceof Error ? error.message : '';
+  if (!zh) return message || 'Connection failed. Check the endpoint and try again.';
+  if (/401|403/.test(message)) return '密钥或模型权限有误，请检查后重试。';
+  if (/402|429/.test(message)) return '服务商额度不足或请求受限，请检查账户额度后重试。';
+  if (/404/.test(message)) return '找不到接口或模型，请核对 API 地址和模型 ID。';
+  if (/timed out/i.test(message)) return '连接超时，请稍后重试，或换用响应更快的模型。';
+  if (/CORS|Cannot reach/.test(message)) return '浏览器无法连接，请检查地址、网络及服务商的跨域（CORS）支持。';
+  if (/no text|no completion|invalid response/.test(message)) return '接口未返回有效文本，请确认模型支持 Chat Completions。';
+  return '连接失败，请检查接口、模型权限及服务商状态。';
+}
+
 export function BrowserModelSettings() {
-  const { language } = useLanguage(); const zh = language === 'zh';
+  const { language } = useLanguage();
+  const zh = language === 'zh';
   const [open, setOpen] = useState(false);
   const [config, setConfig] = useState(loadModelConfig);
   const [reveal, setReveal] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'testing' | 'success' | 'limited' | 'error'>('idle');
-  const [message, setMessage] = useState('');
-  const dialog = useRef<HTMLDialogElement>(null);
-  const request = useRef<AbortController | null>(null);
-  const close = () => { request.current?.abort(); setOpen(false); };
+  const [hasSavedKey, setHasSavedKey] = useState(false);
+  const [touched, setTouched] = useState({ baseUrl: false, model: false });
+  const [feedback, setFeedback] = useState<Feedback>({ kind: 'idle' });
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const modelRef = useRef<HTMLInputElement>(null);
+  const requestRef = useRef<AbortController | null>(null);
+  const isTesting = feedback.kind === 'testing';
+
+  const stopRequest = () => {
+    requestRef.current?.abort();
+    requestRef.current = null;
+  };
+  const close = () => { stopRequest(); setReveal(false); setOpen(false); };
+  const updateConfig = (patch: Partial<BrowserModelConfig>) => {
+    stopRequest();
+    setFeedback({ kind: 'idle' });
+    setConfig(current => ({ ...current, ...patch }));
+  };
+
   useEffect(() => {
-    const show = () => { setConfig(loadModelConfig()); setStatus('idle'); setMessage(''); setReveal(false); setOpen(true); };
+    const show = () => {
+      requestRef.current?.abort();
+      const saved = loadModelConfig();
+      setConfig(saved);
+      setHasSavedKey(Boolean(saved.apiKey));
+      setTouched({ baseUrl: false, model: false });
+      setFeedback({ kind: 'idle' });
+      setReveal(false);
+      setOpen(true);
+    };
     window.addEventListener(MODEL_SETTINGS_EVENT, show);
-    return () => { window.removeEventListener(MODEL_SETTINGS_EVENT, show); request.current?.abort(); };
+    return () => { window.removeEventListener(MODEL_SETTINGS_EVENT, show); requestRef.current?.abort(); };
   }, []);
+
   useEffect(() => {
     if (!open) return;
-    const element = dialog.current!; element.showModal();
-    const overflow = document.body.style.overflow; document.body.style.overflow = 'hidden';
-    return () => { element.close(); document.body.style.overflow = overflow; };
+    const dialog = dialogRef.current!;
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialog.showModal();
+    modelRef.current?.focus({ preventScroll: true });
+    return () => {
+      dialog.close();
+      document.body.style.overflow = previousOverflow;
+      window.setTimeout(() => { if (trigger?.isConnected) trigger.focus(); }, 0);
+    };
   }, [open]);
+
+  let destination = '';
+  let urlError = '';
+  try { destination = new URL(completionUrl(config.baseUrl)).hostname; }
+  catch { urlError = zh ? '填写有效的 HTTPS 接口地址，本地服务可用 HTTP。地址不能包含密钥、查询参数或片段。' : 'Use an HTTPS endpoint (HTTP for localhost), without credentials, query parameters or fragments.'; }
+  const modelError = config.model.trim() ? '' : (zh ? '请填写服务商提供的模型 ID。' : 'Enter the model ID from your provider.');
+  const canSubmit = !urlError && !modelError;
+
   const test = async () => {
-    const controller = new AbortController(); request.current?.abort(); request.current = controller;
-    setStatus('testing'); setMessage('');
+    if (!canSubmit) return;
+    stopRequest();
+    const controller = new AbortController();
+    requestRef.current = controller;
+    setFeedback({ kind: 'testing' });
     try {
       const result = await testBrowserModelConnection(config, controller.signal);
-      if (controller.signal.aborted) return;
-      setStatus(result === 'ready' ? 'success' : 'limited');
-      setMessage(result === 'ready'
-        ? (zh ? '连接成功，可以开始创作。' : 'Connected. You are ready to create.')
-        : (zh ? '接口已连通，但模型在小额测试中用完了输出额度。生成时会使用更大额度；若仍无正文，请换用推理开销较小的模型。' : 'Endpoint connected, but the model used the small test budget before finishing. Generation allows more output; choose a less reasoning-heavy model if it still returns no text.'));
+      if (controller.signal.aborted || requestRef.current !== controller) return;
+      setFeedback(result === 'ready'
+        ? { kind: 'success', message: zh ? '连接成功。保存后即可使用。' : 'Connected. Save to use this model.' }
+        : { kind: 'limited', message: zh ? '接口已连通，但测试输出额度已用尽。可降低推理强度后重试。' : 'Endpoint reached, but the test output budget was exhausted. Try a lower reasoning effort.' });
     } catch (error) {
-      if (controller.signal.aborted) return;
-      setStatus('error'); setMessage(error instanceof Error ? error.message : 'Connection failed.');
+      if (controller.signal.aborted || requestRef.current !== controller) return;
+      setFeedback({ kind: 'error', message: connectionError(error, zh) });
+    } finally {
+      if (requestRef.current === controller) requestRef.current = null;
     }
   };
+
   const save = () => {
+    setTouched({ baseUrl: true, model: true });
+    if (!canSubmit) return;
     try {
-      saveModelConfig(config); window.dispatchEvent(new Event(MODEL_CONFIG_EVENT)); close();
-    } catch (error) { setStatus('error'); setMessage(error instanceof Error ? error.message : 'Unable to save settings.'); }
+      saveModelConfig(config);
+      window.dispatchEvent(new Event(MODEL_CONFIG_EVENT));
+      close();
+    } catch {
+      setFeedback({ kind: 'error', message: zh ? '无法保存，请检查浏览器是否允许本地存储。' : 'Could not save. Check that browser storage is available.' });
+    }
   };
-  const input = 'mt-2 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-800 outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-indigo-500/15';
-  let destination = '';
-  try { destination = new URL(completionUrl(config.baseUrl)).hostname; } catch { /* Validation is shown on save/test. */ }
-  return <dialog ref={dialog} className="workspace-settings-dialog overflow-hidden w-[min(560px,calc(100vw-24px))]" aria-labelledby="browser-model-title"
-    onCancel={close} onClose={() => { if (open) close(); }} onClick={event => { if (event.target === event.currentTarget) close(); }}
-    onKeyDown={event => event.stopPropagation()} onKeyUp={event => event.stopPropagation()}>
-    <form className="flex max-h-[calc(100dvh-48px)] flex-col" onSubmit={event => { event.preventDefault(); save(); }}>
-      <div className="flex shrink-0 items-start gap-3 px-5 pb-4 pt-5 sm:px-7 sm:pt-7">
-        <span className="rounded-2xl bg-gradient-to-br from-cyan-100 to-violet-100 p-3 text-indigo-600"><KeyRound size={21} /></span>
-        <div className="flex-1"><h2 id="browser-model-title" className="text-lg font-semibold text-slate-900 dark:text-white">{zh ? '连接你的模型' : 'Connect your model'}</h2>
-          <p className="mt-1 text-sm text-slate-500">{zh ? '你的模型，你的画布。无需注册。' : 'Your model. Your canvas. No account needed.'}</p></div>
-        <button type="button" aria-label={zh ? '关闭' : 'Close'} onClick={close} className="tool-button h-9 w-9 border-0 p-0"><X size={18} /></button>
-      </div>
-      <div className="min-h-0 space-y-4 overflow-y-auto px-5 pb-5 sm:px-7">
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-          {zh ? '需要支持浏览器直连的接口？' : 'Need a browser-compatible endpoint?'}
-          <button type="button" className="font-semibold text-indigo-600 underline underline-offset-4 dark:text-indigo-300" onClick={() => {
-            request.current?.abort(); setStatus('idle'); setMessage('');
-            setConfig({ ...config, baseUrl: 'https://openrouter.ai/api/v1', model: '', apiKey: '' });
-          }}>{zh ? '使用 OpenRouter' : 'Use OpenRouter'}</button>
-          <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">{zh ? '查看模型 ID' : 'Find model IDs'}</a>
-        </p>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">{zh ? 'API 地址' : 'API base URL'}
-          <input className={input} type="url" required value={config.baseUrl} placeholder="https://api.openai.com/v1" spellCheck={false} autoComplete="off"
-            onChange={event => { request.current?.abort(); setStatus('idle'); setMessage(''); setConfig({ ...config, baseUrl: event.target.value, apiKey: '' }); }} />
-          <span className="mt-1.5 block text-xs font-normal leading-5 text-slate-500">{zh ? '支持 OpenAI 兼容的 Chat Completions 接口。切换地址会清空输入框中的密钥。' : 'An OpenAI-compatible Chat Completions endpoint. Changing the address clears the entered key.'}</span>
-        </label>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">{zh ? '模型名称' : 'Model identifier'}
-          <input className={input} required value={config.model} placeholder={zh ? '填写服务商提供的模型 ID' : 'The exact model ID from your provider'} spellCheck={false} autoComplete="off"
-            onChange={event => { request.current?.abort(); setStatus('idle'); setMessage(''); setConfig({ ...config, model: event.target.value }); }} />
-        </label>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">API key
-          <span className="relative block"><input className={`${input} pr-12`} type={reveal ? 'text' : 'password'} value={config.apiKey} autoComplete="off" spellCheck={false}
-            placeholder={zh ? '仅发送给你指定的模型服务商' : 'Sent only to the provider you choose'}
-            onChange={event => { request.current?.abort(); setStatus('idle'); setMessage(''); setConfig({ ...config, apiKey: event.target.value }); }} />
-            <button type="button" onClick={() => setReveal(!reveal)} aria-label={reveal ? (zh ? '隐藏密钥' : 'Hide key') : (zh ? '显示密钥' : 'Show key')} className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center text-slate-500">{reveal ? <EyeOff size={17} /> : <Eye size={17} />}</button>
-          </span>
-        </label>
-        <div className="space-y-3 rounded-xl bg-slate-50 p-3.5 dark:bg-slate-800/60">
-          <label className="flex cursor-pointer items-start gap-2.5 text-sm text-slate-700 dark:text-slate-200"><input type="checkbox" className="mt-1 rounded border-slate-300 text-indigo-600" checked={config.rememberKey} onChange={e => setConfig({ ...config, rememberKey: e.target.checked })} />
-            <span>{zh ? '在此设备记住密钥' : 'Remember the key on this device'}<span className="mt-0.5 block text-xs leading-5 text-slate-500">{zh ? '默认仅保留在当前标签页会话。勾选后存入浏览器本地存储，不适用于共享设备。' : 'Otherwise kept only for this tab session. Remembered keys use browser storage; avoid this on shared devices.'}</span></span>
-          </label>
-          <label className="flex cursor-pointer items-center gap-2.5 text-sm text-slate-700 dark:text-slate-200"><input type="checkbox" className="rounded border-slate-300 text-indigo-600" checked={config.refine} onChange={e => setConfig({ ...config, refine: e.target.checked })} />{zh ? '生成后进行一次内容评审（额外一次模型调用）' : 'Review content after generation (one extra model call)'}</label>
+
+  const forgetKey = () => {
+    stopRequest();
+    try {
+      forgetModelKey();
+      setConfig(current => ({ ...current, apiKey: '', rememberKey: false }));
+      setReveal(false);
+      setHasSavedKey(false);
+      setFeedback({ kind: 'notice', message: zh ? '密钥已清除。其他编辑仍保留，可继续保存。' : 'Key removed. Your other edits are still here.' });
+      window.dispatchEvent(new Event(MODEL_CONFIG_EVENT));
+    } catch {
+      setFeedback({ kind: 'error', message: zh ? '无法清除密钥，请检查浏览器存储权限。' : 'Could not remove the key. Check browser storage permissions.' });
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <dialog ref={dialogRef} className="studio-dialog model-settings-dialog" aria-labelledby="browser-model-title"
+      onCancel={event => { event.preventDefault(); close(); }}
+      onClick={event => {
+        if (event.target !== event.currentTarget) return;
+        const bounds = event.currentTarget.getBoundingClientRect();
+        if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) close();
+      }}
+      onKeyDown={event => event.stopPropagation()} onKeyUp={event => event.stopPropagation()}>
+      <form className="flex max-h-[calc(100dvh-2rem)] flex-col" noValidate onSubmit={event => { event.preventDefault(); save(); }}>
+        <header className="flex shrink-0 items-start justify-between gap-4 px-5 pb-5 pt-5 sm:px-7 sm:pt-6">
+          <div>
+            <h2 id="browser-model-title" className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">{zh ? '模型设置' : 'Model settings'}</h2>
+            <p className="mt-1.5 text-xs leading-5 text-slate-500 dark:text-slate-400">{zh ? '连接你常用的模型，继续创作。' : 'Connect your model and keep creating.'}</p>
+          </div>
+          <button type="button" aria-label={zh ? '关闭' : 'Close'} onClick={close} className="studio-icon-button -mr-2 -mt-2"><X size={17} /></button>
+        </header>
+
+        <div className="min-h-0 space-y-4 overflow-y-auto px-5 pb-5 sm:px-7">
+          <div>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <label htmlFor="browser-model-url" className="studio-field-label">{zh ? 'API 地址' : 'API base URL'}</label>
+              <span className="text-[11px] text-slate-400 dark:text-slate-500">{zh ? 'OpenAI 兼容接口' : 'OpenAI-compatible'}</span>
+            </div>
+            <input id="browser-model-url" className="studio-form-input" type="url" required value={config.baseUrl} placeholder="https://api.openai.com/v1" spellCheck={false} autoComplete="off" autoCapitalize="none"
+              aria-invalid={touched.baseUrl && Boolean(urlError)} aria-describedby={touched.baseUrl && urlError ? 'browser-model-url-error' : undefined}
+              onBlur={() => setTouched(current => ({ ...current, baseUrl: true }))}
+              onChange={event => { setReveal(false); updateConfig({ baseUrl: event.target.value, apiKey: '' }); }} />
+            {touched.baseUrl && urlError && <p id="browser-model-url-error" className="studio-field-error">{urlError}</p>}
+          </div>
+
+          <div>
+            <label htmlFor="browser-model-id" className="studio-field-label mb-2 block">{zh ? '模型 ID' : 'Model ID'}</label>
+            <input id="browser-model-id" ref={modelRef} className="studio-form-input" required value={config.model} placeholder={zh ? '服务商提供的完整模型名称' : 'The exact model ID from your provider'} spellCheck={false} autoComplete="off" autoCapitalize="none"
+              aria-invalid={touched.model && Boolean(modelError)} aria-describedby={touched.model && modelError ? 'browser-model-id-error' : undefined}
+              onBlur={() => setTouched(current => ({ ...current, model: true }))}
+              onChange={event => updateConfig({ model: event.target.value })} />
+            {touched.model && modelError && <p id="browser-model-id-error" className="studio-field-error">{modelError}</p>}
+          </div>
+
+          <div>
+            <label htmlFor="browser-model-key" className="studio-field-label mb-2 block">API key</label>
+            <div className="relative">
+              <input id="browser-model-key" className="studio-form-input pr-12" type={reveal ? 'text' : 'password'} value={config.apiKey} autoComplete="off" autoCapitalize="none" spellCheck={false}
+                aria-describedby="browser-model-storage-hint" placeholder={zh ? '填写密钥；无鉴权接口可留空' : 'Your API key, if required'}
+                onChange={event => updateConfig({ apiKey: event.target.value })} />
+              <button type="button" onClick={() => setReveal(current => !current)} aria-pressed={reveal} aria-label={zh ? (reveal ? '隐藏密钥' : '显示密钥') : (reveal ? 'Hide key' : 'Show key')}
+                className="studio-icon-button absolute right-0 top-0">{reveal ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+            </div>
+            <div className="mt-1 flex flex-wrap items-center justify-between gap-x-2">
+              <label className="flex min-h-11 cursor-pointer items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <input type="checkbox" checked={config.rememberKey} onChange={event => updateConfig({ rememberKey: event.target.checked })} aria-describedby="browser-model-storage-hint" className="h-3.5 w-3.5 rounded border-slate-300 bg-transparent text-indigo-500 checked:bg-indigo-500 focus:ring-indigo-400 dark:border-slate-500 dark:bg-transparent dark:checked:bg-indigo-500" />
+                {zh ? '在此设备记住密钥' : 'Remember on this device'}
+              </label>
+              {(hasSavedKey || config.apiKey) && <button type="button" onClick={forgetKey} className="studio-secondary -mr-2 px-2 text-[11px] hover:text-rose-600 dark:hover:text-rose-300">{zh ? '清除密钥' : 'Remove key'}</button>}
+            </div>
+            <p id="browser-model-storage-hint" className="text-[11px] leading-5 text-slate-500 dark:text-slate-400">{zh ? '默认仅保留在当前标签页；公共设备请勿勾选。' : 'Tab-only by default. Leave unchecked on shared devices.'}</p>
+          </div>
+
+          <details className="studio-details">
+            <summary><span>{zh ? '高级设置与连接帮助' : 'Advanced settings & help'}</span><ChevronDown size={14} /></summary>
+            <div className="space-y-4 pb-1 pt-2">
+              <label className="relative flex min-h-11 cursor-pointer items-center gap-3">
+                <input type="checkbox" role="switch" checked={config.refine} onChange={event => updateConfig({ refine: event.target.checked })} aria-describedby="browser-model-review-hint" className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0" />
+                <span aria-hidden="true" className="studio-switch" />
+                <span className="text-xs text-slate-600 dark:text-slate-300">{zh ? '生成后评审' : 'Review after generation'}<span id="browser-model-review-hint" className="mt-1 block text-[11px] text-slate-500 dark:text-slate-400">{zh ? '额外调用一次模型' : 'One extra model call'}</span></span>
+              </label>
+              <label className="flex items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-300">{zh ? '推理强度' : 'Reasoning effort'}
+                <select className="create-diagram-select min-w-0 max-w-[65%]" value={config.reasoningEffort || ''} onChange={event => updateConfig({ reasoningEffort: (event.target.value || undefined) as BrowserModelConfig['reasoningEffort'] })}>
+                  <option value="">{zh ? '服务商默认' : 'Provider default'}</option>
+                  <option value="low">{zh ? '低' : 'Low'}</option><option value="medium">{zh ? '中' : 'Medium'}</option><option value="high">{zh ? '高' : 'High'}</option>
+                </select>
+              </label>
+              <p className="text-[11px] leading-5 text-slate-500 dark:text-slate-400">{zh ? '仅支持 reasoning_effort 的模型可调整；不确定时保持默认。接口须支持 Chat Completions 和浏览器跨域（CORS）。切换地址会清空密钥输入。' : 'Adjust only for models supporting reasoning_effort; otherwise keep the default. Your endpoint must support Chat Completions and browser access (CORS). Changing the URL clears the key field.'}</p>
+              <div className="flex flex-wrap items-center gap-x-3">
+                <button type="button" className="studio-secondary -ml-2 px-2 text-xs" onClick={() => {
+                  setReveal(false);
+                  setTouched({ baseUrl: false, model: false });
+                  updateConfig({ baseUrl: 'https://openrouter.ai/api/v1', model: '', apiKey: '' });
+                  setFeedback({ kind: 'notice', message: zh ? '已切换到 OpenRouter，请填写对应的模型 ID 和密钥。' : 'Switched to OpenRouter. Enter its model ID and key.' });
+                  modelRef.current?.focus();
+                }}>{zh ? '使用 OpenRouter' : 'Use OpenRouter'}</button>
+                <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className="studio-secondary px-2 text-xs">{zh ? '查看 OpenRouter 模型 ↗' : 'Browse OpenRouter models ↗'}</a>
+              </div>
+            </div>
+          </details>
+          <p className="break-words text-[11px] leading-5 text-slate-500 dark:text-slate-400">{zh ? `请求直达 ${destination || '你指定的服务商'}，费用由服务商收取。EvoDesign 不接收密钥。` : `Requests go directly to ${destination || 'your provider'}, who bills usage. EvoDesign does not receive your key.`}</p>
         </div>
-        <details className="rounded-xl border border-slate-200 px-3.5 py-3 dark:border-slate-700">
-          <summary className="cursor-pointer text-sm font-medium text-slate-600 dark:text-slate-300">{zh ? '高级模型选项' : 'Advanced model options'}</summary>
-          <label className="mt-3 block text-sm text-slate-700 dark:text-slate-200">{zh ? '推理强度' : 'Reasoning effort'}
-            <select className={input} value={config.reasoningEffort || ''} onChange={event => {
-              request.current?.abort(); setStatus('idle'); setMessage('');
-              setConfig({ ...config, reasoningEffort: (event.target.value || undefined) as typeof config.reasoningEffort });
-            }}>
-              <option value="">{zh ? '服务商默认（推荐）' : 'Provider default (recommended)'}</option>
-              <option value="low">{zh ? '低' : 'Low'}</option><option value="medium">{zh ? '中' : 'Medium'}</option><option value="high">{zh ? '高' : 'High'}</option>
-            </select>
-            <span className="mt-1.5 block text-xs leading-5 text-slate-500">{zh ? '仅适用于支持 reasoning_effort 的模型。低强度可减少推理耗时，为图形内容留出更多输出空间；不支持时请选择默认。' : 'For models that support reasoning_effort. Low can reduce thinking time and leave more output for the diagram. Use the default if your provider does not support this option.'}</span>
-          </label>
-        </details>
-        <p className="flex items-start gap-2 text-xs leading-5 text-slate-500"><ShieldCheck size={16} className="mt-0.5 shrink-0 text-teal-600" /><span>{zh ? `请求由浏览器直接发送到 ${destination || '指定服务商'}；EvoDesign 不接收密钥。服务商需要允许浏览器跨域访问（CORS），费用由你的账户承担。` : `Requests go directly from this browser to ${destination || 'your provider'}; EvoDesign does not receive the key. Your provider must allow browser access (CORS). Usage is billed to your provider account.`}</span></p>
-        {status === 'testing' && <p role="status" className="text-xs text-slate-500">{zh ? '正在发送小额测试请求，最多等待 60 秒，可随时停止。' : 'Sending a small test request. Up to 60 seconds; you can stop at any time.'}</p>}
-        {message && <p role="status" className={`rounded-xl p-3 text-xs leading-5 ${status === 'success' ? 'bg-teal-50 text-teal-800' : status === 'limited' ? 'bg-amber-50 text-amber-900' : 'bg-rose-50 text-rose-800'}`}>{message}</p>}
-      </div>
-      <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-slate-100 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:px-7">
-        <button type="button" className="mr-auto min-h-10 text-xs text-slate-500 hover:text-rose-600" onClick={() => { request.current?.abort(); forgetModelKey(); setConfig(loadModelConfig()); setStatus('idle'); setMessage(''); window.dispatchEvent(new Event(MODEL_CONFIG_EVENT)); }}>{zh ? '清除已保存的密钥' : 'Forget saved key'}</button>
-        <button type="button" onClick={() => {
-          if (status === 'testing') { request.current?.abort(); setStatus('idle'); setMessage(''); }
-          else void test();
-        }} className="tool-button min-h-11 gap-2 px-4">{status === 'testing' ? <Loader2 size={15} className="animate-spin" /> : <ExternalLink size={15} />}{status === 'testing' ? (zh ? '停止测试' : 'Stop test') : (zh ? '测试连接' : 'Test connection')}</button>
-        <button type="submit" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white hover:bg-indigo-500"><Check size={16} />{zh ? '保存' : 'Save'}</button>
-      </div>
-    </form>
-  </dialog>;
+
+        <footer className="shrink-0 space-y-3 border-t border-slate-200/70 px-5 pb-[max(env(safe-area-inset-bottom),1.25rem)] pt-4 dark:border-white/[0.07] sm:px-7">
+          {feedback.kind !== 'idle' && <div role={feedback.kind === 'error' ? 'alert' : 'status'} aria-live="polite"
+            className={`flex items-start gap-2 text-xs leading-5 ${feedback.kind === 'error' ? 'text-rose-600 dark:text-rose-300' : feedback.kind === 'success' ? 'text-teal-700 dark:text-teal-300' : feedback.kind === 'limited' ? 'text-amber-700 dark:text-amber-300' : 'text-slate-500 dark:text-slate-400'}`}>
+            {isTesting ? <Loader2 size={14} className="mt-0.5 shrink-0 animate-spin" /> : feedback.kind === 'success' ? <Check size={14} className="mt-0.5 shrink-0" /> : feedback.kind === 'error' || feedback.kind === 'limited' ? <CircleAlert size={14} className="mt-0.5 shrink-0" /> : null}
+            <span>{isTesting ? (zh ? '正在发送小额测试请求，最多等待 60 秒，可随时停止。' : 'Sending a small test request. Up to 60 seconds; stop anytime.') : feedback.message}</span>
+          </div>}
+          <div className="flex items-center justify-between gap-2">
+            <button type="button" className="studio-secondary -ml-2 px-2 text-xs" disabled={!isTesting && !canSubmit} title={!canSubmit ? (zh ? '先填写 API 地址和模型 ID' : 'Enter an API URL and model ID first') : undefined}
+              onClick={() => {
+                if (isTesting) { stopRequest(); setFeedback({ kind: 'notice', message: zh ? '测试已停止。' : 'Test stopped.' }); }
+                else void test();
+              }}>{isTesting ? (zh ? '停止测试' : 'Stop test') : (zh ? '测试连接' : 'Test connection')}</button>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <button type="button" onClick={close} className="studio-secondary px-2 sm:px-3">{zh ? '取消' : 'Cancel'}</button>
+              <button type="submit" className="studio-primary" disabled={!canSubmit}>{zh ? '保存' : 'Save'}</button>
+            </div>
+          </div>
+        </footer>
+      </form>
+    </dialog>
+  );
 }
