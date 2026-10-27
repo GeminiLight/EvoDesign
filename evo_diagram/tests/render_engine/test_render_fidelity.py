@@ -2552,6 +2552,8 @@ def test_tldraw_standalone_text_renders_as_text_shape_not_stroked_rectangle():
     assert title["type"] == "text"
     assert "geo" not in title["props"]
     assert title["props"]["text"] == "Ingest Lane"
+    assert title["props"]["textAlign"] == "middle"
+    assert "align" not in title["props"]
     assert title["props"]["w"] == 180
     assert title["props"]["autoSize"] is True
     # Height is not part of the tldraw text schema; group fitting reads it here.
@@ -2562,6 +2564,22 @@ def test_tldraw_standalone_text_renders_as_text_shape_not_stroked_rectangle():
     # The snapshot must stay loadable: tldraw rejects unknown shape props.
     report = validate_tldraw_manifest(manifest_data=manifest)
     assert report["is_valid"], report["errors"]
+
+
+@pytest.mark.parametrize("alignment,expected", [
+    ({"textAlign": "left"}, "start"),
+    ({"props": {"textAlign": "end"}}, "end"),
+    ({"props": {"align": "start"}}, "start"),
+])
+def test_tldraw_text_alignment_matches_declared_snapshot_schema(alignment, expected):
+    layout = {"title": {"type": "text", "label": {"text": "Title"},
+                        "x": 0, "y": 0, "w": 180, "h": 28, **alignment}}
+    manifest = InstantiationToTldrawConverter(layout_instantiation=layout).convert()
+    props = manifest["document"]["store"]["shape:title"]["props"]
+    # Snapshot text v2 already includes the SDK's align -> textAlign migration.
+    assert manifest["document"]["schema"]["sequences"]["com.tldraw.shape.text"] == 2
+    assert props["textAlign"] == expected
+    assert "align" not in props
 
 
 def test_tldraw_icon_centers_on_top_level_node_height(monkeypatch):
