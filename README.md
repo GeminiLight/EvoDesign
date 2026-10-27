@@ -4,7 +4,17 @@
 
 ### Turn ideas into diagrams you can keep editing.
 
-**[Get started](#run-locally) · [Website](https://tianfu.wang/EvoDesign/) · [中文入门](docs/quickstart-zh.md) · [Paper](https://arxiv.org/abs/2604.09568)**
+<!-- PROJECT-LINKS:START -->
+<p align="center">
+  <a href="https://tianfu.wang/EvoDesign/"><img src=".github/badges/website.svg" alt="Website" height="36"></a>
+  <a href="https://evodesign.vercel.app/"><img src=".github/badges/try-online.svg" alt="Try online · bring your API key" height="36"></a>
+  <a href="https://arxiv.org/abs/2604.09568"><img src=".github/badges/paper.svg" alt="Read the paper" height="36"></a>
+  <a href="https://github.com/GeminiLight/EvoDesign#run-locally"><img src=".github/badges/quickstart.svg" alt="Quick start" height="36"></a>
+  <a href="https://github.com/GeminiLight/EvoDesign/blob/main/CONTRIBUTING.md"><img src=".github/badges/contribute.svg" alt="Contribute" height="36"></a>
+</p>
+<!-- PROJECT-LINKS:END -->
+
+[中文入门](docs/quickstart-zh.md) · [Browser edition guide](docs/browser-edition.md)
 
 Describe it. Refine it. Make it yours.
 
@@ -14,7 +24,7 @@ Describe it. Refine it. Make it yours.
 
 EvoDesign is an open-source workspace for creating editable diagrams with AI. Describe an architecture, sequence or process, generate a first draft, then refine and edit it on the canvas. Save your work, reopen it later, and export it when it is ready. Personal design memory helps you carry your preferences into the next diagram.
 
-Run it locally with your own model endpoint. The project builds on our research in agentic diagram creation and evolving design expertise; the [paper](https://arxiv.org/abs/2604.09568) explains the method and evaluation.
+Try the [browser edition](https://evodesign.vercel.app/) with your own API key, or run the full edition locally with your own model endpoint. The project builds on our research in agentic diagram creation and evolving design expertise; the [paper](https://arxiv.org/abs/2604.09568) explains the method and evaluation.
 
 ## From an idea to a finished diagram
 
@@ -34,6 +44,12 @@ Run it locally with your own model endpoint. The project builds on our research 
 | **Research tooling** | Run baseline adapters, ablations and evaluation with your own data |
 
 Excalidraw is the default canvas. TLDraw remains an optional adapter. Icons are optional and the default curated catalog is bundled. The Python import path `evo_diagram` is retained for compatibility; the project and algorithm are **EvoDesign**.
+
+## Try it online
+
+Open **[EvoDesign Studio](https://evodesign.vercel.app/)** → **Model settings** → enter your API URL, model ID and key. Your provider must allow browser requests (CORS). Projects stay in your browser; export a copy as a backup.
+
+The browser edition offers editable generation, optional icons, content review, local edits, saving and export without an EvoDesign backend. The full local edition includes the research agents, visual refinement and expertise evolution. See the [capability and privacy guide](docs/browser-edition.md).
 
 ## Run locally
 

@@ -1,3 +1,4 @@
+import { BROWSER_MODE, openModelSettings } from '../services/browser/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, Pencil, Star, Trash2 } from 'lucide-react';
@@ -240,11 +241,11 @@ export const HomePage = () => {
   ];
 
 
-  const modelOptions = defaultConfigs.map((c) => ({ id: c.id, label: t('home.serverModel') }));
+  const modelOptions = defaultConfigs.map((c) => ({ id: c.id, label: BROWSER_MODE ? t('browser.yourModel') : t('home.serverModel') }));
 
   const canvasOptions: Array<{ id: 'tldraw' | 'excalidraw'; label: string }> = [
     { id: 'excalidraw', label: t('home.canvasExcalidraw') },
-    { id: 'tldraw', label: t('home.canvasTldraw') },
+    ...(!BROWSER_MODE ? [{ id: 'tldraw' as const, label: t('home.canvasTldraw') }] : []),
   ];
 
   const selectedDiagramType: DiagramType = pillIdToDiagramType[selectedPillId] ?? 'automated';
@@ -365,6 +366,7 @@ export const HomePage = () => {
             {t('home.subtitle')}
           </p>
 
+          {BROWSER_MODE && <p className="mb-5 max-w-xl text-sm leading-6 text-slate-500 dark:text-slate-400">{t('browser.startHint')} <button type="button" onClick={openModelSettings} className="font-semibold text-indigo-600 underline decoration-indigo-200 underline-offset-4 dark:text-indigo-300">{t('browser.modelSettings')} →</button></p>}
           <div className="w-full relative group">
             <DiagramPromptComposer
               prompt={prompt}

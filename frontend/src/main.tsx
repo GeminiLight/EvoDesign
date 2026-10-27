@@ -1,3 +1,5 @@
+import { BROWSER_MODE } from './services/browser/runtime'
+import { BrowserModelSettings } from './components/BrowserModelSettings'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
@@ -28,8 +30,9 @@ createRoot(document.getElementById('root')!).render(
         <SkipLink />
         <BrowserRouter>
           <RouteScrollReset />
+          {BROWSER_MODE && <BrowserModelSettings />}
           <Routes>
-            <Route path="/" element={<IndexPage />} />
+            <Route path="/" element={BROWSER_MODE ? <Navigate to="/home" replace /> : <IndexPage />} />
             <Route path="/home" element={<HomePage />} />
             <Route path="/projects" element={<DashboardPage />} />
             <Route path="/dashboard" element={<Navigate to="/projects" replace />} />
@@ -38,10 +41,10 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/gallery" element={<Navigate to="/insights" replace />} />
             <Route path="/dna" element={<YourDNAPage />} />
             <Route path="/auth" element={<Navigate to="/auth/email" replace />} />
-            <Route path="/login" element={<EmailAuthPage />} />
-            <Route path="/signin" element={<EmailAuthPage />} />
-            <Route path="/sign-in" element={<EmailAuthPage />} />
-            <Route path="/auth/email" element={<EmailAuthPage />} />
+            <Route path="/login" element={BROWSER_MODE ? <Navigate to="/home" replace /> : <EmailAuthPage />} />
+            <Route path="/signin" element={BROWSER_MODE ? <Navigate to="/home" replace /> : <EmailAuthPage />} />
+            <Route path="/sign-in" element={BROWSER_MODE ? <Navigate to="/home" replace /> : <EmailAuthPage />} />
+            <Route path="/auth/email" element={BROWSER_MODE ? <Navigate to="/home" replace /> : <EmailAuthPage />} />
             <Route path="/workspace" element={<WorkspacePage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

@@ -74,7 +74,9 @@ run_frontend() {
     npm run lint
     npm run test:icons
     npm run test:editor
+    npm run test:browser
     npm run build
+    npm run build:browser
 }
 
 run_renderer() {

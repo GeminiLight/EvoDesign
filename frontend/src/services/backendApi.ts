@@ -1,3 +1,4 @@
+import { BROWSER_MODE } from './browser/runtime';
 import { parseGenerationReport } from '../utils/generationReport';
 import type {
   BackendDnaAnalyzeResponse,
@@ -347,6 +348,7 @@ export async function fetchProjectSnapshots(params: {
 export async function analyzeDnaImage(
   file: File,
 ): Promise<Array<{ tempId: number; cabinId: CabinId; title: string; preview: string }>> {
+  if (BROWSER_MODE) throw new Error('Image-based preference extraction requires the full local edition.');
   const formData = new FormData();
   formData.append('file', file);
 

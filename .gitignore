@@ -65,3 +65,6 @@ htmlcov/
 !/examples/diagrams/
 /evo_diagram/data/
 /evo_diagram/results/
+
+.vercel/
+frontend/.browser-qa/

@@ -1,3 +1,4 @@
+import { BROWSER_MODE } from './browser/runtime';
 import { notifyAuthInvalidated } from '../features/auth/authEvents';
 import { readLocalStorage } from '../utils/safeLocalStorage';
 
@@ -33,7 +34,7 @@ export function apiV1Url(path: string): string {
 }
 
 export function getStoredAuthToken(): string | null {
-  return readLocalStorage('auth_token');
+  return BROWSER_MODE ? null : readLocalStorage('auth_token');
 }
 
 export function requireStoredAuthToken(message = '未登录，请先登录'): string {

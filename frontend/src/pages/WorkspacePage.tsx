@@ -1,3 +1,4 @@
+import { BROWSER_MODE } from '../services/browser/runtime';
 import { parseGenerationReport } from '../utils/generationReport';
 import { GenerationReport } from '../components/GenerationReport';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -907,6 +908,7 @@ export function WorkspacePage() {
   }, [detectCanvasModeFromPayload, preview]);
 
   const getCanvasModeUnavailableReason = useCallback((mode: CanvasMode): string | null => {
+    if (BROWSER_MODE && mode === 'tldraw') return t('browser.excalidrawOnly');
     if (mode === canvasMode) return null;
     if (workspaceInteractionBlocked) {
       return t('workspace.canvasModeBusy');

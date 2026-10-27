@@ -58,18 +58,18 @@ export function GenerationReport({ report, t, compact = false }: { report: Repor
   }, [jobId, report.learning.status]);
   const learningState = learned && learned.jobId === jobId ? learned : report.learning;
   const label = (key: string, count: number) => t(`workspace.${key}`).replace('{count}', String(count));
-  const memory = report.memory.status === 'used'
+  const memory = report.browserEdition ? t('browser.edition') : report.memory.status === 'used'
     ? label('memoryUsed', report.memory.retrievedCount)
     : t(`workspace.memory${report.memory.status === 'unavailable' ? 'Unavailable' : report.memory.status === 'disabled' ? 'Disabled' : 'Empty'}`);
   const edited = report.qualityStatus === 'edited';
-  const attentionLabel = report.qualityStatus === 'needs_attention' ? t('workspace.qualityNeedsAttentionShort')
+  const attentionLabel = report.browserEdition ? '' : report.qualityStatus === 'needs_attention' ? t('workspace.qualityNeedsAttentionShort')
     : report.qualityStatus === 'unverified' ? t('workspace.qualityUnverified') : '';
   const detailsLabel = [t('workspace.generationDetails'), attentionLabel].filter(Boolean).join(' · ');
   const refined = report.refinement.status === 'completed';
   const keptOriginal = ['failed', 'unresolved'].includes(report.refinement.status);
   const skipLabel = report.refinement.status === 'unsupported' ? 'refinementUnsupported'
     : report.refinement.status === 'disabled' ? 'refinementDisabled' : 'refinementNotNeeded';
-  const refinement = refined ? label('refinementApplied', report.refinement.fixesApplied)
+  const refinement = report.browserEdition ? t(`browser.${refined ? 'reviewDone' : report.refinement.status === 'skipped' ? 'reviewOff' : 'reviewKept'}`) : refined ? label('refinementApplied', report.refinement.fixesApplied)
     : t(`workspace.${keptOriginal ? 'refinementKeptOriginal' : skipLabel}`);
   const learning = learningState.status === 'saved'
     ? label('memoryLearned', learningState.savedCount)
@@ -97,11 +97,11 @@ export function GenerationReport({ report, t, compact = false }: { report: Repor
         {report.qualityStatus === 'needs_attention' && (
           <p className="mb-2 text-amber-700 dark:text-amber-300">{t('workspace.qualityNeedsAttention')}</p>
         )}
-        {report.qualityStatus === 'unverified' && (
+        {!report.browserEdition && report.qualityStatus === 'unverified' && (
           <p className="mb-2 text-amber-700 dark:text-amber-300">{t('workspace.qualityUnverified')}</p>
         )}
-        <p className="flex items-center gap-1.5"><Check size={14} aria-hidden="true" />{learning}</p>
-        <p className="mt-1.5 leading-relaxed text-slate-500 dark:text-slate-400">{t('workspace.memoryLearningHint')}</p>
+        <p className="flex items-center gap-1.5"><Check size={14} aria-hidden="true" />{report.browserEdition ? t('browser.scope') : learning}</p>
+        <p className="mt-1.5 leading-relaxed text-slate-500 dark:text-slate-400">{t(report.browserEdition ? 'browser.memory' : 'workspace.memoryLearningHint')}</p>
         {!edited && report.beforeScore !== undefined && report.afterScore !== undefined && (
           <p className="mt-2 tabular-nums">{t('workspace.visualQualityScore')}: {report.beforeScore.toFixed(1)} → {report.afterScore.toFixed(1)} / 10</p>
         )}

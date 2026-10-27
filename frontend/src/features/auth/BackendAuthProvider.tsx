@@ -1,3 +1,4 @@
+import { BROWSER_MODE } from '../../services/browser/runtime';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { BackendAuthResponse } from '../../contracts/backendApi.generated';
 import { apiV1Url, readResponseDetail } from '../../services/httpClient';
@@ -94,10 +95,10 @@ const readCachedUser = (): User | null => {
   };
 };
 
-const getInitialToken = () => readLocalStorage('auth_token');
+const getInitialToken = () => BROWSER_MODE ? null : readLocalStorage('auth_token');
 
 const getInitialUser = () => {
-  if (!readLocalStorage('auth_token')) {
+  if (BROWSER_MODE || !readLocalStorage('auth_token')) {
     return null;
   }
   return readCachedUser();
@@ -106,12 +107,13 @@ const getInitialUser = () => {
 export const BackendAuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(() => getInitialUser());
   const [token, setToken] = useState<string | null>(() => getInitialToken());
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!BROWSER_MODE);
   const { showToast } = useToast();
   const { t } = useLanguage();
   const oauthErrorHandledRef = useRef(false);
 
   useEffect(() => {
+    if (BROWSER_MODE) return;
     let mounted = true;
 
     const loadSession = async (tokenOverride?: string) => {
@@ -219,6 +221,7 @@ export const BackendAuthProvider = ({ children }: { children: React.ReactNode })
   // rejected sign-in dropped the user back on the landing page with no clue
   // that anything had gone wrong.
   useEffect(() => {
+    if (BROWSER_MODE) return;
     if (oauthErrorHandledRef.current) return;
 
     const params = new URLSearchParams(window.location.search);
@@ -243,6 +246,7 @@ export const BackendAuthProvider = ({ children }: { children: React.ReactNode })
   }, [showToast, t]);
 
   useEffect(() => {
+    if (BROWSER_MODE) return;
     const clearSessionState = () => {
       clearStoredSession();
       setUser(null);

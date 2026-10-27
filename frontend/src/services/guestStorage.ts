@@ -1,3 +1,4 @@
+import { BROWSER_MODE } from './browser/runtime';
 import type { DiagramRequest, DiagramResponse, SchemaSyncPayload, SchemaSyncResult, ProjectSnapshotResponse, ProjectSnapshotItem } from '../types/api';
 import type { RecentDiagram } from '../types/app';
 import type { CabinId, Rule } from '../types/dna';
@@ -11,7 +12,7 @@ const GUEST_DIAGRAMS_KEY = 'evodiagram_guest_diagrams';
 const GUEST_DNA_KEY = 'evodiagram_guest_dna';
 
 export function isGuest(): boolean {
-  return !readLocalStorage('auth_token');
+  return BROWSER_MODE || !readLocalStorage('auth_token');
 }
 
 function guestId(): string {
