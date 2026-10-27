@@ -447,7 +447,7 @@ class InstantiationToTldrawConverter:
         ``_create_standalone_text_element`` branch.
 
         Prop set matches ``com.tldraw.shape.text`` v2 as declared in the
-        snapshot schema (``color``/``size``/``font``/``align``/``w``/``text``/
+        snapshot schema (``color``/``size``/``font``/``textAlign``/``w``/``text``/
         ``autoSize``/``scale``); tldraw rejects unknown props, so the layout
         height is carried in ``meta`` instead of ``props``.
         """
@@ -466,10 +466,11 @@ class InstantiationToTldrawConverter:
             or element_data.get("strokeColor")
             or ""
         )
-        text_align = (
-            props.get("align")
-            or self._map_text_align(label_data.get("textAlign", ""))
-            or self._map_text_align(element_data.get("textAlign", ""))
+        text_align = self._map_text_align(
+            props.get("textAlign")
+            or props.get("align")
+            or label_data.get("textAlign")
+            or element_data.get("textAlign")
         )
 
         w = props.get("w", element_data.get("w", 186))
@@ -493,7 +494,7 @@ class InstantiationToTldrawConverter:
                 "size": props.get("size", "m"),
                 "font": props.get("font", "draw"),
                 "text": text,
-                "align": text_align,
+                "textAlign": text_align,
                 "autoSize": bool(props.get("autoSize", True)),
                 "scale": 1,
             },

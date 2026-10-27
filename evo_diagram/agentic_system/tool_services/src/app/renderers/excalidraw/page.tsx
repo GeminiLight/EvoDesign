@@ -58,7 +58,7 @@ export default function ExcalidrawRendererPage() {
 
                 api.updateScene(payload);
                 if (payload.files && api.addFiles) {
-                    api.addFiles(payload.files);
+                    api.addFiles(Object.values(payload.files));
                 }
                 if (api.scrollToContent && payload.elements) {
                     api.scrollToContent(payload.elements, { fitToContent: true });
@@ -67,18 +67,22 @@ export default function ExcalidrawRendererPage() {
                 await document.fonts.ready;
                 await new Promise((resolve) => requestAnimationFrame(resolve));
 
-                const { exportToBlob } = await import('@excalidraw/excalidraw');
+                const { exportToBlob, restoreElements } = await import('@excalidraw/excalidraw');
+                // The editor's initial hydration can replace its scene after
+                // updateScene. Export the submitted scene directly so the
+                // first snapshot cannot silently become an empty canvas.
+                const exportElements = restoreElements(normalized.elements || [], null);
                 const exportScale = Number(window.__exportScale ?? DEFAULT_EXCALIDRAW_EXPORT_SCALE);
                 const exportMargin = Number(window.__exportMargin ?? DEFAULT_RENDER_MARGIN);
                 const blob = await exportToBlob({
-                    elements: api.getSceneElements(),
+                    elements: exportElements,
                     appState: {
-                        ...api.getAppState(),
+                        ...appState,
                         exportWithDarkMode: false,
                         exportBackground: true,
                         exportScale,
                     },
-                    files: api.getFiles(),
+                    files: normalized.files || {},
                     mimeType: 'image/png',
                     exportPadding: exportMargin,
                     getDimensions: (width: number, height: number) => ({
