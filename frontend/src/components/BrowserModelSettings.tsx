@@ -14,7 +14,7 @@ function connectionError(error: unknown, zh: boolean): string {
   if (/402|429/.test(message)) return '服务商额度不足或请求受限，请检查账户额度后重试。';
   if (/404/.test(message)) return '找不到接口或模型，请核对 API 地址和模型 ID。';
   if (/timed out/i.test(message)) return '连接超时，请稍后重试，或换用响应更快的模型。';
-  if (/CORS|Cannot reach/.test(message)) return '浏览器无法连接，请检查地址、网络及服务商的跨域（CORS）支持。';
+  if (/CORS|Cannot reach/.test(message)) return '浏览器无法连接。请检查地址和网络；若服务商不支持跨域（CORS），请改用支持浏览器直连的接口，或运行完整本地版。';
   if (/no text|no completion|invalid response/.test(message)) return '接口未返回有效文本，请确认模型支持 Chat Completions。';
   return '连接失败，请检查接口、模型权限及服务商状态。';
 }

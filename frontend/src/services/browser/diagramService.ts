@@ -7,9 +7,9 @@ import { preserveLockedElements, repairSceneBindings, reflowEditedText, renderPl
 import { openModelSettings } from './runtime';
 
 const PLAN_PROMPT = `You design clear editable diagrams. Return ONLY a JSON object:
-{"title":"short title","kind":"graph or sequence","direction":"TB or LR","nodes":[{"id":"stable_id","label":"concise text","shape":"rectangle, diamond or ellipse","color":"#e0e7ff","icon":"optional catalog name"}],"edges":[{"source":"node id","target":"node id","label":"optional concise label"}]}.
+{"title":"short title","kind":"graph or sequence","direction":"TB or LR","nodes":[{"id":"stable_id","label":"concise text","shape":"rectangle, diamond or ellipse","color":"#e0e7ff","icon":"optional catalog name"}],"edges":[{"source":"node id","target":"node id","label":"optional concise label","strokeStyle":"solid or dashed"}]}.
 Preserve the source language and all requested actors, actions, connections and branches. Use readable short labels with explicit line breaks when needed. Use coherent pale blue, cyan and violet colors with restrained accents. Use diamonds for decisions and label outcomes. Never create a node for a styling instruction. All edge endpoints must exist. IDs must be unique ASCII letters, digits, underscores or hyphens. At most 60 nodes and 120 edges.
-For SEQUENCE diagrams, nodes are ordered participants; edges are chronologically ordered messages, including replies and self messages. For other diagrams use graph. A deterministic client layout engine places nodes and routes edges; do not output coordinates, native canvas data, external URLs, images, scripts or Markdown.`;
+For SEQUENCE diagrams, nodes are ordered participants; edges are chronologically ordered messages, including replies and self messages. Use dashed strokes for return messages and solid strokes for calls unless requested otherwise. Put line styling in strokeStyle, never in label text. Do not infer a return solely from its leftward direction. For other diagrams use graph. A deterministic client layout engine places nodes and routes edges; do not output coordinates, native canvas data, external URLs, images, scripts or Markdown.`;
 
 function model() {
   const config = loadModelConfig();
@@ -74,7 +74,7 @@ function countChanges(a: DiagramPlan, b: DiagramPlan): number {
     + b.edges.filter((e, i) => JSON.stringify(e) !== JSON.stringify(a.edges[i])).length;
 }
 
-const PATCH_FIELDS = new Set(['text', 'originalText', 'strokeColor', 'backgroundColor', 'fontSize', 'x', 'y', 'width', 'height', 'strokeWidth', 'opacity']);
+const PATCH_FIELDS = new Set(['text', 'originalText', 'strokeColor', 'backgroundColor', 'strokeStyle', 'fontSize', 'x', 'y', 'width', 'height', 'strokeWidth', 'opacity']);
 export function sanitizeEdit(value: unknown, request: DiagramLocalEditRequest): Record<string, unknown> {
   const answer = value && typeof value === 'object' ? value as Record<string, unknown> : {};
   const existing = (Array.isArray(request.current_schema.elements) ? request.current_schema.elements : []) as Record<string, unknown>[];
@@ -87,6 +87,7 @@ export function sanitizeEdit(value: unknown, request: DiagramLocalEditRequest): 
     for (const [k, v] of Object.entries(raw)) {
       if (!PATCH_FIELDS.has(k)) continue;
       if (['strokeColor', 'backgroundColor'].includes(k) && typeof v === 'string' && /^(#[\da-f]{6}|transparent)$/i.test(v)) patch[k] = v;
+      else if (k === 'strokeStyle' && (v === 'solid' || v === 'dashed')) patch[k] = v;
       else if (['text', 'originalText'].includes(k) && byId.get(raw.id)?.type === 'text' && typeof v === 'string') patch[k] = v.slice(0, 1000);
       else if (typeof v === 'number' && Number.isFinite(v)) {
         if (['x', 'y'].includes(k) && Math.abs(v) <= 100_000) patch[k] = v;
@@ -110,7 +111,7 @@ export async function editBrowserDiagram(request: DiagramLocalEditRequest): Prom
   const selected = new Set(request.selected_node_ids);
   const scope = elements.filter(e => selected.has(String(e.id)) || selected.has(String(e.containerId)));
   if (!scope.length) throw new Error('Select at least one existing object to edit.');
-  const answer = await callBrowserModel(model(), 'Edit only the selected Excalidraw objects and their bound text. Return JSON {"elements":[{"id":"existing id", ...changed fields}],"deleted_ids":[]}. Supported fields: text, originalText, strokeColor, backgroundColor (six-digit hex), fontSize, x, y, width, height, strokeWidth, opacity. Keep all IDs. No new elements, URLs, bindings, scripts or images. Only delete if explicitly requested. For label edits change its bound text object. Preserve all omitted properties.',
+  const answer = await callBrowserModel(model(), 'Edit only the selected Excalidraw objects and their bound text. Return JSON {"elements":[{"id":"existing id", ...changed fields}],"deleted_ids":[]}. Supported fields: text, originalText, strokeColor, backgroundColor (six-digit hex), strokeStyle (solid or dashed), fontSize, x, y, width, height, strokeWidth, opacity. Keep all IDs. No new elements, URLs, bindings, scripts or images. Only delete if explicitly requested. For label edits change its bound text object. Preserve all omitted properties.',
     JSON.stringify({ instruction: request.instruction, selected: scope.map(({ customData: _custom, ...e }) => { void _custom; return e; }) }));
   const modified = await reflowEditedText(request.current_schema, sanitizeEdit(parseModelJson(answer), request));
   return { request_id: crypto.randomUUID(), modified_nodes: modified, operation_type: 'update', summary: 'Selected objects updated.' };

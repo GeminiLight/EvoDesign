@@ -15,6 +15,7 @@ type DiagramCanvasPanelProps = {
   preview: DiagramResponse | null;
   projectName?: string;
   projectNavigation?: ReactNode;
+  saveIndicator?: ReactNode;
   isFocusMode?: boolean;
   onToggleFocus?: () => void;
   isGenerating?: boolean;
@@ -30,6 +31,7 @@ export const DiagramCanvasPanel = ({
   preview,
   projectName,
   projectNavigation,
+  saveIndicator,
   isFocusMode,
   onToggleFocus,
   isGenerating = false,
@@ -138,7 +140,7 @@ export const DiagramCanvasPanel = ({
         <CanvasRenderBoundary resetKey={canvasResetKey} onRenderError={handleRenderError}>
           {canvasMode === 'tldraw' ? (
             <div className="flex h-full min-h-0 flex-col">
-              <div className="canvas-toolbar">{projectNavigation}<p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{projectName}</p></div>
+              <div className="canvas-toolbar">{projectNavigation}<p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{projectName}</p>{saveIndicator}</div>
               <div className="relative min-h-0 flex-1">
             <TldrawCanvas
               snapshot={tldrawSnapshot}
@@ -155,6 +157,7 @@ export const DiagramCanvasPanel = ({
               sceneIdentity={canvasResetKey}
               exportName={projectName}
               projectNavigation={projectNavigation}
+              saveIndicator={saveIndicator}
               generationReport={!isGenerating ? preview?.generationReport : undefined}
               isFocusMode={isFocusMode}
               onToggleFocus={onToggleFocus}

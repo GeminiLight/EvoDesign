@@ -58,8 +58,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const showToast = useCallback(
     (message: string, variant: ToastVariant = 'info') => {
-      const id = `toast_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
-      setToasts((prev) => [...prev, { id, message, variant }]);
+      // Repeated actions refresh one notice instead of covering the workspace
+      // with identical cards (for example when exporting several formats).
+      const id = JSON.stringify([variant, message]);
+      clearTimeout(timersRef.current.get(id));
+      clearTimeout(removalTimersRef.current.get(id));
+      removalTimersRef.current.delete(id);
+      setToasts((prev) => [...prev.filter(toast => toast.id !== id), { id, message, variant }]);
 
       const timer = setTimeout(() => {
         dismiss(id);

@@ -118,6 +118,18 @@ export function CanvasStateOverlay({
 
   const Icon = copy.Icon;
 
+  // The stage bar already owns generation progress. Keep the canvas visible
+  // while blocking edits, instead of covering it with a second progress card.
+  if (blocksCanvasInteraction) {
+    return <div className="pointer-events-auto absolute inset-0 z-20 flex items-end justify-center bg-white/10 px-4 pb-16 dark:bg-slate-950/10"
+      aria-busy="true" data-canvas-blocking-overlay={kind}>
+      {kind === 'generating' ? <p role="status" className="sr-only">{copy.title}: {copy.hint}</p>
+        : <p role="status" className="flex max-w-full items-center gap-2 rounded-full border border-slate-200 bg-white/95 px-4 py-2 text-xs text-slate-600 shadow-sm dark:border-white/10 dark:bg-slate-900/95 dark:text-slate-300">
+          <Loader2 size={14} className="shrink-0 animate-spin text-indigo-500" aria-hidden="true" />{copy.title}
+        </p>}
+    </div>;
+  }
+
   return (
     <div
       className={`${blocksCanvasInteraction ? 'pointer-events-auto' : 'pointer-events-none'} absolute inset-0 z-20 flex items-center justify-center bg-white/55 px-4 backdrop-blur-[2px] dark:bg-slate-950/50`}

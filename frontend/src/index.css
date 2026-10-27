@@ -733,6 +733,11 @@ textarea::placeholder { opacity: 1; }
   .canvas-fit-label, .generation-report[data-compact='true'] summary .report-label { display: none; }
   .workspace-project-toggle span { display: none; }
 }
+@container canvas-embed (max-width: 520px) {
+  .canvas-save-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+.canvas-save-status[data-attention='true'] .tool-button { color: #b45309; }
+.dark .canvas-save-status[data-attention='true'] .tool-button { color: #fcd34d; }
 @media (max-width: 1023px) {
   .workspace-main { padding: 8px; }
   .workspace-grid { display: flex; flex-direction: column; }

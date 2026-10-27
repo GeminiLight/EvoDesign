@@ -358,7 +358,7 @@ export function AgentChatPanel({
         aria-live="polite"
         className="assistant-feed custom-scrollbar"
       >
-        {isEmptyConversation && !startPromptsHandledElsewhere && (
+        {isEmptyConversation && !startPromptsHandledElsewhere && !isWorkspaceBusy && (
           <div className="assistant-welcome">
             <div className="assistant-welcome-symbol" aria-hidden="true"><SquareDashedMousePointer size={25} strokeWidth={1.4} /></div>
             <h3>{t(hasContent ? 'workspace.assistantWelcome' : 'workspace.assistantStart')}</h3>
@@ -391,24 +391,11 @@ export function AgentChatPanel({
               </div>
             )
           )}
-
-          {isWorkspaceBusy && (
-            <div className="flex items-start gap-2" role="status" aria-label={busyTitle || t('workspace.typingStatus')}>
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-brand-50 dark:bg-brand-500/15">
-                <Sparkles className="h-3 w-3 text-brand-500" />
-              </span>
-              <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm bg-slate-50 px-3 py-2.5 dark:bg-slate-800">
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:0ms]" />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:150ms]" />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:300ms]" />
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
       {!startPromptsHandledElsewhere && <form className="assistant-composer" onSubmit={handleSubmit}>
-        {!isEmptyConversation && showQuickPrompts && <details className="assistant-followups">
+        {!isEmptyConversation && showQuickPrompts && !isWorkspaceBusy && <details className="assistant-followups">
           <summary><ChevronDown size={13} aria-hidden="true" />{quickPromptGroupLabel}</summary>
           {promptButtons}
         </details>}

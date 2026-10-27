@@ -8,10 +8,10 @@ import type { GenerationReport as Report } from '../../utils/generationReport';
 import { documentAppState, sceneFiles } from '../../utils/excalidrawScene';
 import { fitExcalidraw } from '../../utils/fitExcalidraw';
 
-type Props = { projectNavigation?: ReactNode; api: ExcalidrawImperativeAPI | null; name: string; disabled?: boolean; report?: Report; isFocusMode?: boolean; onToggleFocus?: () => void };
+type Props = { projectNavigation?: ReactNode; saveIndicator?: ReactNode; api: ExcalidrawImperativeAPI | null; name: string; disabled?: boolean; report?: Report; isFocusMode?: boolean; onToggleFocus?: () => void };
 
 /** Export the live editor scene, including unsaved edits and embedded icons. */
-export function CanvasToolbar({ projectNavigation, api, name, disabled = false, report, isFocusMode, onToggleFocus }: Props) {
+export function CanvasToolbar({ projectNavigation, saveIndicator, api, name, disabled = false, report, isFocusMode, onToggleFocus }: Props) {
   const { t } = useLanguage();
   const { showToast } = useToast();
   const [open, setOpen] = useState(false);
@@ -90,6 +90,7 @@ export function CanvasToolbar({ projectNavigation, api, name, disabled = false, 
     <div className="canvas-toolbar">
       {projectNavigation}
       <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100" title={name}>{name}</p>
+      {saveIndicator}
       {report && <GenerationReport report={report} t={t} compact />}
       <button type="button" disabled={unavailable} className="tool-button" title={t('workspace.fitCanvas')}
         onClick={() => { if (api) void fitExcalidraw(api, api.getSceneElements()).catch(() => showToast(t('workspace.fitFailed'), 'error')); }}>
