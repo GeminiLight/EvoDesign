@@ -1,10 +1,10 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DnaSyncStatus } from '../components/DNA/DnaSyncStatus';
 import { Header } from '../components/Header';
 import { GalleryHero } from '../components/Gallery/GalleryHero';
 import { GalleryFilterBar } from '../components/Gallery/GalleryFilterBar';
-import { WorksMasonryGrid } from '../components/Gallery/WorksMasonryGrid';
+import { WorksGrid } from '../components/Gallery/WorksGrid';
 import { DnaMarketGrid } from '../components/Gallery/DnaMarketGrid';
 import { WorkPreviewModal } from '../components/Gallery/WorkPreviewModal';
 import { DnaPreviewModal } from '../components/Gallery/DnaPreviewModal';
@@ -61,7 +61,6 @@ export const GalleryPage = () => {
   const [sortBy, setSortBy] = useState<'trending' | 'newest' | 'mostCloned'>('trending');
   const [previewWork, setPreviewWork] = useState<GalleryWork | null>(null);
   const [previewDna, setPreviewDna] = useState<GalleryDna | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [injectedDnaNotice, setInjectedDnaNotice] = useState<{ name: string; cabinId: CabinId; ruleId: number } | null>(null);
 
   const handleCloneWork = useCallback((work: GalleryWork) => {
@@ -132,17 +131,10 @@ export const GalleryPage = () => {
     setInjectedDnaNotice(null);
   }, [injectedDnaNotice, setRuleLibrary, showToast, t]);
 
-  // ─── Simulated loading on tab switch ─────
   const handleTabChange = useCallback((tab: 'works' | 'dna') => {
     setActiveTab(tab);
-    setIsLoading(true);
+    setSortBy('trending');
   }, []);
-
-  useEffect(() => {
-    if (!isLoading) return;
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, [isLoading]);
 
   // ─── Filter toggles ─────────────────────
   const handleToggleIndustry = useCallback((tag: IndustryTag) => {
@@ -169,12 +161,14 @@ export const GalleryPage = () => {
 
     // Search
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+      const q = searchQuery.trim().toLowerCase();
       result = result.filter(
         (w) =>
           w.title.toLowerCase().includes(q) ||
           w.titleZh.includes(q) ||
-          w.author.toLowerCase().includes(q) ||
+          w.description.toLowerCase().includes(q) ||
+          w.descriptionZh.includes(q) ||
+          t(`gallery.diagram_${w.diagramType}`).toLowerCase().includes(q) ||
           w.diagramType.toLowerCase().includes(q),
       );
     }
@@ -195,53 +189,41 @@ export const GalleryPage = () => {
     } else if (sortBy === 'newest') {
       result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } else {
-      result.sort((a, b) => a.title.localeCompare(b.title));
+      result.sort((a, b) => (language === 'zh' ? a.titleZh : a.title).localeCompare(language === 'zh' ? b.titleZh : b.title, language));
     }
 
     return result;
-  }, [searchQuery, selectedIndustryTags, selectedComplexity, sortBy]);
+  }, [searchQuery, selectedIndustryTags, selectedComplexity, sortBy, language, t]);
 
   const filteredDna = useMemo(() => {
     let result = [...GALLERY_DNA];
 
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+      const q = searchQuery.trim().toLowerCase();
       result = result.filter(
         (d) =>
           d.name.toLowerCase().includes(q) ||
           d.nameZh.includes(q) ||
-          d.author.toLowerCase().includes(q) ||
+          d.description.toLowerCase().includes(q) ||
+          d.descriptionZh.includes(q) ||
           d.category.toLowerCase().includes(q),
       );
     }
 
     // Sort
     if (sortBy === 'mostCloned') {
-      result.sort((a, b) => a.name.localeCompare(b.name));
+      result.sort((a, b) => (language === 'zh' ? a.nameZh : a.name).localeCompare(language === 'zh' ? b.nameZh : b.name, language));
     }
 
     return result;
-  }, [searchQuery, sortBy]);
+  }, [searchQuery, sortBy, language]);
 
   const resultCount = activeTab === 'works' ? filteredWorks.length : filteredDna.length;
 
-  // ─── Close modal on Escape ──────────────
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setPreviewWork(null);
-        setPreviewDna(null);
-      }
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, []);
-
   return (
-    <div className="bg-soft-mesh dark:bg-soft-mesh-dark min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen flex flex-col bg-[#fafbfe] dark:bg-[#080d1b]">
       <Header />
 
-      <div className="mx-auto w-full max-w-7xl px-4 pt-5 sm:px-6 lg:px-8"><p className="rounded-lg border border-brand-100 bg-brand-50 px-4 py-3 text-sm text-brand-800 dark:border-brand-800 dark:bg-brand-950 dark:text-brand-200">{language === 'zh' ? '预设示例：用于探索图表结构与风格，并非社区作品或实时排行榜。' : 'Curated examples for exploring diagram structures and styles. These are sample designs, not a community feed or live rankings.'}</p></div>
       <GalleryHero
         t={t}
         searchQuery={searchQuery}
@@ -250,11 +232,11 @@ export const GalleryPage = () => {
         onTabChange={handleTabChange}
       />
 
-      <main id="main-content" className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-6 sm:px-6 lg:px-8">
+      <main id="main-content" className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 pb-12 sm:px-6">
         {activeTab === 'dna' && <DnaSyncStatus {...ruleLib} />}
         <div className="flex w-full flex-col gap-5 lg:flex-row lg:gap-6">
           {/* Left: filter + content */}
-          <div className="min-w-0 flex-1 space-y-5 rounded-2xl border border-white/60 bg-white/60 p-3 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/60 sm:p-4">
+          <div className="min-w-0 flex-1">
             <GalleryFilterBar
               t={t}
               activeTab={activeTab}
@@ -265,6 +247,7 @@ export const GalleryPage = () => {
               sortBy={sortBy}
               onSortChange={setSortBy}
               resultCount={resultCount}
+              onResetFilters={handleResetFilters}
             />
 
             {injectedDnaNotice && (
@@ -303,14 +286,12 @@ export const GalleryPage = () => {
               key={activeTab}
               role="tabpanel"
               aria-labelledby={activeTab === 'works' ? WORKS_TAB_ID : DNA_TAB_ID}
-              aria-busy={isLoading}
               tabIndex={0}
               className="gallery-cross-fade-in rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-brand-500 dark:focus-visible:ring-offset-slate-900"
             >
               {activeTab === 'works' ? (
-                <WorksMasonryGrid
+                <WorksGrid
                   works={filteredWorks}
-                  isLoading={isLoading}
                   t={t}
                   language={language}
                   onClickWork={setPreviewWork}
@@ -323,11 +304,9 @@ export const GalleryPage = () => {
               ) : (
                 <DnaMarketGrid
                   dnaList={filteredDna}
-                  isLoading={isLoading}
                   t={t}
                   language={language}
                   onClickDna={setPreviewDna}
-                  onInjectDna={handleInjectDna}
                   hasActiveSearch={hasActiveSearch}
                   onClearSearch={handleClearSearch}
                 />
