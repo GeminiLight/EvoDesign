@@ -284,7 +284,7 @@ export const GALLERY_WORKS: GalleryWork[] = [
       nodes: [
         { x: 110, y: 8, w: 60, h: 18, rx: 12, color: ROSE, label: 'Gateway', delay: 0 },
         { x: 20, y: 60, w: 56, h: 18, rx: 6, color: B5, label: 'Lobby', delay: 1 },
-        { x: 110, y: 60, w: 56, h: 18, rx: 6, color: EMERALD, label: 'Matchmaking', delay: 2 },
+        { x: 110, y: 60, w: 56, h: 18, rx: 6, color: EMERALD, label: 'Matching', delay: 2 },
         { x: 200, y: 60, w: 56, h: 18, rx: 6, color: AMBER, label: 'Relay', delay: 3 },
         { x: 60, y: 116, w: 56, h: 18, rx: 6, color: VIOLET, label: 'Players', delay: 4 },
         { x: 165, y: 116, w: 56, h: 18, rx: 6, color: B4, label: 'Game state', delay: 5 },
