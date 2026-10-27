@@ -2,7 +2,7 @@ import dagre from '@dagrejs/dagre';
 import { routeAroundNodes } from './edgeRouting';
 
 export type PlanNode = { id: string; label: string; shape: 'rectangle' | 'diamond' | 'ellipse'; color: string; icon?: string };
-export type PlanEdge = { source: string; target: string; label: string };
+export type PlanEdge = { source: string; target: string; label: string; strokeStyle: 'solid' | 'dashed' };
 export type DiagramPlan = { title: string; kind: 'graph' | 'sequence'; direction: 'TB' | 'LR'; nodes: PlanNode[]; edges: PlanEdge[] };
 export type PlacedNode = PlanNode & { x: number; y: number; width: number; height: number; text: string };
 export type PlacedEdge = PlanEdge & { points: { x: number; y: number }[] };
@@ -35,7 +35,8 @@ export function normalizePlan(value: unknown): DiagramPlan {
   const edges = data.edges.map((raw): PlanEdge => {
     const e = object(raw); const source = text(e.source, 80); const target = text(e.target, 80);
     if (!ids.has(source) || !ids.has(target)) throw new Error('The model returned a connection to a missing node.');
-    return { source: ids.get(source)!, target: ids.get(target)!, label: text(e.label, 160) };
+    return { source: ids.get(source)!, target: ids.get(target)!, label: text(e.label, 160),
+      strokeStyle: e.strokeStyle === 'dashed' ? 'dashed' : 'solid' };
   });
   return { title: text(data.title, 160) || 'Untitled diagram', kind: data.kind === 'sequence' ? 'sequence' : 'graph',
     direction: data.direction === 'LR' ? 'LR' : 'TB', nodes, edges };

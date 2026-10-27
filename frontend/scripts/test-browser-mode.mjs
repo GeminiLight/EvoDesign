@@ -159,11 +159,14 @@ test('cyclic graph layouts have finite, nonoverlapping nodes with icons on and o
   }
 });
 test('sequence messages stay chronological, including self messages and replies', () => {
-  const plan = normalizePlan({ ...sample(), kind: 'sequence', edges: [{ source: 'a', target: 'b' }, { source: 'b', target: 'b' }, { source: 'b', target: 'a' }] });
+  const plan = normalizePlan({ ...sample(), kind: 'sequence', edges: [{ source: 'a', target: 'b', strokeStyle: 'invalid' }, { source: 'b', target: 'b' }, { source: 'b', target: 'a', strokeStyle: 'dashed' }] });
   const layout = layoutPlan(plan, false);
   assert.ok(layout.edges[0].points[0].y < layout.edges[1].points[0].y);
   assert.ok(layout.edges[1].points[0].y < layout.edges[2].points[0].y);
   assert.equal(layout.edges[1].points.length, 4);
+  assert.deepEqual(layout.edges.map(e => e.strokeStyle), ['solid', 'solid', 'dashed']);
+  assert.equal(normalizePlan({ ...plan, edges: [{ source: 'b', target: 'a' }] }).edges[0].strokeStyle, 'solid',
+    'a leftward call is not automatically a dashed reply');
   assert.equal(preservesContent(plan, { ...plan, edges: [...plan.edges].reverse() }), false);
   assert.equal(preservesContent(plan, { ...plan, nodes: [...plan.nodes].reverse() }), false);
 });
@@ -202,6 +205,9 @@ test('local edits are scoped to selection and bound text; URLs and unrelated obj
   assert.equal(merged.elements.find(e => e.id === 'other').x, 20);
   assert.equal(patch.elements[0].link, undefined); assert.equal(merged.elements.length, 3);
   assert.throws(() => sanitizeEdit({ elements: [{ id: 'other', x: 999 }] }, request));
+  const lineRequest = { current_schema: { elements: [{ id: 'reply', type: 'arrow', strokeStyle: 'solid' }] }, selected_node_ids: ['reply'] };
+  assert.deepEqual(sanitizeEdit({ elements: [{ id: 'reply', strokeStyle: 'dashed' }] }, lineRequest).elements, [{ id: 'reply', strokeStyle: 'dashed' }]);
+  assert.throws(() => sanitizeEdit({ elements: [{ id: 'reply', strokeStyle: 'url(secret)' }] }, lineRequest));
 });
 test('locked node, its label, icon and files survive regeneration without duplicate companions', () => {
   const old = { elements: [{ id: 'a', type: 'rectangle', x: 5 }, { id: 'old-label', type: 'text', containerId: 'a' }, { id: 'old-icon', type: 'image', customData: { evoDesignIcon: { hostId: 'a' } } }], files: { old: {} } };

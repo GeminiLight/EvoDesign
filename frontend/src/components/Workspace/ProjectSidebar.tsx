@@ -126,7 +126,7 @@ export function ProjectSidebar({
     : isSaveSaved
       ? t('workspace.changesSaved')
       : isSaveClean
-        ? t('workspace.noChangesToSave')
+        ? t('workspace.changesSaved')
         : t('workspace.saveChanges');
   const saveButtonToneClass = isSaveConflict || isSaveAuthExpired || isSaveMissingProject
     ? 'border-amber-200 bg-amber-50/80 text-amber-800 hover:border-amber-300 hover:bg-amber-50 dark:border-amber-500/35 dark:bg-amber-500/10 dark:text-amber-200 dark:hover:border-amber-400/50 dark:hover:bg-amber-500/15'

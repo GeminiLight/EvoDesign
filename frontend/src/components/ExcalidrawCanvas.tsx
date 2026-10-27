@@ -34,6 +34,7 @@ export type ExcalidrawCanvasProps = {
   backgroundColor?: string;
   exportName?: string;
   projectNavigation?: ReactNode;
+  saveIndicator?: ReactNode;
   controlsDisabled?: boolean;
   generationReport?: GenerationReport;
   isFocusMode?: boolean;
@@ -48,7 +49,7 @@ type ExcalidrawSceneRecord = Record<string, unknown> & {
 
 type ExcalidrawUpdateSceneArgs = Parameters<ExcalidrawImperativeAPI['updateScene']>[0];
 
-export function ExcalidrawCanvas({ sceneData, sceneIdentity, onSceneChange, onSelectionChange, onRenderError, backgroundColor = '#ffffff', exportName = 'EvoDesign', projectNavigation, controlsDisabled = false, generationReport, isFocusMode, onToggleFocus }: ExcalidrawCanvasProps) {
+export function ExcalidrawCanvas({ sceneData, sceneIdentity, onSceneChange, onSelectionChange, onRenderError, backgroundColor = '#ffffff', exportName = 'EvoDesign', projectNavigation, saveIndicator, controlsDisabled = false, generationReport, isFocusMode, onToggleFocus }: ExcalidrawCanvasProps) {
   const { language, t } = useLanguage();
   const [theme, setTheme] = useState<'light' | 'dark'>(() => document.documentElement.classList.contains('dark') ? 'dark' : 'light');
   useEffect(() => {
@@ -308,7 +309,7 @@ export function ExcalidrawCanvas({ sceneData, sceneIdentity, onSceneChange, onSe
     <div className="relative flex h-full min-h-0 w-full flex-col bg-white"
       onPointerDownCapture={() => { userInteractedRef.current = true; }}
       onKeyDownCapture={() => { userInteractedRef.current = true; }}>
-      <CanvasToolbar projectNavigation={projectNavigation} api={canvasReady ? apiRef.current : null} name={exportName} disabled={controlsDisabled} report={generationReport} isFocusMode={isFocusMode} onToggleFocus={onToggleFocus} />
+      <CanvasToolbar projectNavigation={projectNavigation} saveIndicator={saveIndicator} api={canvasReady ? apiRef.current : null} name={exportName} disabled={controlsDisabled} report={generationReport} isFocusMode={isFocusMode} onToggleFocus={onToggleFocus} />
       <div ref={viewportRef} className="relative min-h-0 flex-1">
       <Suspense fallback={<CanvasFallback label="Excalidraw" />}>
         <LazyExcalidraw

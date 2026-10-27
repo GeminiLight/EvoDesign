@@ -194,6 +194,7 @@ export function guestFetchRecentDiagrams(): RecentDiagram[] {
       created_at: d.created_at,
       updated_at: getUpdatedAt(d),
       snapshot_count: d.snapshots?.length ?? 0,
+      generation_report: d.snapshots?.find(snapshot => snapshot.snapshot_id === d.snapshot_id)?.generation_report,
     }));
 }
 

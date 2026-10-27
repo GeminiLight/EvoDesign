@@ -24,7 +24,7 @@ export async function renderPlan(plan: DiagramPlan, useIcons: boolean): Promise<
   layout.edges.forEach((e) => {
     const first = e.points[0];
     skeleton.push({ ...common, type: 'arrow', id: crypto.randomUUID(), x: first.x, y: first.y,
-      points: e.points.map(p => [p.x - first.x, p.y - first.y]), endArrowhead: 'arrow',
+      points: e.points.map(p => [p.x - first.x, p.y - first.y]), endArrowhead: 'arrow', strokeStyle: e.strokeStyle,
       ...(plan.kind === 'graph' && e.source !== e.target ? { start: { id: e.source }, end: { id: e.target } } : {}),
       ...(e.label ? { label: { text: wrapLabel(e.label, 22), fontFamily: 2, fontSize: 14, strokeColor: '#475569' } } : {}),
     });

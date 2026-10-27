@@ -19,7 +19,7 @@ const { mergeDeltaIntoSchema, getSnapshotDocSignature } = await load('src/utils/
 const { documentAppState, inPlaceAppState, retainedSelection, sceneFiles } = await load('src/utils/excalidrawScene.ts');
 const { workspaceAuthTransition, canRestoreWorkspaceDraft } = await load('src/utils/workspaceAuth.ts');
 const { normalizeBackendTimestamp, snapshotSourceKey, generatedProjectTitle } = await load('src/utils/projectHistory.ts');
-const { guestSaveDiagram, guestExportProjects, guestSyncProjectSchema, guestFetchProjectSnapshots, guestLoadDnaRules, guestSaveDnaRules } = await load('src/services/guestStorage.ts');
+const { guestSaveDiagram, guestExportProjects, guestSyncProjectSchema, guestFetchRecentDiagrams, guestFetchProjectSnapshots, guestLoadDnaRules, guestSaveDnaRules } = await load('src/services/guestStorage.ts');
 const { fetchRecentDiagrams, fetchProjectDiagram, fetchProjectSnapshots, syncProjectSchema, saveDnaRules, loadDnaRules } = await load('src/services/backendApi.ts');
 const { notifyAuthInvalidated } = await load('src/features/auth/authEvents.ts');
 const { shouldSubmitOnEnter, shouldSubmitOnModifiedEnter } = await load('src/utils/keyboard.ts');
@@ -157,10 +157,16 @@ test('guest storage keeps earlier projects and snapshots, including generation r
   assert.equal(guestFetchProjectSnapshots(first.projectId).snapshots[0].generation_report.qualityStatus, 'passed');
   guestSyncProjectSchema({ project_id: first.projectId, base_snapshot_id: first.snapshotId, schema_patch: { elements: [node('edited')] } });
   assert.equal(guestFetchProjectSnapshots(first.projectId).snapshots[0].generation_report.qualityStatus, 'edited');
+  const reopened = guestFetchRecentDiagrams().find(project => project.project_id === first.projectId);
+  assert.equal(reopened.generation_report.durationMs, 3000, 'project reopening retains generation timing');
+  assert.equal(reopened.generation_report.refinement.status, 'completed');
+  assert.equal(reopened.generation_report.qualityStatus, 'edited', 'local edits do not hide the review history');
   for (let i = 0; i < 21; i++) guestSyncProjectSchema({ project_id: first.projectId, create_snapshot: true, schema_patch: { elements: [node('v-' + i)] } });
   const snapshots = guestFetchProjectSnapshots(first.projectId).snapshots;
   assert.equal(snapshots.length, 22);
   assert.ok(snapshots.some(snapshot => snapshot.snapshot_id === first.snapshotId));
+  assert.equal(guestFetchRecentDiagrams().find(project => project.project_id === first.projectId).generation_report, undefined,
+    'a manual snapshot must not borrow a different version’s report');
 });
 
 

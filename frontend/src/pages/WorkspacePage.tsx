@@ -22,6 +22,7 @@ import { Header } from '../components/Header';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { WorkspaceSettingsDialog } from '../components/Workspace/WorkspaceSettingsDialog';
 import { ProjectSidebar } from '../components/Workspace/ProjectSidebar';
+import { WorkspaceSaveIndicator } from '../components/Workspace/WorkspaceSaveIndicator';
 import { AgentChatPanel } from '../components/Workspace/AgentChatPanel';
 import { ProjectDnaDrawer } from '../components/Workspace/ProjectDnaDrawer';
 import { CreateDiagramDialog } from '../components/Workspace/CreateDiagramDialog';
@@ -1176,21 +1177,25 @@ export function WorkspacePage() {
     handleOpenCreateDialog();
   }, [clearActiveCreatePreflight, handleOpenCreateDialog, handleWorkspaceInteractionBlocked, workspaceInteractionBlocked]);
 
+  const handleSaveAction = useCallback(() => {
+    if (workspaceInteractionBlocked) return;
+    if (manualSaveStatus === 'conflict') handleResolveSaveConflict();
+    else if (manualSaveStatus === 'missingProject') void handleRecoverMissingProject();
+    else if (manualSaveStatus === 'authExpired') handleReauthFromWorkspace();
+    else void handleManualSaveSnapshot();
+  }, [handleManualSaveSnapshot, handleReauthFromWorkspace, handleRecoverMissingProject, handleResolveSaveConflict, manualSaveStatus, workspaceInteractionBlocked]);
+
   useEffect(() => {
     const saveShortcut = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
         event.preventDefault();
         event.stopPropagation();
-        if (workspaceInteractionBlocked || event.repeat) return;
-        if (manualSaveStatus === 'conflict') handleResolveSaveConflict();
-        else if (manualSaveStatus === 'missingProject') void handleRecoverMissingProject();
-        else if (manualSaveStatus === 'authExpired') handleReauthFromWorkspace();
-        else void handleManualSaveSnapshot();
+        if (!event.repeat) handleSaveAction();
       }
     };
     window.addEventListener('keydown', saveShortcut, true);
     return () => window.removeEventListener('keydown', saveShortcut, true);
-  }, [handleManualSaveSnapshot, handleReauthFromWorkspace, handleRecoverMissingProject, handleResolveSaveConflict, manualSaveStatus, workspaceInteractionBlocked]);
+  }, [handleSaveAction]);
 
   const openCreateDialogFromPrompt = useCallback((promptText: string) => {
     const trimmedPrompt = promptText.trim();
@@ -2541,6 +2546,8 @@ export function WorkspacePage() {
                 canvasMode={canvasMode}
                 preview={preview}
                 projectName={projectName}
+                saveIndicator={preview?.projectId && !isGenerationBusy ? <WorkspaceSaveIndicator status={sidebarSaveStatus}
+                  dirty={hasUnsavedChanges} disabled={workspaceInteractionBlocked} onSave={handleSaveAction} /> : undefined}
                 projectNavigation={<button type="button" className="tool-button workspace-project-toggle"
                   aria-label={t('workspace.projectNavigation')} title={t(isProjectPanelCollapsed || isFocusMode ? 'workspace.expandPanel' : 'workspace.collapsePanel')}
                   aria-expanded={!isProjectPanelCollapsed && !isFocusMode} aria-controls="workspace-pane-projects"
