@@ -2,11 +2,10 @@ import { useBrowserModelLabel } from '../hooks/useBrowserModelLabel';
 import { BROWSER_MODE, openModelSettings } from '../services/browser/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, Pencil, Star, Trash2 } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, FolderClock, GitBranch, Network, Pencil, Star, Trash2, Waypoints, Workflow } from 'lucide-react';
 import { DiagramPromptComposer } from '../components/DiagramPromptComposer';
 import { Header } from '../components/Header';
 import { RecentProjectPreview } from '../components/Home/RecentProjectPreview';
-import { DiagramTypeOutline } from '../components/DiagramTypeOutline';
 import { useToast } from '../components/toastContext';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { useBackendAuth } from '../features/auth/BackendAuthProvider';
@@ -73,6 +72,7 @@ export const HomePage = () => {
   const loadRequestRef = useRef(0);
   const lastAutoLoadAuthIdentityRef = useRef<string | null | undefined>(undefined);
   const [prompt, setPrompt] = useState('');
+  const [promptFocusRequest, setPromptFocusRequest] = useState(0);
   const [recentProjects, setRecentProjects] = useState<RecentDiagram[]>([]);
   const [loadStatus, setLoadStatus] = useState<'loading' | 'ready' | 'failed'>('loading');
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -189,23 +189,6 @@ export const HomePage = () => {
     setPrompt(enhanced);
   };
 
-  const startFromExample = (content: string) => {
-    const promptText = content.trim();
-    const llmConfigId = modelOptions[modelIndex].id;
-    const canvasMode = canvasOptions[canvasIndex].id;
-    navigate('/workspace', {
-      state: {
-        initialPrompt: promptText,
-        initialDiagramType: selectedDiagramType,
-        initialLlmConfigId: llmConfigId,
-        initialCanvasMode: canvasMode,
-        initialSource: 'home',
-        preflightGeneration: true,
-        preflightKind: 'startup',
-      },
-    });
-  };
-
   const handleStartCreation = () => {
     const promptText = prompt.trim();
     if (!promptText) return;
@@ -256,6 +239,7 @@ export const HomePage = () => {
   const isInitialLoading = loadStatus === 'loading' && recentProjects.length === 0;
   const isRefreshingProjects = loadStatus === 'loading' && recentProjects.length > 0;
   const isLoadFailedWithoutData = loadStatus === 'failed' && recentProjects.length === 0;
+  const isEmptyWorkspace = loadStatus === 'ready' && recentProjects.length === 0;
 
   const visibleProjects = activeHomeTab === 'pinned'
     ? recentProjects.filter((project) => pinnedProjectIds.includes(getProjectKey(project)))
@@ -269,41 +253,17 @@ export const HomePage = () => {
   const recentContinuationHint = t('home.recentContinuationHint')
     .replace('{count}', String(hiddenRecentCount));
 
-  const examples = [
-    { text: t('home.sampleMicroservice'), outline: 'architecture' },
-    { text: t('home.sampleTraining'), outline: 'flowchart' },
-    { text: t('home.sampleBrowser'), outline: 'mindmap' },
-  ] as const;
   const starterTemplates = [
-    {
-      label: t('home.pillArchitectureLabel'),
-      prompt: t('home.sampleMicroservice'),
-      pillId: 'architecture',
-      outline: 'architecture',
-    },
-    {
-      label: t('home.pillSequenceLabel'),
-      prompt: t('landing.exampleSequence'),
-      pillId: 'sequence',
-      outline: 'sequence',
-    },
-    {
-      label: t('home.pillFlowLabel'),
-      prompt: t('home.sampleTraining'),
-      pillId: 'flow',
-      outline: 'flowchart',
-    },
-    {
-      label: t('home.pillMindMapLabel'),
-      prompt: t('home.sampleBrowser'),
-      pillId: 'mindmap',
-      outline: 'mindmap',
-    },
-  ] as const;
+    { label: t('home.starterArchitecture'), prompt: t('home.sampleMicroservice'), pillId: 'architecture', Icon: Network, accent: 'text-cyan-700 dark:text-cyan-300' },
+    { label: t('home.starterSequence'), prompt: t('landing.exampleSequence'), pillId: 'sequence', Icon: Workflow, accent: 'text-indigo-600 dark:text-indigo-300' },
+    { label: t('home.starterFlow'), prompt: t('home.sampleTraining'), pillId: 'flow', Icon: GitBranch, accent: 'text-violet-600 dark:text-violet-300' },
+    { label: t('home.starterAgents'), prompt: t('home.sampleBrowser'), pillId: 'mindmap', Icon: Waypoints, accent: 'text-teal-700 dark:text-teal-300' },
+  ];
 
   const handleStarterTemplate = (template: (typeof starterTemplates)[number]) => {
     setSelectedPillId(template.pillId);
     setPrompt(template.prompt);
+    setPromptFocusRequest(value => value + 1);
   };
 
   const handleOpenProject = (project: RecentDiagram) => {
@@ -359,7 +319,7 @@ export const HomePage = () => {
 
       <main id="main-content" className="flex-1 flex flex-col items-center px-4 py-8 sm:py-10 max-w-6xl mx-auto w-full">
         {/* Hero Section - AI Creation Launcher */}
-        <div className="w-full max-w-4xl flex flex-col items-center text-center mb-10 mt-1">
+        <div className="w-full max-w-4xl flex flex-col items-center text-center mb-8 mt-1">
           <p className="mb-4 text-xs font-semibold tracking-[0.16em] text-brand-700 dark:text-brand-300">EVODESIGN STUDIO</p>
           <h1 className="mb-3 max-w-2xl font-display text-3xl font-semibold leading-tight text-slate-900 dark:text-slate-100 sm:mb-4 sm:text-4xl">
             {t('home.title')}
@@ -372,6 +332,7 @@ export const HomePage = () => {
           <div className="w-full relative group">
             <DiagramPromptComposer
               prompt={prompt}
+              promptFocusRequest={promptFocusRequest}
               onPromptChange={setPrompt}
               onGenerate={handleStartCreation}
               onEnhance={enhancePrompt}
@@ -398,35 +359,26 @@ export const HomePage = () => {
 
           </div>
 
-          <section className="mt-8 w-full text-left" aria-labelledby="home-starter-templates-title">
-            <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h2 id="home-starter-templates-title" className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                  {t('home.starterTemplatesTitle')}
-                </h2>
-                <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
-                  {t('home.starterTemplatesHint')}
-                </p>
-              </div>
+          <section className="mt-5 w-full text-left" aria-labelledby="home-starter-templates-title">
+            <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
+              <h2 id="home-starter-templates-title" className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                {t('home.starterTemplatesTitle')}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{t('home.starterTemplatesHint')}</p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {starterTemplates.map((template) => (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {starterTemplates.map(({ Icon, ...template }) => (
                 <button
-                  key={template.label}
+                  key={template.pillId}
                   type="button"
-                  onClick={() => handleStarterTemplate(template)}
-                  className="group overflow-hidden rounded-2xl border border-white/80 bg-white/80 text-left shadow-sm backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-[0_16px_32px_rgba(49,93,130,0.14)] dark:border-white/10 dark:bg-slate-900/78 dark:hover:border-brand-500"
+                  title={template.prompt}
+                  aria-label={`${t('home.useAsDraft')}: ${template.label}`}
+                  onClick={() => handleStarterTemplate({ ...template, Icon })}
+                  className="group flex min-h-12 min-w-0 items-center gap-2 rounded-xl border border-slate-200/70 bg-white/50 px-3 py-3 text-left transition-colors duration-200 hover:border-indigo-300 hover:bg-indigo-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 motion-reduce:transition-none dark:border-white/[0.07] dark:bg-white/[0.025] dark:hover:border-indigo-400/40 dark:hover:bg-indigo-400/[0.08] dark:focus-visible:ring-offset-slate-950"
                 >
-                  <div className="h-16 border-b border-slate-100 bg-slate-50/80 px-3 py-2 text-brand-400 dark:border-slate-800 dark:bg-slate-950/80 dark:text-brand-500">
-                    <DiagramTypeOutline kind={template.outline} />
-                  </div>
-                  <div className="p-3">
-                    <p className="text-xs font-bold text-brand-600 dark:text-brand-300">{template.label}</p>
-                    <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-700 dark:text-slate-200">{template.prompt}</p>
-                    <span className="mt-3 inline-flex items-center text-xs font-semibold text-slate-500 transition group-hover:text-brand-600 dark:text-slate-400 dark:group-hover:text-brand-300">
-                      {t('home.useAsDraft')} →
-                    </span>
-                  </div>
+                  <Icon className={`h-4 w-4 shrink-0 ${template.accent}`} strokeWidth={1.6} aria-hidden="true" />
+                  <span className="flex-1 text-[13px] font-medium leading-5 text-slate-600 group-hover:text-slate-900 dark:text-slate-300 dark:group-hover:text-white">{template.label}</span>
+                  <ArrowUpRight className="hidden h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200 min-[380px]:block motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:translate-x-0.5 motion-reduce:transition-none dark:text-slate-500" aria-hidden="true" />
                 </button>
               ))}
             </div>
@@ -434,10 +386,10 @@ export const HomePage = () => {
         </div>
 
         {/* Recent Projects Grid */}
-        <div className="w-full">
-          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('home.recentProjects')}</h2>
-            <div className="flex flex-wrap items-center gap-3">
+        <section className="w-full max-w-4xl border-t border-slate-200/70 pt-6 dark:border-white/[0.07]" aria-label={t('home.recentProjects')}>
+          {!isEmptyWorkspace && <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">{t('home.recentProjects')}</h2>
+            {recentProjects.length > 0 && <div className="flex flex-wrap items-center gap-3">
               <div className="inline-flex items-center rounded-lg border border-white/70 bg-white/70 p-0.5 backdrop-blur-md dark:border-white/10 dark:bg-slate-900/75" role="tablist" aria-label={t('home.recentProjects')}>
                 <button
                   type="button"
@@ -473,8 +425,8 @@ export const HomePage = () => {
               >
                 {t('home.viewAllProjects')} →
               </button>
-            </div>
-          </div>
+            </div>}
+          </div>}
 
           {loadError && recentProjects.length > 0 && (
             <div className="mb-6 rounded-2xl border border-red-200/80 bg-red-50/80 px-4 py-3 text-sm text-red-700 backdrop-blur dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
@@ -501,14 +453,14 @@ export const HomePage = () => {
           )}
 
           {isInitialLoading ? (
-            <div role="status" aria-label={t('common.loading')} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div role="status" aria-label={t('common.loading')} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="h-64 animate-pulse rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900"></div>
               ))}
             </div>
           ) : visibleProjects.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {visibleProjects.map((project) => {
                   const projectKey = getProjectKey(project);
                   const isPinned = pinnedProjectIds.includes(projectKey);
@@ -635,53 +587,19 @@ export const HomePage = () => {
                 {t('common.retry')}
               </button>
             </div>
-          ) : activeHomeTab === 'pinned' ? (
-            <div className="rounded-2xl border border-dashed border-slate-200/70 bg-white/65 p-6 backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/75">
-              <div className="text-center">
-                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">{t('home.pinnedEmptyTitle')}</h3>
-                <p className="mt-1 text-slate-500 dark:text-slate-400">{t('home.pinnedEmptyHint')}</p>
-              </div>
-            </div>
-          ) : recentProjects.length > 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-200/70 bg-white/65 p-6 backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/75">
-              <div className="text-center">
-                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">{t('home.noProjectsTitle')}</h3>
-                <p className="mt-1 text-slate-500 dark:text-slate-400">{t('home.noProjectsHint')}</p>
-              </div>
+          ) : activeHomeTab === 'pinned' && recentProjects.length > 0 ? (
+            <div className="flex items-start gap-3 py-4 text-sm text-slate-500 dark:text-slate-400">
+              <Star className="mt-0.5 h-5 w-5 shrink-0 text-violet-400" aria-hidden="true" />
+              <div><p className="font-medium text-slate-700 dark:text-slate-300">{t('home.pinnedEmptyTitle')}</p>
+                <p className="mt-1">{t('home.pinnedEmptyHint')}</p></div>
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-slate-200/70 bg-white/65 p-6 backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/75">
-              <div className="mb-4 text-center">
-                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">{t('home.noProjectsTitle')}</h3>
-                <p className="mt-1 text-slate-500 dark:text-slate-400">{t('home.noProjectsHint')}</p>
-              </div>
-
-              <div>
-                <p className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">{t('home.tryExamples')}</p>
-                <div className="grid gap-3 md:grid-cols-3">
-                  {examples.map((item) => (
-                    <button
-                      key={item.text}
-                      type="button"
-                      onClick={() => startFromExample(item.text)}
-                      className="group relative overflow-hidden rounded-xl border border-white/70 bg-white/70 text-left text-sm text-slate-700 backdrop-blur-md transition-all hover:border-brand-300 hover:bg-brand-50/40 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:border-brand-500 dark:hover:bg-brand-500/10"
-                    >
-                      <div className="relative h-[120px] flex items-center justify-center overflow-hidden bg-slate-50/50 dark:bg-slate-800/60 border-b border-slate-100/50 dark:border-slate-700/50">
-                        <div className="w-full px-4 text-brand-400 opacity-50 dark:text-brand-500 dark:opacity-40">
-                          <DiagramTypeOutline kind={item.outline} />
-                        </div>
-                      </div>
-                      <div className="px-4 py-3">
-                        <p className="line-clamp-2">{item.text}</p>
-                        <span className="mt-2 inline-block text-xs font-medium text-brand-600 dark:text-brand-400 group-hover:underline">{t('home.tryExamples')} →</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
+            <div className="flex items-center justify-center gap-2.5 px-2 py-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+              <FolderClock className="h-[18px] w-[18px] shrink-0 text-slate-400 dark:text-slate-500" strokeWidth={1.6} aria-hidden="true" />
+              <p>{t('home.emptyWorkspaceHint')}</p>
             </div>
           )}
-        </div>
+        </section>
 
         <div className="mt-8 pb-4 text-center text-xs tracking-wide text-slate-500 dark:text-slate-400">
           {t('home.brandPoweredBy')}
