@@ -2575,7 +2575,7 @@ export function WorkspacePage() {
               selectionLabel={selectionLabelForChat}
               staleSelectedCount={staleSelectedCountForChat}
               preflightReviewActive={preflightReviewActive}
-              startPromptsHandledElsewhere={onboardingVisible && !onboardingDismissed}
+              startPromptsHandledElsewhere={onboardingVisible && !onboardingDismissed && !isCompactWorkspace && !chatInput.trim()}
             />
           </div>
         </div>

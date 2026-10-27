@@ -634,7 +634,7 @@ textarea::placeholder { opacity: 1; }
 /* Workspace: one document surface, quiet supporting panels, clear edit scope. */
 @layer components {
   .workspace-shell { background: #f4f5fa; }
-  .dark .workspace-shell { background: #101421; }
+  .dark .workspace-shell { background: #080d1b; }
   .workspace-main {
     @apply flex h-[calc(100dvh-3.5rem-1px)] min-h-0 w-full flex-col p-3;
   }
@@ -645,10 +645,10 @@ textarea::placeholder { opacity: 1; }
   .workspace-project-pane, .workspace-chat-pane { @apply min-h-0 min-w-0; }
   .workspace-canvas-pane { @apply flex min-h-0 min-w-0 flex-col; }
   .workspace-project-sidebar {
-    @apply relative flex h-full min-h-0 flex-col rounded-2xl border border-slate-200/70 bg-white dark:border-slate-700/70 dark:bg-slate-900;
+    @apply relative flex h-full min-h-0 flex-col rounded-xl border border-slate-200/70 bg-white dark:border-white/[0.07] dark:bg-[#101524];
   }
   .workspace-canvas-pane .canvas-embed {
-    @apply rounded-2xl border-slate-200/80 shadow-[0_2px_12px_-4px_rgba(39,44,83,0.1)] dark:border-slate-700/70;
+    @apply rounded-xl border-slate-200/80 shadow-none dark:border-white/10;
   }
   .canvas-toolbar {
     @apply relative z-20 flex min-h-14 shrink-0 items-center gap-2 border-b border-slate-100 bg-white px-4 dark:border-slate-800 dark:bg-slate-900;
@@ -674,26 +674,26 @@ textarea::placeholder { opacity: 1; }
     animation: workspaceReveal 160ms ease-out;
   }
   .assistant-panel {
-    @apply relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white dark:border-slate-700/70 dark:bg-slate-900;
+    @apply relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200/70 bg-white dark:border-white/[0.07] dark:bg-[#101524];
   }
-  .assistant-header { @apply flex min-h-[76px] shrink-0 items-center gap-3 px-5 pr-12; }
+  .assistant-header { @apply flex min-h-[64px] shrink-0 items-center gap-2.5 border-b border-slate-100 px-4 pr-12 dark:border-white/[0.05]; }
   .assistant-avatar {
     @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-indigo-100 bg-gradient-to-br from-blue-50 to-violet-100 text-indigo-600 dark:border-indigo-500/20 dark:from-blue-500/15 dark:to-violet-500/20 dark:text-indigo-300;
   }
   .assistant-rail { @apply flex h-full flex-col items-center gap-4 rounded-2xl border border-slate-200/70 bg-white py-3 dark:border-slate-700/70 dark:bg-slate-900; }
   .assistant-rail button { @apply h-9 w-9 rounded-xl border-0 bg-transparent shadow-none; }
-  .assistant-feed { @apply min-h-0 flex-1 overflow-y-auto px-5 pb-4; }
+  .assistant-feed { @apply min-h-0 flex-1 overflow-y-auto px-4 pb-4; }
   .assistant-welcome { @apply pb-4 pt-6; }
   .assistant-welcome-symbol {
-    @apply mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-indigo-100 bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50 text-indigo-500 dark:border-indigo-500/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-violet-500/10 dark:text-indigo-300;
+    @apply mb-3 flex h-9 w-9 items-center justify-center rounded-xl border border-indigo-100 bg-gradient-to-br from-blue-50 via-indigo-50 to-violet-50 text-indigo-500 dark:border-indigo-500/20 dark:from-blue-500/10 dark:via-indigo-500/10 dark:to-violet-500/10 dark:text-indigo-300;
   }
   .assistant-welcome h3 { @apply text-base font-semibold tracking-tight text-slate-800 dark:text-slate-100; }
   .assistant-welcome > p { @apply mt-2 max-w-[28rem] text-[13px] leading-6 text-slate-500 dark:text-slate-400; }
-  .assistant-suggestions { @apply mt-7; }
+  .assistant-suggestions { @apply mt-4; }
   .assistant-suggestions-label { @apply mb-2.5 text-[11px] font-medium text-slate-400 dark:text-slate-500; }
-  .assistant-prompt-grid { @apply grid grid-cols-2 gap-2; }
+  .assistant-prompt-grid { @apply grid grid-cols-1 gap-1; }
   .assistant-prompt-grid button {
-    @apply min-h-11 justify-start gap-2 rounded-xl border-slate-100 bg-slate-50/80 px-2.5 py-2 text-[11px] font-medium leading-5 text-slate-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-300 dark:hover:border-indigo-500/30 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-200;
+    @apply min-h-10 justify-start gap-2 rounded-lg border-transparent bg-transparent px-2.5 py-2 text-[11px] font-medium leading-5 text-slate-600 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 dark:border-transparent dark:bg-transparent dark:text-slate-300 dark:hover:border-indigo-500/30 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-200;
   }
   .assistant-prompt-grid button svg { @apply h-3 w-3 text-indigo-400; }
   .assistant-composer { @apply shrink-0 p-3 pt-2; }
@@ -767,3 +767,28 @@ textarea::placeholder { opacity: 1; }
 .workspace-settings-dialog[open] { animation: workspaceReveal 160ms ease-out; }
 .workspace-settings-dialog::backdrop { background: #0f172a55; backdrop-filter: blur(4px); }
 .dark .workspace-settings-dialog { background: #0f172a; border-color: #334155; }
+
+/* Shared controls for the project library, design memory, and canvas starters. */
+@layer components {
+  .studio-primary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:bg-indigo-500 dark:hover:bg-indigo-400 dark:disabled:bg-slate-800 dark:disabled:text-slate-500;
+  }
+  .studio-secondary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium text-slate-500 transition-colors hover:bg-indigo-50/70 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-45 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-indigo-200;
+  }
+  .studio-icon-button {
+    @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-indigo-50/70 hover:text-indigo-600 dark:hover:bg-white/5 dark:hover:text-indigo-200;
+  }
+  .studio-tab {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/5;
+  }
+  .studio-tab-active { @apply bg-indigo-50 text-indigo-600 dark:bg-indigo-400/10 dark:text-indigo-300; }
+  .studio-search {
+    @apply h-10 w-full rounded-lg border border-slate-200/70 bg-white/50 pl-9 pr-3 text-[13px] text-slate-700 placeholder:text-slate-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 dark:border-white/[0.07] dark:bg-white/[0.025] dark:text-slate-200 dark:placeholder:text-slate-500;
+  }
+  .studio-project-row { @apply px-2 transition-colors hover:bg-white/60 dark:hover:bg-white/[0.02]; }
+  .studio-project-card { @apply overflow-hidden rounded-xl border border-slate-200/70 bg-white/60 transition-colors hover:border-indigo-200 dark:border-white/[0.07] dark:bg-white/[0.025] dark:hover:border-indigo-400/30; }
+  .studio-primary:focus-visible, .studio-secondary:focus-visible, .studio-icon-button:focus-visible, .studio-tab:focus-visible {
+    @apply outline-none ring-2 ring-indigo-400 ring-offset-2 ring-offset-slate-50 dark:ring-offset-slate-950;
+  }
+}
