@@ -831,6 +831,10 @@ textarea::placeholder { opacity: 1; }
 }
 
 @layer components {
+  /* The rounded surface owns input focus; action buttons keep their own rings. */
+  .diagram-prompt-surface .diagram-prompt-input:focus, .diagram-prompt-surface .diagram-prompt-input:focus-visible { outline: none; box-shadow: none; }
+  .diagram-prompt-surface:has(.diagram-prompt-input:focus) { border-color: #8f879e; }
+  .dark .diagram-prompt-surface:has(.diagram-prompt-input:focus) { border-color: #6e637e; }
   .create-diagram-dialog, .studio-dialog { @apply fixed m-auto w-[min(600px,calc(100vw-24px))] max-h-none max-w-none overflow-hidden rounded-2xl border border-slate-200 bg-white p-0 text-slate-800 shadow-2xl dark:border-white/10 dark:bg-[#111827] dark:text-slate-200; }
   .create-diagram-dialog::backdrop, .studio-dialog::backdrop { background: rgb(8 13 27 / 60%); backdrop-filter: blur(6px); }
   .create-diagram-prompt { @apply block min-h-[140px] max-h-72 w-full resize-y rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3 text-[13px] leading-6 text-slate-800 outline-none transition-colors placeholder:text-slate-400 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.02] dark:text-slate-100 dark:placeholder:text-slate-500; }

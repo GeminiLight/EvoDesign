@@ -13,9 +13,7 @@
   border-radius: 20px;
   box-shadow: 0 4px 24px #34315307, 0 1px 3px #34315304;
 }
-.home-composer > div:focus-within { border-color: #8b82d2; box-shadow: 0 0 0 3px #8b82d211, 0 8px 32px #34315309; }
 .dark .home-composer > div { background: #111728; border-color: #2b3046; box-shadow: 0 8px 32px #00000012; }
-.dark .home-composer > div:focus-within { border-color: #8174c5; box-shadow: 0 0 0 3px #8174c516; }
 .home-composer textarea { font-size: 16px; line-height: 1.75; padding: 24px 68px 12px 24px; }
 .home-composer textarea::placeholder { color: #8991a5; }
 .dark .home-composer textarea::placeholder { color: #7f889e; }
