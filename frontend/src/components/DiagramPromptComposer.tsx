@@ -271,7 +271,7 @@ export function DiagramPromptComposer({
   return (
     <>
       <div className={`w-full relative group ${variant === 'home' ? 'home-composer' : ''}`} aria-busy={isGenerating}>
-        <div className={`relative flex flex-col rounded-2xl border bg-white shadow-e2 transition-colors focus-within:border-brand-300 dark:bg-slate-900 dark:shadow-e2-dark dark:focus-within:border-brand-500/70 ${selectedPillId !== 'adaptive' ? 'border-brand-300 dark:border-brand-500/70' : 'border-slate-200/80 dark:border-slate-700'}`}>
+        <div className="diagram-prompt-surface relative flex flex-col rounded-2xl border border-slate-200/80 bg-white shadow-e2 transition-colors dark:border-slate-700 dark:bg-slate-900 dark:shadow-e2-dark">
           <div className="relative flex-1">
             <button
               type="button"
@@ -291,7 +291,7 @@ export function DiagramPromptComposer({
               disabled={controlsDisabled}
               placeholder={t?.('home.promptPlaceholder') || 'Describe your diagram...'}
               aria-label={t?.('home.promptPlaceholder') || 'Describe your diagram...'}
-              className={`w-full resize-none border-none bg-transparent px-6 pb-2 pr-20 pt-6 text-lg text-slate-800 outline-none transition disabled:cursor-not-allowed disabled:text-slate-500 disabled:placeholder:text-slate-400 focus:ring-0 dark:text-slate-100 dark:disabled:text-slate-500 dark:placeholder:text-slate-500 ${focusRingClass}`}
+              className="diagram-prompt-input w-full resize-none border-none bg-transparent px-6 pb-2 pr-20 pt-6 text-lg text-slate-800 outline-none transition disabled:cursor-not-allowed disabled:text-slate-500 disabled:placeholder:text-slate-400 focus:ring-0 dark:text-slate-100 dark:disabled:text-slate-500 dark:placeholder:text-slate-500"
               onKeyDown={(event) => {
                 if (shouldSubmitOnEnter(event)) {
                   event.preventDefault();
