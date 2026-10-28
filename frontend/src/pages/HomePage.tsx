@@ -5,10 +5,13 @@ import { loadModelConfig } from '../services/browser/modelConfig';
 import { BROWSER_MODE, openModelSettings } from '../services/browser/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, FolderClock, GitBranch, Network, Pencil, Star, Trash2, Waypoints, Workflow } from 'lucide-react';
+import { ArrowRight, Box, ChevronDown, FolderClock, GitBranch, Network, Star, Workflow } from 'lucide-react';
 import { DiagramPromptComposer } from '../components/DiagramPromptComposer';
 import { Header } from '../components/Header';
-import { RecentProjectPreview } from '../components/Home/RecentProjectPreview';
+import { HomeProjectTile } from '../components/Home/HomeProjectTile';
+import { CreationSketch } from '../components/Home/CreationSketch';
+import { HOME_REFERENCE_ACCEPT, HomeReferenceError, promptWithReference, readHomeReference } from '../utils/homeReference';
+import type { HomeReference } from '../utils/homeReference';
 import { useToast } from '../components/toastContext';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { useBackendAuth } from '../features/auth/BackendAuthProvider';
@@ -21,7 +24,7 @@ import type { RecentDiagram } from '../types/app';
 import { pillIdToDiagramType, defaultConfigs, getDiagramTypeLabel } from '../constants/app';
 
 const HOME_PROJECT_FETCH_LIMIT = 100;
-const HOME_RECENT_DISPLAY_LIMIT = 8;
+const HOME_RECENT_DISPLAY_LIMIT = 6;
 
 const getHomeProjectKey = (project: RecentDiagram) => (
   project.project_id || project.request_id || project.diagram_id
@@ -78,6 +81,9 @@ export const HomePage = () => {
   const loadRequestRef = useRef(0);
   const lastAutoLoadAuthIdentityRef = useRef<string | null | undefined>(undefined);
   const [prompt, setPrompt] = useState('');
+  const [reference, setReference] = useState<HomeReference | null>(null);
+  const [referenceLoading, setReferenceLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [promptFocusRequest, setPromptFocusRequest] = useState(0);
   const [recentProjects, setRecentProjects] = useState<RecentDiagram[]>([]);
   const [loadStatus, setLoadStatus] = useState<'loading' | 'ready' | 'failed'>('loading');
@@ -196,8 +202,8 @@ export const HomePage = () => {
   };
 
   const handleStartCreation = () => {
-    const promptText = prompt.trim();
-    if (!promptText) return;
+    if (!prompt.trim() || referenceLoading) return;
+    const promptText = promptWithReference(prompt, reference, language);
 
     const canvasLibrary = canvasOptions[canvasIndex].id;
     const llmConfigId = modelOptions[modelIndex].id;
@@ -245,26 +251,30 @@ export const HomePage = () => {
   const isInitialLoading = loadStatus === 'loading' && recentProjects.length === 0;
   const isRefreshingProjects = loadStatus === 'loading' && recentProjects.length > 0;
   const isLoadFailedWithoutData = loadStatus === 'failed' && recentProjects.length === 0;
-  const isEmptyWorkspace = loadStatus === 'ready' && recentProjects.length === 0;
 
   const visibleProjects = activeHomeTab === 'pinned'
-    ? recentProjects.filter((project) => pinnedProjectIds.includes(getProjectKey(project)))
+    ? recentProjects.filter((project) => pinnedProjectIds.includes(getProjectKey(project))).slice(0, HOME_RECENT_DISPLAY_LIMIT)
     : recentProjects.slice(0, HOME_RECENT_DISPLAY_LIMIT);
-  const hiddenRecentCount = activeHomeTab === 'recent'
-    ? Math.max(recentProjects.length - visibleProjects.length, 0)
-    : 0;
-  const recentContinuationText = t('home.recentContinuation')
-    .replace('{shown}', String(visibleProjects.length))
-    .replace('{total}', String(recentProjects.length));
-  const recentContinuationHint = t('home.recentContinuationHint')
-    .replace('{count}', String(hiddenRecentCount));
-
   const starterTemplates = [
-    { label: t('home.starterArchitecture'), prompt: t('home.sampleMicroservice'), pillId: 'architecture', Icon: Network, accent: 'text-cyan-700 dark:text-cyan-300' },
-    { label: t('home.starterSequence'), prompt: t('landing.exampleSequence'), pillId: 'sequence', Icon: Workflow, accent: 'text-indigo-600 dark:text-indigo-300' },
-    { label: t('home.starterFlow'), prompt: t('home.sampleTraining'), pillId: 'flow', Icon: GitBranch, accent: 'text-violet-600 dark:text-violet-300' },
-    { label: t('home.starterAgents'), prompt: t('home.sampleBrowser'), pillId: 'mindmap', Icon: Waypoints, accent: 'text-teal-700 dark:text-teal-300' },
+    { label: t('home.shortcutArchitecture'), prompt: t('home.sampleMicroservice'), pillId: 'architecture', Icon: Network, accent: 'blue' },
+    { label: t('home.shortcutFlow'), prompt: t('home.sampleTraining'), pillId: 'flow', Icon: GitBranch, accent: 'violet' },
+    { label: t('home.shortcutSequence'), prompt: t('landing.exampleSequence'), pillId: 'sequence', Icon: Workflow, accent: 'teal' },
   ];
+
+  const handleReferenceFile = async (file: File | undefined) => {
+    if (!file) return;
+    setReferenceLoading(true);
+    try {
+      setReference(await readHomeReference(file));
+      setPromptFocusRequest(value => value + 1);
+    } catch (error) {
+      const reason = error instanceof HomeReferenceError ? error.reason : 'invalidText';
+      showToast(t(`home.referenceError_${reason}`), 'error');
+    } finally {
+      setReferenceLoading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const handleStarterTemplate = (template: (typeof starterTemplates)[number]) => {
     setSelectedPillId(template.pillId);
@@ -320,21 +330,13 @@ export const HomePage = () => {
   };
 
   return (
-    <div className="studio-home min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
-      <Header />
-
-      <main id="main-content" className="flex-1 flex flex-col items-center px-5 py-8 sm:px-8 sm:py-12 max-w-6xl mx-auto w-full">
-        {/* Hero Section - AI Creation Launcher */}
-        <div className="home-intro w-full max-w-4xl flex flex-col items-start text-left mb-8 mt-1 sm:mt-5">
-          <p className="home-eyebrow mb-5 text-[11px] font-semibold tracking-[0.2em] text-indigo-600 dark:text-indigo-300"><span aria-hidden="true" />EVODESIGN STUDIO</p>
-          <h1 className="home-headline mb-4 max-w-3xl font-display text-[2.25rem] font-semibold leading-[1.14] tracking-[-0.04em] text-slate-900 dark:text-slate-100 sm:text-5xl">
-            {t('home.title')}
-          </h1>
-          <p className="mb-7 max-w-xl text-sm leading-7 text-slate-500 dark:text-slate-400 sm:mb-8 sm:text-base">
-            {t('home.subtitle')}
-          </p>
-
-          <div className="w-full relative group">
+    <div className="studio-home min-h-screen">
+      <Header variant="studio" />
+      <main id="main-content" className="home-main">
+        <section className="home-intro" aria-labelledby="home-heading">
+          <h1 id="home-heading" className="home-headline">{t('home.titleLead')}<span>{t('home.titleAccent')}</span></h1>
+          <div className="home-launcher">
+            <input ref={fileInputRef} type="file" accept={HOME_REFERENCE_ACCEPT} hidden aria-label={t('home.addReference')} onChange={event => { void handleReferenceFile(event.target.files?.[0]); }} />
             <DiagramPromptComposer
               prompt={prompt}
               promptFocusRequest={promptFocusRequest}
@@ -351,185 +353,73 @@ export const HomePage = () => {
               canvasOptions={canvasOptions}
               canvasIndex={canvasIndex}
               onCanvasChange={setCanvasIndex}
-              attachTitle={t('home.attachComingSoonTitle')}
+              attachTitle={t('home.referenceFormats')}
+              onAttachmentClick={() => fileInputRef.current?.click()}
+              attachedFileName={reference?.name}
+              onRemoveAttachment={() => { setReference(null); setPromptFocusRequest(value => value + 1); }}
               enhanceTitle={t('home.enhancePrompt')}
               generateTitle={t('home.reviewSetup')}
-              actionLabel={t('home.reviewSetup')}
               variant="home"
               leadingContent={BROWSER_MODE ? <button type="button" onClick={openModelSettings} className="home-model-button" aria-label={`${t('browser.modelSettings')}: ${modelLabel}`}>
-                <span className={`home-model-dot ${isSharedModel && hosted.status === 'available' ? 'is-ready' : ''}`} aria-hidden="true" />
-                <span className="truncate">{hosted.status === 'loading' && !loadModelConfig().model ? (zh ? '正在连接模型…' : 'Connecting…') : modelLabel}</span>
-                <span className="home-model-caption">{isSharedModel ? hosted.status === 'available' ? (zh ? '默认体验' : 'Shared demo') : (zh ? '暂不可用' : 'Unavailable') : (zh ? '模型设置' : 'Settings')}</span>
-              </button> : <span className="pl-2 text-xs text-slate-500">{modelLabel}</span>}
+                <Box size={17} className={isSharedModel && hosted.status === 'available' ? 'is-ready' : ''} aria-hidden="true" />
+                <span className="truncate">{hosted.status === 'loading' && !loadModelConfig().model ? (zh ? '正在连接…' : 'Connecting…') : modelLabel}</span>
+                <ChevronDown size={13} aria-hidden="true" />
+              </button> : <span className="home-model-button"><Box size={17} aria-hidden="true" /><span className="truncate">{modelLabel}</span></span>}
               moreLabel={t('home.pillMoreLabel')}
-              isGenerating={false}
-              progress={null}
               t={t}
-              disableGenerate={!prompt.trim()}
+              isDisabled={referenceLoading}
+              disableGenerate={!prompt.trim() || referenceLoading}
             />
-
+            {referenceLoading && <span className="home-reference-status" role="status">{t('home.readingReference')}</span>}
+            <CreationSketch referenceLabel={t('home.sketchReference')} diagramLabel={t('home.sketchDiagram')} />
           </div>
-
-          <section className="home-starters mt-6 w-full text-left" aria-labelledby="home-starter-templates-title">
-            <div className="mb-2 flex items-baseline gap-4 px-1">
-              <h2 id="home-starter-templates-title" className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                {t('home.starterTemplatesTitle')}
-              </h2>
-            </div>
-            <div className="flex flex-wrap gap-x-2 gap-y-1">
-              {starterTemplates.map(({ Icon, ...template }) => (
-                <button
-                  key={template.pillId}
-                  type="button"
-                  title={template.prompt}
-                  aria-label={`${t('home.useAsDraft')}: ${template.label}`}
-                  onClick={() => handleStarterTemplate({ ...template, Icon })}
-                  className="group flex min-h-10 min-w-0 items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-colors duration-200 hover:bg-indigo-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 motion-reduce:transition-none dark:hover:bg-indigo-400/[0.08]"
-                >
-                  <Icon className={`h-4 w-4 shrink-0 ${template.accent}`} strokeWidth={1.6} aria-hidden="true" />
-                  <span className="flex-1 text-[13px] font-medium leading-5 text-slate-600 group-hover:text-slate-900 dark:text-slate-300 dark:group-hover:text-white">{template.label}</span>
-                  <ArrowUpRight className="hidden h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform duration-200 min-[380px]:block motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:translate-x-0.5 motion-reduce:transition-none dark:text-slate-500" aria-hidden="true" />
-                </button>
-              ))}
-            </div>
+          <section className="home-starters" aria-label={t('home.starterTemplatesTitle')}>
+            {starterTemplates.map(({ Icon, ...template }) => (
+              <button key={template.pillId} type="button" title={template.prompt} onClick={() => handleStarterTemplate({ ...template, Icon })} className={`home-shortcut ${template.accent}`}>
+                <Icon size={26} strokeWidth={1.5} aria-hidden="true" /><span>{template.label}</span><ArrowRight size={16} aria-hidden="true" />
+              </button>
+            ))}
           </section>
-        </div>
+        </section>
 
-        {/* Recent Projects Grid */}
-        <section className="home-projects w-full max-w-4xl border-t border-slate-200/70 pt-5 dark:border-white/[0.07]" aria-label={t('home.recentProjects')}>
-          {!isEmptyWorkspace && <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">{t('home.recentProjects')}</h2>
-            {recentProjects.length > 0 && <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex items-center gap-1" role="group" aria-label={t('home.recentProjects')}>
-                <button
-                  type="button"
-                  onClick={() => setActiveHomeTab('recent')}
-                  aria-pressed={activeHomeTab === 'recent'}
-                  className={`min-h-11 rounded-md px-3 py-1.5 text-sm font-semibold transition ${
-                    activeHomeTab === 'recent'
-                      ? 'bg-white text-brand-700 shadow-sm dark:bg-slate-800 dark:text-brand-300'
-                      : 'text-slate-500 hover:bg-white/50 cursor-pointer dark:text-slate-400 dark:hover:bg-slate-800/50'
-                  }`}
-                >
-                  {t('home.recentTab')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveHomeTab('pinned')}
-                  aria-pressed={activeHomeTab === 'pinned'}
-                  className={`min-h-11 rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                    activeHomeTab === 'pinned'
-                      ? 'bg-white text-brand-700 shadow-sm dark:bg-slate-800 dark:text-brand-300'
-                      : 'text-slate-500 hover:bg-white/50 cursor-pointer dark:text-slate-400 dark:hover:bg-slate-800/50'
-                  }`}
-                >
-                  {t('home.pinnedTab')}
-                </button>
-              </div>
-              <button
-                type="button"
-                onClick={handleViewAllProjects}
-                className="inline-flex min-h-11 items-center rounded-lg px-2 text-sm font-medium text-brand-700 hover:text-brand-800 dark:text-brand-400 dark:hover:text-brand-300"
-              >
-                {t('home.viewAllProjects')} →
-              </button>
-            </div>}
-          </div>}
-
-          {loadError && recentProjects.length > 0 && (
-            <div className="mb-6 rounded-2xl border border-red-200/80 bg-red-50/80 px-4 py-3 text-sm text-red-700 backdrop-blur dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div role="alert">
-                  <p className="font-medium">{loadError}</p>
-                  <p className="mt-1 text-xs text-red-600/80 dark:text-red-200/80">{t('home.loadFailedHint')}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => { void loadRecent(); }}
-                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-red-200 bg-white/70 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-white dark:border-red-500/30 dark:bg-slate-900/70 dark:text-red-200 dark:hover:bg-slate-900"
-                >
-                  {t('common.retry')}
-                </button>
-              </div>
+        <section className="home-projects" aria-labelledby="home-projects-heading">
+          <div className="home-projects-heading">
+            <div className="home-projects-heading-start">
+              <h2 id="home-projects-heading">{t('home.continueCreating')}</h2>
+              {recentProjects.length > 0 && <div className="home-project-filters" role="group" aria-label={t('home.recentProjects')}>
+                <button type="button" onClick={() => setActiveHomeTab('recent')} aria-pressed={activeHomeTab === 'recent'}>{t('home.recentTab')}</button>
+                <button type="button" onClick={() => setActiveHomeTab('pinned')} aria-pressed={activeHomeTab === 'pinned'}>{t('home.pinnedTab')}</button>
+              </div>}
             </div>
-          )}
-
-          {isRefreshingProjects && (
-            <div role="status" aria-live="polite" className="mb-4 rounded-xl border border-brand-200/70 bg-brand-50/65 px-4 py-2 text-sm font-medium text-brand-700 backdrop-blur dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-200">
-              {t('home.refreshingProjects')}
-            </div>
-          )}
-
+            {recentProjects.length > 0 && <button type="button" onClick={handleViewAllProjects} className="home-view-all">{t('home.viewAllShort')}<ArrowRight size={15} aria-hidden="true" /></button>}
+          </div>
+          {loadError && recentProjects.length > 0 && <div role="alert" className="home-load-error"><span>{loadError}</span><button type="button" onClick={() => { void loadRecent(); }}>{t('common.retry')}</button></div>}
+          {isRefreshingProjects && <p role="status" className="home-reference-status">{t('home.refreshingProjects')}</p>}
           {isInitialLoading ? (
-            <div role="status" aria-label={t('common.loading')} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {[1, 2].map((i) => (
-                <div key={i} className="h-20 motion-safe:animate-pulse rounded-xl bg-slate-100 dark:bg-slate-900" />
-              ))}
-            </div>
+            <div className="home-project-grid" role="status" aria-label={t('common.loading')}>{[1, 2, 3].map(i => <div key={i} className="home-project-skeleton" />)}</div>
           ) : visibleProjects.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 gap-x-7 sm:grid-cols-2">
-                {visibleProjects.map((project) => {
-                  const projectKey = getProjectKey(project);
-                  const isPinned = pinnedProjectIds.includes(projectKey);
-
-                  return (
-                    <article key={projectKey} className="home-project-row group">
-                      <button type="button" onClick={() => handleOpenProject(project)} className="home-project-open" aria-label={getProjectTitle(project)}>
-                        <span className="home-project-thumb"><RecentProjectPreview project={project} title={getProjectTitle(project)} unavailableLabel={t('home.previewUnavailable')} /></span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-medium text-slate-800 dark:text-slate-200">{getProjectTitle(project)}</span>
-                          <span className="mt-1.5 block truncate text-[11px] text-slate-500 dark:text-slate-400">{getDiagramTypeLabel(project.diagram_type, t)} · {new Date(project.updated_at || project.created_at).toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US')}</span>
-                        </span>
-                      </button>
-                      <div className="flex shrink-0 items-center">
-                        <button type="button" className="home-project-action" title={t('home.actionEdit')} aria-label={`${t('home.actionEdit')}: ${getProjectTitle(project)}`} onClick={() => handleOpenProject(project)}><Pencil size={14} /></button>
-                        <button type="button" className={`home-project-action ${isPinned ? 'text-violet-600 dark:text-violet-300' : ''}`} title={isPinned ? t('dashboard.unmarkFavorite') : t('dashboard.markFavorite')} aria-label={isPinned ? t('dashboard.unmarkFavorite') : t('dashboard.markFavorite')} aria-pressed={isPinned} onClick={() => handleTogglePin(project)}><Star size={14} className={isPinned ? 'fill-current' : ''} /></button>
-                        <button type="button" className="home-project-action hover:text-rose-600 dark:hover:text-rose-300" title={t('home.actionDelete')} aria-label={`${t('home.actionDelete')}: ${getProjectTitle(project)}`} onClick={() => setProjectPendingDelete(project)}><Trash2 size={14} /></button>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-
-              {hiddenRecentCount > 0 && (
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
-                  <span title={recentContinuationHint}>{recentContinuationText}</span>
-                  <button type="button" onClick={handleViewAllProjects} className="inline-flex min-h-10 items-center gap-2 font-medium text-indigo-600 dark:text-indigo-300">{t('home.viewAllProjects')}<ArrowRight size={14} /></button>
-                </div>
-              )}
-            </>
+            <div className="home-project-grid">
+              {visibleProjects.map(project => <HomeProjectTile
+                key={getProjectKey(project)}
+                project={project}
+                title={getProjectTitle(project)}
+                metadata={`${getDiagramTypeLabel(project.diagram_type, t)} · ${new Date(project.updated_at || project.created_at).toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })}`}
+                pinned={pinnedProjectIds.includes(getProjectKey(project))}
+                onOpen={() => handleOpenProject(project)}
+                onTogglePin={() => handleTogglePin(project)}
+                onDelete={() => setProjectPendingDelete(project)}
+                t={t}
+              />)}
+            </div>
           ) : isLoadFailedWithoutData ? (
-            <div role="alert" className="rounded-2xl border border-red-200/80 bg-red-50/80 p-6 text-center backdrop-blur-xl dark:border-red-500/30 dark:bg-red-500/10">
-              <h3 className="text-lg font-semibold text-red-800 dark:text-red-200">{loadError}</h3>
-              <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-red-700/80 dark:text-red-200/80">
-                {t('home.loadFailedHint')}
-              </p>
-              <button
-                type="button"
-                onClick={() => { void loadRecent(); }}
-                className="mt-5 inline-flex min-h-11 items-center justify-center rounded-lg border border-red-200 bg-white/75 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-white dark:border-red-500/30 dark:bg-slate-900/70 dark:text-red-200 dark:hover:bg-slate-900"
-              >
-                {t('common.retry')}
-              </button>
-            </div>
-          ) : activeHomeTab === 'pinned' && recentProjects.length > 0 ? (
-            <div className="flex items-start gap-3 py-4 text-sm text-slate-500 dark:text-slate-400">
-              <Star className="mt-0.5 h-5 w-5 shrink-0 text-violet-400" aria-hidden="true" />
-              <div><p className="font-medium text-slate-700 dark:text-slate-300">{t('home.pinnedEmptyTitle')}</p>
-                <p className="mt-1">{t('home.pinnedEmptyHint')}</p></div>
-            </div>
+            <div role="alert" className="home-project-empty"><p>{loadError}</p><p>{t('home.loadFailedHint')}</p><button type="button" onClick={() => { void loadRecent(); }}>{t('common.retry')}</button></div>
           ) : (
-            <div className="flex items-center justify-center gap-2.5 px-2 py-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-              <FolderClock className="h-[18px] w-[18px] shrink-0 text-slate-400 dark:text-slate-500" strokeWidth={1.6} aria-hidden="true" />
-              <p>{t('home.emptyWorkspaceHint')}</p>
+            <div className="home-project-empty">
+              {activeHomeTab === 'pinned' && recentProjects.length > 0 ? <><Star size={20} strokeWidth={1.5} aria-hidden="true" /><p>{t('home.pinnedEmptyHint')}</p></> : <><FolderClock size={20} strokeWidth={1.5} aria-hidden="true" /><p>{t('home.emptyWorkspaceHint')}</p></>}
             </div>
           )}
         </section>
-
-        <div className="mt-8 pb-4 text-center text-xs tracking-wide text-slate-500 dark:text-slate-400">
-          {t('home.brandPoweredBy')}
-        </div>
+        <p className="home-footer">{t('home.brandPoweredBy')}</p>
       </main>
 
       <ConfirmDialog
