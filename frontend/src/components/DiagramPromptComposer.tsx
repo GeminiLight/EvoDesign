@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import type { GenerationProgress } from '../types/app';
 import { StageProgress } from './StageProgress';
 
@@ -69,7 +70,8 @@ type Props = {
   enhanceTitle: string;
   generateTitle: string;
   actionLabel?: string;
-  variant?: 'default' | 'dialog';
+  variant?: 'default' | 'dialog' | 'home';
+  leadingContent?: ReactNode;
   moreLabel: string;
   onAttachmentClick?: () => void;
   attachedFileName?: string | null;
@@ -102,6 +104,7 @@ export function DiagramPromptComposer({
   generateTitle,
   actionLabel,
   variant = 'default',
+  leadingContent,
   moreLabel,
   onAttachmentClick,
   attachedFileName,
@@ -267,7 +270,7 @@ export function DiagramPromptComposer({
 
   return (
     <>
-      <div className="w-full relative group" aria-busy={isGenerating}>
+      <div className={`w-full relative group ${variant === 'home' ? 'home-composer' : ''}`} aria-busy={isGenerating}>
         <div className={`relative flex flex-col rounded-2xl border bg-white shadow-e2 transition-colors focus-within:border-brand-300 dark:bg-slate-900 dark:shadow-e2-dark dark:focus-within:border-brand-500/70 ${selectedPillId !== 'adaptive' ? 'border-brand-300 dark:border-brand-500/70' : 'border-slate-200/80 dark:border-slate-700'}`}>
           <div className="relative flex-1">
             <button
@@ -309,6 +312,7 @@ export function DiagramPromptComposer({
           )}
 
           <div className="flex flex-col gap-2 border-t border-slate-100 px-3 py-3 dark:border-slate-800 sm:flex-row sm:items-center sm:py-2">
+            {leadingContent && <div className="min-w-0 flex-1">{leadingContent}</div>}
             {/* The attach control is only rendered when it can actually do
                 something. Showing a permanently disabled button plus a
                 "coming soon" caption spent the most valuable row in the app on
@@ -329,7 +333,7 @@ export function DiagramPromptComposer({
             )}
 
             <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-2 sm:ml-auto sm:w-auto">
-            {variant !== 'dialog' && <button
+            {variant === 'default' && <button
               type="button"
               disabled={controlsDisabled}
               onClick={() => setShowAdvanced((prev) => !prev)}
@@ -490,7 +494,7 @@ export function DiagramPromptComposer({
         </div>
       )}
 
-      <div className="flex flex-col items-center mt-6">
+      <div className={`flex flex-col items-center mt-6 ${variant === 'home' ? 'home-type-picker' : ''}`}>
         <div className="flex flex-wrap justify-center gap-3">
           {pills.map((pill) => (
             <button

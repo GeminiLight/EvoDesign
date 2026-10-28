@@ -4,6 +4,7 @@
   "installCommand": "npm ci --prefix frontend",
   "buildCommand": "npm --prefix frontend run build:browser",
   "outputDirectory": "frontend/dist",
+  "functions": { "api/model.mjs": { "maxDuration": 150 } },
   "rewrites": [{ "source": "/((?!assets/|api/).*)", "destination": "/index.html" }],
   "headers": [{
     "source": "/(.*)",

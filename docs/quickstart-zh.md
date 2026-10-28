@@ -4,7 +4,7 @@
 
 ## 在线体验
 
-打开 **[EvoDesign Studio](https://evodesign.vercel.app/)**，在“模型设置”里填写你自己的 API 地址、模型 ID 和 key。接口需要支持浏览器跨域访问（CORS）。无需部署后端；项目和设计偏好保存在当前浏览器，建议导出备份。
+打开 **[EvoDesign Studio](https://evodesign.vercel.app/)**，可以直接使用 GLM-5.3-Flash 默认体验，无需填写密钥。也可在“模型设置 → 自己的模型”里配置自己的 API 地址、模型 ID 和 key；自定义接口需要支持浏览器跨域访问（CORS）。默认体验通过 Vercel 转发给智谱，密钥仅留在服务端。项目和设计偏好保存在当前浏览器，建议导出备份。
 
 浏览器版提供生成、内容评审、局部编辑与导出；完整本地版还包含论文的视觉精修、设计知识检索与自动经验学习。详见[浏览器版说明](browser-edition.md)。
 
