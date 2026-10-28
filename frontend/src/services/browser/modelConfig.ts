@@ -50,7 +50,7 @@ export function loadModelConfig(): BrowserModelConfig {
   try {
     const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
     if (saved.source === 'custom' || (saved.source !== 'hosted' && custom.model)) return custom;
-    if (getHostedModel().status === 'available') return {
+    if (saved.source === 'hosted' || getHostedModel().status === 'available') return {
       ...emptyModelConfig, source: 'hosted', baseUrl: '/api/model', model: getHostedModel().model, refine: saved.refine !== false,
     };
   } catch { /* Storage may be disabled. */ }

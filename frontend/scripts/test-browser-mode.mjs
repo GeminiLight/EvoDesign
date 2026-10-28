@@ -46,6 +46,10 @@ test('shared demo becomes the default only after discovery, and switching preser
   assert.equal(model.loadModelConfig().source, 'hosted');
   assert.equal(model.loadCustomModelConfig().model, 'my-model');
   assert.equal(model.loadCustomModelConfig().apiKey, 'test-secret');
+  globalThis.fetch = async () => Response.json({ available: false });
+  await model.checkHostedModel();
+  assert.equal(model.loadModelConfig().source, 'hosted', 'a demo outage must never silently spend the saved custom key');
+  assert.equal(model.loadModelConfig().apiKey, '');
 });
 test('shared transport sends only a diagram task and never forwards a custom key or endpoint', async () => {
   globalThis.fetch = async (url, options) => {

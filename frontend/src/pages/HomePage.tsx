@@ -357,9 +357,9 @@ export const HomePage = () => {
               actionLabel={t('home.reviewSetup')}
               variant="home"
               leadingContent={BROWSER_MODE ? <button type="button" onClick={openModelSettings} className="home-model-button" aria-label={`${t('browser.modelSettings')}: ${modelLabel}`}>
-                <span className={`home-model-dot ${isSharedModel ? 'is-ready' : ''}`} aria-hidden="true" />
+                <span className={`home-model-dot ${isSharedModel && hosted.status === 'available' ? 'is-ready' : ''}`} aria-hidden="true" />
                 <span className="truncate">{hosted.status === 'loading' && !loadModelConfig().model ? (zh ? '正在连接模型…' : 'Connecting…') : modelLabel}</span>
-                <span className="home-model-caption">{isSharedModel ? (zh ? '默认体验' : 'Shared demo') : (zh ? '模型设置' : 'Settings')}</span>
+                <span className="home-model-caption">{isSharedModel ? hosted.status === 'available' ? (zh ? '默认体验' : 'Shared demo') : (zh ? '暂不可用' : 'Unavailable') : (zh ? '模型设置' : 'Settings')}</span>
               </button> : <span className="pl-2 text-xs text-slate-500">{modelLabel}</span>}
               moreLabel={t('home.pillMoreLabel')}
               isGenerating={false}

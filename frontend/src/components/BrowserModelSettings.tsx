@@ -154,11 +154,11 @@ export function BrowserModelSettings() {
         </header>
 
         <div className="min-h-0 space-y-4 overflow-y-auto px-5 pb-5 sm:px-7">
-          {hosted.status === 'available' && <div className="model-source-picker" role="group" aria-label={zh ? '模型来源' : 'Model source'}>
-            <button type="button" aria-pressed={isHosted} onClick={() => {
+          {(hosted.status === 'available' || isHosted) && <div className="model-source-picker" role="group" aria-label={zh ? '模型来源' : 'Model source'}>
+            <button type="button" aria-pressed={isHosted} disabled={hosted.status !== 'available'} onClick={() => {
               if (!isHosted) customDraftRef.current = config;
               updateConfig({ source: 'hosted', baseUrl: '/api/model', model: hosted.model, apiKey: '' });
-            }}><span>GLM-5.3-Flash</span><small>{zh ? '默认体验 · 无需密钥' : 'Shared demo · no key needed'}</small></button>
+            }}><span>GLM-5.3-Flash</span><small>{hosted.status === 'available' ? (zh ? '默认体验 · 无需密钥' : 'Shared demo · no key needed') : (zh ? '暂不可用' : 'Temporarily unavailable')}</small></button>
             <button type="button" aria-pressed={!isHosted} onClick={() => {
               if (isHosted) { stopRequest(); setFeedback({ kind: 'idle' }); setConfig({ ...customDraftRef.current, source: 'custom' }); }
             }}><span>{zh ? '自己的模型' : 'Your own model'}</span><small>{zh ? '使用你的 API 与额度' : 'Use your API and allowance'}</small></button>
