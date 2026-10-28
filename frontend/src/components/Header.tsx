@@ -1,7 +1,7 @@
 import { BROWSER_MODE, openModelSettings } from '../services/browser/runtime';
 import { useState, useRef, useEffect } from 'react';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
-import { Bell, CheckCircle2, Cloud, Languages, LogOut, Mail, Menu, Monitor, Moon, Settings2, Sparkles, Sun, X } from 'lucide-react';
+import { Bell, CheckCircle2, Cloud, Database, Folder, Home, LayoutGrid, Languages, LogOut, Mail, Menu, Monitor, Moon, Settings2, Sparkles, Sun, X } from 'lucide-react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useLanguage } from '../i18n/LanguageProvider';
 import { useBackendAuth } from '../features/auth/BackendAuthProvider';
@@ -16,7 +16,7 @@ const LOGO_ASSET_VERSION = '20260303';
 
 type HeaderProps = {
   children?: ReactNode;
-  variant?: 'app' | 'landing';
+  variant?: 'app' | 'landing' | 'studio';
   onEnterGuest?: (prompt?: string) => void;
   onEnterEmailAuth?: () => void;
   authTransitionBlocked?: boolean;
@@ -35,6 +35,8 @@ export const Header = ({
   onBeforeNavigate,
   onOpenSettings,
 }: HeaderProps) => {
+  const isStudio = variant === 'studio';
+  const isApp = variant !== 'landing';
   const { t, language, setLanguage } = useLanguage();
   const { user, signOut } = useBackendAuth();
   const navigate = useNavigate();
@@ -275,8 +277,8 @@ export const Header = ({
   };
 
   return (
-    <header className={`sticky top-0 z-50 border-b backdrop-blur-2xl transition-colors duration-300 ${variant === 'landing' ? 'border-slate-200/50 dark:border-white/5 bg-white/50 dark:bg-slate-950/50 backdrop-blur-xl' : 'border-slate-200 bg-white/95 dark:border-slate-800 dark:bg-slate-950/95'}`}>
-      <div className={`mx-auto flex h-14 items-center justify-between gap-2 px-3 sm:px-6 lg:px-8 ${variant === 'landing' ? 'max-w-7xl' : ''}`}>
+    <header className={`${isStudio ? 'home-studio-header' : ''} sticky top-0 z-50 border-b backdrop-blur-2xl transition-colors duration-300 ${variant === 'landing' ? 'border-slate-200/50 dark:border-white/5 bg-white/50 dark:bg-slate-950/50 backdrop-blur-xl' : 'border-slate-200 bg-white/95 dark:border-slate-800 dark:bg-slate-950/95'}`}>
+      <div className={`header-inner mx-auto flex h-14 items-center justify-between gap-2 px-3 sm:px-6 lg:px-8 ${variant === 'landing' ? 'max-w-7xl' : ''}`}>
         <div className="flex min-w-0 items-center gap-4 md:gap-8">
           <button
             type="button"
@@ -286,35 +288,35 @@ export const Header = ({
                 if (didNavigate) closeTransientPanels();
               })();
             }}
-            className="flex min-h-11 min-w-11 items-center gap-2 rounded-xl px-1 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
+            className="header-brand flex min-h-11 min-w-11 items-center gap-2 rounded-xl px-1 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300"
           >
             <img
               src={logoSrc}
               alt="EvoDesign Logo"
-              className="h-8 w-8"
+              className="header-logo h-8 w-8"
             />
-            <span className={`hidden font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:inline ${variant === 'landing' ? 'text-xl dark:text-white' : 'text-lg'}`}>Evo<span className="text-brand-600 dark:text-brand-400">Design</span></span>
+            <span className={`header-wordmark hidden font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:inline ${variant === 'landing' ? 'text-xl dark:text-white' : 'text-lg'}`}>Evo<span className="text-brand-600 dark:text-brand-400">Design</span></span>
           </button>
 
-          {variant === 'app' && (
-            <nav className="hidden md:flex items-center gap-1">
+          {isApp && (
+            <nav className={`header-nav hidden md:flex items-center gap-1 ${isStudio ? 'home-studio-rail' : ''}`} aria-label={t('nav.menu')}>
               <NavLink to="/home" onClick={handleNavLinkClick('/home')} className={({ isActive }) => `${navBaseClass} ${isActive ? navActiveClass : navInactiveClass}`}>
-                {t('nav.home')}
+                {isStudio && <Home size={22} strokeWidth={1.6} aria-hidden="true" />}<span>{t('nav.home')}</span>
               </NavLink>
               <NavLink to="/projects" onClick={handleNavLinkClick('/projects')} className={({ isActive }) => `${navBaseClass} ${isActive ? navActiveClass : navInactiveClass}`}>
-                {t('nav.projects')}
+                {isStudio && <Folder size={22} strokeWidth={1.6} aria-hidden="true" />}<span>{t('nav.projects')}</span>
               </NavLink>
               <NavLink to="/insights" onClick={handleNavLinkClick('/insights')} className={({ isActive }) => `${navBaseClass} ${isActive ? navActiveClass : navInactiveClass}`}>
-                {t('nav.gallery')}
+                {isStudio && <LayoutGrid size={22} strokeWidth={1.6} aria-hidden="true" />}<span>{t('nav.gallery')}</span>
               </NavLink>
               <NavLink to="/dna" onClick={handleNavLinkClick('/dna')} className={({ isActive }) => `${navBaseClass} ${isActive ? navActiveClass : navInactiveClass}`}>
-                {t('nav.dna')}
+                {isStudio && <Database size={22} strokeWidth={1.6} aria-hidden="true" />}<span>{t('nav.dna')}</span>
               </NavLink>
             </nav>
           )}
         </div>
 
-          {variant === 'app' && (
+          {isApp && (
             <button
               ref={mobileNavButtonRef}
               type="button"
@@ -332,7 +334,7 @@ export const Header = ({
             </button>
           )}
 
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        <div className="header-actions flex min-w-0 items-center gap-2 sm:gap-3">
           {/* Landing variant: theme toggle + language + guest/sign-in */}
           {variant === 'landing' && (
             <>
@@ -381,10 +383,10 @@ export const Header = ({
           )}
 
           {/* App variant: children + notifications + user menu */}
-          {variant === 'app' && (
+          {isApp && (
             <>
           {children}
-          {BROWSER_MODE && <button type="button" onClick={openModelSettings} className="tool-button min-h-10 gap-2 px-3"><Settings2 size={16} /><span className="hidden sm:inline">{t('browser.modelSettings')}</span><span className="sm:hidden">API</span></button>}
+          {BROWSER_MODE && <button type="button" onClick={openModelSettings} aria-label={t('browser.modelSettings')} title={t('browser.modelSettings')} className={isStudio ? 'home-settings-button' : 'tool-button min-h-10 gap-2 px-3'}><Settings2 size={isStudio ? 20 : 16} />{!isStudio && <><span className="hidden sm:inline">{t('browser.modelSettings')}</span><span className="sm:hidden">API</span></>}</button>}
 
           {!BROWSER_MODE && <div className="relative" ref={notificationsRef}>
             <button
@@ -496,7 +498,7 @@ export const Header = ({
                 setNotificationsOpen(false);
                 setMobileNavOpen(false);
               }}
-              className="tap-target flex min-h-9 items-center gap-2 rounded-full border border-slate-200/70 bg-white/70 py-1 pl-1 pr-2.5 transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 dark:border-white/10 dark:bg-slate-900/70 dark:hover:bg-slate-800 dark:focus-visible:ring-offset-slate-950"
+              className="header-user-trigger tap-target flex min-h-9 items-center gap-2 rounded-full border border-slate-200/70 bg-white/70 py-1 pl-1 pr-2.5 transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 dark:border-white/10 dark:bg-slate-900/70 dark:hover:bg-slate-800 dark:focus-visible:ring-offset-slate-950"
             >
               <div className={`flex h-7 w-7 items-center justify-center rounded-full text-white text-xs font-bold ${user ? 'bg-purple-500' : 'bg-slate-600'}`}>
                 {user ? (user.username || user.email || 'U')[0].toUpperCase() : 'G'}
@@ -656,7 +658,7 @@ export const Header = ({
           )}
         </div>
       </div>
-      {variant === 'app' && mobileNavOpen && (
+      {isApp && mobileNavOpen && (
         <nav ref={mobileNavRef} id="app-mobile-nav" className="border-t border-white/60 bg-white/50 px-4 py-3 backdrop-blur-2xl md:hidden dark:border-white/10 dark:bg-slate-950/55">
           <div className="flex flex-col gap-1">
             <NavLink to="/home" onClick={handleNavLinkClick('/home', { closeMobile: true })} className={({ isActive }) => `flex min-h-11 items-center rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isActive ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/20 dark:text-brand-300' : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800'}`}>

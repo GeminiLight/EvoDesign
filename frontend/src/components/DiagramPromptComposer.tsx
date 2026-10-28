@@ -2,6 +2,8 @@ import { BROWSER_MODE } from '../services/browser/runtime';
 import { shouldSubmitOnEnter } from '../utils/keyboard';
 import {
   Activity,
+  ArrowRight,
+  X,
   BarChart3,
   Bot,
   Box,
@@ -75,6 +77,7 @@ type Props = {
   moreLabel: string;
   onAttachmentClick?: () => void;
   attachedFileName?: string | null;
+  onRemoveAttachment?: () => void;
   disableGenerate?: boolean;
   isGenerating?: boolean;
   isDisabled?: boolean;
@@ -108,6 +111,7 @@ export function DiagramPromptComposer({
   moreLabel,
   onAttachmentClick,
   attachedFileName,
+  onRemoveAttachment,
   disableGenerate = false,
   isGenerating = false,
   isDisabled = false,
@@ -146,10 +150,10 @@ export function DiagramPromptComposer({
     if (!textarea) return;
 
     textarea.style.height = '0px';
-    const nextHeight = Math.max(132, Math.min(textarea.scrollHeight, 240));
+    const nextHeight = Math.max(variant === 'home' ? 108 : 132, Math.min(textarea.scrollHeight, 240));
     textarea.style.height = `${nextHeight}px`;
     textarea.style.overflowY = textarea.scrollHeight > 240 ? 'auto' : 'hidden';
-  }, [prompt]);
+  }, [prompt, variant]);
 
   useEffect(() => {
     if (!autoFocusPrompt && !promptFocusRequest) return;
@@ -273,7 +277,7 @@ export function DiagramPromptComposer({
       <div className={`w-full relative group ${variant === 'home' ? 'home-composer' : ''}`} aria-busy={isGenerating}>
         <div className="diagram-prompt-surface relative flex flex-col rounded-2xl border border-slate-200/80 bg-white shadow-e2 transition-colors dark:border-slate-700 dark:bg-slate-900 dark:shadow-e2-dark">
           <div className="relative flex-1">
-            <button
+            {variant !== 'home' && <button
               type="button"
               title={enhanceTitle}
               aria-label={enhanceTitle}
@@ -282,7 +286,7 @@ export function DiagramPromptComposer({
               className={`tap-target absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-600 backdrop-blur transition-colors hover:border-brand-300 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900/85 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300 ${focusRingClass}`}
             >
               <Sparkles className="h-4 w-4" />
-            </button>
+            </button>}
 
             <textarea
               ref={textareaRef}
@@ -304,21 +308,20 @@ export function DiagramPromptComposer({
           </div>
 
           {attachedFileName && (
-            <div className="px-4 pb-1">
-              <span className="inline-block max-w-[320px] truncate rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700">
-                {attachedFileName}
-              </span>
+            <div className="home-reference-chip" role="status">
+              <Paperclip size={13} aria-hidden="true" /><span title={attachedFileName}>{attachedFileName}</span>
+              {onRemoveAttachment && <button type="button" onClick={onRemoveAttachment} disabled={controlsDisabled} aria-label={t?.('home.removeReference') || 'Remove reference'}><X size={14} /></button>}
             </div>
           )}
 
-          <div className="flex flex-col gap-2 border-t border-slate-100 px-3 py-3 dark:border-slate-800 sm:flex-row sm:items-center sm:py-2">
-            {leadingContent && <div className="min-w-0 flex-1">{leadingContent}</div>}
+          <div className="diagram-prompt-footer flex flex-col gap-2 border-t border-slate-100 px-3 py-3 dark:border-slate-800 sm:flex-row sm:items-center sm:py-2">
+            {leadingContent && <div className={`diagram-prompt-leading min-w-0 flex-1 ${variant === 'home' ? 'home-composer-model' : ''}`}>{leadingContent}</div>}
             {/* The attach control is only rendered when it can actually do
                 something. Showing a permanently disabled button plus a
                 "coming soon" caption spent the most valuable row in the app on
                 a feature that does not exist yet. */}
             {canAttach && (
-              <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
+              <div className="diagram-prompt-attach flex min-w-0 items-center gap-2 sm:w-auto">
                 <button
                   type="button"
                   title={attachTitle}
@@ -327,12 +330,12 @@ export function DiagramPromptComposer({
                   disabled={controlsDisabled}
                   className={`tap-target flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white/80 text-slate-600 transition-colors hover:border-brand-300 hover:text-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-300 dark:hover:border-brand-500 dark:hover:text-brand-300 ${focusRingClass}`}
                 >
-                  <Paperclip className="h-4.5 w-4.5" />
+                  <Paperclip className="h-4.5 w-4.5" />{variant === 'home' && <span>{t?.('home.addReference') || 'Add reference'}</span>}
                 </button>
               </div>
             )}
 
-            <div className="flex w-full min-w-0 flex-wrap items-center justify-end gap-2 sm:ml-auto sm:w-auto">
+            <div className="diagram-prompt-actions flex w-full min-w-0 flex-wrap items-center justify-end gap-2 sm:ml-auto sm:w-auto">
             {variant === 'default' && <button
               type="button"
               disabled={controlsDisabled}
@@ -478,7 +481,7 @@ export function DiagramPromptComposer({
               {isGenerating ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <><span>{actionLabel ?? generateTitle}</span><SendHorizontal className="h-4 w-4" /></>
+                variant === 'home' ? <ArrowRight className="h-5 w-5" /> : <><span>{actionLabel ?? generateTitle}</span><SendHorizontal className="h-4 w-4" /></>
               )}
             </button>}
           </div>
@@ -494,7 +497,7 @@ export function DiagramPromptComposer({
         </div>
       )}
 
-      <div className={`flex flex-col items-center mt-6 ${variant === 'home' ? 'home-type-picker' : ''}`}>
+      {variant !== 'home' && <div className="flex flex-col items-center mt-6">
         <div className="flex flex-wrap justify-center gap-3">
           {pills.map((pill) => (
             <button
@@ -550,7 +553,7 @@ export function DiagramPromptComposer({
             ))}
           </div>
         </div>
-      </div>
+      </div>}
     </>
   );
 }
