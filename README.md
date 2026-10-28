@@ -5,13 +5,15 @@
 ### Turn ideas into diagrams you can keep editing.
 
 <!-- PROJECT-LINKS:START -->
-<p align="center">
-  <a href="https://tianfu.wang/EvoDesign/"><img src=".github/badges/website.svg" alt="Website" height="36"></a>
-  <a href="https://evodesign.vercel.app/"><img src=".github/badges/try-online.svg" alt="Try online · bring your API key" height="36"></a>
-  <a href="https://arxiv.org/abs/2604.09568"><img src=".github/badges/paper.svg" alt="Read the paper" height="36"></a>
-  <a href="https://github.com/GeminiLight/EvoDesign#run-locally"><img src=".github/badges/quickstart.svg" alt="Quick start" height="36"></a>
-  <a href="https://github.com/GeminiLight/EvoDesign/blob/main/CONTRIBUTING.md"><img src=".github/badges/contribute.svg" alt="Contribute" height="36"></a>
-</p>
+<div align="center">
+
+[![Try online · bring your API key](https://img.shields.io/badge/Try_online-BYOK-575BC7?style=for-the-badge&labelColor=22233D)](https://evodesign.vercel.app/)
+[![Explore the project website](https://img.shields.io/badge/Website-Explore-386F85?style=for-the-badge&labelColor=22233D)](https://tianfu.wang/EvoDesign/)
+[![Read the paper on arXiv](https://img.shields.io/badge/Paper-arXiv-7950A4?style=for-the-badge&labelColor=22233D)](https://arxiv.org/abs/2604.09568)
+[![Run EvoDesign locally](https://img.shields.io/badge/Quickstart-Local-44629C?style=for-the-badge&labelColor=22233D)](https://github.com/GeminiLight/EvoDesign#run-locally)
+[![Contributions welcome](https://img.shields.io/badge/Contribute-Welcome-806294?style=for-the-badge&labelColor=22233D)](https://github.com/GeminiLight/EvoDesign/blob/main/CONTRIBUTING.md)
+
+</div>
 <!-- PROJECT-LINKS:END -->
 
 [中文入门](docs/quickstart-zh.md) · [Browser edition guide](docs/browser-edition.md)
