@@ -56,6 +56,11 @@ test('shared transport sends only a diagram task and never forwards a custom key
   };
   assert.equal(await model.callBrowserModel({ ...config, source: 'hosted' }, 'System', 'Draw a flow.'), 'OK');
 });
+test('literal controls in model labels preserve their text, while malformed structure still fails', () => {
+  assert.deepEqual(model.parseModelJson('{"label":"库存\n校验\t完成","other":"quoted \\"word\\""}'), { label: '库存\n校验\t完成', other: 'quoted "word"' });
+  assert.deepEqual(model.parseModelJson('{"label":"literal \\\\n"}'), { label: 'literal \\n' });
+  for (const text of ['{"nodes":[', '{"label":"x" "other":"y"}', '{"label":invalid}']) assert.throws(() => model.parseModelJson(text), /valid diagram JSON/);
+});
 test('credentials stay tab-local by default and are never reused for a changed endpoint', () => {
   model.saveModelConfig(config);
   assert.equal(model.loadModelConfig().apiKey, config.apiKey);

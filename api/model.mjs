@@ -82,7 +82,8 @@ export function createModelHandler(env = process.env, fetcher = fetch) {
       const response = await fetcher(ENDPOINT, {
         method: 'POST', headers: { Authorization: `Bearer ${env.DEMO_GLM_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: MODEL, messages: [{ role: 'system', content: system }, { role: 'user', content: input.prompt }],
-          max_tokens: maxTokens, stream: false, thinking: { type: 'disabled' } }),
+          max_tokens: maxTokens, stream: false, thinking: { type: 'disabled' },
+          ...(input.task !== 'check' ? { response_format: { type: 'json_object' } } : {}) }),
         signal: AbortSignal.any([request.signal, AbortSignal.timeout(120_000)]), redirect: 'error',
       });
       if (!response.ok) return error('provider', 'The shared model could not complete this request. Retry later or use your own model.', response.status === 429 ? 429 : 502);

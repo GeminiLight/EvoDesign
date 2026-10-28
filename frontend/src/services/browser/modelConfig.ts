@@ -80,7 +80,16 @@ export function forgetModelKey() {
 
 export function parseModelJson(text: string): unknown {
   const clean = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
-  try { return JSON.parse(clean); } catch { throw new Error('The model did not return valid diagram JSON. Try again or choose a model with reliable JSON output.'); }
+  // Some providers emit literal newlines inside quoted labels. Escape only those
+  // control characters; never guess missing quotes, fields or diagram structure.
+  let quoted = false; let escaped = false; let normalized = '';
+  for (const char of clean) {
+    if (quoted && char.charCodeAt(0) < 32) normalized += JSON.stringify(char).slice(1, -1);
+    else normalized += char;
+    if (char === '"' && !escaped) quoted = !quoted;
+    escaped = char === '\\' && !escaped;
+  }
+  try { return JSON.parse(normalized); } catch { throw new Error('The model did not return valid diagram JSON. Try again or choose a model with reliable JSON output.'); }
 }
 
 type Completion = { message?: { content?: unknown }; finish_reason?: string };

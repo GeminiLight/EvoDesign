@@ -15,6 +15,10 @@ function subscribe(update: () => void) {
 
 export function useBrowserModelLabel(t: (key: string) => string): string {
   useHostedModel();
-  const model = useSyncExternalStore(subscribe, () => BROWSER_MODE ? loadModelConfig().model.trim() : '', () => '');
+  const model = useSyncExternalStore(subscribe, () => {
+    if (!BROWSER_MODE) return '';
+    const config = loadModelConfig();
+    return config.source === 'hosted' ? 'GLM-5.3-Flash' : config.model.trim();
+  }, () => '');
   return BROWSER_MODE ? model || t('browser.yourModel') : t('home.serverModel');
 }
