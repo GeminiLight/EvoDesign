@@ -26,9 +26,36 @@ const { getStoredAuthToken } = await load('src/services/httpClient.ts');
 rmSync(temp, { recursive: true });
 const fetchBefore = globalThis.fetch;
 const storage = () => { const data = new Map(); return { getItem: k => data.get(k) ?? null, setItem: (k, v) => data.set(k, v), removeItem: k => data.delete(k), clear: () => data.clear() }; };
-beforeEach(() => { globalThis.localStorage = storage(); globalThis.sessionStorage = storage(); });
+beforeEach(async () => {
+  globalThis.localStorage = storage(); globalThis.sessionStorage = storage();
+  globalThis.window = new EventTarget();
+  globalThis.fetch = async () => Response.json({ available: false });
+  await model.checkHostedModel();
+});
 afterEach(() => { globalThis.fetch = fetchBefore; });
 const config = { baseUrl: 'https://model.example/v1', model: 'my-model', apiKey: 'test-secret', rememberKey: false, refine: true };
+test('shared demo becomes the default only after discovery, and switching preserves a custom configuration', async () => {
+  assert.equal(model.loadModelConfig().model, '');
+  globalThis.fetch = async () => Response.json({ available: true, model: 'glm-5.3-flash' });
+  await model.checkHostedModel();
+  assert.equal(model.loadModelConfig().source, 'hosted');
+  assert.equal(model.loadModelConfig().apiKey, '');
+  model.saveModelConfig(config);
+  assert.equal(model.loadModelConfig().source, 'custom');
+  model.saveModelConfig({ ...model.loadModelConfig(), source: 'hosted' });
+  assert.equal(model.loadModelConfig().source, 'hosted');
+  assert.equal(model.loadCustomModelConfig().model, 'my-model');
+  assert.equal(model.loadCustomModelConfig().apiKey, 'test-secret');
+});
+test('shared transport sends only a diagram task and never forwards a custom key or endpoint', async () => {
+  globalThis.fetch = async (url, options) => {
+    assert.equal(url, '/api/model');
+    assert.equal(options.headers.Authorization, undefined);
+    assert.deepEqual(JSON.parse(options.body), { task: 'diagram', prompt: 'Draw a flow.', maxTokens: 8192 });
+    return Response.json({ choices: [{ message: { content: 'OK' } }] });
+  };
+  assert.equal(await model.callBrowserModel({ ...config, source: 'hosted' }, 'System', 'Draw a flow.'), 'OK');
+});
 test('credentials stay tab-local by default and are never reused for a changed endpoint', () => {
   model.saveModelConfig(config);
   assert.equal(model.loadModelConfig().apiKey, config.apiKey);

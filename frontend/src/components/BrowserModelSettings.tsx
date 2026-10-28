@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check, ChevronDown, CircleAlert, Eye, EyeOff, Loader2, X } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageProvider';
-import { completionUrl, forgetModelKey, loadModelConfig, saveModelConfig, testBrowserModelConnection } from '../services/browser/modelConfig';
+import { completionUrl, forgetModelKey, loadCustomModelConfig, loadModelConfig, saveModelConfig, testBrowserModelConnection } from '../services/browser/modelConfig';
+import { useHostedModel } from '../hooks/useHostedModel';
 import type { BrowserModelConfig } from '../services/browser/modelConfig';
 import { MODEL_CONFIG_EVENT, MODEL_SETTINGS_EVENT } from '../services/browser/runtime';
 
@@ -22,6 +23,7 @@ function connectionError(error: unknown, zh: boolean): string {
 export function BrowserModelSettings() {
   const { language } = useLanguage();
   const zh = language === 'zh';
+  const hosted = useHostedModel();
   const [open, setOpen] = useState(false);
   const [config, setConfig] = useState(loadModelConfig);
   const [reveal, setReveal] = useState(false);
@@ -30,6 +32,7 @@ export function BrowserModelSettings() {
   const [feedback, setFeedback] = useState<Feedback>({ kind: 'idle' });
   const dialogRef = useRef<HTMLDialogElement>(null);
   const modelRef = useRef<HTMLInputElement>(null);
+  const customDraftRef = useRef(loadCustomModelConfig());
   const requestRef = useRef<AbortController | null>(null);
   const isTesting = feedback.kind === 'testing';
 
@@ -48,6 +51,7 @@ export function BrowserModelSettings() {
     const show = () => {
       requestRef.current?.abort();
       const saved = loadModelConfig();
+      customDraftRef.current = loadCustomModelConfig();
       setConfig(saved);
       setHasSavedKey(Boolean(saved.apiKey));
       setTouched({ baseUrl: false, model: false });
@@ -74,12 +78,13 @@ export function BrowserModelSettings() {
     };
   }, [open]);
 
+  const isHosted = config.source === 'hosted';
   let destination = '';
   let urlError = '';
-  try { destination = new URL(completionUrl(config.baseUrl)).hostname; }
+  try { if (!isHosted) destination = new URL(completionUrl(config.baseUrl)).hostname; }
   catch { urlError = zh ? '填写有效的 HTTPS 接口地址，本地服务可用 HTTP。地址不能包含密钥、查询参数或片段。' : 'Use an HTTPS endpoint (HTTP for localhost), without credentials, query parameters or fragments.'; }
   const modelError = config.model.trim() ? '' : (zh ? '请填写服务商提供的模型 ID。' : 'Enter the model ID from your provider.');
-  const canSubmit = !urlError && !modelError;
+  const canSubmit = isHosted ? hosted.status === 'available' : !urlError && !modelError;
 
   const test = async () => {
     if (!canSubmit) return;
@@ -117,6 +122,7 @@ export function BrowserModelSettings() {
     stopRequest();
     try {
       forgetModelKey();
+      customDraftRef.current = { ...customDraftRef.current, apiKey: '', rememberKey: false };
       setConfig(current => ({ ...current, apiKey: '', rememberKey: false }));
       setReveal(false);
       setHasSavedKey(false);
@@ -142,12 +148,23 @@ export function BrowserModelSettings() {
         <header className="flex shrink-0 items-start justify-between gap-4 px-5 pb-5 pt-5 sm:px-7 sm:pt-6">
           <div>
             <h2 id="browser-model-title" className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">{zh ? '模型设置' : 'Model settings'}</h2>
-            <p className="mt-1.5 text-xs leading-5 text-slate-500 dark:text-slate-400">{zh ? '连接你常用的模型，继续创作。' : 'Connect your model and keep creating.'}</p>
+            <p className="mt-1.5 text-xs leading-5 text-slate-500 dark:text-slate-400">{zh ? '使用默认体验，或连接你自己的模型。' : 'Try the shared model or connect your own.'}</p>
           </div>
           <button type="button" aria-label={zh ? '关闭' : 'Close'} onClick={close} className="studio-icon-button -mr-2 -mt-2"><X size={17} /></button>
         </header>
 
         <div className="min-h-0 space-y-4 overflow-y-auto px-5 pb-5 sm:px-7">
+          {hosted.status === 'available' && <div className="model-source-picker" role="group" aria-label={zh ? '模型来源' : 'Model source'}>
+            <button type="button" aria-pressed={isHosted} onClick={() => {
+              if (!isHosted) customDraftRef.current = config;
+              updateConfig({ source: 'hosted', baseUrl: '/api/model', model: hosted.model, apiKey: '' });
+            }}><span>GLM-5.3-Flash</span><small>{zh ? '默认体验 · 无需密钥' : 'Shared demo · no key needed'}</small></button>
+            <button type="button" aria-pressed={!isHosted} onClick={() => {
+              if (isHosted) { stopRequest(); setFeedback({ kind: 'idle' }); setConfig({ ...customDraftRef.current, source: 'custom' }); }
+            }}><span>{zh ? '自己的模型' : 'Your own model'}</span><small>{zh ? '使用你的 API 与额度' : 'Use your API and allowance'}</small></button>
+          </div>}
+          {isHosted && <p className="text-xs leading-6 text-slate-500 dark:text-slate-400">{zh ? '可以直接生成、评审和局部编辑。共享额度用尽时，可切换到自己的模型继续。' : 'Generate, review and edit directly. Switch to your own model if the shared allowance is reached.'}</p>}
+          {!isHosted && <>
           <div>
             <div className="mb-2 flex items-center justify-between gap-3">
               <label htmlFor="browser-model-url" className="studio-field-label">{zh ? 'API 地址' : 'API base URL'}</label>
@@ -187,6 +204,7 @@ export function BrowserModelSettings() {
             </div>
             <p id="browser-model-storage-hint" className="text-[11px] leading-5 text-slate-500 dark:text-slate-400">{zh ? '默认仅保留在当前标签页；公共设备请勿勾选。' : 'Tab-only by default. Leave unchecked on shared devices.'}</p>
           </div>
+          </>}
 
           <details className="studio-details">
             <summary><span>{zh ? '高级设置与连接帮助' : 'Advanced settings & help'}</span><ChevronDown size={14} /></summary>
@@ -196,6 +214,7 @@ export function BrowserModelSettings() {
                 <span aria-hidden="true" className="studio-switch" />
                 <span className="text-xs text-slate-600 dark:text-slate-300">{zh ? '生成后评审' : 'Review after generation'}<span id="browser-model-review-hint" className="mt-1 block text-[11px] text-slate-500 dark:text-slate-400">{zh ? '额外调用一次模型' : 'One extra model call'}</span></span>
               </label>
+              {!isHosted && <>
               <label className="flex items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-300">{zh ? '推理强度' : 'Reasoning effort'}
                 <select className="create-diagram-select min-w-0 max-w-[65%]" value={config.reasoningEffort || ''} onChange={event => updateConfig({ reasoningEffort: (event.target.value || undefined) as BrowserModelConfig['reasoningEffort'] })}>
                   <option value="">{zh ? '服务商默认' : 'Provider default'}</option>
@@ -213,9 +232,12 @@ export function BrowserModelSettings() {
                 }}>{zh ? '使用 OpenRouter' : 'Use OpenRouter'}</button>
                 <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className="studio-secondary px-2 text-xs">{zh ? '查看 OpenRouter 模型 ↗' : 'Browse OpenRouter models ↗'}</a>
               </div>
+              </>}
             </div>
           </details>
-          <p className="break-words text-[11px] leading-5 text-slate-500 dark:text-slate-400">{zh ? `请求直达 ${destination || '你指定的服务商'}，费用由服务商收取。EvoDesign 不接收密钥。` : `Requests go directly to ${destination || 'your provider'}, who bills usage. EvoDesign does not receive your key.`}</p>
+          <p className="break-words text-[11px] leading-5 text-slate-500 dark:text-slate-400">{isHosted
+            ? (zh ? '图表内容经 EvoDesign 转发给智谱。项目仍保存在此浏览器；密钥仅留在服务端。' : 'Diagram content is sent through EvoDesign to BigModel. Projects stay in this browser; the shared key stays on the server.')
+            : zh ? `请求直达 ${destination || '你指定的服务商'}，费用由服务商收取。EvoDesign 不接收密钥。` : `Requests go directly to ${destination || 'your provider'}, who bills usage. EvoDesign does not receive your key.`}</p>
         </div>
 
         <footer className="shrink-0 space-y-3 border-t border-slate-200/70 px-5 pb-[max(env(safe-area-inset-bottom),1.25rem)] pt-4 dark:border-white/[0.07] sm:px-7">

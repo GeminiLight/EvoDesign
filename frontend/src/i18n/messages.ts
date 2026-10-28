@@ -350,8 +350,8 @@ export const messages = {
     home: {
       title: 'Give your ideas a clear shape.',
       subtitle: 'Describe a system or process. Create a diagram you can refine, edit, and make your own.',
-      promptPlaceholder: 'e.g., Draw an Atlas smart browser system diagram that includes multiple agents...',
-      reviewSetup: 'Continue to setup',
+      promptPlaceholder: 'Describe your diagram. Include the key steps, people, or components and how they connect…',
+      reviewSetup: 'Start creating',
       generate: 'Generate',
       generateIconTitle: 'Generate',
       enhancePrompt: 'Enhance prompt',
@@ -1473,10 +1473,10 @@ export const messages = {
       featureStylingDesc: '自动布局与配色主题让图表始终具有展示级效果。',
     },
     home: {
-      reviewSetup: '下一步：生成设置',
+      reviewSetup: '开始创作',
       title: '把复杂想法，画清楚。',
       subtitle: '描述系统或流程，生成可以继续精修、编辑和导出的图表。',
-      promptPlaceholder: '例如：绘制一个包含多个智能体协作流程的 Atlas 浏览器系统图...',
+      promptPlaceholder: '想画什么？描述关键步骤、角色或组件，以及它们之间的关系…',
       generate: '生成',
       generateIconTitle: '生成',
       enhancePrompt: '优化提示词',

@@ -26,4 +26,4 @@ The default `eval` role shares the generation model for a basic smoke run. For r
 
 ## Static browser edition
 
-The [browser edition](browser-edition.md) uses user-configured model endpoints directly from the page. Its Vercel deployment needs no backend or server-side model key. Build with `npm --prefix frontend run build:browser`; ordinary builds keep the full backend mode.
+The [browser edition](browser-edition.md) supports a shared GLM-5.3-Flash demo and direct calls to user-configured providers. The Vercel demo uses the small `api/model.mjs` function, without the Python backend. Set `DEMO_GLM_API_KEY`, `DEMO_REDIS_URL` and `DEMO_REDIS_TOKEN` as server-only Vercel secrets. Optional daily reserved-token, concurrency and per-visitor request limits are documented in the browser guide and `.env.example`. The counter namespace is independent of other applications. A static deployment without these values retains custom-model mode. Build with `npm --prefix frontend run build:browser`; ordinary builds keep the full backend mode. Never use `VITE_*` for a secret.

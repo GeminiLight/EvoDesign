@@ -1,4 +1,7 @@
 import { useBrowserModelLabel } from '../hooks/useBrowserModelLabel';
+import '../styles/home.css';
+import { useHostedModel } from '../hooks/useHostedModel';
+import { loadModelConfig } from '../services/browser/modelConfig';
 import { BROWSER_MODE, openModelSettings } from '../services/browser/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -62,8 +65,11 @@ export const HomePage = () => {
   const location = useLocation();
   const { showToast } = useToast();
   const { user } = useBackendAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const zh = language === 'zh';
+  const hosted = useHostedModel();
   const modelLabel = useBrowserModelLabel(t);
+  const isSharedModel = BROWSER_MODE && loadModelConfig().source === 'hosted';
   const authIdentity = user?.user_id ?? null;
   const activeAuthIdentityRef = useRef<string | null>(authIdentity);
   const previousAuthIdentityRef = useRef<string | null | undefined>(undefined);
@@ -314,21 +320,20 @@ export const HomePage = () => {
   };
 
   return (
-    <div className="bg-soft-mesh dark:bg-soft-mesh-dark min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
+    <div className="studio-home min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
       <Header />
 
-      <main id="main-content" className="flex-1 flex flex-col items-center px-4 py-8 sm:py-10 max-w-6xl mx-auto w-full">
+      <main id="main-content" className="flex-1 flex flex-col items-center px-5 py-8 sm:px-8 sm:py-12 max-w-6xl mx-auto w-full">
         {/* Hero Section - AI Creation Launcher */}
-        <div className="w-full max-w-4xl flex flex-col items-center text-center mb-8 mt-1">
-          <p className="mb-4 text-xs font-semibold tracking-[0.16em] text-brand-700 dark:text-brand-300">EVODESIGN STUDIO</p>
-          <h1 className="mb-3 max-w-2xl font-display text-3xl font-semibold leading-tight text-slate-900 dark:text-slate-100 sm:mb-4 sm:text-4xl">
+        <div className="home-intro w-full max-w-4xl flex flex-col items-start text-left mb-8 mt-1 sm:mt-5">
+          <p className="home-eyebrow mb-5 text-[11px] font-semibold tracking-[0.2em] text-indigo-600 dark:text-indigo-300"><span aria-hidden="true" />EVODESIGN STUDIO</p>
+          <h1 className="home-headline mb-4 max-w-3xl font-display text-[2.25rem] font-semibold leading-[1.14] tracking-[-0.04em] text-slate-900 dark:text-slate-100 sm:text-5xl">
             {t('home.title')}
           </h1>
-          <p className="mb-6 max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-300 sm:mb-8 sm:text-lg">
+          <p className="mb-7 max-w-xl text-sm leading-7 text-slate-500 dark:text-slate-400 sm:mb-8 sm:text-base">
             {t('home.subtitle')}
           </p>
 
-          {BROWSER_MODE && <p className="mb-5 max-w-xl text-sm leading-6 text-slate-500 dark:text-slate-400">{t('browser.startHint')} <button type="button" onClick={openModelSettings} className="font-semibold text-indigo-600 underline decoration-indigo-200 underline-offset-4 dark:text-indigo-300">{t('browser.modelSettings')} →</button></p>}
           <div className="w-full relative group">
             <DiagramPromptComposer
               prompt={prompt}
@@ -350,6 +355,12 @@ export const HomePage = () => {
               enhanceTitle={t('home.enhancePrompt')}
               generateTitle={t('home.reviewSetup')}
               actionLabel={t('home.reviewSetup')}
+              variant="home"
+              leadingContent={BROWSER_MODE ? <button type="button" onClick={openModelSettings} className="home-model-button" aria-label={`${t('browser.modelSettings')}: ${modelLabel}`}>
+                <span className={`home-model-dot ${isSharedModel ? 'is-ready' : ''}`} aria-hidden="true" />
+                <span className="truncate">{hosted.status === 'loading' && !loadModelConfig().model ? (zh ? '正在连接模型…' : 'Connecting…') : modelLabel}</span>
+                <span className="home-model-caption">{isSharedModel ? (zh ? '默认体验' : 'Shared demo') : (zh ? '模型设置' : 'Settings')}</span>
+              </button> : <span className="pl-2 text-xs text-slate-500">{modelLabel}</span>}
               moreLabel={t('home.pillMoreLabel')}
               isGenerating={false}
               progress={null}
@@ -359,14 +370,13 @@ export const HomePage = () => {
 
           </div>
 
-          <section className="mt-5 w-full text-left" aria-labelledby="home-starter-templates-title">
-            <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
+          <section className="home-starters mt-6 w-full text-left" aria-labelledby="home-starter-templates-title">
+            <div className="mb-2 flex items-baseline gap-4 px-1">
               <h2 id="home-starter-templates-title" className="text-xs font-medium text-slate-500 dark:text-slate-400">
                 {t('home.starterTemplatesTitle')}
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{t('home.starterTemplatesHint')}</p>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="flex flex-wrap gap-x-2 gap-y-1">
               {starterTemplates.map(({ Icon, ...template }) => (
                 <button
                   key={template.pillId}
@@ -374,7 +384,7 @@ export const HomePage = () => {
                   title={template.prompt}
                   aria-label={`${t('home.useAsDraft')}: ${template.label}`}
                   onClick={() => handleStarterTemplate({ ...template, Icon })}
-                  className="group flex min-h-12 min-w-0 items-center gap-2 rounded-xl border border-slate-200/70 bg-white/50 px-3 py-3 text-left transition-colors duration-200 hover:border-indigo-300 hover:bg-indigo-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 motion-reduce:transition-none dark:border-white/[0.07] dark:bg-white/[0.025] dark:hover:border-indigo-400/40 dark:hover:bg-indigo-400/[0.08] dark:focus-visible:ring-offset-slate-950"
+                  className="group flex min-h-10 min-w-0 items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-colors duration-200 hover:bg-indigo-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 motion-reduce:transition-none dark:hover:bg-indigo-400/[0.08]"
                 >
                   <Icon className={`h-4 w-4 shrink-0 ${template.accent}`} strokeWidth={1.6} aria-hidden="true" />
                   <span className="flex-1 text-[13px] font-medium leading-5 text-slate-600 group-hover:text-slate-900 dark:text-slate-300 dark:group-hover:text-white">{template.label}</span>
@@ -386,16 +396,15 @@ export const HomePage = () => {
         </div>
 
         {/* Recent Projects Grid */}
-        <section className="w-full max-w-4xl border-t border-slate-200/70 pt-6 dark:border-white/[0.07]" aria-label={t('home.recentProjects')}>
+        <section className="home-projects w-full max-w-4xl border-t border-slate-200/70 pt-5 dark:border-white/[0.07]" aria-label={t('home.recentProjects')}>
           {!isEmptyWorkspace && <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">{t('home.recentProjects')}</h2>
             {recentProjects.length > 0 && <div className="flex flex-wrap items-center gap-3">
-              <div className="inline-flex items-center rounded-lg border border-white/70 bg-white/70 p-0.5 backdrop-blur-md dark:border-white/10 dark:bg-slate-900/75" role="tablist" aria-label={t('home.recentProjects')}>
+              <div className="inline-flex items-center gap-1" role="group" aria-label={t('home.recentProjects')}>
                 <button
                   type="button"
                   onClick={() => setActiveHomeTab('recent')}
-                  role="tab"
-                  aria-selected={activeHomeTab === 'recent'}
+                  aria-pressed={activeHomeTab === 'recent'}
                   className={`min-h-11 rounded-md px-3 py-1.5 text-sm font-semibold transition ${
                     activeHomeTab === 'recent'
                       ? 'bg-white text-brand-700 shadow-sm dark:bg-slate-800 dark:text-brand-300'
@@ -407,8 +416,7 @@ export const HomePage = () => {
                 <button
                   type="button"
                   onClick={() => setActiveHomeTab('pinned')}
-                  role="tab"
-                  aria-selected={activeHomeTab === 'pinned'}
+                  aria-pressed={activeHomeTab === 'pinned'}
                   className={`min-h-11 rounded-md px-3 py-1.5 text-sm font-medium transition ${
                     activeHomeTab === 'pinned'
                       ? 'bg-white text-brand-700 shadow-sm dark:bg-slate-800 dark:text-brand-300'
@@ -453,97 +461,31 @@ export const HomePage = () => {
           )}
 
           {isInitialLoading ? (
-            <div role="status" aria-label={t('common.loading')} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-64 animate-pulse rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900"></div>
+            <div role="status" aria-label={t('common.loading')} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {[1, 2].map((i) => (
+                <div key={i} className="h-20 motion-safe:animate-pulse rounded-xl bg-slate-100 dark:bg-slate-900" />
               ))}
             </div>
           ) : visibleProjects.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 gap-x-7 sm:grid-cols-2">
                 {visibleProjects.map((project) => {
                   const projectKey = getProjectKey(project);
                   const isPinned = pinnedProjectIds.includes(projectKey);
 
                   return (
-                    <article
-                      key={projectKey}
-                      className="group relative flex h-64 flex-col overflow-hidden rounded-2xl border border-white/70 bg-white/70 backdrop-blur-xl transition-all hover:border-brand-300 hover:shadow-[0_20px_40px_rgba(148,163,184,0.24)] dark:border-white/10 dark:bg-slate-900/75 dark:hover:border-brand-500/70 dark:hover:shadow-[0_14px_28px_rgba(2,6,23,0.5)]"
-                    >
-                      {/* Thumbnail Area */}
-                      <div className="relative flex-1 overflow-hidden bg-slate-50 dark:bg-slate-800/50">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenProject(project)}
-                          className="absolute inset-0 z-10 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-300"
-                          aria-label={getProjectTitle(project)}
-                        />
-                        <RecentProjectPreview
-                          project={project}
-                          title={getProjectTitle(project)}
-                          unavailableLabel={t('home.previewUnavailable')}
-                        />
-
-                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/45 via-slate-900/5 to-transparent opacity-70 transition-opacity group-hover:opacity-100 dark:from-slate-950/70" />
-
-                        <div className="absolute inset-x-3 bottom-3 z-20 flex items-center justify-between gap-2 transition-opacity fine:opacity-0 fine:group-hover:opacity-100 fine:group-focus-within:opacity-100">
-                          <button
-                            type="button"
-                            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-white/95 px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-white dark:bg-slate-900/95 dark:text-slate-100"
-                            title={t('home.actionEdit')}
-                            onClick={() => handleOpenProject(project)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                            {t('home.actionEdit')}
-                          </button>
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              className={`inline-flex h-11 w-11 items-center justify-center rounded-full shadow-sm transition ${
-                                isPinned
-                                  ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:hover:bg-amber-500/30'
-                                  : 'bg-white/95 text-slate-700 hover:text-brand-600 dark:bg-slate-900/95 dark:text-slate-200 dark:hover:text-brand-400'
-                              } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950`}
-                              title={isPinned ? t('dashboard.unmarkFavorite') : t('dashboard.markFavorite')}
-                              aria-label={isPinned ? t('dashboard.unmarkFavorite') : t('dashboard.markFavorite')}
-                              aria-pressed={isPinned}
-                              onClick={() => handleTogglePin(project)}
-                            >
-                              <Star className={`h-4 w-4 ${isPinned ? 'fill-current' : ''}`} />
-                            </button>
-                            <button
-                              type="button"
-                              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/95 text-red-600 shadow-sm transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 dark:bg-slate-900/95 dark:text-red-400 dark:hover:bg-red-500/15 dark:focus-visible:ring-offset-slate-950"
-                              title={t('home.actionDelete')}
-                              aria-label={t('home.actionDelete')}
-                              onClick={() => setProjectPendingDelete(project)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="absolute left-3 top-3 z-20">
-                          <span className="inline-flex items-center rounded-full bg-slate-950/65 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur dark:bg-slate-900/80">
-                            {project.diagram_type}
-                          </span>
-                          {isPinned && (
-                            <span className="ml-2 inline-flex items-center rounded-full bg-amber-100/90 px-2.5 py-1 text-[11px] font-semibold text-amber-700 backdrop-blur dark:bg-amber-500/20 dark:text-amber-300">
-                              {t('home.pinnedTab')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Card Info */}
-                      <div className="p-4">
-                        <h3 className="mb-1 truncate font-semibold text-slate-900 dark:text-slate-100">
-                          {getProjectTitle(project)}
-                        </h3>
-                        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                          <span className="truncate pr-3">{getDiagramTypeLabel(project.diagram_type, t)}</span>
-                          <span>{new Date(project.updated_at || project.created_at).toLocaleDateString()}</span>
-                        </div>
+                    <article key={projectKey} className="home-project-row group">
+                      <button type="button" onClick={() => handleOpenProject(project)} className="home-project-open" aria-label={getProjectTitle(project)}>
+                        <span className="home-project-thumb"><RecentProjectPreview project={project} title={getProjectTitle(project)} unavailableLabel={t('home.previewUnavailable')} /></span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-medium text-slate-800 dark:text-slate-200">{getProjectTitle(project)}</span>
+                          <span className="mt-1.5 block truncate text-[11px] text-slate-500 dark:text-slate-400">{getDiagramTypeLabel(project.diagram_type, t)} · {new Date(project.updated_at || project.created_at).toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US')}</span>
+                        </span>
+                      </button>
+                      <div className="flex shrink-0 items-center">
+                        <button type="button" className="home-project-action" title={t('home.actionEdit')} aria-label={`${t('home.actionEdit')}: ${getProjectTitle(project)}`} onClick={() => handleOpenProject(project)}><Pencil size={14} /></button>
+                        <button type="button" className={`home-project-action ${isPinned ? 'text-violet-600 dark:text-violet-300' : ''}`} title={isPinned ? t('dashboard.unmarkFavorite') : t('dashboard.markFavorite')} aria-label={isPinned ? t('dashboard.unmarkFavorite') : t('dashboard.markFavorite')} aria-pressed={isPinned} onClick={() => handleTogglePin(project)}><Star size={14} className={isPinned ? 'fill-current' : ''} /></button>
+                        <button type="button" className="home-project-action hover:text-rose-600 dark:hover:text-rose-300" title={t('home.actionDelete')} aria-label={`${t('home.actionDelete')}: ${getProjectTitle(project)}`} onClick={() => setProjectPendingDelete(project)}><Trash2 size={14} /></button>
                       </div>
                     </article>
                   );
@@ -551,25 +493,9 @@ export const HomePage = () => {
               </div>
 
               {hiddenRecentCount > 0 && (
-                <div className="mt-6 rounded-2xl border border-brand-200/70 bg-brand-50/70 px-4 py-4 backdrop-blur-xl dark:border-brand-500/30 dark:bg-brand-500/10">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-brand-800 dark:text-brand-200">
-                        {recentContinuationText}
-                      </p>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
-                        {recentContinuationHint}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleViewAllProjects}
-                      className="btn-primary min-h-11 w-full justify-center gap-1.5 text-sm sm:w-auto"
-                    >
-                      {t('home.viewAllProjects')}
-                      <ArrowRight className="h-4 w-4" />
-                    </button>
-                  </div>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                  <span title={recentContinuationHint}>{recentContinuationText}</span>
+                  <button type="button" onClick={handleViewAllProjects} className="inline-flex min-h-10 items-center gap-2 font-medium text-indigo-600 dark:text-indigo-300">{t('home.viewAllProjects')}<ArrowRight size={14} /></button>
                 </div>
               )}
             </>

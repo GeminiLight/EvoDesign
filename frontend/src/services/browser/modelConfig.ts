@@ -1,4 +1,8 @@
+import { getHostedModel } from './hostedModel';
+export { checkHostedModel } from './hostedModel';
+
 export interface BrowserModelConfig {
+  source?: 'hosted' | 'custom';
   baseUrl: string;
   model: string;
   apiKey: string;
@@ -24,13 +28,13 @@ export function completionUrl(baseUrl: string): string {
   return url.href;
 }
 
-export function loadModelConfig(): BrowserModelConfig {
+export function loadCustomModelConfig(): BrowserModelConfig {
   try {
     const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
     const session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || '{}');
     const baseUrl = typeof saved.baseUrl === 'string' ? saved.baseUrl : emptyModelConfig.baseUrl;
     return {
-      baseUrl, model: typeof saved.model === 'string' ? saved.model : '',
+      source: 'custom', baseUrl, model: typeof saved.model === 'string' ? saved.model : '',
       apiKey: saved.rememberKey === true && typeof saved.apiKey === 'string' ? saved.apiKey
         : session.baseUrl === baseUrl && typeof session.apiKey === 'string' ? session.apiKey : '',
       rememberKey: saved.rememberKey === true, refine: saved.refine !== false,
@@ -41,9 +45,26 @@ export function loadModelConfig(): BrowserModelConfig {
   }
 }
 
+export function loadModelConfig(): BrowserModelConfig {
+  const custom = loadCustomModelConfig();
+  try {
+    const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    if (saved.source === 'custom' || (saved.source !== 'hosted' && custom.model)) return custom;
+    if (getHostedModel().status === 'available') return {
+      ...emptyModelConfig, source: 'hosted', baseUrl: '/api/model', model: getHostedModel().model, refine: saved.refine !== false,
+    };
+  } catch { /* Storage may be disabled. */ }
+  return custom;
+}
+
 export function saveModelConfig(config: BrowserModelConfig) {
+  if (config.source === 'hosted') {
+    const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...saved, source: 'hosted', refine: config.refine }));
+    return;
+  }
   completionUrl(config.baseUrl);
-  const value = { ...config, baseUrl: config.baseUrl.trim(), model: config.model.trim(), apiKey: config.apiKey.trim() };
+  const value = { ...config, source: 'custom', baseUrl: config.baseUrl.trim(), model: config.model.trim(), apiKey: config.apiKey.trim() };
   if (!value.model) throw new Error('Enter a model identifier.');
   // Persist only with an explicit opt-in. No key enters project snapshots or URLs.
   localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...value, apiKey: value.rememberKey ? value.apiKey : '' }));
@@ -51,8 +72,9 @@ export function saveModelConfig(config: BrowserModelConfig) {
 }
 
 export function forgetModelKey() {
-  const config = loadModelConfig();
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...config, apiKey: '', rememberKey: false }));
+  const config = loadCustomModelConfig();
+  const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...config, source: saved.source, apiKey: '', rememberKey: false }));
   sessionStorage.removeItem(SESSION_KEY);
 }
 
@@ -75,7 +97,7 @@ function waitForRetry(seconds: number, signal: AbortSignal): Promise<void> {
 
 async function requestCompletion(
   config: BrowserModelConfig, system: string, user: string, signal: AbortSignal | undefined,
-  maxTokens: number, timeoutMs: number, onWait?: (seconds: number) => void,
+  maxTokens: number, timeoutMs: number, onWait?: (seconds: number) => void, task: 'diagram' | 'edit' | 'check' = 'diagram',
 ): Promise<Completion> {
   if (!config.model.trim()) throw new Error('Configure your model in Model settings first.');
   const controller = new AbortController();
@@ -84,10 +106,11 @@ async function requestCompletion(
   else signal?.addEventListener('abort', abort, { once: true });
   const timer = setTimeout(() => controller.abort(new Error('The model request timed out.')), timeoutMs);
   try {
-    const send = () => fetch(completionUrl(config.baseUrl), {
+    const hosted = config.source === 'hosted';
+    const send = () => fetch(hosted ? '/api/model' : completionUrl(config.baseUrl), {
       method: 'POST', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer',
-      headers: { 'Content-Type': 'application/json', ...(config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {}) },
-      body: JSON.stringify({ model: config.model, messages: [{ role: 'system', content: system }, { role: 'user', content: user }], max_tokens: maxTokens, stream: false,
+      headers: { 'Content-Type': 'application/json', ...(!hosted && config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {}) },
+      body: JSON.stringify(hosted ? { task, prompt: user, maxTokens } : { model: config.model, messages: [{ role: 'system', content: system }, { role: 'user', content: user }], max_tokens: maxTokens, stream: false,
         ...(config.reasoningEffort ? { reasoning_effort: config.reasoningEffort } : {}) }),
       signal: controller.signal,
     });
@@ -105,7 +128,10 @@ async function requestCompletion(
     if (!response.ok) {
       // Do not echo upstream bodies: they may include prompts, credentials or HTML.
       const retryAfter = Number(response.headers.get('Retry-After'));
-      const hint = (response.status === 402 || response.status === 429) && retryAfter > 0 && retryAfter <= 3600
+      const hint = hosted ? response.status === 429
+        ? 'The shared model is busy or its demo allowance has been reached. Retry later or connect your own model in Model settings.'
+        : 'The shared model is temporarily unavailable. Retry later or connect your own model in Model settings.'
+        : (response.status === 402 || response.status === 429) && retryAfter > 0 && retryAfter <= 3600
         ? `Provider request limit reached. Retry in ${Math.ceil(retryAfter)} seconds.`
         : response.status === 402 ? 'Check your provider balance or free-tier allowance.'
         : response.status === 401 || response.status === 403 ? 'Check your API key and model access.'
@@ -124,7 +150,7 @@ async function requestCompletion(
     return choice;
   } catch (error) {
     if (controller.signal.aborted) throw new Error(signal?.aborted ? 'Generation cancelled by user.' : 'The model request timed out. Try a smaller diagram.');
-    if (error instanceof TypeError) throw new Error('Cannot reach this model from the browser. Check the URL, network and provider CORS support. No request is forwarded through an EvoDesign server.');
+    if (error instanceof TypeError) throw new Error(config.source === 'hosted' ? 'Cannot reach the shared model. Retry later or connect your own model in Model settings.' : 'Cannot reach this model from the browser. Check the URL, network and provider CORS support. No request is forwarded through an EvoDesign server.');
     throw error;
   } finally {
     clearTimeout(timer);
@@ -133,9 +159,9 @@ async function requestCompletion(
 }
 
 export async function callBrowserModel(
-  config: BrowserModelConfig, system: string, user: string, signal?: AbortSignal, maxTokens = 8192, onWait?: (seconds: number) => void,
+  config: BrowserModelConfig, system: string, user: string, signal?: AbortSignal, maxTokens = 8192, onWait?: (seconds: number) => void, task: 'diagram' | 'edit' = 'diagram',
 ): Promise<string> {
-  const choice = await requestCompletion(config, system, user, signal, maxTokens, 180_000, onWait);
+  const choice = await requestCompletion(config, system, user, signal, maxTokens, 180_000, onWait, task);
   // Reasoning models may exhaust their output budget before producing any text.
   if (choice.finish_reason === 'length') throw new Error('The model exhausted its output budget. Simplify the diagram or choose a model that needs less reasoning.');
   if (typeof choice.message?.content !== 'string' || !choice.message.content.trim()) throw new Error('The model returned no text. Choose a chat-completions compatible model.');
@@ -143,7 +169,7 @@ export async function callBrowserModel(
 }
 
 export async function testBrowserModelConnection(config: BrowserModelConfig, signal?: AbortSignal): Promise<'ready' | 'limited'> {
-  const choice = await requestCompletion(config, 'Reply with OK.', 'Connection test.', signal, 256, 60_000);
+  const choice = await requestCompletion(config, 'Reply with OK.', 'Connection test.', signal, 256, 60_000, undefined, 'check');
   if (choice.finish_reason === 'length') return 'limited';
   if (typeof choice.message?.content !== 'string' || !choice.message.content.trim()) throw new Error('The model returned no text. Choose a chat-completions compatible model.');
   return 'ready';
