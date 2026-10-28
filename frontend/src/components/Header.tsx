@@ -282,6 +282,8 @@ export const Header = ({
         <div className="flex min-w-0 items-center gap-4 md:gap-8">
           <button
             type="button"
+            aria-label="EvoDesign"
+            title={isStudio ? 'EvoDesign' : undefined}
             onClick={() => {
               void (async () => {
                 const didNavigate = await requestNavigation(variant === 'landing' ? '/' : '/home');

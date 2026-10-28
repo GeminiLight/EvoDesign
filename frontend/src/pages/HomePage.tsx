@@ -334,6 +334,7 @@ export const HomePage = () => {
       <Header variant="studio" />
       <main id="main-content" className="home-main">
         <section className="home-intro" aria-labelledby="home-heading">
+          <p className="home-brand-name">EvoDesign</p>
           <h1 id="home-heading" className="home-headline">{t('home.titleLead')}<span>{t('home.titleAccent')}</span></h1>
           <div className="home-launcher">
             <input ref={fileInputRef} type="file" accept={HOME_REFERENCE_ACCEPT} hidden aria-label={t('home.addReference')} onChange={event => { void handleReferenceFile(event.target.files?.[0]); }} />
