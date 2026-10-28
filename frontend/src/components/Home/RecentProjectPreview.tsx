@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { RecentDiagram } from '../../types/app';
+import { documentAppState, sceneFiles } from '../../utils/excalidrawScene';
 
 type PreviewNode = {
   id: string;
@@ -160,17 +161,45 @@ export const RecentProjectPreview = ({
   unavailableLabel,
 }: RecentProjectPreviewProps) => {
   const [imageFailed, setImageFailed] = useState(false);
+  const [nativePreview, setNativePreview] = useState<{ source: unknown; url: string } | null>(null);
+  const scene = project.excalidraw_payload;
+
+  useEffect(() => {
+    // Export the saved scene itself: bound labels, arrows and icons are not
+    // independent colored nodes. Keep SVG isolated in an image element.
+    if (project.thumbnail_url || !scene || !Array.isArray(scene.elements) || !scene.elements.length) return;
+    let active = true;
+    let objectUrl: string | undefined;
+    void (async () => {
+      try {
+        const { exportToSvg, restoreElements } = await import('@excalidraw/excalidraw');
+        if (!active) return;
+        const elements = restoreElements(scene.elements as Parameters<typeof restoreElements>[0], null);
+        const files = sceneFiles(elements, (scene.files ?? {}) as Parameters<typeof exportToSvg>[0]['files']);
+        const svg = await exportToSvg({ elements, files,
+          appState: { ...documentAppState(scene.appState), exportBackground: true, exportWithDarkMode: false },
+          exportPadding: 16 });
+        if (!active) return;
+        objectUrl = URL.createObjectURL(new Blob([svg.outerHTML], { type: 'image/svg+xml' }));
+        setNativePreview({ source: scene, url: objectUrl });
+      } catch {
+        // Older or incomplete scenes can still use the lightweight schema preview.
+      }
+    })();
+    return () => { active = false; if (objectUrl) URL.revokeObjectURL(objectUrl); };
+  }, [scene, project.thumbnail_url]);
 
   useEffect(() => {
     setImageFailed(false);
-  }, [project.thumbnail_url]);
+  }, [project.thumbnail_url, scene]);
 
-  if (project.thumbnail_url && !imageFailed) {
+  const imageUrl = project.thumbnail_url || (nativePreview && nativePreview.source === scene ? nativePreview.url : null);
+  if (imageUrl && !imageFailed) {
     return (
       <img
         loading="lazy"
         decoding="async"
-        src={project.thumbnail_url}
+        src={imageUrl}
         alt={title}
         className="h-full w-full object-contain bg-white p-3"
         onError={() => setImageFailed(true)}

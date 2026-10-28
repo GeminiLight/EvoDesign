@@ -3,7 +3,6 @@ import { shouldSubmitOnEnter } from '../utils/keyboard';
 import {
   Activity,
   ArrowRight,
-  X,
   BarChart3,
   Bot,
   Box,
@@ -20,6 +19,7 @@ import {
   Settings,
   Sparkles,
   SquarePen,
+  X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
