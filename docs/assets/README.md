@@ -1,4 +1,4 @@
-# README image sources
+# Website and README image sources
 
 ## Studio home
 
@@ -17,7 +17,7 @@ The earlier `../screenshots/studio-home.png` and dark `workspace-preview.png` re
 
 ## Website verification
 
-`../screenshots/website-desktop.jpg` and `../screenshots/website-mobile.jpg` record the 2026-10-29 website update in the same Google Chrome: the normal 1920 × 873 viewport and a 390 × 844 responsive viewport. They are review evidence, not assets displayed inside the website. A 320px layout and the intermediate 1024px layout were also checked.
+`../screenshots/website-desktop.jpg` and `../screenshots/website-mobile.jpg` record the 2026-10-29 website update in the same Google Chrome: the 1188 × 763 viewport used in the design comments and a 390 × 844 responsive viewport. They are review evidence, not assets displayed inside the website. A 320px layout and the intermediate 1024px layout were also checked. The current review captures also include `website-features.jpg`, `website-research.jpg` and `website-citation.jpg` for the three feature illustrations, NeurIPS manuscript figures and compact citation block.
 
 ## Method overview
 
@@ -31,3 +31,9 @@ The earlier `../screenshots/studio-home.png` and dark `workspace-preview.png` re
 The paper figure remains research material; the repository's MIT software license does not relicense it. See the repository's third-party notices and paper links.
 
 When the interface or paper figure changes, update the README image and this source record together. Prefer actual interface captures and direct figure exports over generated mockups.
+
+## CanvasBench overview
+
+`canvasbench-overview.png` is a 2448 × 608 opaque PNG rendered directly at scale 4 from `evo-diagram-paper/Eval Diagram Paper/evo_diagram/resources/diagram-benchmark.pdf` on 2026-10-29. The current NeurIPS-template manuscript includes this exact file in `sections/benchmark.tex`; `sections/formulation.tex` includes the `evo-diagram.pdf` framework source used for `method-overview.png`. The website uses these maintained manuscript sources, rather than the older public arXiv v2 artwork. No figure content, labels or numerical values were changed. The source manuscript is not added to the public repository.
+
+The same research-material licensing note as the method overview applies to this figure.
