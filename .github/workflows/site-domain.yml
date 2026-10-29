@@ -24,3 +24,5 @@ jobs:
           SITE_URL: https://tianfu.wang/EvoDesign/
           SITE_DIR: docs
         run: python3 scripts/verify-domain.py
+      - name: Guard first-load rendering dependencies and resource sizes
+        run: python3 scripts/check_site_performance.py

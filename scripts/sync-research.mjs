@@ -12,7 +12,7 @@ const write = (file, text) => fs.writeFileSync(path.join(root, file), text);
 const paper = JSON.parse(read('research/paper.json'));
 const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const productTitle = 'EvoDesign — Turn ideas into editable diagrams';
-const productDescription = 'Generate, refine and edit diagrams in an open-source AI workspace. Run locally with your own model, optional icons and personal design memory. Built on EvoDesign research.';
+const productDescription = 'Create editable diagrams in your browser with the shared demo or your own model. Explore the open-source research pipeline and personal design memory.';
 const fullName = author => `${author.given} ${author.family}`;
 const bibtex = `@misc{wang2026evodesign,
   title = {${paper.title.replace('EvoDesign', '{EvoDesign}')}},
@@ -90,7 +90,12 @@ function replaceBlock(label, content) {
 }
 replaceBlock('RESEARCH-METADATA', tags.join('\n  '));
 replaceBlock('ABSTRACT', `<p>${escape(paper.abstract)}</p>`);
-replaceBlock('BIBTEX', escape(bibtex));
+replaceBlock('BIBTEX', escape(bibtex.replaceAll(' and\n            ', ' and ')));
+// The page is a small static document: inline its styles to avoid two cold-load
+// round trips. Keep the editable CSS sources and their original cascade order.
+const siteStyles = ['styles.css', 'polish.css'].map(file => read(`docs/${file}`)).join('\n');
+if (/<\/style/i.test(siteStyles)) throw new Error('Unexpected closing style tag in site CSS');
+replaceBlock('SITE-STYLES', `<style>\n${siteStyles}\n</style>`);
 
 // Reuse the exact authored metric arrays, without running any DOM code.
 const dataCode = read('docs/app.js').split('const modelSelect =')[0];
@@ -98,7 +103,7 @@ const { resultData, methodLabels } = vm.runInNewContext(`${dataCode}; ({resultDa
 const mean = numbers => numbers.reduce((a, b) => a + b, 0) / numbers.length;
 const means = row => [mean(row.slice(0, 3)), mean(row.slice(3, 7)), mean(row.slice(7))];
 replaceBlock('RESULTS', [resultData.pixel, ...resultData.gpt].map((row, i) => `<tr${i === 5 ? ' class="ours"' : ''}><th scope="row">${escape(methodLabels[i][0])}</th><td>${escape(methodLabels[i][1])}</td>${means(row).map(v => `<td class="score-cell">${v.toFixed(3)}<span class="score-meter" aria-hidden="true"><i style="width:${v / 5 * 100}%"></i></span></td>`).join('')}</tr>`).join('\n'));
-for (const file of ['styles.css', 'polish.css', 'app.js', 'motion.js']) {
+for (const file of ['app.js', 'motion.js']) {
   const hash = createHash('sha256').update(read(`docs/${file}`)).digest('hex').slice(0, 10);
   html = html.replace(new RegExp(`${file.replace('.', '\\.')}\\?v=[a-f0-9]+`, 'g'), `${file}?v=${hash}`);
 }
@@ -113,7 +118,9 @@ for (const [key, label] of Object.entries({ gpt: 'GPT-5.5', gemini: 'Gemini-3.1-
   [resultData.pixel, ...resultData[key]].forEach((values, i) => csv.push([i === 0 ? 'GPT-4o-Image (fixed pixel baseline)' : label, ...methodLabels[i], ...values.map(v => v.toFixed(3)), ...means(values).map(v => v.toFixed(3)), 'Supplied manuscript Table 1']));
 }
 write('docs/results.csv', csv.map(row => row.join(',')).join('\n') + '\n');
-let readme = read('README.md');
-if (readme.includes('<!-- CITATION:START -->')) readme = readme.replace(/<!-- CITATION:START -->[\s\S]*?<!-- CITATION:END -->/, `<!-- CITATION:START -->\n\n\`\`\`bibtex\n${bibtex}\n\`\`\`\n\n<!-- CITATION:END -->`);
-write('README.md', readme);
+for (const file of ['README.md', 'README.zh-CN.md']) {
+  let readme = read(file);
+  if (readme.includes('<!-- CITATION:START -->')) readme = readme.replace(/<!-- CITATION:START -->[\s\S]*?<!-- CITATION:END -->/, `<!-- CITATION:START -->\n\n\`\`\`bibtex\n${bibtex}\n\`\`\`\n\n<!-- CITATION:END -->`);
+  write(file, readme);
+}
 console.log('Synced scholarly metadata, static results, BibTeX, RIS, CFF, CSV, sitemap, and asset hashes.');

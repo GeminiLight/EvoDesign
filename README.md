@@ -1,8 +1,16 @@
 <div align="center">
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="frontend/public/evodiagram-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="frontend/public/evodiagram.svg">
+  <img src="frontend/public/evodiagram.svg" alt="EvoDesign logo" width="112" height="112">
+</picture>
+
 # EvoDesign
 
 ### Turn ideas into diagrams you can keep editing.
+
+**English** · [简体中文](README.zh-CN.md)
 
 <!-- PROJECT-LINKS:START -->
 <div align="center">
@@ -16,15 +24,17 @@
 
 [中文入门](docs/quickstart-zh.md) · [Browser edition guide](docs/browser-edition.md)
 
-Describe it. Refine it. Make it yours.
+![EvoDesign Studio home in English, with the creation form, reference input, diagram-type selector and model controls](docs/screenshots/studio-home-en.jpg)
 
-![EvoDesign local workspace](docs/assets/workspace-preview.png)
+<sub>The current browser edition: start from a prompt, add reference content, and choose your diagram type and model.</sub>
 
 </div>
 
 EvoDesign is an open-source workspace for creating editable diagrams with AI. Describe an architecture, sequence or process, generate a first draft, then refine and edit it on the canvas. Save your work, reopen it later, and export it when it is ready. Personal design memory helps you carry your preferences into the next diagram.
 
 Try the [browser edition](https://evodesign.vercel.app/) with the shared GLM-5.3-Flash demo or your own model, or run the full edition locally with your own model endpoint. The project builds on our research in agentic diagram creation and evolving design expertise; the [paper](https://arxiv.org/abs/2604.09568) explains the method and evaluation.
+
+[Try it online](#try-it-online) · [Run locally](#run-locally) · [How it works](#how-evodesign-works) · [Repository map](#repository-map)
 
 ## From an idea to a finished diagram
 
@@ -49,7 +59,29 @@ Excalidraw is the default canvas. TLDraw remains an optional adapter. Icons are 
 
 Open **[EvoDesign Studio](https://evodesign.vercel.app/)** and start with the shared **GLM-5.3-Flash** demo; no API key is required. In **Model settings**, you can switch to your own API URL, model ID and key. Custom providers must allow browser requests (CORS). Projects stay in your browser; export a copy as a backup.
 
-The browser edition offers editable generation, optional icons, content review, local edits, saving and export without running the Python backend. Shared demo requests pass through a small Vercel function to BigModel; its key stays server-side and shared usage is capped. Custom model requests go directly to your provider. The full local edition includes the research agents, visual refinement and expertise evolution. See the [capability and privacy guide](docs/browser-edition.md).
+The browser edition offers editable generation, optional icons, content review, local edits, saving and export without running the Python backend. Shared demo requests pass through a small Vercel function to BigModel; its key stays server-side and shared usage is capped. Custom model requests go directly to your provider.
+
+| | Browser edition | Full local edition |
+| --- | --- | --- |
+| **Start** | Open the demo; no API key or EvoDesign account needed | Install Python and Node.js; configure your model |
+| **Generation & review** | Graph planning, local layout and optional content review | Structure, style and layout agents; verification and optional visual refinement |
+| **Design memory** | Manage preferences locally and include them in prompts | Personal memory, expertise retrieval and knowledge evolution |
+| **Project storage** | This browser; export copies for backup | Your backend and database |
+
+The online edition is a lightweight path for trying editable generation; the method below describes the full research framework. See the [capability and privacy guide](docs/browser-edition.md) for details.
+
+## How EvoDesign works
+
+EvoDesign coordinates generation and feedback around a **diagram manifest**: an object-level canvas representation that agents can update and people can edit directly.
+
+![EvoDesign method overview: coordinated canvas generation; diagnostic verification and local refinement; experience exploration; and hierarchical promotion of strategies, guidelines and principles into design expertise memory](docs/assets/method-overview.png)
+
+*Method overview from the maintained manuscript source. [Open the full-resolution figure](docs/assets/method-overview.png) · [Read the paper](https://arxiv.org/abs/2604.09568).*
+
+1. **Create an editable diagram.** Structure, style and layout agents turn content and user requirements into a canvas manifest, guided by retrieved design expertise.
+2. **Verify and refine.** Render the manifest, check geometric defects and visual quality, then apply localized edits and verify the result again.
+3. **Collect useful experience.** Keep the issues, edits and outcomes from refinement traces as evidence for candidate design strategies.
+4. **Evolve reusable expertise.** Distill supported strategies into broader guidelines and principles, maintain the memory, and retrieve relevant knowledge for future diagrams.
 
 ## Run locally
 
@@ -98,9 +130,9 @@ python scripts/design_memory.py validate examples/design-memory/blue-violet.json
 
 Signed-in users can export and additively import rules through the same utility. Guest preferences stay in the browser. Private account databases, generated diagrams and live vector stores are not bundled.
 
-## Research behind the product
+## Research and reproducibility
 
-EvoDesign is based on **Agentic Editable Diagram Creation via Design Expertise Evolution**. Structure, style and layout agents coordinate over an editable canvas representation; verification and refinement provide feedback for reusable design expertise. Read the [paper](https://arxiv.org/abs/2604.09568) for the algorithm and CanvasBench evaluation.
+The [paper, **EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution**](https://arxiv.org/abs/2604.09568), describes the method and evaluates it with CanvasBench across content, visual and cognitive dimensions.
 
 The repository includes the implementation, evaluation tools and baseline adapters. **Training and test datasets will be released separately.** The one-task quick-start example is for trying the software, not benchmarking it. The website's research scores are manuscript-reported results; this maintained code release does not claim a fresh reproduction of the full experiment. See [reproducibility notes](docs/reproducibility.md) for research use.
 
