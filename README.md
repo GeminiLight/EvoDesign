@@ -1,5 +1,11 @@
 <div align="center">
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="frontend/public/evodiagram-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="frontend/public/evodiagram.svg">
+  <img src="frontend/public/evodiagram.svg" alt="EvoDesign logo" width="112" height="112">
+</picture>
+
 # EvoDesign
 
 ### Turn ideas into diagrams you can keep editing.
