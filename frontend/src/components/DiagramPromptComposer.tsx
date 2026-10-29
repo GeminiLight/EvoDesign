@@ -335,7 +335,7 @@ export function DiagramPromptComposer({
                 options={[...pills, ...morePills].map(pill => ({ value: pill.id, label: pill.label, Icon: getPillIcon(pill.id), featured: pill.id === 'adaptive', description: pill.id === 'adaptive' ? t?.('home.adaptiveHint') : undefined }))}
                 onChange={value => { const pill = [...pills, ...morePills].find(item => item.id === value); if (pill) onSelectPill(pill); }} />
             </div>}
-            {leadingContent && <div className={`diagram-prompt-leading min-w-0 flex-1 ${variant === 'home' ? 'home-composer-model' : ''}`}>{leadingContent}</div>}
+            {leadingContent && <div className={`diagram-prompt-leading min-w-0 flex-1 ${variant === 'home' ? 'home-composer-options' : ''}`}>{leadingContent}</div>}
             <div className="diagram-prompt-actions flex w-full min-w-0 flex-wrap items-center justify-end gap-2 sm:ml-auto sm:w-auto">
             {variant === 'default' && <button
               type="button"

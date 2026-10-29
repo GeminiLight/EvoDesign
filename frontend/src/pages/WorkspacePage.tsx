@@ -1,9 +1,10 @@
+import '../styles/workspace-documents.css';
 import { useBrowserModelLabel } from '../hooks/useBrowserModelLabel';
 import { BROWSER_MODE } from '../services/browser/runtime';
 import { parseGenerationReport } from '../utils/generationReport';
 import { GenerationReport } from '../components/GenerationReport';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, Columns3, FolderKanban, Loader2, MessageSquare, PanelLeft, PencilLine, RefreshCcw, Save, X } from 'lucide-react';
+import { AlertTriangle, Columns3, History, Loader2, MessageSquare, PencilLine, RefreshCcw, Save, X } from 'lucide-react';
 import type {
   DiagramRequest,
   DiagramResponse,
@@ -11,7 +12,7 @@ import type {
   ProjectSnapshotItem,
 } from '../types/api';
 import type { HistoryViewMode, RecentDiagram } from '../types/app';
-import { createProject, fetchProjectDiagram, fetchProjectSnapshots, fetchRecentDiagrams, isApiError, syncProjectSchema } from '../services/backendApi';
+import { createBlankCanvasProject, createProject, fetchProjectDiagram, fetchProjectSnapshots, fetchRecentDiagrams, isApiError, syncProjectSchema } from '../services/backendApi';
 import { workspaceAuthTransition, canRestoreWorkspaceDraft } from '../utils/workspaceAuth';
 import { apiDiagramService } from '../services/apiDiagramService';
 import { GUEST_IMPORT_COMPLETED_EVENT, type GuestImportCompletedDetail } from '../services/guestImportService';
@@ -22,7 +23,13 @@ import { Header } from '../components/Header';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { WorkspaceSettingsDialog } from '../components/Workspace/WorkspaceSettingsDialog';
 import { ProjectSidebar } from '../components/Workspace/ProjectSidebar';
+import { WorkspaceHistoryPopover } from '../components/Workspace/WorkspaceHistoryPopover';
+import { CanvasFullscreenControls } from '../components/Workspace/CanvasFullscreenControls';
 import { WorkspaceSaveIndicator } from '../components/Workspace/WorkspaceSaveIndicator';
+import { WorkspaceTabs } from '../components/Workspace/WorkspaceTabs';
+import { useWorkspaceDocuments } from '../hooks/useWorkspaceDocuments';
+import { useCanvasFullscreen } from '../hooks/useCanvasFullscreen';
+import { closeWorkspaceDocument, workspaceDocumentKey, type WorkspaceDocument, type CanvasViewState } from '../utils/workspaceDocuments';
 import { AgentChatPanel } from '../components/Workspace/AgentChatPanel';
 import { ProjectDnaDrawer } from '../components/Workspace/ProjectDnaDrawer';
 import { CreateDiagramDialog } from '../components/Workspace/CreateDiagramDialog';
@@ -42,13 +49,14 @@ import {
   parseJsonObject,
   getSnapshotDocSignature,
   getAllNodeIds,
+  inspectCanvasPayload,
   splitCanvasPayload,
   mergeDeltaIntoSchema,
   normalizeTldrawSchemaForLocalEdit,
 } from '../utils/app';
 import { guestHasProjectDna } from '../services/guestStorage';
 import { removeLocalStorage } from '../utils/safeLocalStorage';
-import { saveProjectName } from '../services/projectPreferences';
+import { loadProjectName, saveProjectName } from '../services/projectPreferences';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { StageProgress } from '../components/StageProgress';
 import {
@@ -140,7 +148,7 @@ const buildPromptAfterPillSelection = (
 };
 
 export function WorkspacePage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const modelLabel = useBrowserModelLabel(t);
   const { showToast } = useToast();
   const { user, loading: authLoading } = useBackendAuth();
@@ -218,12 +226,21 @@ export function WorkspacePage() {
   const [recentReloadNonce, setRecentReloadNonce] = useState(0);
   const [projectHistoryReloadNonce, setProjectHistoryReloadNonce] = useState(0);
   const [historyViewMode, setHistoryViewMode] = useState<HistoryViewMode>('recent');
-  const [isProjectPanelCollapsed, setIsProjectPanelCollapsed] = useState(true);
-  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const mobileHistoryRef = useRef<HTMLButtonElement | null>(null);
+  const [isAssistantFloating, setIsAssistantFloating] = useState(true);
+  const fullscreenRootRef = useRef<HTMLDivElement>(null);
+  const fullscreenAssistantButtonRef = useRef<HTMLButtonElement>(null);
+  const { isFullscreen: isCanvasFullscreen, toggleFullscreen } = useCanvasFullscreen(fullscreenRootRef);
   const [showWorkspaceSettings, setShowWorkspaceSettings] = useState(false);
   const [mobilePane, setMobilePane] = useState<'canvas' | 'chat' | 'projects'>('canvas');
   const isCompactWorkspace = useMediaQuery('(max-width: 1023px)');
-  const [isChatPanelCollapsed, setIsChatPanelCollapsed] = useState(false);
+  const [isChatPanelCollapsed, setIsChatPanelCollapsed] = useState(true);
+  const handleToggleCanvasFullscreen = useCallback(() => {
+    setIsHistoryOpen(false);
+    setMobilePane('canvas');
+    void toggleFullscreen().catch(() => showToast(t('workspace.fullscreenFailed'), 'error'));
+  }, [toggleFullscreen, showToast, t]);
   // Lifted out of WorkspaceOnboarding so the chat panel can tell whether the
   // onboarding card is currently the one offering starter prompts.
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
@@ -253,6 +270,28 @@ export function WorkspacePage() {
   const [chatMessages, setChatMessages] = useState<Array<{ id: string; role: 'user' | 'agent'; content: string }>>([
     { id: 'agent-init', role: 'agent', content: t('workspace.agentReady') },
   ]);
+  const { documents: openDocuments, open: openDocument, close: closeDocument,
+    remember: rememberDocumentContext, recall: recallDocumentContext } = useWorkspaceDocuments(authIdentity);
+  const activeDocumentKey = workspaceDocumentKey(preview?.projectId, preview?.diagramId);
+  const [toolbarTarget, setToolbarTarget] = useState<HTMLDivElement | null>(null);
+  const viewReaderRef = useRef<(() => CanvasViewState) | null>(null);
+  const createNewDocumentRef = useRef(false);
+  const handleViewReader = useCallback((reader: (() => CanvasViewState) | null) => { viewReaderRef.current = reader; }, []);
+  const rememberCurrentDocument = useCallback(() => {
+    if (!preview || canvasOwnerIdentity !== authIdentity) return;
+    rememberDocumentContext(activeDocumentKey, { messages: chatMessages, input: chatInput, view: viewReaderRef.current?.() ?? null });
+  }, [activeDocumentKey, authIdentity, canvasOwnerIdentity, chatInput, chatMessages, preview, rememberDocumentContext]);
+  const restoreDocumentContext = useCallback((key: string) => {
+    const context = recallDocumentContext(key);
+    setChatMessages(context?.messages.map(message => message.id === 'agent-init' ? { ...message, content: t('workspace.agentReady') } : message)
+      ?? [{ id: 'agent-init', role: 'agent', content: t('workspace.agentReady') }]);
+    setChatInput(context?.input ?? '');
+  }, [recallDocumentContext, t]);
+  useEffect(() => {
+    if (!preview || canvasOwnerIdentity !== authIdentity) return;
+    openDocument({ key: activeDocumentKey, projectId: preview.projectId, diagramId: preview.diagramId,
+      title: projectName || preview.summary || t('workspace.untitledProject') });
+  }, [activeDocumentKey, authIdentity, canvasOwnerIdentity, openDocument, preview, projectName, t]);
   useEffect(() => {
     setChatMessages(messages => messages.map(message => message.id === 'agent-init' ? { ...message, content: t('workspace.agentReady') } : message));
   }, [t]);
@@ -999,20 +1038,20 @@ export function WorkspacePage() {
   ]);
 
   const runSavedHistorySwitch = useCallback(async (
-    applySwitch: () => void | Promise<void>,
-  ) => {
+    applySwitch: () => void | boolean | Promise<void | boolean>,
+  ): Promise<boolean> => {
     if (expiredAuthIdentityRef.current) {
       showToast(t('workspace.saveAuthExpired'), 'error');
-      return;
+      return false;
     }
     if (historySwitchInFlightRef.current) {
       showToast(t('workspace.historySwitchNavigationBlocked'), 'info');
-      return;
+      return false;
     }
 
     if (workspaceInteractionBlocked) {
       handleWorkspaceInteractionBlocked();
-      return;
+      return false;
     }
 
     historySwitchInFlightRef.current = true;
@@ -1024,14 +1063,15 @@ export function WorkspacePage() {
       const didPersist = await persistLatestSnapshot({ waitForInFlight: true, showError: true });
       if (!didPersist) {
         showToast(t('workspace.saveBeforeHistorySwitchFailed'), 'error');
-        return;
+        return false;
       }
-      if (requestAuthIdentity !== activeAuthIdentityRef.current) return;
-      if (myGen !== switchGenRef.current) return;
+      if (requestAuthIdentity !== activeAuthIdentityRef.current) return false;
+      if (myGen !== switchGenRef.current) return false;
 
       const draft = loadWorkspaceRecoveryDraft();
       if (draft && requestAuthIdentity && draft.sourceAuthIdentity === requestAuthIdentity) clearWorkspaceRecoveryDraft();
-      await applySwitch();
+      const applied = await applySwitch();
+      return applied !== false && requestAuthIdentity === activeAuthIdentityRef.current && myGen === switchGenRef.current;
     } finally {
       historySwitchInFlightRef.current = false;
       setIsHistorySwitching(false);
@@ -1320,6 +1360,12 @@ export function WorkspacePage() {
         projectName: projectName.trim() || '',
         ...(activeCreatePreflight ? { handoffSource: activeCreatePreflight.kind } : {}),
       });
+      const creatingNewDocument = createNewDocumentRef.current;
+      if (creatingNewDocument) {
+        delete metadata.projectId;
+        delete metadata.currentSchema;
+        delete metadata.projectName;
+      }
 
       clearGenerationFailure();
       setGenerationSummary(promptText, selectedCreateDiagramType, selectedCanvasMode);
@@ -1338,6 +1384,12 @@ export function WorkspacePage() {
         saveFailedGenerationDraft(nextFailedDraft);
         return;
       }
+      if (creatingNewDocument) {
+        rememberCurrentDocument();
+        setChatMessages([{ id: 'agent-init', role: 'agent', content: t('workspace.agentReady') },
+          { id: createId('msg'), role: 'user', content: promptText }]);
+        setChatInput('');
+      }
       if (generationPreparationAbortControllerRef.current === preparationAbortController) {
         generationPreparationAbortControllerRef.current = null;
       }
@@ -1353,10 +1405,12 @@ export function WorkspacePage() {
         metadata,
       });
       if (didGenerate) {
+        createNewDocumentRef.current = false;
         clearStartupGenerationDraft();
         clearActiveCreatePreflight();
         scrollCanvasIntoViewOnMobile();
       } else {
+        if (creatingNewDocument) restoreDocumentContext(activeDocumentKey);
         saveFailedGenerationDraft(nextFailedDraft);
       }
     } finally {
@@ -1368,10 +1422,10 @@ export function WorkspacePage() {
   };
 
   const handleLoadDiagram = useCallback(async (source: RecentDiagram | (() => Promise<RecentDiagram>)) => {
-    await runSavedHistorySwitch(async () => {
+    return runSavedHistorySwitch(async () => {
       const loadGuard = getGenerationRunGuard();
       const diagram = typeof source === 'function' ? await source() : source;
-      if (getGenerationRunGuard() !== loadGuard) return;
+      if (getGenerationRunGuard() !== loadGuard) return false;
       const isCurrentDiagram =
         preview?.diagramId === diagram.diagram_id
         || Boolean(diagram.snapshot_id && preview?.snapshotId === diagram.snapshot_id);
@@ -1380,6 +1434,8 @@ export function WorkspacePage() {
         return;
       }
 
+      rememberCurrentDocument();
+      restoreDocumentContext(workspaceDocumentKey(diagram.project_id, diagram.diagram_id));
       clearSelection();
       setHistoryViewMode(diagram.project_id ? 'project' : 'recent');
       const payload = parseJsonObject(diagram.tldraw_snapshot) ?? parseJsonObject(diagram.excalidraw_payload);
@@ -1400,7 +1456,7 @@ export function WorkspacePage() {
       clearGenerationFailure();
       setPreview({
         diagramId: diagram.diagram_id,
-        requestId: diagram.request_id,
+        requestId: diagram.request_id || createId('request'),
         projectId: diagram.project_id ?? undefined,
         snapshotId: diagram.snapshot_id ?? undefined,
         projectVersion: diagram.project_version,
@@ -1420,7 +1476,7 @@ export function WorkspacePage() {
       setError(null);
       scrollCanvasIntoViewOnMobile();
     });
-  }, [activeEditingSnapshotIdRef, authIdentity, beginHistorySwitch, clearGenerationFailure, clearSelection, detectCanvasModeFromRecent, getGenerationRunGuard, latestSnapshotRef, preview?.diagramId, preview?.snapshotId, runSavedHistorySwitch, scrollCanvasIntoViewOnMobile, setProjectName]);
+  }, [activeEditingSnapshotIdRef, authIdentity, beginHistorySwitch, clearGenerationFailure, clearSelection, detectCanvasModeFromRecent, getGenerationRunGuard, latestSnapshotRef, preview?.diagramId, preview?.snapshotId, rememberCurrentDocument, restoreDocumentContext, runSavedHistorySwitch, scrollCanvasIntoViewOnMobile, setProjectName]);
 
   useEffect(() => {
     // Guard: only process once. window.history.replaceState does NOT update
@@ -1629,51 +1685,80 @@ export function WorkspacePage() {
     });
   }, [activeEditingSnapshotIdRef, beginHistorySwitch, clearGenerationFailure, clearSelection, detectCanvasModeFromSnapshot, latestSnapshotRef, preview?.snapshotId, projectVersionRef, runSavedHistorySwitch, scrollCanvasIntoViewOnMobile, t]);
 
+  const handleActivateDocument = useCallback(async (document: WorkspaceDocument) => {
+    if (document.key === activeDocumentKey) { scrollCanvasIntoViewOnMobile(); return true; }
+    if (!document.projectId) {
+      const recent = recentDiagrams.find(item => item.diagram_id === document.diagramId);
+      return recent ? handleLoadDiagram(recent) : false;
+    }
+    try {
+      return await handleLoadDiagram(() => fetchProjectDiagram(document.projectId!));
+    } catch {
+      showToast(t('workspace.resumeProjectFailed'), 'error');
+      return false;
+    }
+  }, [activeDocumentKey, handleLoadDiagram, recentDiagrams, scrollCanvasIntoViewOnMobile, showToast, t]);
+
   const handleSelectRecentDiagram = useCallback(async (item: RecentDiagram) => {
+    if (item.project_id) {
+      await handleActivateDocument({ key: workspaceDocumentKey(item.project_id), projectId: item.project_id,
+        diagramId: item.diagram_id, title: item.summary || item.prompt });
+    } else await handleLoadDiagram(item);
+  }, [handleActivateDocument, handleLoadDiagram]);
+
+  const handleCloseDocument = useCallback(async (document: WorkspaceDocument) => {
+    if (workspaceInteractionBlocked) return;
+    if (document.key !== activeDocumentKey) { closeDocument(document.key); return; }
+    const result = closeWorkspaceDocument(openDocuments, document.key, activeDocumentKey);
+    const next = result.documents.find(item => item.key === result.activeKey);
+    if (next) {
+      if (await handleActivateDocument(next)) closeDocument(document.key);
+      return;
+    }
     await runSavedHistorySwitch(() => {
-      const isCurrentDiagram =
-        preview?.diagramId === item.diagram_id
-        || Boolean(item.snapshot_id && preview?.snapshotId === item.snapshot_id);
-      if (isCurrentDiagram) {
-        scrollCanvasIntoViewOnMobile();
-        return;
-      }
-
+      closeDocument(document.key);
       clearSelection();
-      setHistoryViewMode(item.project_id ? 'project' : 'recent');
-      const payload = (item.tldraw_snapshot ?? item.excalidraw_payload ?? {}) as Record<string, unknown>;
-      const itemCanvasMode = detectCanvasModeFromRecent(item);
-      if (itemCanvasMode) {
-        setCanvasMode(itemCanvasMode);
-      }
-      beginHistorySwitch(getSnapshotDocSignature(payload), item.project_version ?? null);
-      activeEditingSnapshotIdRef.current = item.snapshot_id ?? null;
-      latestSnapshotRef.current = payload;
-      const splitPayload = splitCanvasPayload(payload);
-      const restoredProjectTitle = item.summary?.trim();
-      if (authIdentity && item.project_id && restoredProjectTitle) {
-        saveProjectName(authIdentity, item.project_id, restoredProjectTitle);
-        setProjectName(restoredProjectTitle);
-      }
-
+      beginHistorySwitch(getSnapshotDocSignature(null), null);
+      latestSnapshotRef.current = null;
+      activeEditingSnapshotIdRef.current = null;
+      setPreview(null);
+      setProjectName(t('workspace.untitledProject'));
+      setRequest(initialRequest);
+      restoreDocumentContext('draft');
+      setHistoryViewMode('recent');
+      setOnboardingDismissed(false);
       clearGenerationFailure();
-      setError(null);
-      setPreview({
-        requestId: item.request_id || createId('request'),
-        projectId: item.project_id ?? undefined,
-        snapshotId: item.snapshot_id ?? undefined,
-        projectVersion: item.project_version,
-        diagramId: item.diagram_id || `diagram_${item.id}`,
-        tldrawSnapshot: splitPayload.tldrawSnapshot,
-        excalidrawPayload: splitPayload.excalidrawPayload,
-        rawSchemaBlob: payload,
-        summary: item.summary || item.prompt || t('workspace.loadedFromRecentDiagrams'),
-        previewImage: '',
-        generatedAt: item.created_at,
-      });
-      scrollCanvasIntoViewOnMobile();
+      navigate('/workspace', { replace: true, state: {} });
     });
-  }, [activeEditingSnapshotIdRef, authIdentity, beginHistorySwitch, clearGenerationFailure, clearSelection, detectCanvasModeFromRecent, latestSnapshotRef, preview?.diagramId, preview?.snapshotId, runSavedHistorySwitch, scrollCanvasIntoViewOnMobile, setProjectName, t]);
+  }, [activeDocumentKey, activeEditingSnapshotIdRef, beginHistorySwitch, clearGenerationFailure, clearSelection,
+    closeDocument, handleActivateDocument, latestSnapshotRef, navigate, openDocuments, restoreDocumentContext,
+    runSavedHistorySwitch, setProjectName, t, workspaceInteractionBlocked]);
+
+  const handleNewDocument = useCallback(() => {
+    if (workspaceInteractionBlocked) return;
+    createNewDocumentRef.current = true;
+    handleOpenCreateDiagram();
+  }, [handleOpenCreateDiagram, workspaceInteractionBlocked]);
+
+  const handleCreateBlankDocument = useCallback(async () => {
+    const titleBase = language === 'zh' ? '未命名画布' : 'Untitled canvas';
+    const titles = new Set([...recentDiagrams.map(item => item.summary), ...openDocuments.map(item => item.title)]);
+    let title = titleBase;
+    let suffix = 2;
+    while (titles.has(title)) title = `${titleBase} ${suffix++}`;
+    const owner = activeAuthIdentityRef.current;
+    try {
+      const opened = await handleLoadDiagram(async () => {
+        const document = await createBlankCanvasProject({ ...request, id: createId('manual') }, title);
+        if (activeAuthIdentityRef.current === owner && document.project_id) saveProjectName(owner, document.project_id, title);
+        return document;
+      });
+      if (opened) { setRecentReloadNonce(value => value + 1); setOnboardingDismissed(true); }
+    } catch (error) {
+      console.error('Blank canvas creation failed:', error);
+      showToast(language === 'zh' ? '无法创建画布，请重试。当前画布已保留。' : 'Could not create a canvas. Your current canvas is kept.', 'error');
+    }
+  }, [handleLoadDiagram, language, openDocuments, recentDiagrams, request, showToast]);
 
   const displayedProjectSnapshots = useMemo(
     () => projectSnapshots,
@@ -2196,14 +2281,27 @@ export function WorkspacePage() {
   }, [beginGenerationStart, buildGlobalGenerationMetadata, buildFailedGenerationDraft, workspaceInteractionBlocked, request, canvasMode, preview, openCreateDialogFromPrompt, getValidSelectedNodeIds, handleSendChatMessage, selectedNodeIds, clearSelection, latestSnapshotRef, prepareForGlobalGeneration, generateDiagram, t, finishGenerationStart, scrollCanvasIntoViewOnMobile, setGenerationSummary, clearGenerationFailure, getGenerationIncompleteMessage, saveFailedGenerationDraft, savePendingGenerationDraft]);
 
   return (
-    <div className="studio-shell studio-workspace workspace-shell min-h-screen overflow-x-hidden bg-canvas text-slate-900 font-sans selection:bg-brand-100 selection:text-brand-900 dark:bg-slate-950 dark:text-slate-100 dark:selection:bg-brand-500/40 dark:selection:text-white">
+    <div data-canvas-fullscreen={isCanvasFullscreen} className="studio-shell studio-workspace workspace-shell min-h-screen overflow-x-hidden bg-canvas text-slate-900 font-sans selection:bg-brand-100 selection:text-brand-900 dark:bg-slate-950 dark:text-slate-100 dark:selection:bg-brand-500/40 dark:selection:text-white">
       <Header
         variant="studio"
+        workspaceTabs={<WorkspaceTabs documents={authLoading ? [] : openDocuments}
+          recent={recentDiagrams.map(item => ({ key: workspaceDocumentKey(item.project_id, item.diagram_id),
+            projectId: item.project_id ?? undefined, diagramId: item.diagram_id,
+            title: (item.project_id ? loadProjectName(authIdentity, item.project_id) : null)
+              || item.summary || item.prompt || t('workspace.untitledProject') }))}
+          activeKey={activeDocumentKey} title={projectName || t('workspace.untitledProject')}
+          dirty={hasUnsavedChanges} saving={manualSaveStatus === 'saving'} busy={workspaceInteractionBlocked || authLoading}
+          editingName={isEditingProjectName} nameDraft={projectNameDraft} nameInputRef={projectNameInputRef}
+          onNameChange={setProjectNameDraft} onRename={() => { if (preview?.projectId) handleStartProjectNameEdit(); }}
+          onSaveName={handleSaveProjectNameEdit} onCancelName={handleCancelProjectNameEdit}
+          onActivate={document => { void handleActivateDocument(document); }}
+          onClose={document => { void handleCloseDocument(document); }} onNew={handleNewDocument}
+          onCreateBlank={() => { void handleCreateBlankDocument(); }} />}
         authTransitionBlocked={authTransitionBlocked}
         onAuthTransitionBlocked={handleAuthTransitionBlocked}
         onBeforeNavigate={handleBeforeWorkspaceNavigate}
         onOpenSettings={() => setShowWorkspaceSettings(true)}
-      />
+      ><div className="workspace-header-tools" ref={setToolbarTarget} /></Header>
       <WorkspaceSettingsDialog open={showWorkspaceSettings} onClose={() => setShowWorkspaceSettings(false)}
         canvasMode={canvasMode} onCanvasChange={handleCanvasModeChange} getModeUnavailableReason={getCanvasModeUnavailableReason} />
 
@@ -2290,71 +2388,28 @@ export function WorkspacePage() {
           {([
             ['canvas', Columns3, t('workspace.canvasPane')],
             ['chat', MessageSquare, t('workspace.agentName')],
-            ['projects', FolderKanban, t('workspace.projectsPane')],
+            ['projects', History, t('studio.documentVersions')],
           ] as const).map(([pane, Icon, label]) => (
-            <button key={pane} type="button" aria-pressed={mobilePane === pane}
-              aria-controls={`workspace-pane-${pane}`} onClick={() => setMobilePane(pane)}>
+            <button key={pane} type="button" aria-pressed={pane === 'projects' ? isHistoryOpen : mobilePane === pane}
+              ref={pane === 'projects' ? mobileHistoryRef : undefined}
+              disabled={pane === 'projects' && (!preview?.projectId || workspaceInteractionBlocked)}
+              aria-controls={pane === 'projects' ? 'workspace-history-popover' : `workspace-pane-${pane}`} onClick={() => {
+                if (pane === 'projects') { setIsHistoryOpen(value => !value); handleShowProjectHistory(); }
+                else { setIsHistoryOpen(false); setMobilePane(pane); }
+              }}>
               <Icon size={16} aria-hidden="true" />{label}
               {pane === 'chat' && selectedNodeIds.length > 0 && <span className="workspace-selection-dot" />}
             </button>
           ))}
         </nav>
 
-        <div className="workspace-grid" data-focus={isFocusMode && canvasMode === 'excalidraw'} data-project-collapsed={isProjectPanelCollapsed}
-          data-chat-collapsed={isChatPanelCollapsed} data-mobile-pane={mobilePane}>
-          <div id="workspace-pane-projects" className="workspace-project-pane">
-            <ProjectSidebar
-              onToggleCollapse={() => setIsProjectPanelCollapsed((prev) => !prev)}
-              projectName={projectName}
-              isEditingProjectName={isEditingProjectName}
-              projectNameDraft={projectNameDraft}
-              onProjectNameDraftChange={setProjectNameDraft}
-              onStartEdit={() => {
-                if (workspaceInteractionBlocked) {
-                  handleWorkspaceInteractionBlocked();
-                  return;
-                }
-                handleStartProjectNameEdit();
-              }}
-              onSaveEdit={() => {
-                if (workspaceInteractionBlocked) {
-                  handleWorkspaceInteractionBlocked();
-                  return;
-                }
-                handleSaveProjectNameEdit();
-              }}
-              onCancelEdit={handleCancelProjectNameEdit}
-              projectNameInputRef={projectNameInputRef}
-              visibleItemsCount={visibleItemsCount}
-              isViewingProjectHistory={isViewingProjectHistory}
-              canViewProjectHistory={Boolean(preview?.projectId)}
-              displayedProjectSnapshots={displayedProjectSnapshots}
-              displayedRecentDiagrams={displayedRecentDiagrams}
-              preview={preview}
-              onSelectSnapshot={(snapshot) => { void handleSelectSnapshot(snapshot); }}
-              onSelectRecentDiagram={(item) => { void handleSelectRecentDiagram(item); }}
-              onShowProjectHistory={handleShowProjectHistory}
-              onShowRecentDiagrams={handleShowRecentDiagrams}
-              onOpenCreateDialog={handleOpenCreateDiagram}
-              isInteractionDisabled={workspaceInteractionBlocked}
-              interactionDisabledReason={workspaceInteractionBlockedReason}
-              onSaveSnapshot={() => { void handleManualSaveSnapshot(); }}
-              onResolveSaveConflict={handleResolveSaveConflict}
-              onRecoverMissingProject={() => { void handleRecoverMissingProject(); }}
-              onReauth={handleReauthFromWorkspace}
-              manualSaveStatus={sidebarSaveStatus}
-              hasUnsavedChanges={hasUnsavedChanges}
-              recentLoadStatus={recentLoadStatus}
-              projectHistoryLoadStatus={projectHistoryLoadStatus}
-              onRetryRecentLoad={() => setRecentReloadNonce((prev) => prev + 1)}
-              onRetryProjectHistoryLoad={() => setProjectHistoryReloadNonce((prev) => prev + 1)}
-              generatingDiagramId={generatingDiagramId}
-              hasProjectDna={hasProjectDna}
-              onOpenProjectDna={preview?.projectId ? () => setShowProjectDna(true) : undefined}
-            />
-          </div>
+        <div ref={fullscreenRootRef} className="workspace-grid" data-fullscreen={isCanvasFullscreen} data-project-collapsed="true"
+          data-chat-collapsed={isCanvasFullscreen || isChatPanelCollapsed || isAssistantFloating} data-mobile-pane={mobilePane}>
+          {isCanvasFullscreen && <CanvasFullscreenControls assistantVisible={!isChatPanelCollapsed}
+            assistantButtonRef={fullscreenAssistantButtonRef} onToggleAssistant={() => setIsChatPanelCollapsed(value => !value)}
+            onExit={handleToggleCanvasFullscreen} />}
 
-          <section id="workspace-pane-canvas" ref={workspaceCanvasSectionRef} className="workspace-canvas-pane">
+          <section id="workspace-pane-canvas" role="tabpanel" aria-label={projectName} ref={workspaceCanvasSectionRef} className="workspace-canvas-pane">
             {isGenerationBusy && (progress || isGenerationStarting || startupGenerationActive) && (
               <div className="mb-2 rounded-2xl border border-brand-200/80 bg-brand-50/70 px-4 py-3 backdrop-blur-xl dark:border-brand-500/30 dark:bg-brand-500/10">
                 <div className="flex items-start gap-3">
@@ -2544,23 +2599,70 @@ export function WorkspacePage() {
                 />
               )}
               <DiagramCanvasPanel
+                toolbarTarget={toolbarTarget}
+                initialView={recallDocumentContext(activeDocumentKey)?.view}
+                onViewReader={handleViewReader}
                 canvasMode={canvasMode}
                 preview={preview}
                 projectName={projectName}
                 saveIndicator={preview?.projectId && !isGenerationBusy ? <WorkspaceSaveIndicator status={sidebarSaveStatus}
                   dirty={hasUnsavedChanges} disabled={workspaceInteractionBlocked} onSave={handleSaveAction} /> : undefined}
-                projectNavigation={<button type="button" className="tool-button workspace-project-toggle"
-                  aria-label={t('workspace.projectNavigation')} title={t(isProjectPanelCollapsed || isFocusMode ? 'workspace.expandPanel' : 'workspace.collapsePanel')}
-                  aria-expanded={!isProjectPanelCollapsed && !isFocusMode} aria-controls="workspace-pane-projects"
-                  onClick={() => {
-                    if (isFocusMode) { setIsFocusMode(false); setIsProjectPanelCollapsed(false); }
-                    else setIsProjectPanelCollapsed(value => !value);
-                  }}>
-                  <PanelLeft size={17} aria-hidden="true" />
-                  <span>{t('workspace.projectNavigation')}</span>
-                </button>}
-                isFocusMode={isFocusMode}
-                onToggleFocus={() => setIsFocusMode(value => !value)}
+                projectNavigation={<WorkspaceHistoryPopover open={isHistoryOpen}
+                  disabled={workspaceInteractionBlocked || !preview?.projectId}
+                  mobileAnchorRef={isCompactWorkspace ? mobileHistoryRef : undefined}
+                  onOpenChange={open => { setIsHistoryOpen(open); if (open) handleShowProjectHistory(); }}>
+                  <ProjectSidebar
+              historyOnly
+              onToggleCollapse={() => setIsHistoryOpen(false)}
+              projectName={projectName}
+              isEditingProjectName={false}
+              projectNameDraft={projectNameDraft}
+              onProjectNameDraftChange={setProjectNameDraft}
+              onStartEdit={() => {
+                if (workspaceInteractionBlocked) {
+                  handleWorkspaceInteractionBlocked();
+                  return;
+                }
+                handleStartProjectNameEdit();
+              }}
+              onSaveEdit={() => {
+                if (workspaceInteractionBlocked) {
+                  handleWorkspaceInteractionBlocked();
+                  return;
+                }
+                handleSaveProjectNameEdit();
+              }}
+              onCancelEdit={handleCancelProjectNameEdit}
+              projectNameInputRef={projectNameInputRef}
+              visibleItemsCount={visibleItemsCount}
+              isViewingProjectHistory={isViewingProjectHistory}
+              canViewProjectHistory={Boolean(preview?.projectId)}
+              displayedProjectSnapshots={displayedProjectSnapshots}
+              displayedRecentDiagrams={displayedRecentDiagrams}
+              preview={preview}
+              onSelectSnapshot={(snapshot) => { void handleSelectSnapshot(snapshot); }}
+              onSelectRecentDiagram={(item) => { void handleSelectRecentDiagram(item); }}
+              onShowProjectHistory={handleShowProjectHistory}
+              onShowRecentDiagrams={handleShowRecentDiagrams}
+              onOpenCreateDialog={handleNewDocument}
+              isInteractionDisabled={workspaceInteractionBlocked}
+              interactionDisabledReason={workspaceInteractionBlockedReason}
+              onSaveSnapshot={() => { void handleManualSaveSnapshot(); }}
+              onResolveSaveConflict={handleResolveSaveConflict}
+              onRecoverMissingProject={() => { void handleRecoverMissingProject(); }}
+              onReauth={handleReauthFromWorkspace}
+              manualSaveStatus={sidebarSaveStatus}
+              hasUnsavedChanges={hasUnsavedChanges}
+              recentLoadStatus={recentLoadStatus}
+              projectHistoryLoadStatus={projectHistoryLoadStatus}
+              onRetryRecentLoad={() => setRecentReloadNonce((prev) => prev + 1)}
+              onRetryProjectHistoryLoad={() => setProjectHistoryReloadNonce((prev) => prev + 1)}
+              generatingDiagramId={generatingDiagramId}
+              hasProjectDna={hasProjectDna}
+              onOpenProjectDna={preview?.projectId ? () => setShowProjectDna(true) : undefined}
+            />
+                </WorkspaceHistoryPopover>}
+                onToggleFullscreen={handleToggleCanvasFullscreen}
                 isGenerating={isGenerationBusy}
                 canvasBusyKind={canvasBusyKind}
                 generationMessage={progress?.message ?? null}
@@ -2571,16 +2673,22 @@ export function WorkspacePage() {
             </div>
           </section>
 
-          <div id="workspace-pane-chat" className="workspace-chat-pane">
+          <div id="workspace-pane-chat" className="workspace-chat-pane" data-overlay={isCanvasFullscreen || (!isCompactWorkspace && (isChatPanelCollapsed || isAssistantFloating))}>
             <AgentChatPanel
               chatMessages={chatMessages}
               chatInput={chatInput}
               onChatInputChange={setChatInput}
               onSendMessage={handleSendChatMessage}
               onQuickPrompt={handleQuickPrompt}
-              hasContent={!!preview}
-              isCollapsed={!isCompactWorkspace && isChatPanelCollapsed}
-              onToggleCollapse={() => setIsChatPanelCollapsed((prev) => !prev)}
+              hasContent={Boolean(preview && latestSnapshotRef.current && inspectCanvasPayload(latestSnapshotRef.current, canvasMode).status === 'valid')}
+              isCollapsed={(isCanvasFullscreen || !isCompactWorkspace) && isChatPanelCollapsed}
+              isFloating={isCanvasFullscreen || (!isCompactWorkspace && isAssistantFloating)}
+              showLauncher={!isCanvasFullscreen}
+              onToggleDock={isCanvasFullscreen ? undefined : () => setIsAssistantFloating(value => !value)}
+              onToggleCollapse={() => {
+                setIsChatPanelCollapsed(prev => !prev);
+                if (isCanvasFullscreen) requestAnimationFrame(() => fullscreenAssistantButtonRef.current?.focus({ preventScroll: true }));
+              }}
               isGenerating={workspaceInteractionBlocked}
               busyKind={canvasBusyKind}
               selectedCount={validSelectedNodeIdsForChat.length}
@@ -2608,6 +2716,7 @@ export function WorkspacePage() {
         }}
         open={showCreateDialog}
         onClose={() => {
+          createNewDocumentRef.current = false;
           setShowCreateDialog(false);
           if (activeCreatePreflight?.source === 'home' && !preview) {
             navigate('/home', { replace: true, state: { initialPrompt: createPrompt,

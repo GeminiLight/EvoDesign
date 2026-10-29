@@ -3,7 +3,9 @@ import type { DiagramResponse } from '../../types/api';
 import { ExcalidrawCanvas } from '../ExcalidrawCanvas';
 import { TldrawCanvas } from '../TldrawCanvas/TldrawCanvas';
 import type { CanvasMode } from './CanvasModeSelector';
-import type { TLEditorSnapshot } from '@tldraw/tldraw';
+import type { Editor, TLEditorSnapshot } from '@tldraw/tldraw';
+import { CanvasToolbar } from './CanvasToolbar';
+import type { CanvasViewState } from '../../utils/workspaceDocuments';
 import { inspectCanvasPayload, isExcalidrawPayload, isTldrawPayload, parseJsonObject } from '../../utils/app';
 import { CanvasStateOverlay, type CanvasStateOverlayKind } from './CanvasStateOverlay';
 import { CanvasRenderBoundary } from './CanvasRenderBoundary';
@@ -16,14 +18,16 @@ type DiagramCanvasPanelProps = {
   projectName?: string;
   projectNavigation?: ReactNode;
   saveIndicator?: ReactNode;
-  isFocusMode?: boolean;
-  onToggleFocus?: () => void;
+  onToggleFullscreen?: () => void;
   isGenerating?: boolean;
   canvasBusyKind?: CanvasBusyKind | null;
   generationMessage?: string | null;
   onTldrawSnapshotChange?: (snapshot: TLEditorSnapshot) => void;
   onExcalidrawSceneChange?: (scene: Record<string, unknown>, loadedScene?: Record<string, unknown>) => void;
   onSelectionChange?: (selectedIds: string[]) => void;
+  toolbarTarget?: HTMLElement | null;
+  initialView?: CanvasViewState | null;
+  onViewReader?: (reader: (() => CanvasViewState) | null) => void;
 };
 
 export const DiagramCanvasPanel = ({
@@ -32,16 +36,23 @@ export const DiagramCanvasPanel = ({
   projectName,
   projectNavigation,
   saveIndicator,
-  isFocusMode,
-  onToggleFocus,
+  onToggleFullscreen,
   isGenerating = false,
   canvasBusyKind = null,
   generationMessage = null,
   onTldrawSnapshotChange,
   onExcalidrawSceneChange,
   onSelectionChange,
+  toolbarTarget,
+  initialView,
+  onViewReader,
 }: DiagramCanvasPanelProps) => {
   const [renderError, setRenderError] = useState<{ resetKey: string; error: Error } | null>(null);
+  const [tldrawEditor, setTldrawEditor] = useState<Editor | null>(null);
+  const handleTldrawReady = useCallback((editor: Editor | null) => {
+    setTldrawEditor(editor);
+    onViewReader?.(editor ? () => ({ kind: 'tldraw', camera: { ...editor.getCamera() }, selectedIds: [...editor.getSelectedShapeIds()] }) : null);
+  }, [onViewReader]);
 
   const tldrawSnapshot = useMemo<Record<string, unknown> | null>(() => {
     return isTldrawPayload(preview?.tldrawSnapshot) ? preview.tldrawSnapshot : null;
@@ -130,6 +141,9 @@ export const DiagramCanvasPanel = ({
     if (payloadInspection.status === 'valid') {
       return null;
     }
+    // Saved documents may be deliberately blank or cleared by their owner.
+    // Generated empty output is still rejected by the generation workflow.
+    if (payloadInspection.status === 'empty' && preview.projectId) return null;
 
     return payloadInspection.status;
   }, [activeRenderError, canvasBusyKind, isGenerating, payloadInspection, preview]);
@@ -140,10 +154,16 @@ export const DiagramCanvasPanel = ({
         <CanvasRenderBoundary resetKey={canvasResetKey} onRenderError={handleRenderError}>
           {canvasMode === 'tldraw' ? (
             <div className="flex h-full min-h-0 flex-col">
-              <div className="canvas-toolbar">{projectNavigation}<p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{projectName}</p>{saveIndicator}</div>
+              <CanvasToolbar api={null} tldrawEditor={tldrawEditor} toolbarTarget={toolbarTarget}
+                projectNavigation={projectNavigation} saveIndicator={saveIndicator} name={projectName ?? 'EvoDesign'}
+                disabled={Boolean(overlayKind) || !preview} report={!isGenerating ? preview?.generationReport : undefined}
+                onToggleFullscreen={onToggleFullscreen} />
               <div className="relative min-h-0 flex-1">
             <TldrawCanvas
+              key={canvasResetKey}
               snapshot={tldrawSnapshot}
+              initialView={initialView}
+              onEditorReady={handleTldrawReady}
               onSnapshotChange={onTldrawSnapshotChange}
               onSelectionChange={onSelectionChange}
               onRenderError={handleRenderError}
@@ -159,9 +179,11 @@ export const DiagramCanvasPanel = ({
               projectNavigation={projectNavigation}
               saveIndicator={saveIndicator}
               generationReport={!isGenerating ? preview?.generationReport : undefined}
-              isFocusMode={isFocusMode}
-              onToggleFocus={onToggleFocus}
+              onToggleFullscreen={onToggleFullscreen}
               controlsDisabled={Boolean(overlayKind) || !preview}
+              toolbarTarget={toolbarTarget}
+              initialView={initialView}
+              onViewReader={onViewReader}
               onSceneChange={onExcalidrawSceneChange}
               onSelectionChange={onSelectionChange}
               onRenderError={handleRenderError}

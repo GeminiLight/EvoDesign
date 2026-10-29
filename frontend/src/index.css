@@ -711,9 +711,6 @@ textarea::placeholder { opacity: 1; }
   .workspace-grid[data-project-collapsed='false'] { grid-template-columns: 240px minmax(0, 1fr) 336px; }
   .workspace-grid[data-chat-collapsed='true'] { grid-template-columns: minmax(0, 1fr) 56px; }
   .workspace-grid[data-project-collapsed='false'][data-chat-collapsed='true'] { grid-template-columns: 240px minmax(0, 1fr) 56px; }
-  .workspace-grid[data-focus='true'] { grid-template-columns: minmax(0, 1fr); }
-  .workspace-grid[data-focus='true'] > .workspace-project-pane,
-  .workspace-grid[data-focus='true'] > .workspace-chat-pane { display: none; }
 }
 @container canvas-embed (max-width: 760px) {
   .canvas-fit-label, .generation-report[data-compact='true'] > summary .report-label { display: none; }
@@ -737,7 +734,6 @@ textarea::placeholder { opacity: 1; }
   .dark .workspace-mobile-nav { background: #1e2536; }
   .dark .workspace-mobile-nav button { color: #94a3b8; }
   .dark .workspace-mobile-nav button[aria-pressed='true'] { color: #c7d2fe; background: #30394e; }
-  .canvas-focus-button { display: none !important; }
   .workspace-project-toggle { display: none !important; }
   .canvas-toolbar { min-height: 52px; gap: 4px; padding-inline: 10px; }
   .canvas-toolbar > p { font-size: 12px; }
@@ -786,8 +782,6 @@ textarea::placeholder { opacity: 1; }
 
 /* Inspiration library: quiet controls, readable schematics, consistent rhythm. */
 @layer components {
-  .inspiration-tab { @apply relative min-h-11 border-b-2 border-transparent px-1 pb-3 pt-2 text-[13px] font-medium text-slate-500 transition-colors hover:text-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-400 dark:text-slate-400 dark:hover:text-indigo-300; }
-  .inspiration-tab-active { @apply border-indigo-500 text-indigo-600 dark:border-indigo-400 dark:text-indigo-300; }
   .inspiration-select { @apply min-h-11 rounded-lg border-0 bg-transparent py-2 pl-2 pr-8 text-xs text-slate-500 focus:ring-2 focus:ring-indigo-400 dark:text-slate-400; }
   .inspiration-select option { @apply bg-white text-slate-700 dark:bg-slate-900 dark:text-slate-200; }
   .inspiration-preview-button { @apply relative block w-full overflow-hidden rounded-xl border border-slate-200/80 text-left transition-colors duration-200 hover:border-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 dark:border-white/[0.08] dark:hover:border-indigo-400/40 dark:focus-visible:ring-offset-slate-950; }

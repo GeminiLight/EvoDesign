@@ -1,5 +1,7 @@
-import { ChevronDown, Download, Loader2, Maximize2, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { ChevronDown, Download, Loader2, Maximize2, Scan } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+import { getSnapshot, type Editor } from '@tldraw/tldraw';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import { useLanguage } from '../../i18n/LanguageProvider';
 import { useToast } from '../toastContext';
@@ -8,17 +10,17 @@ import type { GenerationReport as Report } from '../../utils/generationReport';
 import { documentAppState, sceneFiles } from '../../utils/excalidrawScene';
 import { fitExcalidraw } from '../../utils/fitExcalidraw';
 
-type Props = { projectNavigation?: ReactNode; saveIndicator?: ReactNode; api: ExcalidrawImperativeAPI | null; name: string; disabled?: boolean; report?: Report; isFocusMode?: boolean; onToggleFocus?: () => void };
+type Props = { projectNavigation?: ReactNode; saveIndicator?: ReactNode; api: ExcalidrawImperativeAPI | null; tldrawEditor?: Editor | null; toolbarTarget?: HTMLElement | null; name: string; disabled?: boolean; report?: Report; onToggleFullscreen?: () => void };
 
 /** Export the live editor scene, including unsaved edits and embedded icons. */
-export function CanvasToolbar({ projectNavigation, saveIndicator, api, name, disabled = false, report, isFocusMode, onToggleFocus }: Props) {
+export function CanvasToolbar({ projectNavigation, saveIndicator, api, tldrawEditor, toolbarTarget, name, disabled = false, report, onToggleFullscreen }: Props) {
   const { t } = useLanguage();
   const { showToast } = useToast();
   const [open, setOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const unavailable = !api || disabled || exporting;
+  const unavailable = (!api && !tldrawEditor) || disabled || exporting;
 
   useEffect(() => {
     if (!open) return;
@@ -41,10 +43,10 @@ export function CanvasToolbar({ projectNavigation, saveIndicator, api, name, dis
   }, [open]);
 
   const exportScene = async (format: 'svg' | 'png' | 'excalidraw') => {
-    if (!api || unavailable) return;
+    if ((!api && !tldrawEditor) || unavailable) return;
     setOpen(false);
-    const elements = api.getSceneElements();
-    if (!elements.length) {
+    const elements = api?.getSceneElements() ?? [];
+    if (api ? !elements.length : !tldrawEditor!.getCurrentPageShapes().length) {
       showToast(t('workspace.exportEmpty'), 'info');
       requestAnimationFrame(() => triggerRef.current?.focus());
       return;
@@ -52,26 +54,38 @@ export function CanvasToolbar({ projectNavigation, saveIndicator, api, name, dis
     setExporting(true);
     try {
       // Capture all parts together before an asynchronous renderer import.
-      const files = sceneFiles(elements, api.getFiles());
-      const appState = { ...api.getAppState(), exportScale: 2, exportBackground: true, exportWithDarkMode: false };
       let blob: Blob;
-      if (format === 'excalidraw') {
-        blob = new Blob([JSON.stringify({ type: 'excalidraw', version: 2, source: 'EvoDesign',
-          elements, appState: documentAppState(appState), files }, null, 2)], { type: 'application/json' });
-      } else {
-        const { exportToBlob, exportToSvg } = await import('@excalidraw/excalidraw');
-        blob = format === 'png'
-          ? await exportToBlob({ elements, appState, files, mimeType: 'image/png',
-            getDimensions: (width: number, height: number) => {
-              const scale = Math.min(2, 8192 / Math.max(width, height));
-              return { width: Math.round(width * scale), height: Math.round(height * scale), scale };
-            } })
-          : new Blob([(await exportToSvg({ elements, appState, files })).outerHTML], { type: 'image/svg+xml;charset=utf-8' });
-      }
+      if (!api && tldrawEditor) {
+        const shapes = tldrawEditor.getCurrentPageShapeIds();
+        if (format === 'excalidraw') {
+          blob = new Blob([JSON.stringify(getSnapshot(tldrawEditor.store), null, 2)], { type: 'application/json' });
+        } else if (format === 'svg') {
+          const exported = await tldrawEditor.getSvgString([...shapes], { background: true });
+          if (!exported) throw new Error('Empty SVG export');
+          blob = new Blob([exported.svg], { type: 'image/svg+xml;charset=utf-8' });
+        } else blob = (await tldrawEditor.toImage([...shapes], { format: 'png', background: true, scale: 2 })).blob;
+      } else if (api) {
+        const files = sceneFiles(elements, api.getFiles());
+        const appState = { ...api.getAppState(), exportScale: 2, exportBackground: true, exportWithDarkMode: false };
+        if (format === 'excalidraw') {
+          blob = new Blob([JSON.stringify({ type: 'excalidraw', version: 2, source: 'EvoDesign',
+            elements, appState: documentAppState(appState), files }, null, 2)], { type: 'application/json' });
+        } else {
+          const { exportToBlob, exportToSvg } = await import('@excalidraw/excalidraw');
+          blob = format === 'png'
+            ? await exportToBlob({ elements, appState, files, mimeType: 'image/png',
+              getDimensions: (width: number, height: number) => {
+                const scale = Math.min(2, 8192 / Math.max(width, height));
+                return { width: Math.round(width * scale), height: Math.round(height * scale), scale };
+              } })
+            : new Blob([(await exportToSvg({ elements, appState, files })).outerHTML], { type: 'image/svg+xml;charset=utf-8' });
+        }
+      } else return;
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = url;
-      anchor.download = `${(name || 'EvoDesign').replace(/[\\/:*?"<>|\p{Cc}]/gu, '-').slice(0, 100)}.${format}`;
+      const extension = tldrawEditor && !api && format === 'excalidraw' ? 'json' : format;
+      anchor.download = `${(name || 'EvoDesign').replace(/[\\/:*?"<>|\p{Cc}]/gu, '-').slice(0, 100)}.${extension}`;
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
@@ -86,21 +100,19 @@ export function CanvasToolbar({ projectNavigation, saveIndicator, api, name, dis
     }
   };
 
-  return (
-    <div className="canvas-toolbar">
+  const toolbar = (
+    <div className={toolbarTarget ? 'workspace-top-controls' : 'canvas-toolbar'}>
       {projectNavigation}
-      <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100" title={name}>{name}</p>
+      {!toolbarTarget && <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100" title={name}>{name}</p>}
       {saveIndicator}
-      {report && <GenerationReport report={report} t={t} compact />}
+      {report && <GenerationReport report={report} t={t} compact compactLabel={toolbarTarget ? t('workspace.reportTitle') : undefined} />}
       <button type="button" disabled={unavailable} className="tool-button" title={t('workspace.fitCanvas')}
-        onClick={() => { if (api) void fitExcalidraw(api, api.getSceneElements()).catch(() => showToast(t('workspace.fitFailed'), 'error')); }}>
-        <Maximize2 size={15} aria-hidden="true" /><span className="canvas-fit-label">{t('workspace.fitCanvas')}</span>
+        onClick={() => { if (api) void fitExcalidraw(api, api.getSceneElements()).catch(() => showToast(t('workspace.fitFailed'), 'error')); else tldrawEditor?.zoomToFit(); }}>
+        <Scan size={15} aria-hidden="true" /><span className="canvas-fit-label">{t('workspace.fitCanvas')}</span>
       </button>
-      {onToggleFocus && <button type="button" className="tool-button canvas-focus-button" onClick={onToggleFocus}
-        aria-pressed={isFocusMode} aria-label={t(isFocusMode ? 'workspace.exitFocus' : 'workspace.enterFocus')}
-        title={t(isFocusMode ? 'workspace.exitFocus' : 'workspace.enterFocus')}>
-        {isFocusMode ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
-        {isFocusMode && <span>{t('workspace.exitFocus')}</span>}
+      {onToggleFullscreen && <button type="button" disabled={unavailable} className="tool-button" onClick={onToggleFullscreen}
+        aria-label={t('workspace.enterFullscreen')} title={t('workspace.enterFullscreen')}>
+        <Maximize2 size={16} aria-hidden="true" />
       </button>}
       <div className="relative" ref={menuRef}>
         <button ref={triggerRef} type="button" disabled={unavailable} className="tool-button tool-button-accent"
@@ -119,4 +131,5 @@ export function CanvasToolbar({ projectNavigation, saveIndicator, api, name, dis
       </div>
     </div>
   );
+  return toolbarTarget ? createPortal(toolbar, toolbarTarget) : toolbar;
 }

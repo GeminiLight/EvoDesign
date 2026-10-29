@@ -21,6 +21,7 @@ import { normalizeBackendTimestamp } from '../utils/projectHistory';
 import type { CabinId, Rule } from '../types/dna';
 import { AUTH_USER_ID_STORAGE_KEY } from '../features/auth/authEvents';
 import { readLocalStorage } from '../utils/safeLocalStorage';
+import { createBlankExcalidrawScene } from '../utils/blankCanvas';
 import { normalizeCanvasLibraryOrNull } from '../contracts/canvas';
 import {
   isGuest,
@@ -235,6 +236,26 @@ export async function createProject(payload: ProjectCreatePayload): Promise<Back
   }
 
   return await res.json() as BackendProjectCreateResponse;
+}
+
+export async function createBlankCanvasProject(request: DiagramRequest, title: string): Promise<RecentDiagram> {
+  const schema = createBlankExcalidrawScene();
+  const createdAt = new Date().toISOString();
+  if (isGuest()) {
+    const saved = guestSaveDiagram({ ...request, prompt: '', diagramType: 'automated',
+      metadata: { canvasLibrary: 'excalidraw' } }, {
+      requestId: request.id, diagramId: request.id, generatedAt: createdAt, summary: title,
+      previewImage: '', excalidrawPayload: JSON.stringify(schema), rawSchemaBlob: schema,
+    }, { editSource: 'MANUAL_CREATE' });
+    return fetchProjectDiagram(saved.projectId);
+  }
+  const project = await createProject({ title, diagram_type: 'automated', canvas_library: 'excalidraw', source_text: '' });
+  const synced = await syncProjectSchema({ project_id: project.project_id, schema_patch: schema,
+    editor: 'excalidraw', base_snapshot_id: null, create_snapshot: true, version: null });
+  return { id: project.project_id, project_id: project.project_id, request_id: request.id,
+    diagram_id: synced.snapshot_id, snapshot_id: synced.snapshot_id, project_version: synced.version,
+    prompt: '', diagram_type: 'automated', summary: title, canvas_library: 'excalidraw',
+    excalidraw_payload: synced.latest_schema, created_at: normalizeBackendTimestamp(project.created_at), updated_at: createdAt };
 }
 
 export async function updateProjectTitle(projectId: string, title: string): Promise<void> {

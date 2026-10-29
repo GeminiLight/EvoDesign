@@ -11,6 +11,7 @@ import { CanvasToolbar } from './DiagramCanvas/CanvasToolbar';
 import { ChoiceSelect } from './ChoiceSelect';
 import { fitExcalidraw } from '../utils/fitExcalidraw';
 import { documentAppState, inPlaceAppState, retainedSelection, sceneFiles } from '../utils/excalidrawScene';
+import type { CanvasViewState } from '../utils/workspaceDocuments';
 
 const LazyExcalidraw = lazy(async () => {
   const mod = await import('@excalidraw/excalidraw');
@@ -38,8 +39,10 @@ export type ExcalidrawCanvasProps = {
   saveIndicator?: ReactNode;
   controlsDisabled?: boolean;
   generationReport?: GenerationReport;
-  isFocusMode?: boolean;
-  onToggleFocus?: () => void;
+  onToggleFullscreen?: () => void;
+  toolbarTarget?: HTMLElement | null;
+  initialView?: CanvasViewState | null;
+  onViewReader?: (reader: (() => CanvasViewState) | null) => void;
 };
 
 type ExcalidrawSceneRecord = Record<string, unknown> & {
@@ -50,7 +53,7 @@ type ExcalidrawSceneRecord = Record<string, unknown> & {
 
 type ExcalidrawUpdateSceneArgs = Parameters<ExcalidrawImperativeAPI['updateScene']>[0];
 
-export function ExcalidrawCanvas({ sceneData, sceneIdentity, onSceneChange, onSelectionChange, onRenderError, backgroundColor = '#ffffff', exportName = 'EvoDesign', projectNavigation, saveIndicator, controlsDisabled = false, generationReport, isFocusMode, onToggleFocus }: ExcalidrawCanvasProps) {
+export function ExcalidrawCanvas({ sceneData, sceneIdentity, onSceneChange, onSelectionChange, onRenderError, backgroundColor = '#ffffff', exportName = 'EvoDesign', projectNavigation, saveIndicator, controlsDisabled = false, generationReport, onToggleFullscreen, toolbarTarget, initialView, onViewReader }: ExcalidrawCanvasProps) {
   const { language, t } = useLanguage();
   const [theme, setTheme] = useState<'light' | 'dark'>(() => document.documentElement.classList.contains('dark') ? 'dark' : 'light');
   useEffect(() => {
@@ -61,6 +64,16 @@ export function ExcalidrawCanvas({ sceneData, sceneIdentity, onSceneChange, onSe
   const [selectedIcon, setSelectedIcon] = useState<{ id: string; name: string } | null>(null);
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const [canvasReady, setCanvasReady] = useState(false);
+  const restoredView = useRef(initialView?.kind === 'excalidraw' ? initialView : null);
+  useEffect(() => {
+    if (!canvasReady || !onViewReader) return;
+    onViewReader(() => {
+      const state = apiRef.current!.getAppState();
+      return { kind: 'excalidraw', scrollX: state.scrollX, scrollY: state.scrollY, zoom: { value: state.zoom.value },
+        selectedElementIds: { ...state.selectedElementIds }, selectedGroupIds: { ...state.selectedGroupIds } };
+    });
+    return () => onViewReader(null);
+  }, [canvasReady, onViewReader]);
   const viewportRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -168,6 +181,22 @@ export function ExcalidrawCanvas({ sceneData, sceneIdentity, onSceneChange, onSe
     onRenderErrorRef.current = onRenderError;
   }, [onRenderError]);
 
+  const publishSelection = useCallback((elements: readonly IconSceneElement[], appState: AppState) => {
+    const selection = appState.selectedElementIds ?? {};
+    const selectedIds = Object.keys(selection).filter(id => selection[id]).sort();
+    const selectedIcons = elements.filter(element => !element.isDeleted && getNodeIcon(element)
+      && (selection[element.id] || selection[getIconHost(element, elements)?.id ?? '']));
+    const icon = selectedIcons.length === 1 ? selectedIcons[0] : null;
+    const name = icon ? getNodeIcon(icon)?.name ?? '' : '';
+    setSelectedIcon(previous => previous?.id === icon?.id && previous?.name === name
+      ? previous : icon ? { id: icon.id, name } : null);
+    const previous = previousSelectionRef.current;
+    if (!previous || selectedIds.length !== previous.length || selectedIds.some((id, index) => id !== previous[index])) {
+      previousSelectionRef.current = selectedIds;
+      onSelectionChangeRef.current?.(selectedIds);
+    }
+  }, []);
+
   const normalizeScene = useCallback((scene: Record<string, unknown> | null | undefined) => {
     const payload: ExcalidrawSceneRecord = scene && typeof scene === 'object' ? scene : {};
     const elements = Array.isArray(payload.elements)
@@ -199,9 +228,13 @@ export function ExcalidrawCanvas({ sceneData, sceneIdentity, onSceneChange, onSe
 
   const initialData = useMemo(() => {
     const normalized = normalizeScene(sceneData);
+    if (restoredView.current) {
+      const { scrollX, scrollY, zoom } = restoredView.current;
+      Object.assign(normalized.appState, { scrollX, scrollY, zoom }, retainedSelection(restoredView.current, normalized.elements));
+    }
     return {
       ...normalized,
-      scrollToContent: true,
+      scrollToContent: !restoredView.current,
     };
   }, [normalizeScene, sceneData]);
 
@@ -216,7 +249,11 @@ export function ExcalidrawCanvas({ sceneData, sceneIdentity, onSceneChange, onSe
 
     const normalized = normalizeScene(scene);
     const sameDocument = Boolean(sceneIdentity && appliedIdentityRef.current === sceneIdentity);
-    shouldFitSceneRef.current = !sameDocument;
+    shouldFitSceneRef.current = !sameDocument && !restoredView.current;
+    if (!sameDocument && restoredView.current) {
+      const { scrollX, scrollY, zoom } = restoredView.current;
+      Object.assign(normalized.appState, { scrollX, scrollY, zoom }, retainedSelection(restoredView.current, normalized.elements));
+    }
     if (sameDocument) {
       const liveState = apiRef.current.getAppState();
       Object.assign(normalized.appState,
@@ -250,6 +287,7 @@ export function ExcalidrawCanvas({ sceneData, sceneIdentity, onSceneChange, onSe
         isApplyingExternalSceneRef.current = false;
         const api = apiRef.current;
         if (!api || !applied || userInteractedRef.current) return;
+        publishSelection(api.getSceneElementsIncludingDeleted() as unknown as IconSceneElement[], api.getAppState());
         // Restoration can repair legacy icon assets without another native
         // onChange. Acknowledge that baseline before the first user selection.
         onSceneChangeRef.current?.({
@@ -259,7 +297,7 @@ export function ExcalidrawCanvas({ sceneData, sceneIdentity, onSceneChange, onSe
         }, scene ?? undefined);
       }, 0);
     }
-  }, [normalizeScene, sceneIdentity]);
+  }, [normalizeScene, publishSelection, sceneIdentity]);
 
   useEffect(() => {
     if (canvasReady) applyScene(sceneData);
@@ -310,7 +348,7 @@ export function ExcalidrawCanvas({ sceneData, sceneIdentity, onSceneChange, onSe
     <div className="relative flex h-full min-h-0 w-full flex-col bg-white"
       onPointerDownCapture={() => { userInteractedRef.current = true; }}
       onKeyDownCapture={() => { userInteractedRef.current = true; }}>
-      <CanvasToolbar projectNavigation={projectNavigation} saveIndicator={saveIndicator} api={canvasReady ? apiRef.current : null} name={exportName} disabled={controlsDisabled} report={generationReport} isFocusMode={isFocusMode} onToggleFocus={onToggleFocus} />
+      <CanvasToolbar projectNavigation={projectNavigation} saveIndicator={saveIndicator} api={canvasReady ? apiRef.current : null} name={exportName} disabled={controlsDisabled} report={generationReport} onToggleFullscreen={onToggleFullscreen} toolbarTarget={toolbarTarget} />
       <div ref={viewportRef} className="relative min-h-0 flex-1">
       <Suspense fallback={<CanvasFallback label="Excalidraw" />}>
         <LazyExcalidraw
@@ -352,20 +390,7 @@ export function ExcalidrawCanvas({ sceneData, sceneIdentity, onSceneChange, onSe
               return;
             }
 
-            // Only fire selection change when selection actually changes
-            const selIds = appState.selectedElementIds ?? {};
-            const selectedIds = Object.keys(selIds).filter((id) => selIds[id]).sort();
-            const selectedIcons = iconElements.filter(element => !element.isDeleted && getNodeIcon(element)
-              && (selIds[element.id] || selIds[getIconHost(element, iconElements)?.id ?? '']));
-            const nextIcon = selectedIcons.length === 1 ? selectedIcons[0] : null;
-            const nextName = nextIcon ? getNodeIcon(nextIcon)?.name ?? '' : '';
-            setSelectedIcon(previous => previous?.id === nextIcon?.id && previous?.name === nextName
-              ? previous : nextIcon ? { id: nextIcon.id, name: nextName } : null);
-            const prevSel = previousSelectionRef.current;
-            if (!prevSel || selectedIds.length !== prevSel.length || selectedIds.some((id, i) => id !== prevSel[i])) {
-              previousSelectionRef.current = selectedIds;
-              onSelectionChangeRef.current?.(selectedIds);
-            }
+            publishSelection(iconElements, appState);
 
             onSceneChangeRef.current?.({
               elements: elements as unknown as Record<string, unknown>[],

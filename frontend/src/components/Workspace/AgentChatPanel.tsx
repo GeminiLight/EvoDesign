@@ -1,8 +1,9 @@
 import { shouldSubmitOnEnter } from '../../utils/keyboard';
 import { useRef, useEffect } from 'react';
 import type { FormEvent } from 'react';
-import { ArrowUp, ChevronDown, ChevronRight, GitBranchPlus, Loader2, Minimize2, Palette, PencilLine, RefreshCcw, Sparkles, SplinePointer, SquareDashedMousePointer, Tags, Zap } from 'lucide-react';
+import { ArrowUp, ChevronDown, GitBranchPlus, Loader2, Minimize2, Palette, PencilLine, Pin, PinOff, RefreshCcw, Sparkles, SquareDashedMousePointer, Tags, X, Zap } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageProvider';
+import { AssistantAvatar } from './AssistantAvatar';
 
 export type AgentChatBusyKind = 'generation' | 'local-edit' | 'save-recovery' | 'history-switch';
 
@@ -14,6 +15,9 @@ export interface AgentChatPanelProps {
   onQuickPrompt?: (text: string) => void;
   hasContent?: boolean;
   isCollapsed?: boolean;
+  isFloating?: boolean;
+  showLauncher?: boolean;
+  onToggleDock?: () => void;
   onToggleCollapse?: () => void;
   isGenerating?: boolean;
   busyKind?: AgentChatBusyKind | null;
@@ -76,6 +80,9 @@ export function AgentChatPanel({
   onSendMessage,
   hasContent = false,
   isCollapsed = false,
+  isFloating = false,
+  showLauncher = true,
+  onToggleDock,
   onToggleCollapse,
   isGenerating = false,
   busyKind = null,
@@ -251,9 +258,9 @@ export function AgentChatPanel({
   // Auto-scroll to latest message
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      scrollRef.current.scrollTop = isEmptyConversation ? 0 : scrollRef.current.scrollHeight;
     }
-  }, [chatMessages]);
+  }, [chatMessages, isCollapsed, isFloating, isEmptyConversation]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -261,7 +268,7 @@ export function AgentChatPanel({
     if (!el) return;
     el.style.height = 'auto';
     el.style.height = `${Math.max(44, Math.min(el.scrollHeight, 120))}px`;
-  }, [chatInput]);
+  }, [chatInput, isCollapsed, isFloating]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (shouldSubmitOnEnter(e)) {
@@ -300,52 +307,60 @@ export function AgentChatPanel({
     </div>
   );
 
-  if (isCollapsed) {
-    return (
-      <aside
-        id={panelId}
-        aria-label={t('workspace.agentName')}
-        aria-busy={isWorkspaceBusy}
-        className="assistant-rail"
-      >
-        <button
-          type="button"
-          onClick={onToggleCollapse}
-          className={`inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-brand-500 dark:hover:text-brand-300 ${focusRingClass}`}
-          aria-label={t('workspace.expandChat')}
-          aria-expanded="false"
-          aria-controls={panelId}
-          title={t('workspace.expandChat')}
-        >
-          <ChevronRight className="h-4 w-4 rotate-180" />
-        </button>
-        <SplinePointer className="h-4 w-4 text-brand-500" />
-      </aside>
-    );
-  }
+  const launcherRef = useRef<HTMLButtonElement>(null);
+  const focusComposerOnOpenRef = useRef(false);
+  const previousCollapsedRef = useRef(isCollapsed);
+  useEffect(() => {
+    const opening = previousCollapsedRef.current && !isCollapsed;
+    previousCollapsedRef.current = isCollapsed;
+    if (isCollapsed && showLauncher) launcherRef.current?.focus({ preventScroll: true });
+    else if (!isCollapsed && (focusComposerOnOpenRef.current || (opening && !showLauncher))) {
+      textareaRef.current?.focus({ preventScroll: true });
+      focusComposerOnOpenRef.current = false;
+    }
+  }, [isCollapsed, showLauncher]);
+  const launcher = <button ref={launcherRef} type="button" className="assistant-launcher" onClick={() => {
+    focusComposerOnOpenRef.current = isCollapsed; onToggleCollapse?.();
+  }}
+    aria-label={t(isCollapsed ? 'workspace.expandChat' : 'workspace.collapseChat')}
+    aria-expanded={!isCollapsed} aria-controls={panelId} title={t('workspace.agentName')}>
+    <AssistantAvatar size={30} />
+    {isWorkspaceBusy ? <Loader2 className="assistant-launcher-busy animate-spin" size={13} aria-hidden="true" />
+      : selectedCount > 0 && <small aria-hidden="true">{selectedCount}</small>}
+    <span>{t('workspace.agentName')}</span>
+  </button>;
+  if (isCollapsed) return showLauncher ? launcher : null;
 
   return (
-    <aside
+    <><aside
       id={panelId}
       aria-label={t('workspace.agentName')}
       aria-busy={isWorkspaceBusy}
-      className="assistant-panel"
+      className={`assistant-panel${isFloating ? ' assistant-floating' : ''}${!onToggleDock ? ' assistant-undockable' : ''}`}
+      onKeyDown={event => {
+        if (isFloating && showLauncher && event.key === 'Escape' && !event.defaultPrevented && !event.nativeEvent.isComposing) {
+          event.preventDefault(); event.stopPropagation(); onToggleCollapse?.();
+        }
+      }}
     >
-      {/* Collapse toggle */}
+      {onToggleDock && <button type="button" onClick={onToggleDock} className="assistant-dock-toggle"
+        aria-label={language === 'zh' ? (isFloating ? '固定到侧边栏' : '取消固定，改为气泡') : (isFloating ? 'Pin to sidebar' : 'Unpin to bubble')}
+        title={language === 'zh' ? (isFloating ? '固定到侧边栏' : '取消固定，改为气泡') : (isFloating ? 'Pin to sidebar' : 'Unpin to bubble')}
+        aria-pressed={!isFloating}>{isFloating ? <Pin size={15} /> : <PinOff size={15} />}</button>}
       <button
         type="button"
         onClick={onToggleCollapse}
-        className={`absolute right-3 top-4 z-10 hidden h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 lg:inline-flex ${focusRingClass}`}
-        aria-label={t('workspace.collapseChat')}
+        className={`absolute right-3 top-4 z-10 ${isFloating ? 'inline-flex' : 'hidden lg:inline-flex'} h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 ${focusRingClass}`}
+        aria-label={t(showLauncher ? 'workspace.collapseChat' : 'workspace.hideAssistant')}
         aria-expanded="true"
         aria-controls={panelId}
-        title={t('workspace.collapseChat')}
+        title={t(showLauncher ? 'workspace.collapseChat' : 'workspace.hideAssistant')}
       >
-        <ChevronRight className="h-3.5 w-3.5" />
+          <X className="h-3.5 w-3.5" />
       </button>
 
       <div className="assistant-header">
-        <span className="assistant-avatar"><SplinePointer size={19} strokeWidth={1.6} aria-hidden="true" /></span>
+        <span className="assistant-avatar"><AssistantAvatar size={26} /></span>
         <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{t('workspace.agentName')}</h2>
       </div>
 
@@ -379,7 +394,7 @@ export function AgentChatPanel({
             msg.role === 'agent' ? (
               <div key={msg.id} className="flex items-start gap-2">
                 <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-brand-50 dark:bg-brand-500/15">
-                  <SplinePointer className="h-3 w-3 text-brand-500" />
+                  <AssistantAvatar size={14} />
                 </span>
                 <div className="assistant-message min-w-0 flex-1 whitespace-pre-wrap break-words text-sm leading-7 text-slate-700 dark:text-slate-200">
                   {msg.content}
@@ -402,14 +417,14 @@ export function AgentChatPanel({
           {promptButtons}
         </details>}
         <div className="assistant-composer-box">
-          <div id={modeNoticeId} className={`assistant-scope ${modeToneClass}`}
+          <div id={modeNoticeId} className={`assistant-scope ${modeToneClass}`} data-mode={modeTone}
             data-testid="workspace-chat-mode-notice" aria-live="polite">
             <div className="flex items-center gap-2">
               <EffectiveModeIcon className={`h-3.5 w-3.5 shrink-0 ${modeIconClass} ${isWorkspaceBusy ? 'animate-spin' : ''}`} />
               <p className="text-xs font-semibold">{modeTitle}</p>
             </div>
             {modeTone === 'local' && selectionLabel && <p className="mt-1 truncate text-xs font-medium" title={selectionLabel}>{selectionLabel}</p>}
-            <p className="mt-1 text-xs leading-relaxed">{modeDescription}</p>
+            <p className={`assistant-scope-description mt-1 text-xs leading-relaxed ${['local', 'global', 'start'].includes(modeTone) ? 'sr-only' : ''}`}>{modeDescription}</p>
           </div>
           <textarea
             ref={textareaRef}
@@ -435,6 +450,6 @@ export function AgentChatPanel({
           </div>
         </div>
       </form>}
-    </aside>
+    </aside>{isFloating && showLauncher && launcher}</>
   );
 }

@@ -1,5 +1,5 @@
 import type { KeyboardEvent } from 'react';
-import { Search, X } from 'lucide-react';
+import { Dna, Search, Shapes, X } from 'lucide-react';
 
 interface GalleryHeroProps {
   t: (key: string) => string;
@@ -27,8 +27,9 @@ export const GalleryHero = ({ t, searchQuery, onSearchChange, activeTab, onTabCh
           <input type="search" value={searchQuery} onChange={(event) => onSearchChange(event.target.value)} placeholder={t('gallery.searchPlaceholder')} aria-label={t('gallery.searchAriaLabel')} className="studio-search pr-10 [&::-webkit-search-cancel-button]:appearance-none" />
           {searchQuery && <button type="button" onClick={() => onSearchChange('')} aria-label={t('gallery.clearSearch')} className="studio-icon-button absolute -right-0.5 -top-0.5"><X size={14} /></button>}
         </div>
-      <div role="tablist" aria-label={t('gallery.tabsLabel')} className="gallery-tabs flex gap-5">
-        {tabs.map((tab) => <button key={tab} id={`gallery-tab-${tab}`} type="button" role="tab" aria-selected={activeTab === tab} aria-controls="gallery-results-panel" tabIndex={activeTab === tab ? 0 : -1} onClick={() => onTabChange(tab)} onKeyDown={handleTabKeyDown} className={`inspiration-tab ${activeTab === tab ? 'inspiration-tab-active' : ''}`}>
+      <div role="tablist" aria-label={t('gallery.tabsLabel')} className="gallery-tabs studio-browse-tabs">
+        {tabs.map((tab) => <button key={tab} id={`gallery-tab-${tab}`} type="button" role="tab" aria-selected={activeTab === tab} aria-controls="gallery-results-panel" tabIndex={activeTab === tab ? 0 : -1} onClick={() => onTabChange(tab)} onKeyDown={handleTabKeyDown} className={`studio-tab ${activeTab === tab ? 'studio-tab-active' : ''}`}>
+          {tab === 'works' ? <Shapes size={15} strokeWidth={1.6} aria-hidden="true" /> : <Dna size={15} strokeWidth={1.6} aria-hidden="true" />}
           {t(tab === 'works' ? 'gallery.tabWorks' : 'gallery.tabDna')}
         </button>)}
       </div>

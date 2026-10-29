@@ -8,6 +8,7 @@ import { useBackendAuth } from '../features/auth/BackendAuthProvider';
 import { rememberAuthReturnTo } from '../features/auth/authRedirect';
 import { readLocalStorage, writeLocalStorage } from '../utils/safeLocalStorage';
 import { ChoiceSelect } from './ChoiceSelect';
+import { useBrowserModelLabel } from '../hooks/useBrowserModelLabel';
 
 const navBaseClass = 'relative inline-flex min-h-10 min-w-11 items-center justify-center rounded-lg px-3 text-sm font-medium transition-colors';
 const navActiveClass = 'bg-brand-50 font-semibold text-brand-700 dark:bg-brand-500/15 dark:text-brand-300';
@@ -17,6 +18,7 @@ const LOGO_ASSET_VERSION = '20260303';
 
 type HeaderProps = {
   children?: ReactNode;
+  workspaceTabs?: ReactNode;
   variant?: 'app' | 'landing' | 'studio';
   onEnterGuest?: (prompt?: string) => void;
   onEnterEmailAuth?: () => void;
@@ -28,6 +30,7 @@ type HeaderProps = {
 
 export const Header = ({
   children,
+  workspaceTabs,
   variant = 'app',
   onEnterGuest,
   onEnterEmailAuth,
@@ -39,6 +42,7 @@ export const Header = ({
   const isStudio = variant === 'studio';
   const isApp = variant !== 'landing';
   const { t, language, setLanguage } = useLanguage();
+  const currentModelLabel = useBrowserModelLabel(t);
   const { user, signOut } = useBackendAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -286,7 +290,7 @@ export const Header = ({
   };
 
   return (
-    <header className={`${isStudio ? 'studio-header' : ''} sticky top-0 z-50 border-b backdrop-blur-2xl transition-colors duration-300 ${variant === 'landing' ? 'border-slate-200/50 dark:border-white/5 bg-white/50 dark:bg-slate-950/50 backdrop-blur-xl' : 'border-slate-200 bg-white/95 dark:border-slate-800 dark:bg-slate-950/95'}`}>
+    <header className={`${isStudio ? 'studio-header' : ''} ${workspaceTabs ? 'workspace-header' : ''} sticky top-0 z-50 border-b backdrop-blur-2xl transition-colors duration-300 ${variant === 'landing' ? 'border-slate-200/50 dark:border-white/5 bg-white/50 dark:bg-slate-950/50 backdrop-blur-xl' : 'border-slate-200 bg-white/95 dark:border-slate-800 dark:bg-slate-950/95'}`}>
       <div className={`header-inner mx-auto flex h-14 items-center justify-between gap-2 px-3 sm:px-6 lg:px-8 ${variant === 'landing' ? 'max-w-7xl' : ''}`}>
         <div className="header-leading flex min-w-0 items-center gap-4 md:gap-8">
           <button
@@ -328,6 +332,7 @@ export const Header = ({
           )}
         </div>
 
+          {workspaceTabs && <div className="workspace-header-tabs">{workspaceTabs}</div>}
           {isApp && (
             <button
               ref={mobileNavButtonRef}
@@ -398,7 +403,7 @@ export const Header = ({
           {isApp && (
             <>
           {children}
-          {BROWSER_MODE && <button type="button" onClick={() => { closeTransientPanels(); openModelSettings(); }} aria-label={t('browser.modelSettings')} title={t('browser.modelSettings')} aria-haspopup="dialog" className={isStudio ? 'header-model-trigger home-settings-button' : 'tool-button min-h-10 gap-2 px-3'}><Bot size={isStudio ? 20 : 16} strokeWidth={1.7} aria-hidden="true" /><span className={isStudio ? 'header-model-label' : 'hidden sm:inline'}>{t('settings.model')}</span></button>}
+          {BROWSER_MODE && <button type="button" onClick={() => { closeTransientPanels(); openModelSettings(); }} aria-label={`${t('browser.modelSettings')}: ${currentModelLabel}`} title={currentModelLabel} aria-haspopup="dialog" className={isStudio ? 'header-model-trigger home-settings-button' : 'tool-button min-h-10 gap-2 px-3'}><Bot size={isStudio ? 20 : 16} strokeWidth={1.7} aria-hidden="true" /><span className={isStudio ? 'header-model-label' : 'hidden sm:inline'}>{currentModelLabel}</span></button>}
 
           {!BROWSER_MODE && <div className="relative" ref={notificationsRef}>
             <button

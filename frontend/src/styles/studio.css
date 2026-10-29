@@ -38,7 +38,7 @@ html.dark {
 .home-settings-button { display: inline-flex; justify-content: center; align-items: center; width: 44px; height: 44px; border-radius: 50%; color: var(--studio-muted); transition: background 160ms, color 160ms; }
 .home-settings-button:hover { background: var(--studio-soft); color: var(--studio-accent); }
 .header-model-trigger.home-settings-button { width: auto; gap: 8px; padding: 0 11px; border-radius: 9px; }
-.header-model-label { font-size: 12px; font-weight: 500; }
+.header-model-label { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 500; }
 .header-preferences-trigger[aria-expanded='true'] { background: var(--studio-soft); color: var(--studio-accent); }
 .header-preferences-panel { position: absolute; z-index: 55; top: calc(100% + 10px); right: 0; width: 288px; max-width: calc(100vw - 24px); max-height: calc(100dvh - 104px); overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--studio-line); border-radius: 14px; background: var(--studio-surface); box-shadow: 0 16px 42px -20px #24213545; color: var(--studio-ink); padding: 7px; }
 .dark .header-preferences-panel { box-shadow: 0 16px 42px -20px #000a; }
@@ -112,6 +112,11 @@ html.dark {
 .studio-secondary, .studio-icon-button, .studio-tab { color: var(--studio-muted); border-radius: 8px; }
 .studio-secondary:hover:enabled, .studio-icon-button:hover:enabled, .studio-tab:hover:enabled { color: var(--studio-accent); background: var(--studio-soft); }
 .studio-tab-active { background: var(--studio-soft); color: var(--studio-accent); }
+.studio-browse-tabs { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.studio-browse-tabs > .studio-tab { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 10px 13px; font-size: 13px; font-weight: 500; white-space: nowrap; transition: background-color 140ms, color 140ms; }
+.studio-browse-tabs > .studio-tab > svg { flex-shrink: 0; }
+.studio-browse-tabs small { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding-inline: 4px; border-radius: 5px; color: var(--studio-muted); font-size: 10px; font-weight: 400; font-variant-numeric: tabular-nums; }
+.studio-browse-tabs .studio-tab-active > small { color: inherit; background: var(--studio-surface); }
 .studio-search, .studio-form-input, .create-diagram-prompt, .create-diagram-select { background-color: var(--studio-surface); border-color: var(--studio-line); color: var(--studio-ink); font-size: 13px; }
 .studio-search { height: 42px; }
 .studio-search:focus, .studio-form-input:focus, .create-diagram-prompt:focus, .create-diagram-select:focus { border-color: var(--studio-focus); outline: none; box-shadow: none; }
@@ -131,9 +136,6 @@ html.dark {
 .studio-library .gallery-cross-fade-in { animation: studio-content-arrive 180ms ease-out both; filter: none; }
 .inspiration-dialog.gallery-modal-enter { animation: workspaceReveal 160ms ease-out both; }
 @keyframes studio-content-arrive { from { opacity: .85; transform: translateY(3px); } to { opacity: 1; transform: none; } }
-.inspiration-tab { color: var(--studio-muted); }
-.inspiration-tab:hover, .inspiration-tab-active { color: var(--studio-accent); }
-.inspiration-tab-active { border-color: var(--studio-accent); }
 .inspiration-select { color: var(--studio-muted); }
 .inspiration-preview-button { border-radius: 11px; border-color: var(--studio-line); }
 .inspiration-preview-button:hover { border-color: #bdb2d5; }
@@ -146,9 +148,6 @@ html.dark {
 .memory-overview h2 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -.02em; }
 .memory-overview p { margin: 7px 0 0; color: var(--studio-muted); font-size: 12px; }
 .memory-toolbar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-.memory-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 16px; padding: 0 0 12px; border-bottom: 1px solid var(--studio-line); }
-.memory-auto-apply { display: flex; align-items: center; gap: 7px; margin: 0; color: var(--studio-muted); font-size: 11px; line-height: 1.7; }
-.memory-auto-apply > svg { flex-shrink: 0; color: var(--studio-accent); }
 .memory-cabin { display: grid; grid-template-columns: 206px minmax(0, 1fr); gap: 36px; padding: 24px 0; border-bottom: 1px solid var(--studio-line); }
 .memory-cabin-heading { padding-top: 0; }
 .memory-cabin-heading h2 { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 550; }

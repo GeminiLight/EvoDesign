@@ -5,6 +5,7 @@ export function normalizeBackendTimestamp(value: string): string {
 
 export function snapshotSourceKey(source?: string | null): string {
   const value = (source ?? '').toLowerCase();
+  if (value === 'manual_create') return 'workspace.snapshotSourceCreated';
   if (value === 'ai_local' || value.includes('local')) return 'workspace.snapshotSourceLocalEdit';
   if (value.includes('manual') || value.includes('save')) return 'workspace.snapshotSourceManualSave';
   if (value === 'ai_gen' || value.includes('generate')) return 'workspace.snapshotSourceGenerated';

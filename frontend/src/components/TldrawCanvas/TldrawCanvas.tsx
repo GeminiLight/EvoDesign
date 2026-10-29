@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { Tldraw, type Editor, loadSnapshot, getSnapshot, type TLEditorSnapshot, type TLStoreSnapshot } from '@tldraw/tldraw';
 import { CanvasLoadingScreen } from '../DiagramCanvas/CanvasLoadingScreen';
 import { isTldrawPayload } from '../../utils/app';
+import type { CanvasViewState } from '../../utils/workspaceDocuments';
 
 import '@tldraw/tldraw/tldraw.css';
 
@@ -11,13 +12,17 @@ export type TldrawCanvasProps = {
   onSnapshotChange?: (snapshot: TLEditorSnapshot) => void;
   onSelectionChange?: (selectedIds: string[]) => void;
   onRenderError?: (error: Error) => void;
+  onEditorReady?: (editor: Editor | null) => void;
+  initialView?: CanvasViewState | null;
 };
 
 const isObjectRecord = (value: unknown): value is Record<string, unknown> => (
   Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 );
 
-export function TldrawCanvas({ snapshot, onSnapshotChange, onSelectionChange, onRenderError }: TldrawCanvasProps) {
+export function TldrawCanvas({ snapshot, onSnapshotChange, onSelectionChange, onRenderError, onEditorReady, initialView }: TldrawCanvasProps) {
+  const viewRef = useRef(initialView?.kind === 'tldraw' ? initialView : null);
+  const documentAppliedRef = useRef(false);
   const editorRef = useRef<Editor | null>(null);
   const unlistenRef = useRef<(() => void) | null>(null);
   const selectionUnlistenRef = useRef<(() => void) | null>(null);
@@ -27,6 +32,11 @@ export function TldrawCanvas({ snapshot, onSnapshotChange, onSelectionChange, on
   const onSnapshotChangeRef = useRef<typeof onSnapshotChange>(onSnapshotChange);
   const onSelectionChangeRef = useRef<typeof onSelectionChange>(onSelectionChange);
   const onRenderErrorRef = useRef<typeof onRenderError>(onRenderError);
+
+  useEffect(() => {
+    if (editorRef.current) onEditorReady?.(editorRef.current);
+    return () => onEditorReady?.(null);
+  }, [onEditorReady]);
 
   useEffect(() => {
     onSnapshotChangeRef.current = onSnapshotChange;
@@ -95,6 +105,9 @@ export function TldrawCanvas({ snapshot, onSnapshotChange, onSelectionChange, on
 
   const applySnapshot = useCallback((editor: Editor, incomingSnapshot: TLEditorSnapshot | TLStoreSnapshot | Record<string, unknown> | null | undefined) => {
     if (!incomingSnapshot || !isTldrawPayload(incomingSnapshot)) return;
+    const view = viewRef.current ?? (documentAppliedRef.current ? {
+      camera: editor.getCamera(), selectedIds: [...editor.getSelectedShapeIds()],
+    } : null);
 
     try {
       isApplyingExternalSnapshotRef.current = true;
@@ -117,6 +130,14 @@ export function TldrawCanvas({ snapshot, onSnapshotChange, onSelectionChange, on
         });
         loadSnapshot(editor.store, mergedSnapshot as Partial<TLEditorSnapshot>);
       }
+      if (view) {
+        editor.setCamera(view.camera);
+        const liveIds = editor.getCurrentPageShapeIds();
+        editor.select(...[...liveIds].filter(id => view.selectedIds.includes(id)));
+      }
+      viewRef.current = null;
+      documentAppliedRef.current = true;
+      onSelectionChangeRef.current?.([...editor.getSelectedShapeIds()].sort());
     } catch (error) {
       const normalizedError = error instanceof Error ? error : new Error('TLDraw snapshot load failed');
       console.error('Failed to load snapshot:', normalizedError);
@@ -131,6 +152,7 @@ export function TldrawCanvas({ snapshot, onSnapshotChange, onSelectionChange, on
   const handleMount = useCallback((editor: Editor) => {
     editorRef.current = editor;
     applySnapshot(editor, snapshot);
+    onEditorReady?.(editor);
 
     unlistenRef.current?.();
     selectionUnlistenRef.current?.();
@@ -169,7 +191,7 @@ export function TldrawCanvas({ snapshot, onSnapshotChange, onSelectionChange, on
     }, { source: 'user', scope: 'document' });
 
     // Listen to selection changes separately to avoid re-render loops
-    let prevSelectedIds: string[] = [];
+    let prevSelectedIds = [...editor.getSelectedShapeIds()].sort();
     const selectionUnsub = editor.store.listen(() => {
       const ids = editor.getSelectedShapeIds();
       const sorted = [...ids].sort();
@@ -179,7 +201,7 @@ export function TldrawCanvas({ snapshot, onSnapshotChange, onSelectionChange, on
       }
     }, { source: 'user', scope: 'session' });
     selectionUnlistenRef.current = selectionUnsub;
-  }, [applySnapshot, snapshot]);
+  }, [applySnapshot, snapshot, onEditorReady]);
 
   useEffect(() => {
     const editor = editorRef.current;
@@ -208,7 +230,7 @@ export function TldrawCanvas({ snapshot, onSnapshotChange, onSelectionChange, on
   }, []);
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-3xl border border-sky-100 bg-white shadow-[0_25px_60px_rgba(15,23,42,0.08)]">
+    <div className="relative isolate h-full w-full overflow-hidden rounded-3xl border border-sky-100 bg-white shadow-[0_25px_60px_rgba(15,23,42,0.08)]">
       <Tldraw
         autoFocus
         inferDarkMode={false}
