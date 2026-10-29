@@ -7,7 +7,8 @@
 - `docs/polish.css`: refined blue, violet, and cyan presentation, responsive controls, and motion styles.
 - `docs/app.js`: local canvas illustration and manuscript result data.
 - `docs/motion.js`: guided flow, progressive entrance effects, counters, figure dialog, navigation state, and motion preferences.
-- `docs/assets/`: favicon, sharing image, and two qualitative manuscript figure crops.
+- `docs/assets/`: product logo, sharing image, manuscript method figure, and qualitative figure crops.
+- `docs/screenshots/`: real Studio captures; the English website and README share the English capture.
 - `README.md`: repository landing page and release status.
 
 The static website uses relative asset URLs so it works under the `/EvoDesign/` GitHub Pages path. Stylesheet and script URLs include a content-hash `v` query to avoid stale browser caches; refresh that value when those files change. Google Fonts enhances the typography when available; system font fallbacks keep the page usable without it. No analytics or application backend is included.
@@ -17,6 +18,10 @@ The static website uses relative asset URLs so it works under the `/EvoDesign/` 
 GitHub Pages serves `main` → `/docs`. Pushing changes to `docs/` triggers GitHub's Pages build and deployment. The `.nojekyll` file disables Jekyll processing.
 
 Public URL: https://tianfu.wang/EvoDesign/
+
+The primary product destination is https://evodesign.vercel.app/. The navigation, hero, clickable Studio preview, browser getting-started section, questions and resources all link directly there. Keep the online entry visible on small screens. The shared demo needs no installation, API key or EvoDesign account; custom models remain optional. The local setup link is a separate route for the full research pipeline, visual verification and expertise evolution. Keep this distinction when editing feature copy.
+
+The hero uses a real English Studio screenshot, not an interactive application embed. Update both language captures together after interface changes and record their source in `docs/assets/README.md`. No additional application requests or model calls are made by the project website.
 
 GitHub Pages inherits the account’s existing `tianfu.wang` domain. The default `geminilight.github.io/EvoDesign/` address redirects there. No repository-level custom domain or DNS change is required.
 
@@ -78,7 +83,7 @@ The author will provide the renamed public PDF later. Do not add `citation_pdf_u
 
 ## Additional interaction checks
 
-- The mobile Contents menu supports Escape, focus return, and direct section links.
+- The mobile Menu supports Escape, focus return, and direct section links.
 - BibTeX copy confirms success, or selects the text when clipboard access is unavailable.
 - Questions and citation disclosure work without JavaScript.
 - Source HTML contains six default result rows and all fifteen citation authors.

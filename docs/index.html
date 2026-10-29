@@ -6,13 +6,13 @@
   <meta name="theme-color" content="#6754c4">
   <title>EvoDesign — Turn ideas into editable diagrams</title>
   <!-- RESEARCH-METADATA:START -->
-<meta name="description" content="Generate, refine and edit diagrams in an open-source AI workspace. Run locally with your own model, optional icons and personal design memory. Built on EvoDesign research.">
+<meta name="description" content="Create editable diagrams in your browser with the shared demo or your own model. Explore the open-source research pipeline and personal design memory.">
   <link rel="canonical" href="https://tianfu.wang/EvoDesign/">
   <link rel="sitemap" type="application/xml" href="https://tianfu.wang/EvoDesign/sitemap.xml">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <meta property="og:type" content="website">
   <meta property="og:title" content="EvoDesign — Turn ideas into editable diagrams">
-  <meta property="og:description" content="Generate, refine and edit diagrams in an open-source AI workspace. Run locally with your own model, optional icons and personal design memory. Built on EvoDesign research.">
+  <meta property="og:description" content="Create editable diagrams in your browser with the shared demo or your own model. Explore the open-source research pipeline and personal design memory.">
   <meta property="og:url" content="https://tianfu.wang/EvoDesign/">
   <meta property="og:site_name" content="EvoDesign">
   <meta property="og:locale" content="en_US">
@@ -22,7 +22,7 @@
   <meta property="og:image:alt" content="EvoDesign — editable diagrams, evolving design expertise.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="EvoDesign — Turn ideas into editable diagrams">
-  <meta name="twitter:description" content="Generate, refine and edit diagrams in an open-source AI workspace. Run locally with your own model, optional icons and personal design memory. Built on EvoDesign research.">
+  <meta name="twitter:description" content="Create editable diagrams in your browser with the shared demo or your own model. Explore the open-source research pipeline and personal design memory.">
   <meta name="twitter:image" content="https://tianfu.wang/EvoDesign/assets/social-preview.png">
   <meta name="twitter:image:alt" content="EvoDesign — editable diagrams, evolving design expertise.">
   <meta name="citation_title" content="EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution">
@@ -54,9 +54,9 @@
       "@id": "https://tianfu.wang/EvoDesign/",
       "url": "https://tianfu.wang/EvoDesign/",
       "name": "EvoDesign — Turn ideas into editable diagrams",
-      "description": "Generate, refine and edit diagrams in an open-source AI workspace. Run locally with your own model, optional icons and personal design memory. Built on EvoDesign research.",
+      "description": "Create editable diagrams in your browser with the shared demo or your own model. Explore the open-source research pipeline and personal design memory.",
       "inLanguage": "en",
-      "dateModified": "2026-10-27",
+      "dateModified": "2026-10-29",
       "mainEntity": {
         "@id": "https://tianfu.wang/EvoDesign/#software"
       },
@@ -78,7 +78,7 @@
       "@type": "SoftwareSourceCode",
       "@id": "https://tianfu.wang/EvoDesign/#software",
       "name": "EvoDesign",
-      "description": "Generate, refine and edit diagrams in an open-source AI workspace. Run locally with your own model, optional icons and personal design memory. Built on EvoDesign research.",
+      "description": "Create editable diagrams in your browser with the shared demo or your own model. Explore the open-source research pipeline and personal design memory.",
       "codeRepository": "https://github.com/GeminiLight/EvoDesign",
       "url": "https://tianfu.wang/EvoDesign/",
       "programmingLanguage": [
@@ -286,65 +286,77 @@
 }
 </script>
 <!-- RESEARCH-METADATA:END -->
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="assets/studio-logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&family=Manrope:wght@400;500;600;650;700;750;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=e60e427d9c">
-  <link rel="stylesheet" href="polish.css?v=46140733f7">
+  <link rel="stylesheet" href="polish.css?v=2e6b7d5cda">
   <script src="app.js?v=8717afafe5" defer></script>
-  <script src="motion.js?v=13105dd267" defer></script>
+  <script src="motion.js?v=2f8dd69f3c" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header">
     <div class="reading-progress" aria-hidden="true"></div>
     <nav class="nav wrap" aria-label="Main navigation">
-      <a class="wordmark" href="#" aria-label="EvoDesign home"><img src="assets/favicon.svg" width="27" height="27" alt="">Evo<span>Design</span></a>
+      <a class="wordmark" href="#" aria-label="EvoDesign home"><img src="assets/studio-logo.svg" width="27" height="27" alt=""><span class="wordmark-name">Evo<span>Design</span></span></a>
       <div class="nav-links"><a href="#features">Features</a><a href="#playground">Workflow</a><a href="#get-started">Get started</a><a href="#overview">Research</a></div>
-      <div class="nav-actions"><a class="nav-cite" href="#get-started">Start <span aria-hidden="true">↗</span></a><details class="mobile-contents"><summary aria-label="Page contents">Contents <span aria-hidden="true">⌄</span></summary><div class="contents-panel"><a href="#features">Features <span>01</span></a><a href="#get-started">Get started <span>02</span></a><a href="#overview">Research <span>03</span></a><a href="#refinement">Refinement <span>03</span></a><a href="#benchmark">CanvasBench <span>04</span></a><a href="#research-details">Research details <span>05</span></a><a href="#questions">Research notes <span>06</span></a><a href="#citation">Citation <span>07</span></a></div></details><button hidden class="motion-toggle" id="motion-toggle" type="button" aria-label="Pause animations" aria-pressed="false" title="Pause animations"><svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path class="pause-icon" d="M7 5v10M13 5v10"/><path class="play-icon" d="m7 4 9 6-9 6Z"/></svg><span>Motion</span></button><a class="nav-github" href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></div>
+      <div class="nav-actions"><a class="nav-cite" href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer">Open Studio <span aria-hidden="true">↗</span></a><details class="mobile-contents"><summary aria-label="Page contents">Menu <span aria-hidden="true">⌄</span></summary><div class="contents-panel"><a href="#features">Features <span>01</span></a><a href="#playground">Workflow <span>02</span></a><a href="#get-started">Get started <span>03</span></a><a href="#overview">Research <span>04</span></a><a href="#research-details">Method &amp; results <span>05</span></a><a href="#questions">Questions <span>06</span></a><a href="#citation">Citation <span>07</span></a></div></details><button hidden class="motion-toggle" id="motion-toggle" type="button" aria-label="Pause animations" aria-pressed="false" title="Pause animations"><svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path class="pause-icon" d="M7 5v10M13 5v10"/><path class="play-icon" d="m7 4 9 6-9 6Z"/></svg><span>Motion</span></button><a class="nav-github" href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></div>
     </nav>
   </header>
   <main id="main">
-    <section class="hero wrap" aria-labelledby="hero-title">
+    <section class="hero hero-product wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
       <div class="eyebrow hero-eyebrow"><span class="status-dot"></span> OPEN-SOURCE AI DIAGRAM WORKSPACE</div>
       <h1 id="hero-title">Evo<span>Design</span><span class="title-spark" aria-hidden="true">✳</span></h1>
       <p class="paper-title product-promise">Turn an idea into a diagram.<br><span>Keep every detail in your hands.</span></p>
-      <p class="product-lead">Generate, refine and edit diagrams in one workspace.<br>Bring your own model. Build up your own design memory.</p>
-      <div class="hero-actions"><a class="button primary" href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer">Try online <span aria-hidden="true">↗</span></a><a class="button secondary" href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">Explore the code <span aria-hidden="true">↗</span></a><a class="method-link" href="https://arxiv.org/abs/2604.09568" target="_blank" rel="noopener noreferrer">Read the paper <span aria-hidden="true">↗</span></a></div>
-      <p class="hero-caption">Run locally · Editable canvases · Optional icons</p>
+      <p class="product-lead">Describe what you want to explain. Shape the result on an editable canvas, from the first draft to the final detail.</p>
+      <div class="hero-actions"><a class="button primary" href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer">Open Studio <span aria-hidden="true">↗</span></a><a class="button secondary" href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">Explore the code <span aria-hidden="true">↗</span></a></div>
+      <p class="hero-caption"><span>No installation</span><span>No API key to try</span><span>Yours to edit</span></p>
+      <a class="hero-paper-link text-link" href="https://arxiv.org/abs/2604.09568" target="_blank" rel="noopener noreferrer">Meet the research behind the canvas <span aria-hidden="true">↗</span></a>
+      </div>
+      <figure class="studio-preview">
+        <a class="studio-window" href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer" aria-label="Open EvoDesign Studio, the online diagram workspace">
+          <div class="studio-window-bar" aria-hidden="true"><span class="window-dots"><i></i><i></i><i></i></span><span>evodesign.vercel.app</span><span>↗</span></div>
+          <img src="screenshots/studio-home-en.jpg" width="1880" height="873" fetchpriority="high" alt="EvoDesign Studio: describe a diagram, choose a model and create an editable canvas. Recent projects and Your DNA preferences are available in the sidebar.">
+          <span class="studio-window-footer"><span><span class="status-dot" aria-hidden="true"></span> The browser workspace</span><span>Step inside <span aria-hidden="true">↗</span></span></span>
+        </a>
+        <figcaption>Start with the shared demo, or bring your own model.</figcaption>
+      </figure>
     </section>
 
 
     <section id="features" class="product-features wrap section" aria-labelledby="features-title">
       <div class="section-top"><div><p class="eyebrow">MADE FOR YOUR NEXT DIAGRAM</p><h2 id="features-title">From first draft<br>to <em>your final say.</em></h2></div><p>Architecture, sequences, complex flows.<br>A workspace for the details that matter.</p></div>
       <div class="product-grid">
-        <article class="product-card"><span class="product-number" aria-hidden="true">01 / CREATE</span><h3>Describe the idea.<br>Find its shape.</h3><p>Turn your content into a structured diagram. Let automatic refinement help with layout, labels and visual consistency.</p><span class="product-tag">Generate &amp; refine</span></article>
+        <article class="product-card"><span class="product-number" aria-hidden="true">01 / CREATE</span><h3>Describe the idea.<br>Find its shape.</h3><p>Turn your content into a structured first draft. Review its meaning, then adjust the layout, labels and visual style on the canvas.</p><span class="product-tag">Generate &amp; review</span></article>
         <article class="product-card"><span class="product-number" aria-hidden="true">02 / MAKE IT YOURS</span><h3>Stay in control<br>of every element.</h3><p>Move nodes, change styles or request a local edit. Add icons when they help. Save, reopen and export your work.</p><span class="product-tag">Edit &amp; export</span></article>
         <article class="product-card"><span class="product-number" aria-hidden="true">03 / REMEMBER</span><h3>Your preferences.<br>Ready for next time.</h3><p>Keep structure, style and layout rules in Your DNA. Choose what to enable, pin useful preferences, and carry them between projects.</p><span class="product-tag">Personal design memory</span></article>
       </div>
     </section>
 
     <section id="playground" class="showcase wrap" aria-labelledby="canvas-title">
-      <div class="showcase-heading"><div><span class="eyebrow">THE WORKFLOW, IN MOTION</span><h2>Designed to stay <em>editable.</em></h2></div><p>Follow the process. Then make it yours.</p></div>
+      <div class="showcase-heading"><div><span class="eyebrow">THE RESEARCH WORKFLOW, IN MOTION</span><h2>Designed to stay <em>editable.</em></h2></div><p>Explore the full local pipeline, step by step.</p></div>
       <div class="canvas-shell">
         <div class="canvas-toolbar"><div class="canvas-filename"><span class="file-icon" aria-hidden="true">◇</span><span id="canvas-title">From intent to editable canvas</span><span class="tiny-tag">INTERACTIVE ILLUSTRATION</span></div><div class="canvas-tools"><button id="play-flow" class="play-flow" type="button" aria-pressed="false"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 2 9 6-9 6Z"/></svg><span>Play flow</span></button><span class="tool-divider" aria-hidden="true"></span><button id="palette" type="button" aria-label="Change diagram color palette" title="Change palette"><span class="palette-dots" aria-hidden="true"><i></i><i></i><i></i></span></button><button id="reset" type="button" aria-label="Reset diagram" title="Reset diagram">↺</button><button id="export" type="button" aria-label="Download diagram as SVG" title="Download SVG">↓<span class="export-label"> SVG</span></button></div></div>
         <div class="canvas-area"><svg id="demo-canvas" viewBox="0 0 1080 370" aria-labelledby="canvas-description"><title id="canvas-description">Illustrative EvoDesign workflow. Drag the five nodes, or focus a node and use arrow keys to move it.</title><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#dadde9"/></pattern><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#9496ad" stroke-width="1.5"/></marker></defs><rect width="1080" height="370" fill="url(#dots)"/><rect x="260" y="45" width="565" height="240" rx="18" fill="#f7f6fd" fill-opacity=".83" stroke="#c9c2eb" stroke-dasharray="5 5"/><text x="282" y="70" fill="#76689d" font-size="10" font-family="system-ui" letter-spacing="1.5">COORDINATED DESIGN AGENTS</text><g id="demo-edges" fill="none" stroke="#9496ad" stroke-width="1.5" marker-end="url(#arrow)"></g><g id="demo-nodes"></g><g id="flow-particles" aria-hidden="true"></g><path id="feedback-path" d="M906 237 V321 H355 V237" fill="none" stroke="#9585c6" stroke-width="1.4" stroke-dasharray="5 5" marker-end="url(#arrow)"/><rect x="495" y="304" width="290" height="34" rx="17" fill="#fff" stroke="#ddd6ef"/><circle cx="514" cy="321" r="4" fill="#7962bf"/><text x="531" y="325" font-size="11" font-family="system-ui" fill="#665884">Verified experience → evolving expertise</text><text x="55" y="340" fill="#696278" font-size="10" font-family="system-ui" letter-spacing=".7">CONTENT → STRUCTURE → STYLE → LAYOUT → REFINEMENT</text></svg></div>
         <div class="canvas-bottom"><span><span class="live-dot"></span> Every element stays editable</span><span id="canvas-status" role="status" aria-live="polite">Drag a node to make it yours <span aria-hidden="true">↗</span></span></div>
         <div class="flow-explorer"><div class="flow-stages" role="group" aria-label="Explore the workflow"><button type="button" data-stage="0" aria-pressed="true"><span>01</span>Intent</button><button type="button" data-stage="1" aria-pressed="false"><span>02</span>Structure</button><button type="button" data-stage="2" aria-pressed="false"><span>03</span>Style</button><button type="button" data-stage="3" aria-pressed="false"><span>04</span>Layout</button><button type="button" data-stage="4" aria-pressed="false"><span>05</span>Refine</button></div><div class="flow-description"><strong id="stage-title">Start with an idea.</strong><p id="stage-description">Source content and your requirements set the intent for the diagram.</p></div></div>
       </div>
-      <p class="figure-note">Try dragging the nodes in this interactive illustration. To generate your own diagrams, run the open-source workspace locally.</p>
+      <p class="figure-note">Drag the nodes to explore this research illustration. Ready to make your own diagram? <a href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer">Open the online Studio <span aria-hidden="true">↗</span></a></p>
     </section>
 
 
 
 
 
-    <section id="refinement" class="refinement wrap section"><div class="refinement-copy"><p class="eyebrow">A CLOSER LOOK</p><h2>Repair the details. <br><em>Keep the intent.</em></h2><p>When a diagram becomes crowded, EvoDesign updates the affected objects in the canvas manifest. Semantic structure can stay intact while spacing, routing, and visual grouping improve.</p><div class="case-tags"><span>Localized edits</span><span>Object-level control</span><span>Diagnostic feedback</span></div><p class="source-note">Software development lifecycle with change control. Artifacts from the manuscript’s refinement case study (Figure 9); shown for qualitative inspection.</p></div><div class="case-study"><div class="case-column"><div class="case-label"><span class="case-index">A</span> Initial solution</div><button class="case-zoom" type="button" data-figure="before" aria-label="Enlarge initial diagram"><img src="assets/refinement-before.webp" width="582" height="804" loading="lazy" alt="Initial software development lifecycle diagram, with a change-control branch crowded against the main flow."><span>View diagram <span aria-hidden="true">↗</span></span></button><p>Crowded subprocess & return paths</p></div><span class="case-arrow" aria-hidden="true">→</span><div class="case-column"><div class="case-label"><span class="case-index accent">B</span> After refinement</div><button class="case-zoom" type="button" data-figure="after" aria-label="Enlarge refined diagram"><img src="assets/refinement-after.webp" width="492" height="798" loading="lazy" alt="Refined lifecycle diagram with a separated, highlighted change-control branch and clearer return paths."><span>View diagram <span aria-hidden="true">↗</span></span></button><p>Clearer spacing & visual grouping</p></div></div></section>
+    <section id="refinement" class="refinement wrap section"><div class="refinement-copy"><p class="eyebrow">RESEARCH / REFINEMENT</p><h2>Repair the details. <br><em>Keep the intent.</em></h2><p>When a diagram becomes crowded, EvoDesign updates the affected objects in the canvas manifest. Semantic structure can stay intact while spacing, routing, and visual grouping improve.</p><div class="case-tags"><span>Localized edits</span><span>Object-level control</span><span>Diagnostic feedback</span></div><p class="source-note">Software development lifecycle with change control. Artifacts from the manuscript’s refinement case study (Figure 9); shown for qualitative inspection.</p></div><div class="case-study"><div class="case-column"><div class="case-label"><span class="case-index">A</span> Initial solution</div><button class="case-zoom" type="button" data-figure="before" aria-label="Enlarge initial diagram"><img src="assets/refinement-before.webp" width="582" height="804" loading="lazy" alt="Initial software development lifecycle diagram, with a change-control branch crowded against the main flow."><span>View diagram <span aria-hidden="true">↗</span></span></button><p>Crowded subprocess & return paths</p></div><span class="case-arrow" aria-hidden="true">→</span><div class="case-column"><div class="case-label"><span class="case-index accent">B</span> After refinement</div><button class="case-zoom" type="button" data-figure="after" aria-label="Enlarge refined diagram"><img src="assets/refinement-after.webp" width="492" height="798" loading="lazy" alt="Refined lifecycle diagram with a separated, highlighted change-control branch and clearer return paths."><span>View diagram <span aria-hidden="true">↗</span></span></button><p>Clearer spacing & visual grouping</p></div></div></section>
 
     <section id="get-started" class="get-started wrap section" aria-labelledby="start-title">
-      <div><p class="eyebrow">YOUR MODEL. YOUR WORKSPACE.</p><h2 id="start-title">Make your<br><em>first diagram.</em></h2><p>Try the browser edition with your own API key—no account needed. For the full research pipeline, visual refinement and expertise evolution, run EvoDesign locally.</p><a class="button primary" href="https://github.com/GeminiLight/EvoDesign#run-locally" target="_blank" rel="noopener noreferrer">Set up the full local edition <span aria-hidden="true">↗</span></a><a class="text-link start-zh" href="https://github.com/GeminiLight/EvoDesign/blob/main/docs/quickstart-zh.md" target="_blank" rel="noopener noreferrer">中文入门 <span aria-hidden="true">↗</span></a></div>
-      <ol class="start-steps"><li><span>01</span><div><h3>Install the workspace</h3><p>Clone the repository and install the Python and Node.js dependencies.</p></div></li><li><span>02</span><div><h3>Connect your model</h3><p>Create the local settings, then add your model name, endpoint and API key.</p></div></li><li><span>03</span><div><h3>Describe, refine, edit</h3><p>Open the local app and start with your own idea or the included example.</p></div></li></ol>
+      <div><p class="eyebrow">AN IDEA IS ENOUGH TO START</p><h2 id="start-title">Make your<br><em>first diagram.</em></h2><p>Open Studio in your browser and try the shared GLM-5.3-Flash demo. No installation, API key or EvoDesign account needed.</p><a class="button primary" href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer">Open Studio <span aria-hidden="true">↗</span></a><a class="text-link start-zh" href="https://github.com/GeminiLight/EvoDesign/blob/main/docs/browser-edition.md" target="_blank" rel="noopener noreferrer">Browser guide · 中文说明 <span aria-hidden="true">↗</span></a><p class="start-note">Prefer your own model? Connect it in Model settings. Projects and design preferences stay in your browser.</p></div>
+      <ol class="start-steps"><li><span>01</span><div><h3>Start with your idea</h3><p>Describe a workflow, explain a system, or choose one of the examples in Studio.</p></div></li><li><span>02</span><div><h3>Give it a shape</h3><p>Generate an editable draft. Move nodes, refine labels, change styles or ask for an edit.</p></div></li><li><span>03</span><div><h3>Make it yours</h3><p>Export your diagram, return to saved projects and keep useful preferences in Your DNA.</p></div></li></ol>
+      <div class="local-edition-note"><div><strong>For the full research pipeline</strong><p>Run locally for the coordinated agents, visual verification and expertise evolution described in the paper.</p></div><a class="text-link" href="https://github.com/GeminiLight/EvoDesign#run-locally" target="_blank" rel="noopener noreferrer">Local setup <span aria-hidden="true">↗</span></a><a class="text-link" href="https://github.com/GeminiLight/EvoDesign/blob/main/docs/quickstart-zh.md" target="_blank" rel="noopener noreferrer">中文入门 <span aria-hidden="true">↗</span></a></div>
     </section>
 
     <section id="overview" class="overview wrap section">
@@ -388,11 +400,11 @@
 
     <section id="questions" class="research-questions wrap section" aria-labelledby="questions-title">
       <div class="section-heading"><p class="eyebrow">A FEW THINGS TO KNOW</p><h2 id="questions-title">A few useful<br><em>distinctions.</em></h2><p>Getting started, the research,<br>and what is available today.</p></div>
-      <div class="question-list">
-        <details class="research-question" open><summary>How is EvoDesign different from image or code generation?<span aria-hidden="true">+</span></summary><div class="question-answer"><p>EvoDesign uses an intermediate canvas schema with semantic structure, visual style, and spatial layout. The result consists of individual objects that users can move, regroup, and restyle. Specialized agents operate on the same representation to create and locally repair a diagram.</p><a class="text-link" href="#method">Explore the framework <span aria-hidden="true">↗</span></a></div></details>
+      <div class="question-list"><details class="research-question" open><summary>Can I try EvoDesign without installing anything?<span aria-hidden="true">+</span></summary><div class="question-answer"><p>Yes. Open the online Studio and start with the shared GLM-5.3-Flash demo, with no EvoDesign account or API key. Shared usage limits apply. You can also connect your own model.</p><p>The browser edition offers an editable canvas, selected-object AI edits and locally managed preferences; the paper’s full agent, verification and expertise-evolution pipeline runs in the local edition.</p><a class="text-link" href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer">Open Studio <span aria-hidden="true">↗</span></a></div></details>
+        <details class="research-question"><summary>How is EvoDesign different from image or code generation?<span aria-hidden="true">+</span></summary><div class="question-answer"><p>EvoDesign uses an intermediate canvas schema with semantic structure, visual style, and spatial layout. The result consists of individual objects that users can move, regroup, and restyle. Specialized agents operate on the same representation to create and locally repair a diagram.</p><a class="text-link" href="#method">Explore the framework <span aria-hidden="true">↗</span></a></div></details>
         <details class="research-question"><summary>What does CanvasBench evaluate?<span aria-hidden="true">+</span></summary><div class="question-answer"><p>CanvasBench evaluates editable diagram generation using 6,273 validated samples across 21 diagram types and 30 content domains. Its 420-sample held-out test set covers content integrity, visual presentation, and cognitive utility through 10 metrics.</p><a class="text-link" href="#benchmark">See the benchmark <span aria-hidden="true">↗</span></a></div></details>
         <details class="research-question"><summary>How should I interpret the reported results?<span aria-hidden="true">+</span></summary><div class="question-answer"><p>The comparison reports dimension averages from manuscript Table 1, using VLM judges on a five-point scale. These are not independent reproductions or human preference scores. With GPT-5.5, EvoDesign scores higher on content and cognitive means than the displayed baselines; GPT-4o-Image has a slightly higher visual mean.</p><a class="text-link" href="#results">Inspect the comparison <span aria-hidden="true">↗</span></a></div></details>
-        <details class="research-question"><summary>Can I use the code or download CanvasBench today?<span aria-hidden="true">+</span></summary><div class="question-answer"><p>The complete application, diagram engine, personal design memory and evaluation tools are available in the repository. Training and test data will be released separately. This website’s draggable canvas is an illustration; run EvoDesign locally with your own model endpoint to generate diagrams.</p><a class="text-link" href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">Explore the code <span aria-hidden="true">↗</span></a></div></details>
+        <details class="research-question"><summary>Can I use the code or download CanvasBench today?<span aria-hidden="true">+</span></summary><div class="question-answer"><p>The complete application, diagram engine, personal design memory and evaluation tools are available in the repository. Training and test data will be released separately. This website’s draggable canvas is an illustration. Create diagrams in the online Studio, or run the full research pipeline locally with your own model endpoint.</p><a class="text-link" href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">Explore the code <span aria-hidden="true">↗</span></a></div></details>
       </div>
     </section>
 
@@ -426,9 +438,9 @@
 <!-- BIBTEX:END --></code></pre></details></div>
     </section>
 
-    <section id="resources" class="resources wrap"><div><p class="eyebrow">CONTINUE EXPLORING</p><h2>Built to be <em>built upon.</em></h2><p>Explore the workspace, diagram engine <br>and your personal design memory.</p></div><div class="resource-links"><a href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer"><span><strong>Project repository</strong><small>Source code available</small></span><span aria-hidden="true">↗</span></a><a href="https://arxiv.org/abs/2604.09568" target="_blank" rel="noopener noreferrer"><span><strong>Research paper</strong><small>arXiv:2604.09568</small></span><span aria-hidden="true">↗</span></a><a href="https://github.com/GeminiLight/EvoDesign/blob/main/docs/design-memory.md" target="_blank" rel="noopener noreferrer"><span><strong>Personal design memory</strong><small>Preferences, examples &amp; portability</small></span><span aria-hidden="true">↗</span></a></div></section>
+    <section id="resources" class="resources wrap"><div><p class="eyebrow">CONTINUE EXPLORING</p><h2>Built to be <em>built upon.</em></h2><p>Explore the workspace, diagram engine <br>and your personal design memory.</p></div><div class="resource-links"><a class="resource-studio" href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer"><span><strong>Open EvoDesign Studio</strong><small>Try the shared demo · No installation</small></span><span aria-hidden="true">↗</span></a><a href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer"><span><strong>Project repository</strong><small>Source code available</small></span><span aria-hidden="true">↗</span></a><a href="https://arxiv.org/abs/2604.09568" target="_blank" rel="noopener noreferrer"><span><strong>Research paper</strong><small>arXiv:2604.09568</small></span><span aria-hidden="true">↗</span></a><a href="https://github.com/GeminiLight/EvoDesign/blob/main/docs/design-memory.md" target="_blank" rel="noopener noreferrer"><span><strong>Personal design memory</strong><small>Preferences, examples &amp; portability</small></span><span aria-hidden="true">↗</span></a></div></section>
   </main>
   <dialog id="figure-dialog" class="figure-dialog" aria-labelledby="figure-title"><div class="dialog-heading"><div><span class="eyebrow">REFINEMENT CASE STUDY</span><h2 id="figure-title">Initial solution</h2></div><button id="close-figure" type="button" aria-label="Close diagram">×</button></div><div class="dialog-image"><img id="figure-image" alt=""></div><p>Software development lifecycle with change control · Manuscript Figure 9</p></dialog>
-  <footer class="footer wrap"><a class="wordmark" href="#">Evo<span>Design</span></a><p>Editable diagrams. Evolving expertise.<span class="page-updated">Page updated <time datetime="2026-10-27">27 October 2026</time></span></p><a href="mailto:xionghui@ust.hk">Contact <span aria-hidden="true">↗</span></a><a href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></footer>
+  <footer class="footer wrap"><a class="wordmark" href="#">Evo<span>Design</span></a><p>Editable diagrams. Evolving expertise.<span class="page-updated">Page updated <time datetime="2026-10-29">29 October 2026</time></span></p><a href="mailto:xionghui@ust.hk">Contact <span aria-hidden="true">↗</span></a><a href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></footer>
 </body>
 </html>

@@ -12,7 +12,7 @@ const write = (file, text) => fs.writeFileSync(path.join(root, file), text);
 const paper = JSON.parse(read('research/paper.json'));
 const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const productTitle = 'EvoDesign — Turn ideas into editable diagrams';
-const productDescription = 'Generate, refine and edit diagrams in an open-source AI workspace. Run locally with your own model, optional icons and personal design memory. Built on EvoDesign research.';
+const productDescription = 'Create editable diagrams in your browser with the shared demo or your own model. Explore the open-source research pipeline and personal design memory.';
 const fullName = author => `${author.given} ${author.family}`;
 const bibtex = `@misc{wang2026evodesign,
   title = {${paper.title.replace('EvoDesign', '{EvoDesign}')}},
