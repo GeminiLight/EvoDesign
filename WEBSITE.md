@@ -8,10 +8,12 @@
 - `docs/app.js`: local canvas illustration and manuscript result data.
 - `docs/motion.js`: guided flow, progressive entrance effects, counters, figure dialog, navigation state, and motion preferences.
 - `docs/assets/`: product logo, sharing image, manuscript method figure, and qualitative figure crops.
-- `docs/screenshots/`: real Studio captures; the English website and README share the English capture.
+- `docs/screenshots/`: real Studio captures; the English website previews are generated from the English README capture.
+- `docs/assets/previews/`: responsive website WebP images; originals remain available for the README and full-resolution views.
+- `docs/performance.md`: first-load changes, controlled measurement results and checks.
 - `README.md`: repository landing page and release status.
 
-The static website uses relative asset URLs so it works under the `/EvoDesign/` GitHub Pages path. Stylesheet and script URLs include a content-hash `v` query to avoid stale browser caches; refresh that value when those files change. Google Fonts enhances the typography when available; system font fallbacks keep the page usable without it. No analytics or application backend is included.
+The static website uses relative asset URLs so it works under the `/EvoDesign/` GitHub Pages path. The two editable CSS sources are combined into a generated inline style block by `scripts/sync-research.mjs`, so first paint does not wait for additional stylesheet requests. Script URLs include a content-hash `v` query. DM Sans and Manrope are served locally from `docs/assets/fonts/`; the page preloads both variable fonts and uses `font-display: swap`. No analytics or application backend is included.
 
 ## Publishing
 
@@ -21,7 +23,7 @@ Public URL: https://tianfu.wang/EvoDesign/
 
 The primary product destination is https://evodesign.vercel.app/. The navigation, hero, clickable Studio preview, browser getting-started section, questions and resources all link directly there. Keep the online entry visible on small screens. The shared demo needs no installation, API key or EvoDesign account; custom models remain optional. The local setup link is a separate route for the full research pipeline, visual verification and expertise evolution. Keep this distinction when editing feature copy.
 
-The hero uses a real English Studio screenshot, not an interactive application embed. Update both language captures together after interface changes and record their source in `docs/assets/README.md`. No additional application requests or model calls are made by the project website.
+The hero uses responsive WebP versions of a real English Studio screenshot. Update both language captures together after interface changes and record their source in `docs/assets/README.md`. No additional application requests or model calls are made by the project website.
 
 GitHub Pages inherits the account’s existing `tianfu.wang` domain. The default `geminilight.github.io/EvoDesign/` address redirects there. No repository-level custom domain or DNS change is required.
 
@@ -75,7 +77,7 @@ After editing metadata or the metric arrays in `docs/app.js`, run:
 node scripts/sync-research.mjs
 ```
 
-This updates the scholarly meta tags and JSON-LD, the default results in raw HTML, BibTeX/RIS downloads, GitHub `CITATION.cff`, README citation, the all-metrics CSV, sitemap, and CSS/JS content hashes. The generated files are committed; deployment still has no build step. After changing author names, also update the visible author block and README author line. Change `pageModified` and the footer date only when website content actually changes.
+This updates the generated inline stylesheet, scholarly meta tags and JSON-LD, the default results in raw HTML, BibTeX/RIS downloads, GitHub `CITATION.cff`, README citation, the all-metrics CSV, sitemap, and script content hashes. The generated files are committed; deployment still has no build step. After changing author names, also update the visible author block and README author line. Change `pageModified` and the footer date only when website content actually changes.
 
 The citation block always shows compact BibTeX in ten lines, with the complete author list on one horizontally scrollable line and a small copy button inside the block. Clipboard copying falls back to the browser copy command or selected text when necessary. BibTeX/RIS files remain available at their existing URLs. The default GPT-5.5 results remain available without JavaScript; other backbone settings are also available in the CSV. The CSV transcribes the supplied manuscript and is not the CanvasBench dataset.
 
@@ -90,3 +92,9 @@ The author will provide the renamed public PDF later. Do not add `citation_pdf_u
 - Questions and citation disclosure work without JavaScript.
 - Source HTML contains six default result rows and all fifteen citation authors.
 - Downloaded BibTeX, RIS, and CSV agree with visible metadata and reported numbers.
+
+## First-load resource budgets
+
+Run `python3 scripts/check_site_performance.py` after website changes. The site-domain workflow runs the same guard in CI. It rejects external rendering dependencies, standalone stylesheet requests, missing responsive image variants and over-budget resources. See `docs/performance.md` for the measured baseline and budget context.
+
+Keep the original screenshots and paper PNGs intact. Regenerate WebP previews with `python3 scripts/optimize_site_images.py` (Pillow required), then run the metadata/style sync. Figure-dialog originals must use the figure link destination, not the smaller preview source.

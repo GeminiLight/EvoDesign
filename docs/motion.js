@@ -202,12 +202,6 @@
     });
     heroObserver.observe(document.querySelector('.hero'));
   }
-  document.querySelectorAll('.hero-eyebrow, h1, .paper-title, .author-block, .hero-actions, .hero-caption, .hero-shortcuts').forEach((element, index) => {
-    animate(element,
-      [{ opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'translateY(0)' }],
-      { duration: 800, delay: index * 70, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'backwards' });
-  });
-
   const formatter = new Intl.NumberFormat('en-US');
   function countUp(element) {
     if (!enabled || document.hidden) return;
@@ -275,8 +269,9 @@
     document.querySelector('#figure-eyebrow').textContent = paperFigure ? 'RESEARCH / PAPER FIGURE' : 'REFINEMENT CASE STUDY';
     document.querySelector('#figure-title').textContent = button.dataset.figureTitle || (button.dataset.figure === 'before' ? 'Initial solution' : 'After refinement');
     document.querySelector('#figure-caption').textContent = button.dataset.figureCaption || 'Software development lifecycle with change control · Manuscript Figure 9';
-    document.querySelector('#figure-original').href = image.src;
-    figureImage.src = image.src; figureImage.alt = image.alt;
+    const originalSource = paperFigure ? button.href : image.src;
+    document.querySelector('#figure-original').href = originalSource;
+    figureImage.src = originalSource; figureImage.alt = image.alt;
     dialog.showModal(); document.body.classList.add('has-dialog');
     animate(dialog, [{ opacity: 0, transform: 'translateY(10px) scale(.98)' }, { opacity: 1, transform: 'none' }],
       { duration: 280, easing: 'cubic-bezier(.22,1,.36,1)' });
