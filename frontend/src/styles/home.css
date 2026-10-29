@@ -1,7 +1,8 @@
 /* The studio entry stays quiet: one composer, a few paths, then the work itself. */
-.studio-home { --home-ink: #202438; --home-muted: #7a8295; --home-line: #e9eaf1; --home-accent: #7160d1; background: radial-gradient(ellipse at 56% 20%, #f0edfc66, transparent 51%), #fcfcfe; color: var(--home-ink); }
-.dark .studio-home { --home-ink: #e1e4ef; --home-muted: #959eb3; --home-line: #252b3c; --home-accent: #b1a4ee; background: radial-gradient(ellipse at 56% 20%, #63518f0b, transparent 51%), #0e1220; }
-.home-main { width: calc(100% - 128px); margin-left: 128px; padding: 0 42px 24px; }
+.studio-home { --home-ink: #202438; --home-muted: #7a8295; --home-line: #e9eaf1; --home-accent: #7160d1; background: radial-gradient(ellipse at 50% 20%, #f0edfc66, transparent 51%), #fcfcfe; color: var(--home-ink); }
+.dark .studio-home { --home-ink: #e1e4ef; --home-muted: #959eb3; --home-line: #252b3c; --home-accent: #b1a4ee; background: radial-gradient(ellipse at 50% 20%, #63518f0b, transparent 51%), #0e1220; }
+/* Reserve equal gutters so the floating rail does not shift the creation axis. */
+.home-main { width: 100%; padding: 0 clamp(112px, 8vw, 144px) 24px; }
 .home-intro { width: min(100%, 1120px); margin: 0 auto; padding: 32px 0 46px; animation: home-arrive 440ms ease-out both; }
 .home-brand-lockup { display: flex; align-items: center; justify-content: center; gap: 13px; margin: 0 auto 20px; }
 .brand-lockup { display: block; width: 190px; height: auto; overflow: visible; }
@@ -19,6 +20,7 @@
 .home-intro-description { max-width: 38rem; margin: 14px auto 32px; color: #727b90; font-size: 14px; line-height: 1.7; text-align: center; text-wrap: balance; }
 .dark .home-intro-description { color: #929db6; }
 .home-launcher { position: relative; width: min(100%, 790px); margin: 0 auto; }
+.home-composer { container: home-composer / inline-size; }
 .home-composer > .diagram-prompt-surface { border-color: #dcdeea; border-radius: 18px; background: #fff; box-shadow: 0 14px 40px -24px #5c508f30, 0 2px 7px #34315304; overflow: visible; transition: border-color 160ms ease; }
 .dark .home-composer > .diagram-prompt-surface { background: #161b2b; border-color: #33394d; box-shadow: none; }
 .home-composer > .diagram-prompt-surface:has(.diagram-prompt-input:focus) { border-color: #aaa3bd; }
@@ -151,9 +153,9 @@
 .dark .home-footer { color: #67728b; }
 .studio-home button:focus-visible, .studio-home a:focus-visible { outline: 2px solid #a298c6; outline-offset: 3px; }
 @keyframes home-arrive { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
-@media (min-width: 1440px) { .home-creation-sketch { display: block; } .home-launcher { transform: translateX(-44px); } }
+@media (min-width: 1440px) { .home-creation-sketch { display: block; } }
 @media (min-width: 1800px) { .home-intro { padding-top: 72px; padding-bottom: 56px; } }
-@media (max-width: 1100px) { .home-main { padding-inline: 28px; } .home-project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .home-starters { gap: 15px; } }
+@media (max-width: 1100px) { .home-project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .home-starters { gap: 15px; } }
 @media (max-width: 767px) {
   .home-main { width: 100%; margin-left: 0; padding: 0 22px 18px; }
   .home-intro { padding-top: 30px; padding-bottom: 28px; }
@@ -190,7 +192,8 @@
   .home-projects-heading { margin-bottom: 12px; }
   .home-project-thumb { aspect-ratio: 1.9; }
 }
-@media (max-width: 639px) {
+/* The rail gutters can narrow the composer even on a desktop-sized viewport. */
+@container home-composer (max-width: 639px) {
   .home-composer .diagram-prompt-footer { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 6px; row-gap: 3px; }
   .home-composer .diagram-prompt-attach { grid-row: 1; grid-column: 1; }
   .home-diagram-type { grid-row: 1; grid-column: 2 / 4; margin-left: 0; justify-self: start; }
