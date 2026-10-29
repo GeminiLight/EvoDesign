@@ -1,7 +1,7 @@
 import { shouldSubmitOnEnter } from '../../utils/keyboard';
 import { useRef, useEffect } from 'react';
 import type { FormEvent } from 'react';
-import { ArrowUp, ChevronDown, ChevronRight, Loader2, PencilLine, RefreshCcw, Sparkles, SquareDashedMousePointer, Zap } from 'lucide-react';
+import { ArrowUp, ChevronDown, ChevronRight, GitBranchPlus, Loader2, Minimize2, Palette, PencilLine, RefreshCcw, Sparkles, SplinePointer, SquareDashedMousePointer, Tags, Zap } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageProvider';
 
 export type AgentChatBusyKind = 'generation' | 'local-edit' | 'save-recovery' | 'history-switch';
@@ -277,23 +277,26 @@ export function AgentChatPanel({
 
   const promptButtons = (
     <div className="assistant-prompt-grid" data-scope={quickPromptMode}>
-      {quickPrompts.map((qp) => (
-        <button
-          key={qp}
-          type="button"
-          disabled={quickPromptsDisabled}
-          aria-label={quickPromptButtonLabel.replace('{prompt}', qp)}
-          title={isWorkspaceBusy ? busyTitle : quickPromptGroupLabel}
-          onClick={() => {
-            onChatInputChange(qp);
-            textareaRef.current?.focus();
-          }}
-          className={`inline-flex max-w-full items-center border disabled:cursor-not-allowed disabled:opacity-55 ${focusRingClass}`}
-        >
-          <QuickPromptIcon className="h-2.5 w-2.5 shrink-0" />
-          <span className="min-w-0 break-words text-left">{qp}</span>
-        </button>
-      ))}
+      {quickPrompts.map((qp, index) => {
+        const PromptIcon = quickPromptMode === 'global' ? [Minimize2, GitBranchPlus, Palette, Tags][index] ?? QuickPromptIcon : QuickPromptIcon;
+        return (
+          <button
+            key={qp}
+            type="button"
+            disabled={quickPromptsDisabled}
+            aria-label={quickPromptButtonLabel.replace('{prompt}', qp)}
+            title={isWorkspaceBusy ? busyTitle : quickPromptGroupLabel}
+            onClick={() => {
+              onChatInputChange(qp);
+              textareaRef.current?.focus();
+            }}
+            className={`inline-flex max-w-full items-center border disabled:cursor-not-allowed disabled:opacity-55 ${focusRingClass}`}
+          >
+            <PromptIcon className="h-2.5 w-2.5 shrink-0" />
+            <span className="min-w-0 break-words text-left">{qp}</span>
+          </button>
+        );
+      })}
     </div>
   );
 
@@ -316,7 +319,7 @@ export function AgentChatPanel({
         >
           <ChevronRight className="h-4 w-4 rotate-180" />
         </button>
-        <Sparkles className="h-4 w-4 text-brand-500" />
+        <SplinePointer className="h-4 w-4 text-brand-500" />
       </aside>
     );
   }
@@ -342,11 +345,8 @@ export function AgentChatPanel({
       </button>
 
       <div className="assistant-header">
-        <span className="assistant-avatar"><Sparkles size={18} aria-hidden="true" /></span>
-        <div>
-          <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{t('workspace.agentName')}</h2>
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{t('workspace.assistantSubtitle')}</p>
-        </div>
+        <span className="assistant-avatar"><SplinePointer size={19} strokeWidth={1.6} aria-hidden="true" /></span>
+        <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">{t('workspace.agentName')}</h2>
       </div>
 
       {/* Message feed */}
@@ -360,9 +360,11 @@ export function AgentChatPanel({
       >
         {isEmptyConversation && !startPromptsHandledElsewhere && !isWorkspaceBusy && (
           <div className="assistant-welcome">
-            <div className="assistant-welcome-symbol" aria-hidden="true"><SquareDashedMousePointer size={25} strokeWidth={1.4} /></div>
-            <h3>{t(hasContent ? 'workspace.assistantWelcome' : 'workspace.assistantStart')}</h3>
-            <p>{t(hasContent ? 'workspace.assistantWelcomeHint' : 'workspace.assistantStartHint')}</p>
+            {!hasContent && <>
+              <div className="assistant-welcome-symbol" aria-hidden="true"><SquareDashedMousePointer size={25} strokeWidth={1.4} /></div>
+              <h3>{t('workspace.assistantStart')}</h3>
+              <p>{t('workspace.assistantStartHint')}</p>
+            </>}
             {showQuickPrompts && <div className="assistant-suggestions" role="group" aria-label={quickPromptGroupLabel}>
               <p className="assistant-suggestions-label">{quickPromptGroupLabel}</p>
               {promptButtons}
@@ -377,7 +379,7 @@ export function AgentChatPanel({
             msg.role === 'agent' ? (
               <div key={msg.id} className="flex items-start gap-2">
                 <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-brand-50 dark:bg-brand-500/15">
-                  <Sparkles className="h-3 w-3 text-brand-500" />
+                  <SplinePointer className="h-3 w-3 text-brand-500" />
                 </span>
                 <div className="assistant-message min-w-0 flex-1 whitespace-pre-wrap break-words text-sm leading-7 text-slate-700 dark:text-slate-200">
                   {msg.content}

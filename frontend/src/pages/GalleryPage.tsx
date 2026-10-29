@@ -85,7 +85,7 @@ export const GalleryPage = () => {
   }, [navigate, language]);
 
   const handleInjectDna = useCallback((dna: GalleryDna) => {
-    if (!canEditRules) { showToast(language === 'zh' ? '请先完成设计记忆的加载或恢复。' : 'Load or recover your design memory first.', 'info'); return; }
+    if (!canEditRules) { showToast(language === 'zh' ? '请先完成 DNA 的加载或恢复。' : 'Load or recover your DNA first.', 'info'); return; }
     const name = language === 'zh' ? dna.nameZh : dna.name;
     const description = language === 'zh' ? dna.descriptionZh : dna.description;
     const targetCabin = dna.category as CabinId;
@@ -221,9 +221,10 @@ export const GalleryPage = () => {
   const resultCount = activeTab === 'works' ? filteredWorks.length : filteredDna.length;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#fafbfe] dark:bg-[#080d1b]">
-      <Header />
+    <div className="studio-shell studio-library studio-inspiration min-h-screen flex flex-col">
+      <Header variant="studio" />
 
+      <main id="main-content" className="studio-page-main"><div className="studio-page-content">
       <GalleryHero
         t={t}
         searchQuery={searchQuery}
@@ -232,7 +233,7 @@ export const GalleryPage = () => {
         onTabChange={handleTabChange}
       />
 
-      <main id="main-content" className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 pb-12 sm:px-6">
+
         {activeTab === 'dna' && <DnaSyncStatus {...ruleLib} />}
         <div className="flex w-full flex-col gap-5 lg:flex-row lg:gap-6">
           {/* Left: filter + content */}
@@ -315,7 +316,7 @@ export const GalleryPage = () => {
           </div>
 
         </div>
-      </main>
+      </div></main>
 
       {/* Modals */}
       {previewWork && (

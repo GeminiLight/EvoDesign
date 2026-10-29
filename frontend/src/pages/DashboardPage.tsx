@@ -14,6 +14,8 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { RecentProjectPreview } from '../components/Home/RecentProjectPreview';
 import { Header } from '../components/Header';
+import { StudioPageHeading } from '../components/StudioPageHeading';
+import { ChoiceSelect } from '../components/ChoiceSelect';
 import { useBackendAuth } from '../features/auth/BackendAuthProvider';
 import { useLanguage } from '../i18n/LanguageProvider';
 import { fetchRecentDiagrams } from '../services/backendApi';
@@ -489,30 +491,13 @@ export const DashboardPage = () => {
   ];
 
   return (
-    <div className="bg-soft-mesh dark:bg-soft-mesh-dark min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
-      <Header />
+    <div className="studio-shell studio-library studio-projects min-h-screen flex flex-col">
+      <Header variant="studio" />
 
-      <main id="main-content" className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* ── Page Header ── */}
-        <section className="mb-6 flex items-start justify-between gap-4">
-          <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-            {t('nav.projects')}
-          </h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {isInitialLoading
-              ? '\u00A0'
-              : projectCards.length > 0
-                ? formatProjectCount(projectCards.length)
-                : loadStatus === 'failed'
-                  ? t('dashboard.loadFailedTitle')
-                  : t('dashboard.subtitleEmpty')}
-          </p>
-          </div>
-          <button type="button" onClick={() => navigate('/workspace')} className="studio-primary shrink-0">
-            <Plus size={16} />{t('dashboard.newProject')}
-          </button>
-        </section>
+      <main id="main-content" className="studio-page-main"><div className="studio-page-content">
+        <StudioPageHeading titleInHeader title={t('nav.projects')} actions={
+          <button type="button" onClick={() => navigate('/workspace')} className="studio-primary shrink-0"><Plus size={16} />{t('dashboard.newProject')}</button>
+        } />
 
         {hasLoadedProjects && <section className="relative z-30 mb-5 flex flex-wrap items-center gap-3 border-b border-slate-200/70 pb-4 dark:border-white/[0.07]">
           <div className="flex items-center gap-1" role="group" aria-label={t('dashboard.projectSpaces')}>
@@ -535,10 +520,9 @@ export const DashboardPage = () => {
                 className="flex min-h-10 w-full items-center rounded-lg px-3 text-left text-xs text-slate-600 transition hover:bg-indigo-50 dark:text-slate-300 dark:hover:bg-white/5">{item}</button>)}
             </div>}
           </div>
-          <select value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)} aria-label={t('dashboard.sortByLabel')}
-            className="h-10 max-w-full rounded-lg border-0 bg-transparent py-1 pl-2 pr-8 text-xs text-slate-500 focus:ring-indigo-400 dark:text-slate-400 dark:[color-scheme:dark]">
-            {sortOptions.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
-          </select>
+          <ChoiceSelect label={t('dashboard.sortByLabel')} value={sortMode} menuWidth={176} align="end"
+            options={sortOptions.map(option => ({ value: option.id, label: option.label }))}
+            onChange={value => setSortMode(value as SortMode)} />
           <div className="flex items-center gap-0.5" role="group" aria-label={t('dashboard.viewModeLabel')}>
             {([{ id: 'list', icon: List, label: t('dashboard.viewList') }, { id: 'grid', icon: Grid3X3, label: t('dashboard.viewGrid') }] as const).map((view) => <button
               key={view.id} type="button" onClick={() => setViewMode(view.id)} aria-label={view.label} aria-pressed={viewMode === view.id}
@@ -605,7 +589,7 @@ export const DashboardPage = () => {
             ))}
           </div>
         ) : isLoadFailedWithoutData ? (
-          <section role="alert" className="py-8">
+          <section role="alert" className="studio-empty-state">
             <div className="mx-auto flex max-w-xl flex-col items-center text-center">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-red-200/80 bg-red-50 text-red-600 shadow-sm dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
                 <CircleAlert className="h-5 w-5" />
@@ -632,7 +616,7 @@ export const DashboardPage = () => {
             </div>
           </section>
         ) : isFavoritesEmptyState ? (
-          <section className="py-8">
+          <section className="studio-empty-state">
             <div className="mx-auto flex max-w-xl flex-col items-center text-center">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-amber-200/80 bg-amber-50 text-amber-600 shadow-sm dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
                 <Star className="h-5 w-5" />
@@ -668,7 +652,7 @@ export const DashboardPage = () => {
             </div>
           </section>
         ) : showFilteredEmptyState ? (
-          <section className="py-8">
+          <section className="studio-empty-state">
             <div className="mx-auto flex max-w-xl flex-col items-center text-center">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200/80 bg-gradient-to-br from-slate-50 via-white to-brand-50 text-slate-500 shadow-sm dark:border-slate-700 dark:from-slate-800 dark:via-slate-900 dark:to-brand-500/10 dark:text-slate-300">
                 <Search className="h-5 w-5" />
@@ -726,13 +710,14 @@ export const DashboardPage = () => {
             </div>
           </section>
         ) : filteredProjectCards.length === 0 ? (
-          <section className="py-8">
+          <section className="studio-empty-state">
             <div className="mx-auto flex max-w-lg flex-col items-center text-center">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-brand-200/80 bg-gradient-to-br from-brand-50 via-white to-indigo-50 text-brand-500 shadow-e1 dark:border-brand-500/30 dark:from-brand-500/20 dark:via-slate-900 dark:to-indigo-500/15 dark:text-brand-400">
                 <FolderKanban className="h-5 w-5" />
               </div>
               <h2 className="mt-4 text-base font-semibold text-slate-900 dark:text-slate-100">{t('dashboard.emptyEmotionalTitle')}</h2>
               <p className="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{t('dashboard.emptyEmotionalHint')}</p>
+              <button type="button" onClick={() => navigate('/insights')} className="studio-secondary mt-4">{t('studio.browseExamples')}<ArrowRight size={14} /></button>
 
             </div>
 
@@ -797,7 +782,7 @@ export const DashboardPage = () => {
             </div>
           </section>
         )}
-      </main>
+      </div></main>
     </div>
   );
 };

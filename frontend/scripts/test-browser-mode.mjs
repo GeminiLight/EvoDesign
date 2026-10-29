@@ -112,16 +112,57 @@ test('aborted requests and truncated output are reported instead of silently ren
   globalThis.fetch = async () => new Response(JSON.stringify({ choices: [{ message: { content: '{"nodes":' }, finish_reason: 'length' }] }));
   await assert.rejects(model.callBrowserModel(config, '', ''), /output budget/);
 });
-test('connection checks distinguish reasoning-budget exhaustion from an unreachable provider', async () => {
-  globalThis.fetch = async (_, options) => {
-    assert.equal(JSON.parse(options.body).max_tokens, 256);
-    return new Response(JSON.stringify({ choices: [{ message: { content: '' }, finish_reason: 'length' }] }));
+test('connection checks use a GET catalog with no prompts, token budget, cookies or redirects', async () => {
+  let calls = 0;
+  globalThis.fetch = async (url, options) => {
+    calls++;
+    assert.equal(url, 'https://provider.example/v1/models');
+    assert.equal(options.method, 'GET');
+    assert.equal(options.body, undefined);
+    assert.equal(options.credentials, 'omit');
+    assert.equal(options.redirect, 'error');
+    assert.equal(options.referrerPolicy, 'no-referrer');
+    return Response.json({ data: [{ id: config.model }, { id: 'second', name: 'Second model' }] });
   };
-  assert.equal(await model.testBrowserModelConnection(config), 'limited');
-  globalThis.fetch = async () => new Response(JSON.stringify({ choices: [{ message: { content: '' }, finish_reason: 'length' }] }));
-  await assert.rejects(model.callBrowserModel(config, '', ''), /output budget/);
-  globalThis.fetch = async () => new Response(JSON.stringify({ choices: [{ message: { content: 'OK' }, finish_reason: 'stop' }] }));
-  assert.equal(await model.testBrowserModelConnection(config), 'ready');
+  const result = await model.testBrowserModelConnection({ ...config, baseUrl: 'https://provider.example/v1', model: '' });
+  assert.equal(result.status, 'catalog');
+  assert.equal(result.models.length, 2);
+  assert.equal(calls, 1);
+  assert.equal(model.modelCatalogUrl('https://provider.example/v1/chat/completions/'), 'https://provider.example/v1/models');
+});
+test('unsupported catalogs and HTTP errors never fall back to a completion or echo provider bodies', async () => {
+  for (const status of [404, 405, 501]) {
+    let calls = 0;
+    globalThis.fetch = async (_, options) => { calls++; assert.equal(options.method, 'GET'); return new Response('secret-provider-body', { status }); };
+    assert.equal((await model.testBrowserModelConnection(config)).status, 'unsupported');
+    assert.equal(calls, 1);
+  }
+  for (const status of [401, 403, 429, 500]) {
+    globalThis.fetch = async () => new Response('secret-provider-body', { status });
+    await assert.rejects(model.testBrowserModelConnection(config), e => !e.message.includes('secret-provider-body') && e.message.includes(String(status)));
+  }
+  for (const body of ['<html>secret-provider-body</html>', '{}', '{"error":{"message":"secret-provider-body"}}']) {
+    globalThis.fetch = async () => new Response(body);
+    await assert.rejects(model.testBrowserModelConnection(config), e => !e.message.includes('secret-provider-body') && /invalid/.test(e.message));
+  }
+});
+test('catalogs reject malformed IDs, deduplicate, bound names and support cancellation', async () => {
+  globalThis.fetch = async () => Response.json({ data: [{ id: ' a ' }, { id: 'a' }, { id: '' }, { id: 3 }, { id: 'z', name: 'Z'.repeat(200) }, null] });
+  const result = await model.testBrowserModelConnection(config);
+  assert.equal(result.models.filter(item => item.id === 'a').length, 1);
+  assert.equal(result.models.find(item => item.id === 'z').name.length, 160);
+  assert.ok(result.models.every(item => typeof item.id === 'string' && item.id.trim()));
+  const controller = new AbortController(); controller.abort();
+  globalThis.fetch = async (_, options) => { options.signal.throwIfAborted(); };
+  await assert.rejects(model.testBrowserModelConnection(config, controller.signal), /cancelled/);
+});
+test('hosted connectivity checks use the existing status endpoint without inference', async () => {
+  globalThis.fetch = async (url, options) => {
+    assert.equal(url, '/api/model'); assert.equal(options.method, 'GET'); assert.equal(options.body, undefined);
+    assert.deepEqual(options.headers, {});
+    return Response.json({ available: true, model: 'shared' });
+  };
+  assert.equal((await model.testBrowserModelConnection({ ...config, source: 'hosted' })).status, 'hosted');
 });
 test('provider errors in HTTP 200 and invalid payloads are actionable without echoing their contents', async () => {
   for (const body of [JSON.stringify({ error: { message: 'secret-private-prompt' } }), '<html>secret-private-prompt</html>', '{}']) {

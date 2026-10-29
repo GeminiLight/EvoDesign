@@ -19,6 +19,10 @@ const { mergeDeltaIntoSchema, getSnapshotDocSignature } = await load('src/utils/
 const { documentAppState, inPlaceAppState, retainedSelection, sceneFiles } = await load('src/utils/excalidrawScene.ts');
 const { workspaceAuthTransition, canRestoreWorkspaceDraft } = await load('src/utils/workspaceAuth.ts');
 const { normalizeBackendTimestamp, snapshotSourceKey, generatedProjectTitle } = await load('src/utils/projectHistory.ts');
+const { homeProjectKey, sortHomeProjects } = await load('src/utils/homeProjects.ts');
+const { getGenerationReviewState, hasCurrentVisualScores } = await load('src/utils/generationReport.ts');
+const { getInitialStartupGenerationDraft, getInitialPreflightGeneration } = await load('src/services/workspaceRouteHandoff.ts');
+const { saveStartupGenerationDraft, loadStartupGenerationDraft, clearStartupGenerationDraft } = await load('src/services/startupGenerationDraft.ts');
 const { guestSaveDiagram, guestExportProjects, guestSyncProjectSchema, guestFetchRecentDiagrams, guestFetchProjectSnapshots, guestLoadDnaRules, guestSaveDnaRules } = await load('src/services/guestStorage.ts');
 const { fetchRecentDiagrams, fetchProjectDiagram, fetchProjectSnapshots, syncProjectSchema, saveDnaRules, loadDnaRules } = await load('src/services/backendApi.ts');
 const { notifyAuthInvalidated } = await load('src/features/auth/authEvents.ts');
@@ -26,6 +30,73 @@ const { shouldSubmitOnEnter, shouldSubmitOnModifiedEnter } = await load('src/uti
 const { saveWorkspacePreflightDraft, loadWorkspacePreflightDraft } = await load('src/services/workspacePreflightDraft.ts');
 const { rememberDnaDraft, readDnaDraft, clearDnaDraft, isLatestDnaDraft, sameDnaPreferences } = await load('src/utils/dnaSyncDraft.ts');
 rmSync(temp, { recursive: true });
+
+const reviewedReport = {
+  memory: { status: 'used', retrievedCount: 2 },
+  refinement: { status: 'completed', fixesApplied: 1 },
+  learning: { status: 'disabled', savedCount: 0 },
+  qualityStatus: 'passed', beforeScore: 6, afterScore: 8, timings: {}, durationMs: 12000,
+};
+test('browser review describes content only even when visual status is unverified', () => {
+  const report = { ...reviewedReport, browserEdition: true, qualityStatus: 'unverified' };
+  assert.equal(getGenerationReviewState(report), 'reviewed');
+  assert.equal(hasCurrentVisualScores(report), false);
+});
+test('later edits invalidate the displayed review and historical scores', () => {
+  for (const browserEdition of [true, false]) {
+    const report = { ...reviewedReport, browserEdition, qualityStatus: 'edited' };
+    assert.equal(getGenerationReviewState(report), 'edited');
+    assert.equal(hasCurrentVisualScores(report), false);
+    assert.equal(getGenerationReviewState({ ...report, qualityStatus: 'needs_attention' }), 'needs_attention');
+  }
+  assert.equal(getGenerationReviewState({ ...reviewedReport, qualityStatus: 'unverified' }), 'unverified');
+});
+test('report states distinguish skipped, unavailable and unsuccessful refinement', () => {
+  for (const status of ['failed', 'unresolved']) {
+    for (const browserEdition of [true, false]) {
+      assert.equal(getGenerationReviewState({ ...reviewedReport, browserEdition, refinement: { status } }), 'kept_original');
+    }
+  }
+  assert.equal(getGenerationReviewState(reviewedReport), 'refined');
+  for (const status of ['skipped', 'disabled']) {
+    assert.equal(getGenerationReviewState({ ...reviewedReport, browserEdition: true, refinement: { status } }), 'not_reviewed');
+  }
+  for (const [status, state] of [['skipped', 'not_needed'], ['disabled', 'disabled'], ['unsupported', 'unsupported'], ['unavailable', 'unverified']]) {
+    assert.equal(getGenerationReviewState({ ...reviewedReport, refinement: { status } }), state);
+  }
+});
+test('visual score display requires two finite scores within the scoring scale', () => {
+  assert.equal(hasCurrentVisualScores(reviewedReport), true);
+  assert.equal(hasCurrentVisualScores({ ...reviewedReport, beforeScore: 0, afterScore: 10 }), true);
+  for (const value of [undefined, NaN, Infinity, -1, 10.1, '8']) {
+    assert.equal(hasCurrentVisualScores({ ...reviewedReport, beforeScore: value }), false);
+    assert.equal(hasCurrentVisualScores({ ...reviewedReport, afterScore: value }), false);
+  }
+});
+
+test('home pins take priority within one list while each group stays most-recent-first', () => {
+  const projects = [
+    { project_id: 'older', created_at: '2026-10-01T00:00:00Z' },
+    { project_id: 'pin-old', created_at: '2025-01-01T00:00:00Z' },
+    { project_id: 'latest', created_at: '2026-10-29T00:00:00Z' },
+    { project_id: 'pin-new', created_at: '2025-02-01T00:00:00Z', updated_at: '2026-10-28T00:00:00Z' },
+  ];
+  const before = JSON.stringify(projects);
+  assert.deepEqual(sortHomeProjects(projects, ['pin-old', 'pin-new', 'missing', 'pin-old']).map(homeProjectKey), ['pin-new', 'pin-old', 'latest', 'older']);
+  assert.deepEqual(sortHomeProjects(projects, []).map(homeProjectKey), ['latest', 'pin-new', 'older', 'pin-old']);
+  assert.equal(JSON.stringify(projects), before);
+});
+
+test('home ordering normalizes UTC, falls back from invalid update times, and keeps equal-time order', () => {
+  const projects = [
+    { request_id: 'unknown', created_at: 'invalid' },
+    { request_id: 'naive', created_at: '2026-10-29T08:00:00' },
+    { request_id: 'same-time', created_at: '2026-10-29T16:00:00+08:00' },
+    { request_id: '', diagram_id: 'fallback', updated_at: 'invalid', created_at: '2026-10-29T09:00:00Z' },
+  ];
+  assert.deepEqual(sortHomeProjects(projects, []).map(homeProjectKey), ['fallback', 'naive', 'same-time', 'unknown']);
+  assert.deepEqual(sortHomeProjects(projects, ['unknown']).map(homeProjectKey), ['unknown', 'fallback', 'naive', 'same-time']);
+});
 
 const node = id => ({ id, type: 'rectangle', x: 0, y: 0, width: 120, height: 60, version: 3, versionNonce: 10 });
 test('partial model output preserves omitted selected nodes and rejects unrelated changes', () => {
@@ -105,6 +176,29 @@ test('preflight reload preserves icon choice and supports older drafts without e
   assert.equal(loadWorkspacePreflightDraft().useIcons, false);
   saveWorkspacePreflightDraft({ ...draft, canvasMode: 'tldraw', useIcons: true });
   assert.equal(loadWorkspacePreflightDraft().useIcons, false);
+  delete globalThis.window.sessionStorage;
+});
+test('direct creation carries icons through routing and recovery without opening preflight', () => {
+  const session = new Map();
+  globalThis.window.sessionStorage = { getItem: key => session.get(key) ?? null, setItem: (key, value) => session.set(key, value), removeItem: key => session.delete(key) };
+  for (const useIcons of [true, false]) {
+    const state = { initialPrompt: '  Architecture with a gateway  ', initialDiagramType: 'architecture', initialCanvasMode: 'excalidraw', initialUseIcons: useIcons, initialSource: 'home', pendingGeneration: true };
+    assert.equal(getInitialPreflightGeneration(state), null);
+    const draft = getInitialStartupGenerationDraft(state);
+    assert.equal(draft.promptText, 'Architecture with a gateway');
+    assert.equal(draft.status, 'pending');
+    assert.equal(draft.metadata.useIcons, String(useIcons));
+    saveStartupGenerationDraft(draft);
+    assert.equal(loadStartupGenerationDraft().metadata.useIcons, String(useIcons));
+    assert.equal(getInitialStartupGenerationDraft({}).metadata.useIcons, String(useIcons));
+    clearStartupGenerationDraft();
+  }
+  const tldraw = getInitialStartupGenerationDraft({ initialPrompt: 'Flow', initialCanvasMode: 'tldraw', initialUseIcons: true, pendingGeneration: true });
+  assert.equal(tldraw.metadata.useIcons, 'false');
+  saveStartupGenerationDraft({ ...tldraw, canvasMode: 'excalidraw', metadata: { useIcons: 'true' } });
+  const olderHandoff = getInitialStartupGenerationDraft({ initialPrompt: 'Flow', pendingGeneration: true });
+  assert.equal(olderHandoff.metadata.useIcons, 'true', 'older routes must preserve the stored icon setting');
+  clearStartupGenerationDraft();
   delete globalThis.window.sessionStorage;
 });
 test('project list and snapshot history carry server revisions to the first editor save', async () => {

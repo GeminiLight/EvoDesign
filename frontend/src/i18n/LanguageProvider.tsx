@@ -1,19 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { messages } from './messages';
 import { readLocalStorage, writeLocalStorage } from '../utils/safeLocalStorage';
-
-export type Language = 'zh' | 'en';
-
-type LanguageContextValue = {
-  language: Language;
-  setLanguage: (language: Language) => void;
-  t: (path: string) => string;
-};
+import { LanguageContext } from './languageContext';
+import type { Language } from './languageContext';
+export { useLanguage } from './languageContext';
+export type { Language } from './languageContext';
 
 const STORAGE_KEY = 'smartdiagram_language';
-
-const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 const getByPath = (obj: unknown, path: string): string | undefined => {
   const value = path.split('.').reduce<unknown>((acc, part) => {
@@ -59,12 +53,4 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
   const value = useMemo(() => ({ language, setLanguage, t }), [language, t]);
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
-};
-
-export const useLanguage = () => {
-  const context = useContext(LanguageContext);
-  if (!context) {
-    throw new Error('useLanguage must be used within LanguageProvider');
-  }
-  return context;
 };

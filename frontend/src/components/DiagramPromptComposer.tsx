@@ -1,5 +1,5 @@
 import { BROWSER_MODE } from '../services/browser/runtime';
-import { shouldSubmitOnEnter } from '../utils/keyboard';
+import { shouldSubmitOnEnter, shouldSubmitOnModifiedEnter } from '../utils/keyboard';
 import {
   Activity,
   ArrowRight,
@@ -19,13 +19,13 @@ import {
   Settings,
   Sparkles,
   SquarePen,
-  X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { GenerationProgress } from '../types/app';
 import { StageProgress } from './StageProgress';
+import { ChoiceSelect } from './ChoiceSelect';
 
 export type PromptPill = {
   id: string;
@@ -76,8 +76,7 @@ type Props = {
   leadingContent?: ReactNode;
   moreLabel: string;
   onAttachmentClick?: () => void;
-  attachedFileName?: string | null;
-  onRemoveAttachment?: () => void;
+  attachmentContent?: ReactNode;
   disableGenerate?: boolean;
   isGenerating?: boolean;
   isDisabled?: boolean;
@@ -110,8 +109,7 @@ export function DiagramPromptComposer({
   leadingContent,
   moreLabel,
   onAttachmentClick,
-  attachedFileName,
-  onRemoveAttachment,
+  attachmentContent,
   disableGenerate = false,
   isGenerating = false,
   isDisabled = false,
@@ -295,9 +293,12 @@ export function DiagramPromptComposer({
               disabled={controlsDisabled}
               placeholder={t?.('home.promptPlaceholder') || 'Describe your diagram...'}
               aria-label={t?.('home.promptPlaceholder') || 'Describe your diagram...'}
+              aria-keyshortcuts={variant === 'home' ? 'Control+Enter Meta+Enter' : undefined}
+              data-gramm={variant === 'home' ? 'false' : undefined}
+              data-enable-grammarly={variant === 'home' ? 'false' : undefined}
               className="diagram-prompt-input w-full resize-none border-none bg-transparent px-6 pb-2 pr-20 pt-6 text-lg text-slate-800 outline-none transition disabled:cursor-not-allowed disabled:text-slate-500 disabled:placeholder:text-slate-400 focus:ring-0 dark:text-slate-100 dark:disabled:text-slate-500 dark:placeholder:text-slate-500"
               onKeyDown={(event) => {
-                if (shouldSubmitOnEnter(event)) {
+                if ((variant === 'home' ? shouldSubmitOnModifiedEnter : shouldSubmitOnEnter)(event)) {
                   event.preventDefault();
                   if (!disableGenerate && !controlsDisabled && prompt.trim()) {
                     onGenerate();
@@ -307,15 +308,9 @@ export function DiagramPromptComposer({
             />
           </div>
 
-          {attachedFileName && (
-            <div className="home-reference-chip" role="status">
-              <Paperclip size={13} aria-hidden="true" /><span title={attachedFileName}>{attachedFileName}</span>
-              {onRemoveAttachment && <button type="button" onClick={onRemoveAttachment} disabled={controlsDisabled} aria-label={t?.('home.removeReference') || 'Remove reference'}><X size={14} /></button>}
-            </div>
-          )}
+          {attachmentContent}
 
           <div className="diagram-prompt-footer flex flex-col gap-2 border-t border-slate-100 px-3 py-3 dark:border-slate-800 sm:flex-row sm:items-center sm:py-2">
-            {leadingContent && <div className={`diagram-prompt-leading min-w-0 flex-1 ${variant === 'home' ? 'home-composer-model' : ''}`}>{leadingContent}</div>}
             {/* The attach control is only rendered when it can actually do
                 something. Showing a permanently disabled button plus a
                 "coming soon" caption spent the most valuable row in the app on
@@ -335,6 +330,12 @@ export function DiagramPromptComposer({
               </div>
             )}
 
+            {variant === 'home' && <div className="home-diagram-type">
+              <ChoiceSelect label={t?.('home.diagramType') || 'Diagram type'} value={selectedPillId} disabled={controlsDisabled} placement="auto"
+                options={[...pills, ...morePills].map(pill => ({ value: pill.id, label: pill.label, Icon: getPillIcon(pill.id), featured: pill.id === 'adaptive', description: pill.id === 'adaptive' ? t?.('home.adaptiveHint') : undefined }))}
+                onChange={value => { const pill = [...pills, ...morePills].find(item => item.id === value); if (pill) onSelectPill(pill); }} />
+            </div>}
+            {leadingContent && <div className={`diagram-prompt-leading min-w-0 flex-1 ${variant === 'home' ? 'home-composer-model' : ''}`}>{leadingContent}</div>}
             <div className="diagram-prompt-actions flex w-full min-w-0 flex-wrap items-center justify-end gap-2 sm:ml-auto sm:w-auto">
             {variant === 'default' && <button
               type="button"
@@ -469,6 +470,7 @@ export function DiagramPromptComposer({
               </div>
             )}
 
+            {variant === 'home' && <span className="home-composer-shortcut" aria-hidden="true">⌘ / Ctrl + Enter</span>}
             {variant !== 'dialog' && <button
               type="button"
               onClick={onGenerate}

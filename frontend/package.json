@@ -13,7 +13,7 @@
     "test:editor": "node --test scripts/test-editor-integrity.mjs",
     "dev:browser": "vite --mode browser --host 127.0.0.1 --port 5176 --strictPort",
     "build:browser": "tsc -b && vite build --mode browser",
-    "test:browser": "node --test scripts/test-browser-mode.mjs scripts/test-demo-model.mjs"
+    "test:browser": "node --test scripts/test-browser-mode.mjs scripts/test-demo-model.mjs scripts/test-local-demo.mjs"
   },
   "dependencies": {
     "@dagrejs/dagre": "^3.1.3",

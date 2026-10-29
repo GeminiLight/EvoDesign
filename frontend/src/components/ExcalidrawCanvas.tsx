@@ -8,6 +8,7 @@ import { useLanguage } from '../i18n/LanguageProvider';
 import { normalizeLegacyOrder } from '../utils/excalidrawOrder';
 import type { GenerationReport } from '../utils/generationReport';
 import { CanvasToolbar } from './DiagramCanvas/CanvasToolbar';
+import { ChoiceSelect } from './ChoiceSelect';
 import { fitExcalidraw } from '../utils/fitExcalidraw';
 import { documentAppState, inPlaceAppState, retainedSelection, sceneFiles } from '../utils/excalidrawScene';
 
@@ -377,14 +378,11 @@ export function ExcalidrawCanvas({ sceneData, sceneIdentity, onSceneChange, onSe
 
       </div>
       {selectedIcon && (
-        <label className="absolute right-3 top-14 z-10 flex max-w-[65%] items-center gap-2 rounded-xl border border-indigo-100 bg-white/95 px-3 py-2 text-xs text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+        <div className="node-icon-picker absolute right-3 top-14 z-10 flex max-w-[65%] items-center gap-2 rounded-xl border border-indigo-100 bg-white/95 px-3 py-1 text-xs text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
           <span className="shrink-0">{t('workspace.nodeIcon')}</span>
-          <select aria-label={t('workspace.nodeIcon')} value={selectedIcon.name} onChange={event => changeSelectedIcon(event.target.value)}
-            className="min-w-0 rounded-lg border-slate-200 py-1 pr-7 text-xs focus:border-indigo-400 focus:ring-indigo-400 dark:border-slate-700 dark:bg-slate-800">
-            <option value="">{t('workspace.removeIcon')}</option>
-            {nodeIconNames.map(name => <option key={name} value={name}>{name.replaceAll('_', ' ')}</option>)}
-          </select>
-        </label>
+          <ChoiceSelect label={t('workspace.nodeIcon')} value={selectedIcon.name} onChange={changeSelectedIcon}
+            align="end" options={[{ value: '', label: t('workspace.removeIcon') }, ...nodeIconNames.map(name => ({ value: name, label: name.replaceAll('_', ' ') }))]} />
+        </div>
       )}
     </div>
   );

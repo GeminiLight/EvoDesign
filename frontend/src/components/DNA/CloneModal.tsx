@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import type { CabinId, CloneCandidate, CloneStatus, CloneStep } from '../../types/dna';
+import { ChoiceSelect } from '../ChoiceSelect';
 
 interface CloneModalProps {
   t: (key: string) => string;
@@ -96,7 +97,7 @@ export function CloneModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45 px-3 py-3 backdrop-blur-md sm:items-center sm:px-4" onMouseDown={(event) => {
+    <div className="studio-modal-backdrop fixed inset-0 z-[70] flex items-end justify-center px-3 py-3 sm:items-center sm:px-4" onMouseDown={(event) => {
       if (event.target === event.currentTarget) onClose();
     }}>
       <div
@@ -106,7 +107,7 @@ export function CloneModal({
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
         onKeyDown={handleKeyDown}
-        className="max-h-[calc(100dvh-1.5rem)] w-full max-w-3xl overflow-y-auto rounded-2xl border border-white/35 bg-white/90 p-4 shadow-2xl backdrop-blur-lg dark:border-white/8 dark:bg-slate-950/96 sm:p-5"
+        className="studio-dialog-panel max-h-[calc(100dvh-1.5rem)] w-full max-w-3xl overflow-y-auto p-4 sm:p-5"
       >
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
@@ -205,16 +206,9 @@ export function CloneModal({
                     onChange={(event) => updateCloneCandidate(candidate.tempId, { title: event.target.value })}
                     className={`h-11 min-w-0 flex-1 rounded-md border bg-white/85 px-2 text-sm text-slate-700 outline-none transition focus-visible:ring-2 focus-visible:ring-offset-2 dark:bg-slate-900/86 dark:text-slate-100 dark:focus-visible:ring-offset-slate-950 ${hasTitleError ? 'border-rose-300 focus:border-rose-400 focus-visible:ring-rose-500/60 dark:border-rose-400/50' : 'border-white/45 focus:border-indigo-300 focus-visible:ring-indigo-500/60 dark:border-white/10'}`}
                   />
-                  <select
-                    value={candidate.cabinId}
-                    aria-label={t('dna.page.cloneCabinLabel')}
-                    onChange={(event) => updateCloneCandidate(candidate.tempId, { cabinId: event.target.value as CabinId })}
-                    className="h-11 rounded-md border border-white/45 bg-white/85 px-2 text-xs text-slate-700 outline-none transition focus:border-indigo-300 focus-visible:ring-2 focus-visible:ring-indigo-500/60 focus-visible:ring-offset-2 dark:border-white/10 dark:bg-slate-900/86 dark:text-slate-100 dark:focus-visible:ring-offset-slate-950"
-                  >
-                    <option value="structure">{t('dna.page.structureTag')}</option>
-                    <option value="style">{t('dna.page.styleTag')}</option>
-                    <option value="layout">{t('dna.page.layoutTag')}</option>
-                  </select>
+                  <ChoiceSelect value={candidate.cabinId} label={t('dna.page.cloneCabinLabel')} menuWidth={160}
+                    options={[{ value: 'structure', label: t('dna.page.structureTag') }, { value: 'style', label: t('dna.page.styleTag') }, { value: 'layout', label: t('dna.page.layoutTag') }]}
+                    onChange={value => updateCloneCandidate(candidate.tempId, { cabinId: value as CabinId })} />
                 </div>
                 <textarea
                   value={candidate.preview}

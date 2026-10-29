@@ -54,7 +54,7 @@ export function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/45 px-4 py-6 backdrop-blur-sm"
+      className="studio-modal-backdrop fixed inset-0 z-[80] flex items-center justify-center px-4 py-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
@@ -96,7 +96,7 @@ export function ConfirmDialog({
     >
       <div
         ref={panelRef}
-        className="w-full max-w-md overflow-hidden surface-overlay rounded-2xl shadow-e5 dark:shadow-e5-dark"
+        className="studio-dialog-panel w-full max-w-md overflow-hidden"
       >
         <div className="flex items-start gap-4 p-5">
           <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
@@ -122,7 +122,7 @@ export function ConfirmDialog({
             onClick={onCancel}
             disabled={busy}
             aria-label={cancelLabel}
-            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-slate-800 dark:hover:text-slate-200 dark:focus-visible:ring-offset-slate-950"
+            className="studio-icon-button disabled:cursor-not-allowed disabled:opacity-50"
           >
             <X className="h-4 w-4" />
           </button>
@@ -134,7 +134,7 @@ export function ConfirmDialog({
             type="button"
             onClick={onCancel}
             disabled={busy}
-            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:text-slate-100 dark:focus-visible:ring-offset-slate-950"
+            className="studio-secondary"
           >
             {cancelLabel}
           </button>
@@ -146,7 +146,7 @@ export function ConfirmDialog({
             className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70 dark:focus-visible:ring-offset-slate-950 ${
               isDanger
                 ? 'bg-red-600 hover:bg-red-500 focus-visible:ring-red-300'
-                : 'bg-brand-600 hover:bg-brand-500 focus-visible:ring-brand-300'
+                : 'studio-primary'
             }`}
           >
             {busy && (

@@ -3,14 +3,15 @@ import { BrowserPreferenceDialog } from '../components/DNA/BrowserPreferenceDial
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BrainCircuit,
+  CheckCircle2,
   ChevronDown,
   LayoutTemplate,
   Palette,
+  Plus,
   Pencil,
   Search,
   ToggleLeft,
   ToggleRight,
-  WandSparkles,
   X,
   Zap,
 } from 'lucide-react';
@@ -25,6 +26,7 @@ import { useRuleLibrary } from '../hooks/useRuleLibrary';
 import { useCloneFlow } from '../hooks/useCloneFlow';
 import type { CabinId } from '../types/dna';
 import { defaultConfigs } from '../constants/app';
+import { dnaPreferenceExample } from '../utils/dnaPreferenceExamples';
 
 type DnaRouteState = {
   highlightCabinId?: CabinId;
@@ -56,6 +58,9 @@ export function YourDNAPage() {
   } = useRuleLibrary();
 
   const [addingPreference, setAddingPreference] = useState(false);
+  const [newPreferenceCategory, setNewPreferenceCategory] = useState<CabinId>('style');
+  const [prefillPreference, setPrefillPreference] = useState(false);
+  const primaryAddRef = useRef<HTMLButtonElement | null>(null);
   const cloneTriggerRef = useRef<HTMLButtonElement | null>(null);
   const drawerTriggerRef = useRef<HTMLButtonElement | null>(null);
   const drawerSearchRef = useRef<HTMLInputElement | null>(null);
@@ -71,6 +76,7 @@ export function YourDNAPage() {
       id: 'structure' as const,
       name: t('dna.page.structureName'),
       tag: t('dna.page.structureTag'),
+      hint: isZh ? '节点、分组与连接关系' : 'Nodes, groups and connections',
       code: t('dna.page.structureCode'),
       icon: BrainCircuit,
       color: {
@@ -82,6 +88,7 @@ export function YourDNAPage() {
       id: 'style' as const,
       name: t('dna.page.styleName'),
       tag: t('dna.page.styleTag'),
+      hint: isZh ? '配色、字体与图形风格' : 'Color, typography and visual style',
       code: t('dna.page.styleCode'),
       icon: Palette,
       color: {
@@ -93,6 +100,7 @@ export function YourDNAPage() {
       id: 'layout' as const,
       name: t('dna.page.layoutName'),
       tag: t('dna.page.layoutTag'),
+      hint: isZh ? '方向、间距与对齐方式' : 'Direction, spacing and alignment',
       code: t('dna.page.layoutCode'),
       icon: LayoutTemplate,
       color: {
@@ -100,7 +108,7 @@ export function YourDNAPage() {
         mask: 'from-teal-100/10 via-teal-200/20 to-teal-300/40 dark:from-teal-950/35 dark:via-teal-900/14 dark:to-teal-500/8',
       },
     },
-  ], [t]);
+  ], [t, isZh]);
 
   const {
     showCloneModal, setShowCloneModal, setCloneStep,
@@ -132,13 +140,18 @@ export function YourDNAPage() {
 
   const openCloneFromButton = (event: React.MouseEvent<HTMLButtonElement>) => {
     cloneTriggerRef.current = event.currentTarget;
-    if (BROWSER_MODE) setAddingPreference(true);
+    if (BROWSER_MODE) { setNewPreferenceCategory('style'); setPrefillPreference(false); setAddingPreference(true); }
     else openCloneModal();
   };
 
+  const restoreAddFocus = () => window.setTimeout(() => {
+    const trigger = cloneTriggerRef.current;
+    (trigger?.isConnected ? trigger : primaryAddRef.current)?.focus();
+  }, 0);
+
   const closeCloneModal = () => {
     setShowCloneModal(false);
-    window.setTimeout(() => cloneTriggerRef.current?.focus(), 0);
+    restoreAddFocus();
   };
 
   const openDrawerFromButton = (event: React.MouseEvent<HTMLButtonElement>, cabinId: typeof cabins[number]['id']) => {
@@ -267,57 +280,58 @@ export function YourDNAPage() {
   }, [activeDrawerCabin, location.search, location.state, openDrawer, setSearchKeywords]);
 
   return (
-    <div className="bg-soft-mesh dark:bg-soft-mesh-dark relative min-h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-900 selection:bg-brand-500/30 dark:from-slate-950 dark:via-slate-950 dark:to-slate-950 dark:text-slate-100">
+    <div className="studio-shell studio-library studio-memory relative min-h-screen overflow-x-hidden">
       <div
         aria-hidden={isAnyDnaOverlayOpen ? true : undefined}
         className={isAnyDnaOverlayOpen ? 'pointer-events-none' : undefined}
       >
-        <Header />
+        <Header variant="studio" />
 
-        <main id="main-content" className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-          <fieldset disabled={!canEditRules} className="min-w-0">
-            <section className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
-              <div className="max-w-2xl">
-                <h1 className="font-display text-2xl font-semibold tracking-tight">{t('dna.page.heroTitlePrefix')}</h1>
-                <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{t('dna.page.heroSubtitle')}</p>
-              </div>
-              <div className="flex shrink-0 flex-wrap items-center gap-2">
-                <button type="button" onClick={openCloneFromButton} className="studio-primary">
-                  <WandSparkles size={16} />{BROWSER_MODE ? (isZh ? '添加设计偏好' : 'Add a preference') : t('dna.page.heroPrimaryAction')}
-                </button>
-                <button type="button" onClick={createWithCurrentDna} disabled={!canCreateWithCurrentDna}
-                  aria-describedby="dna-create-with-current-status" className="studio-secondary">
-                  <Zap size={15} />{t('dna.page.heroCreateAction')}
-                </button>
-                <span id="dna-create-with-current-status" className="sr-only">{t(canCreateWithCurrentDna ? 'dna.page.heroCreateActionDesc' : 'dna.page.heroCreateDisabledDesc')}</span>
-              </div>
-            </section>
+        <main id="main-content" className="studio-page-main"><div className="studio-page-content">
+          <fieldset disabled={!canEditRules} className="memory-toolbar min-w-0">
+            <div className="memory-overview">
+              <h2>{isZh ? '创作偏好' : 'Design preferences'}</h2>
+              <p aria-live="polite">{isZh ? `${evoStats.total} 条偏好 · ${evoStats.enabled} 条已启用` : `${evoStats.total} ${evoStats.total === 1 ? 'preference' : 'preferences'} · ${evoStats.enabled} enabled`}</p>
+            </div>
+            <div className="memory-toolbar-actions">
+              {canCreateWithCurrentDna && <button type="button" onClick={createWithCurrentDna}
+                aria-describedby="dna-create-with-current-status" className="studio-secondary">
+                <Zap size={15} />{isZh ? '开始创作' : 'Start creating'}
+              </button>}
+              <button ref={primaryAddRef} type="button" onClick={openCloneFromButton} className="studio-primary">
+                <Plus size={15} />{BROWSER_MODE ? (isZh ? '添加偏好' : 'Add preference') : t('dna.page.heroPrimaryAction')}
+              </button>
+              <span id="dna-create-with-current-status" className="sr-only">{t(canCreateWithCurrentDna ? 'dna.page.heroCreateActionDesc' : 'dna.page.heroCreateDisabledDesc')}</span>
+            </div>
           </fieldset>
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-slate-200/70 pb-3 dark:border-white/[0.07]">
-              <p className="flex gap-4 text-xs text-slate-500 dark:text-slate-400">
-                <span>{t('dna.page.evoGenomeCount')} <strong className="ml-1 font-medium text-slate-700 dark:text-slate-200">{evoStats.total}</strong></span>
-                <span>{t('dna.page.evoActiveCount')} <strong className="ml-1 font-medium text-violet-600 dark:text-violet-300">{evoStats.enabled}</strong></span>
-              </p>
+            <div className="memory-summary">
+              <p className="memory-auto-apply"><CheckCircle2 size={13} aria-hidden="true" />{isZh ? '已启用偏好自动用于新创作' : 'Enabled preferences apply to new diagrams'}</p>
               <DnaSyncStatus syncStatus={syncStatus} retrySync={retrySync} acceptServerRules={acceptServerRules} />
             </div>
           <fieldset disabled={!canEditRules} className="min-w-0">
-            <div className="divide-y divide-slate-200/70 dark:divide-white/[0.07]">
+            <div>
               {cabins.map((cabin) => {
                 const CabinIcon = cabin.icon;
                 const topRules = topRulesByCabin(cabin.id);
-                return <section key={cabin.id} className="py-5 first:pt-2">
-                  <div className="mb-2 flex items-center justify-between gap-3">
-                    <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
-                      <CabinIcon size={17} className={cabin.color.accent} />{cabin.name}
-                      <span className="ml-1 text-xs font-normal tabular-nums text-slate-400">{evoStats.counts[cabin.id]}</span>
-                    </h2>
-                    {topRules.length > 0 && <button type="button" onClick={(event) => openDrawerFromButton(event, cabin.id)} className="studio-secondary text-xs">
-                      {t('dna.page.manageLibraryAction')}<ChevronDown size={14} className="-rotate-90" />
-                    </button>}
+                const example = dnaPreferenceExample(cabin.id, language);
+                return <section key={cabin.id} className="memory-cabin">
+                  <div className="memory-cabin-heading">
+                    <h2><CabinIcon size={18} strokeWidth={1.6} className={cabin.color.accent} />{cabin.name}{evoStats.counts[cabin.id] > 0 && <span>{evoStats.counts[cabin.id]}</span>}</h2>
+                    <p>{cabin.hint}</p>
                   </div>
-                  {topRules.length === 0 ? <p className="py-2 pl-[25px] text-[13px] text-slate-500 dark:text-slate-400">{isZh ? '还没有保存的偏好' : 'No saved preferences yet'}</p> : (
-                    <div className="divide-y divide-slate-200/50 dark:divide-white/[0.04]">
-                      {topRules.map((rule) => <article key={rule.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:gap-6 sm:pl-[25px]">
+                  <div className="memory-cabin-content">
+                  {topRules.length === 0 ? <div className="memory-empty">
+                    {BROWSER_MODE ? <button type="button" className="memory-suggestion" aria-label={isZh ? `试用${example.title}偏好` : `Try ${example.title.toLowerCase()}`} onClick={event => {
+                      cloneTriggerRef.current = event.currentTarget;
+                      setNewPreferenceCategory(cabin.id); setPrefillPreference(true); setAddingPreference(true);
+                    }}><Plus size={13} aria-hidden="true" />{cabin.id === 'style' && <span className="memory-palette" aria-hidden="true"><i /><i /><i /></span>}{example.title}</button> : <p>{example.description}</p>}
+                    <button type="button" className="studio-secondary shrink-0" aria-label={isZh ? `添加${cabin.name}偏好` : `Add ${cabin.name.toLowerCase()} preference`} onClick={(event) => {
+                      cloneTriggerRef.current = event.currentTarget;
+                      if (BROWSER_MODE) { setNewPreferenceCategory(cabin.id); setPrefillPreference(false); setAddingPreference(true); } else openCloneModal();
+                    }}><Plus size={14} />{isZh ? '自定义' : 'Custom'}</button>
+                  </div> : (
+                    <div>
+                      {topRules.map((rule) => <article key={rule.id} className="memory-rule">
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                             <h3 className="break-words text-[13px] font-semibold text-slate-800 dark:text-slate-100">{rule.title}</h3>
@@ -329,7 +343,7 @@ export function YourDNAPage() {
                           <p className="mt-1.5 line-clamp-2 max-w-3xl break-words text-[13px] leading-6 text-slate-500 dark:text-slate-400">{rule.preview}</p>
                           {!BROWSER_MODE && <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">{t(rule.source === 'ai' ? 'dna.page.aiLearned' : 'dna.page.manualSet')} · {t('dna.page.usage')}: {rule.usageCount}</p>}
                         </div>
-                        <div className="flex shrink-0 items-center gap-1 self-end sm:self-center">
+                        <div className="memory-rule-actions">
                           <button type="button" onClick={(event) => openEditFromButton(event, cabin.id, rule)} aria-label={ruleActionLabel('dna.page.editRuleLabel', rule.title)} className="studio-secondary text-xs">
                             <Pencil size={13} />{t('dna.page.edit')}
                           </button>
@@ -341,16 +355,20 @@ export function YourDNAPage() {
                       </article>)}
                     </div>
                   )}
+                  {evoStats.counts[cabin.id] > topRules.length && <button type="button" onClick={(event) => openDrawerFromButton(event, cabin.id)} className="studio-secondary memory-manage text-xs">
+                    {t('dna.page.manageLibraryAction')}<ChevronDown size={14} className="-rotate-90" />
+                  </button>}
+                  </div>
                 </section>;
               })}
             </div>
           </fieldset>
-        </main>
+        </div></main>
       </div>
 
       <div
         aria-hidden={isDrawerOpen && !showCloneModal && !editing ? undefined : true}
-        className={`fixed inset-0 z-40 transition ${isDrawerOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        className={`fixed inset-0 z-[60] transition ${isDrawerOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
       >
         <div className={`absolute inset-0 bg-slate-950/45 backdrop-blur-[1px] transition-opacity duration-500 ease-out dark:bg-slate-950/72 ${isDrawerOpen ? 'opacity-100' : 'opacity-0'}`} onClick={closeDrawerAndRestoreFocus} />
         <aside
@@ -358,7 +376,7 @@ export function YourDNAPage() {
           aria-modal={isDrawerOpen ? true : undefined}
           aria-labelledby={isDrawerOpen ? 'dna-drawer-title' : undefined}
           onKeyDown={isDrawerOpen ? (event) => handleDialogTabTrap(event, event.currentTarget, closeDrawerAndRestoreFocus) : undefined}
-          className={`absolute right-0 top-0 h-full w-full max-w-2xl transform border-l border-white/20 bg-white/88 shadow-2xl backdrop-blur-lg transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] dark:border-white/8 dark:bg-slate-950/96 ${isDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
+          className={`memory-drawer absolute right-0 top-0 h-full w-full max-w-2xl transform border-l transition-transform duration-300 ease-out ${isDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
         >
           {drawerCabin && activeDrawerCabin && (
             <div className="flex h-full flex-col">
@@ -366,10 +384,10 @@ export function YourDNAPage() {
                 <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${drawerCabin.color.mask}`} />
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <div>
-                    <h4 id="dna-drawer-title" className="text-sm font-semibold text-slate-900 dark:text-slate-100">{t('dna.page.drawerTitle')}</h4>
+                    <h2 id="dna-drawer-title" className="text-sm font-semibold text-slate-900 dark:text-slate-100">{t('dna.page.drawerTitle')}</h2>
                     <p className="text-xs text-slate-600 dark:text-slate-300">{drawerCabin.name} · {drawerCabin.tag}</p>
                   </div>
-                  <button type="button" onClick={closeDrawerAndRestoreFocus} aria-label={t('dna.page.closeDrawerLabel')} className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-white/45 bg-white/75 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-indigo-300 hover:text-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60 focus-visible:ring-offset-2 dark:border-white/10 dark:bg-slate-900/78 dark:text-slate-200 dark:hover:border-indigo-500 dark:hover:text-indigo-300 dark:focus-visible:ring-offset-slate-950">
+                  <button type="button" onClick={closeDrawerAndRestoreFocus} aria-label={t('dna.page.closeDrawerLabel')} className="studio-secondary">
                     <X className="h-3.5 w-3.5" />
                     {t('dna.page.close')}
                   </button>
@@ -379,10 +397,10 @@ export function YourDNAPage() {
                   <span className="mr-auto rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                     {t('dna.page.drawerSelectedCount').replace('{count}', String(drawerSelectedIds.length))}
                   </span>
-                  <button type="button" onClick={() => batchSetEnabled(activeDrawerCabin, true)} disabled={drawerSelectedIds.length === 0} className="min-h-11 rounded-lg bg-emerald-100/90 px-3 py-2 text-xs font-semibold text-emerald-700 transition disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 focus-visible:ring-offset-2 dark:bg-emerald-500/18 dark:text-emerald-300 dark:focus-visible:ring-offset-slate-950">
+                  <button type="button" onClick={() => batchSetEnabled(activeDrawerCabin, true)} disabled={drawerSelectedIds.length === 0} className="studio-secondary">
                     {t('dna.page.batchEnable')}
                   </button>
-                  <button type="button" onClick={() => batchSetEnabled(activeDrawerCabin, false)} disabled={drawerSelectedIds.length === 0} className="min-h-11 rounded-lg bg-rose-100/90 px-3 py-2 text-xs font-semibold text-rose-700 transition disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/60 focus-visible:ring-offset-2 dark:bg-rose-500/18 dark:text-rose-300 dark:focus-visible:ring-offset-slate-950">
+                  <button type="button" onClick={() => batchSetEnabled(activeDrawerCabin, false)} disabled={drawerSelectedIds.length === 0} className="studio-secondary">
                     {t('dna.page.batchDisable')}
                   </button>
                 </div>
@@ -394,7 +412,7 @@ export function YourDNAPage() {
                     value={searchKeywords[activeDrawerCabin]}
                     onChange={(event) => setSearchKeywords((prev) => ({ ...prev, [activeDrawerCabin]: event.target.value }))}
                     placeholder={t('dna.page.searchPlaceholder')}
-                    className="h-11 w-full rounded-xl border border-white/45 bg-white/85 pl-9 pr-24 text-sm text-slate-700 outline-none transition focus:border-indigo-300 focus-visible:ring-2 focus-visible:ring-indigo-500/60 focus-visible:ring-offset-2 dark:border-white/10 dark:bg-slate-900/84 dark:text-slate-100 dark:focus-visible:ring-offset-slate-950"
+                    className="studio-search pr-24"
                   />
                   <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-2">
                     <span className="hidden text-xs font-semibold text-slate-500 sm:inline dark:text-slate-400">
@@ -417,7 +435,7 @@ export function YourDNAPage() {
                 {drawerRules.map((rule) => {
                   const isHighlightedRule = highlightedRule?.cabinId === activeDrawerCabin && highlightedRule.ruleId === rule.id;
                   return (
-                  <div key={rule.id} className={`flex flex-col gap-3 rounded-xl border px-3 py-3 backdrop-blur-sm transition sm:flex-row sm:items-center ${isHighlightedRule ? 'border-emerald-300 bg-emerald-50/80 shadow-[0_0_0_1px_rgba(16,185,129,0.22),0_16px_35px_-28px_rgba(16,185,129,0.75)] dark:border-emerald-500/55 dark:bg-emerald-500/12' : 'border-white/50 bg-white/68 dark:border-white/10 dark:bg-slate-900/76'} ${rule.enabled ? '' : 'opacity-70 saturate-50'}`}>
+                  <div key={rule.id} className={`memory-drawer-rule flex flex-col gap-3 border-b px-1 py-4 transition-colors sm:flex-row sm:items-center ${isHighlightedRule ? 'border-emerald-300 bg-emerald-50/80 dark:border-emerald-500/55 dark:bg-emerald-500/12' : 'border-slate-200/70 dark:border-white/10'} ${rule.enabled ? '' : 'opacity-70 saturate-50'}`}>
                     <label className="inline-flex min-h-11 items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
                       <input type="checkbox" checked={drawerSelectedIds.includes(rule.id)} onChange={() => toggleSelectRule(activeDrawerCabin, rule.id)} aria-label={ruleActionLabel('dna.page.selectRuleLabel', rule.title)} className="h-5 w-5 rounded border-slate-300 text-brand-500 focus-visible:ring-2 focus-visible:ring-indigo-500/60" />
                       <span className="sm:sr-only">{t('dna.page.ruleSelectLabel')}</span>
@@ -451,12 +469,13 @@ export function YourDNAPage() {
         </aside>
       </div>
 
-      {addingPreference && <BrowserPreferenceDialog onClose={() => { setAddingPreference(false); window.setTimeout(() => cloneTriggerRef.current?.focus(), 0); }} onSave={(category, title, description) => {
+      {addingPreference && <BrowserPreferenceDialog initialCategory={newPreferenceCategory} initialDraft={prefillPreference ? dnaPreferenceExample(newPreferenceCategory, language) : undefined} onClose={() => { setAddingPreference(false); restoreAddFocus(); }} onSave={(category, title, description) => {
         setRuleLibrary(previous => ({ ...previous, [category]: [...previous[category], {
           id: Math.max(0, ...Object.values(previous).flat().map(rule => rule.id)) + 1,
           title, preview: description, source: 'manual', enabled: true, pinned: true, usageCount: 0, updatedAt: isZh ? '刚刚' : 'just now',
         }] }));
-        setAddingPreference(false); window.setTimeout(() => cloneTriggerRef.current?.focus(), 0);
+        setAddingPreference(false); restoreAddFocus();
+        showToast(t('studio.preferenceSaved'), 'success');
       }} />}
       {showCloneModal && (
         <CloneModal
@@ -483,7 +502,7 @@ export function YourDNAPage() {
 
       {editing && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 px-3 py-3 backdrop-blur-md sm:items-center sm:px-4"
+          className="studio-modal-backdrop fixed inset-0 z-[70] flex items-end justify-center px-3 py-3 sm:items-center sm:px-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="dna-edit-dialog-title"
@@ -492,7 +511,7 @@ export function YourDNAPage() {
             if (event.target === event.currentTarget) closeEditModal();
           }}
         >
-          <div ref={editDialogRef} className="max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto rounded-2xl border border-white/35 bg-white/90 p-4 shadow-2xl backdrop-blur-lg dark:border-white/8 dark:bg-slate-950/96 sm:p-5">
+          <div ref={editDialogRef} className="studio-dialog-panel max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto p-5 sm:p-6">
             <h3 id="dna-edit-dialog-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100">{t('dna.page.modalTitle')}</h3>
             <div className="mt-4 space-y-3">
               <label className="block">
@@ -508,7 +527,7 @@ export function YourDNAPage() {
                       setEditErrors((prev) => ({ ...prev, title: false }));
                     }
                   }}
-                  className="h-11 w-full rounded-xl border border-white/45 bg-white/85 px-3 text-sm text-slate-700 outline-none transition focus:border-indigo-300 focus-visible:ring-2 focus-visible:ring-indigo-500/60 focus-visible:ring-offset-2 dark:border-white/10 dark:bg-slate-900/82 dark:text-slate-100 dark:focus-visible:ring-offset-slate-950"
+                  className="studio-form-input"
                 />
                 {editErrors.title && <p id="dna-edit-title-error" role="alert" className="mt-1 text-xs font-medium text-rose-600 dark:text-rose-300">{t('dna.page.modalRuleNameRequired')}</p>}
               </label>
@@ -525,14 +544,14 @@ export function YourDNAPage() {
                     }
                   }}
                   rows={4}
-                  className="w-full rounded-xl border border-white/45 bg-white/85 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-indigo-300 focus-visible:ring-2 focus-visible:ring-indigo-500/60 focus-visible:ring-offset-2 dark:border-white/10 dark:bg-slate-900/82 dark:text-slate-100 dark:focus-visible:ring-offset-slate-950"
+                  className="studio-form-input"
                 />
                 {editErrors.preview && <p id="dna-edit-preview-error" role="alert" className="mt-1 text-xs font-medium text-rose-600 dark:text-rose-300">{t('dna.page.modalRulePreviewRequired')}</p>}
               </label>
             </div>
             <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-              <button type="button" onClick={closeEditModal} className="min-h-11 rounded-lg border border-white/45 bg-white/75 px-4 py-2 text-sm font-medium text-slate-600 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60 focus-visible:ring-offset-2 dark:border-white/10 dark:bg-slate-900/82 dark:text-slate-200 dark:focus-visible:ring-offset-slate-950">{t('dna.page.cancel')}</button>
-              <button type="button" onClick={submitEdit} disabled={!canSaveEdit} className="min-h-11 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950">{t('dna.page.save')}</button>
+              <button type="button" onClick={closeEditModal} className="studio-secondary">{t('dna.page.cancel')}</button>
+              <button type="button" onClick={submitEdit} disabled={!canSaveEdit} className="studio-primary">{t('dna.page.save')}</button>
             </div>
           </div>
         </div>
