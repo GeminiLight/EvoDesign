@@ -229,7 +229,8 @@ const getRouteStartupGenerationDraft = (state: unknown): StartupGenerationDraft 
     diagramType,
     llmConfigId,
     canvasMode,
-    metadata: { canvasLibrary: canvasMode },
+    metadata: { canvasLibrary: canvasMode, ...(typeof routeState.initialUseIcons === 'boolean'
+      ? { useIcons: String(routeState.initialUseIcons && canvasMode === 'excalidraw') } : {}) },
     status: 'pending',
     source: getRouteStartupGenerationSource(routeState.initialSource),
     createdAt: Date.now(),

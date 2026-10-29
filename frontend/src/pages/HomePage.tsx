@@ -1,16 +1,19 @@
 import { useBrowserModelLabel } from '../hooks/useBrowserModelLabel';
 import '../styles/home.css';
 import { useHostedModel } from '../hooks/useHostedModel';
-import { loadModelConfig } from '../services/browser/modelConfig';
+import { completionUrl, loadModelConfig } from '../services/browser/modelConfig';
 import { BROWSER_MODE, openModelSettings } from '../services/browser/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, Box, ChevronDown, FolderClock, GitBranch, Network, Star, Workflow } from 'lucide-react';
+import { ArrowRight, Box, ChevronDown, FolderClock, GitBranch, Network, Shapes, Workflow } from 'lucide-react';
 import { DiagramPromptComposer } from '../components/DiagramPromptComposer';
 import { Header } from '../components/Header';
+import { BrandLockup } from '../components/BrandLockup';
 import { HomeProjectTile } from '../components/Home/HomeProjectTile';
 import { CreationSketch } from '../components/Home/CreationSketch';
+import { HomeReferencePreview } from '../components/Home/HomeReferencePreview';
 import { HOME_REFERENCE_ACCEPT, HomeReferenceError, promptWithReference, readHomeReference } from '../utils/homeReference';
+import { homeProjectKey as getHomeProjectKey, sortHomeProjects } from '../utils/homeProjects';
 import type { HomeReference } from '../utils/homeReference';
 import { useToast } from '../components/toastContext';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -21,14 +24,12 @@ import { loadFavoriteProjectIds, saveFavoriteProjectIds } from '../services/proj
 import { GUEST_IMPORT_COMPLETED_EVENT } from '../services/guestImportService';
 import type { DiagramType } from '../types/api';
 import type { RecentDiagram } from '../types/app';
-import { pillIdToDiagramType, defaultConfigs, getDiagramTypeLabel } from '../constants/app';
+import { pillIdToDiagramType, diagramTypeToPillId, defaultConfigs, getDiagramTypeLabel } from '../constants/app';
+import { saveStartupGenerationDraft } from '../services/startupGenerationDraft';
+import { clearWorkspacePreflightDraft } from '../services/workspacePreflightDraft';
 
 const HOME_PROJECT_FETCH_LIMIT = 100;
 const HOME_RECENT_DISPLAY_LIMIT = 6;
-
-const getHomeProjectKey = (project: RecentDiagram) => (
-  project.project_id || project.request_id || project.diagram_id
-);
 
 const fetchHomeProjects = async (authIdentity: string | null): Promise<RecentDiagram[]> => {
   const pinnedIds = new Set(loadFavoriteProjectIds(authIdentity));
@@ -81,6 +82,8 @@ export const HomePage = () => {
   const loadRequestRef = useRef(0);
   const lastAutoLoadAuthIdentityRef = useRef<string | null | undefined>(undefined);
   const [prompt, setPrompt] = useState('');
+  const [useIcons, setUseIcons] = useState(false);
+  const launchRequestedRef = useRef(false);
   const [reference, setReference] = useState<HomeReference | null>(null);
   const [referenceLoading, setReferenceLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -91,7 +94,6 @@ export const HomePage = () => {
   const [selectedPillId, setSelectedPillId] = useState('adaptive');
   const [modelIndex, setModelIndex] = useState(0);
   const [canvasIndex, setCanvasIndex] = useState(0);
-  const [activeHomeTab, setActiveHomeTab] = useState<'recent' | 'pinned'>('recent');
   const [pinnedProjectIds, setPinnedProjectIds] = useState<string[]>(() => loadFavoriteProjectIds(authIdentity));
   const [projectPendingDelete, setProjectPendingDelete] = useState<RecentDiagram | null>(null);
   const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
@@ -102,6 +104,8 @@ export const HomePage = () => {
     const initialPrompt = location.state?.initialPrompt;
     if (typeof initialPrompt === 'string' && initialPrompt.trim()) {
       setPrompt(initialPrompt);
+      if (Object.prototype.hasOwnProperty.call(diagramTypeToPillId, location.state?.initialDiagramType)) setSelectedPillId(diagramTypeToPillId[location.state.initialDiagramType as DiagramType]);
+      setUseIcons(location.state?.initialUseIcons === true);
       // Clear navigation state to avoid re-filling on re-render
       window.history.replaceState({}, document.title);
     }
@@ -130,7 +134,6 @@ export const HomePage = () => {
       setRecentProjects([]);
       setLoadError(null);
       setLoadStatus('loading');
-      setActiveHomeTab('recent');
       setProjectPendingDelete(null);
       setDeletingProjectId(null);
     }
@@ -182,13 +185,6 @@ export const HomePage = () => {
     };
   }, [loadRecent]);
 
-  const handlePillClick = (pillId: string, prefix: string) => {
-    setSelectedPillId(pillId);
-    if (!prompt.trim()) {
-      setPrompt(prefix + ' ');
-    }
-  };
-
   const enhancePrompt = () => {
     const value = prompt.trim();
     if (!value) return;
@@ -202,13 +198,25 @@ export const HomePage = () => {
   };
 
   const handleStartCreation = () => {
-    if (!prompt.trim() || referenceLoading) return;
+    if (!prompt.trim() || referenceLoading || launchRequestedRef.current) return;
+    if (BROWSER_MODE) {
+      const model = loadModelConfig();
+      let ready = model.source === 'hosted' ? hosted.status === 'available' : Boolean(model.model.trim());
+      if (model.source !== 'hosted') {
+        try { completionUrl(model.baseUrl); } catch { ready = false; }
+      }
+      if (!ready) { openModelSettings(); return; }
+    }
     const promptText = promptWithReference(prompt, reference, language);
 
     const canvasLibrary = canvasOptions[canvasIndex].id;
     const llmConfigId = modelOptions[modelIndex].id;
 
-    // Navigate to workspace for a review step before generation starts.
+    launchRequestedRef.current = true;
+    clearWorkspacePreflightDraft();
+    saveStartupGenerationDraft({ promptText, diagramType: selectedDiagramType, llmConfigId,
+      canvasMode: canvasLibrary, metadata: { canvasLibrary, useIcons: String(useIcons && canvasLibrary === 'excalidraw') },
+      source: 'home', status: 'pending' });
     navigate('/workspace', {
       state: {
         initialPrompt: promptText,
@@ -216,8 +224,8 @@ export const HomePage = () => {
         initialLlmConfigId: llmConfigId,
         initialCanvasMode: canvasLibrary,
         initialSource: 'home',
-        preflightGeneration: true,
-        preflightKind: 'startup',
+        pendingGeneration: true,
+        initialUseIcons: useIcons && canvasLibrary === 'excalidraw',
       },
     });
   };
@@ -252,9 +260,7 @@ export const HomePage = () => {
   const isRefreshingProjects = loadStatus === 'loading' && recentProjects.length > 0;
   const isLoadFailedWithoutData = loadStatus === 'failed' && recentProjects.length === 0;
 
-  const visibleProjects = activeHomeTab === 'pinned'
-    ? recentProjects.filter((project) => pinnedProjectIds.includes(getProjectKey(project))).slice(0, HOME_RECENT_DISPLAY_LIMIT)
-    : recentProjects.slice(0, HOME_RECENT_DISPLAY_LIMIT);
+  const visibleProjects = sortHomeProjects(recentProjects, pinnedProjectIds).slice(0, HOME_RECENT_DISPLAY_LIMIT);
   const starterTemplates = [
     { label: t('home.shortcutArchitecture'), prompt: t('home.sampleMicroservice'), pillId: 'architecture', Icon: Network, accent: 'blue' },
     { label: t('home.shortcutFlow'), prompt: t('home.sampleTraining'), pillId: 'flow', Icon: GitBranch, accent: 'violet' },
@@ -287,7 +293,7 @@ export const HomePage = () => {
   };
 
   const handleViewAllProjects = () => {
-    navigate(activeHomeTab === 'pinned' ? '/projects?scope=favorites' : '/projects');
+    navigate('/projects');
   };
 
   const handleTogglePin = (project: RecentDiagram) => {
@@ -330,12 +336,15 @@ export const HomePage = () => {
   };
 
   return (
-    <div className="studio-home min-h-screen">
+    <div className="studio-shell studio-home min-h-screen">
       <Header variant="studio" />
       <main id="main-content" className="home-main">
         <section className="home-intro" aria-labelledby="home-heading">
-          <p className="home-brand-name">EvoDesign</p>
+          <div className="home-brand-lockup">
+            <BrandLockup />
+          </div>
           <h1 id="home-heading" className="home-headline">{t('home.titleLead')}<span>{t('home.titleAccent')}</span></h1>
+          <p className="home-intro-description">{t('home.creationDescription')}</p>
           <div className="home-launcher">
             <input ref={fileInputRef} type="file" accept={HOME_REFERENCE_ACCEPT} hidden aria-label={t('home.addReference')} onChange={event => { void handleReferenceFile(event.target.files?.[0]); }} />
             <DiagramPromptComposer
@@ -344,7 +353,7 @@ export const HomePage = () => {
               onPromptChange={setPrompt}
               onGenerate={handleStartCreation}
               onEnhance={enhancePrompt}
-              onSelectPill={(pill) => handlePillClick(pill.id, pill.prefix)}
+              onSelectPill={pill => setSelectedPillId(pill.id)}
               selectedPillId={selectedPillId}
               pills={pills}
               morePills={morePills}
@@ -356,23 +365,34 @@ export const HomePage = () => {
               onCanvasChange={setCanvasIndex}
               attachTitle={t('home.referenceFormats')}
               onAttachmentClick={() => fileInputRef.current?.click()}
-              attachedFileName={reference?.name}
-              onRemoveAttachment={() => { setReference(null); setPromptFocusRequest(value => value + 1); }}
+              attachmentContent={reference && <HomeReferencePreview reference={reference} disabled={referenceLoading}
+                onRemove={() => { setReference(null); setPromptFocusRequest(value => value + 1); }} />}
               enhanceTitle={t('home.enhancePrompt')}
-              generateTitle={t('home.reviewSetup')}
+              generateTitle={t('home.directCreate')}
               variant="home"
-              leadingContent={BROWSER_MODE ? <button type="button" onClick={openModelSettings} className="home-model-button" aria-label={`${t('browser.modelSettings')}: ${modelLabel}`}>
-                <Box size={17} className={isSharedModel && hosted.status === 'available' ? 'is-ready' : ''} aria-hidden="true" />
-                <span className="truncate">{hosted.status === 'loading' && !loadModelConfig().model ? (zh ? '正在连接…' : 'Connecting…') : modelLabel}</span>
-                <ChevronDown size={13} aria-hidden="true" />
-              </button> : <span className="home-model-button"><Box size={17} aria-hidden="true" /><span className="truncate">{modelLabel}</span></span>}
+              leadingContent={
+                <div className="home-composer-tools">
+                  {BROWSER_MODE ? (
+                    <button type="button" onClick={openModelSettings} className="home-model-button" aria-label={`${t('browser.modelSettings')}: ${modelLabel}`}>
+                      <Box size={17} className={isSharedModel && hosted.status === 'available' ? 'is-ready' : ''} aria-hidden="true" />
+                      <span className="truncate">{hosted.status === 'loading' && !loadModelConfig().model ? (zh ? '正在连接…' : 'Connecting…') : modelLabel}</span>
+                      <ChevronDown size={13} aria-hidden="true" />
+                    </button>
+                  ) : <span className="home-model-button"><Box size={17} aria-hidden="true" /><span className="truncate">{modelLabel}</span></span>}
+                  <button type="button" role="switch" aria-checked={useIcons && canvasOptions[canvasIndex].id === 'excalidraw'}
+                    aria-label={t('home.nodeIcons')} title={t('home.nodeIconsHint')} className="home-icons-toggle"
+                    disabled={referenceLoading || canvasOptions[canvasIndex].id !== 'excalidraw'} onClick={() => setUseIcons(value => !value)}>
+                    <Shapes size={16} strokeWidth={1.6} aria-hidden="true" /><span>{t('home.iconsShort')}</span><i aria-hidden="true" />
+                  </button>
+                </div>
+              }
               moreLabel={t('home.pillMoreLabel')}
               t={t}
               isDisabled={referenceLoading}
               disableGenerate={!prompt.trim() || referenceLoading}
             />
             {referenceLoading && <span className="home-reference-status" role="status">{t('home.readingReference')}</span>}
-            <CreationSketch referenceLabel={t('home.sketchReference')} diagramLabel={t('home.sketchDiagram')} />
+            <CreationSketch referenceLabel={t('home.sketchReference')} diagramLabel={t('home.sketchDiagram')} labels={{ idea: t('home.sketchIdea'), link: t('home.sketchLink'), editable: t('home.sketchEditable'), edit: t('home.sketchEdit') }} />
           </div>
           <section className="home-starters" aria-label={t('home.starterTemplatesTitle')}>
             {starterTemplates.map(({ Icon, ...template }) => (
@@ -387,10 +407,6 @@ export const HomePage = () => {
           <div className="home-projects-heading">
             <div className="home-projects-heading-start">
               <h2 id="home-projects-heading">{t('home.continueCreating')}</h2>
-              {recentProjects.length > 0 && <div className="home-project-filters" role="group" aria-label={t('home.recentProjects')}>
-                <button type="button" onClick={() => setActiveHomeTab('recent')} aria-pressed={activeHomeTab === 'recent'}>{t('home.recentTab')}</button>
-                <button type="button" onClick={() => setActiveHomeTab('pinned')} aria-pressed={activeHomeTab === 'pinned'}>{t('home.pinnedTab')}</button>
-              </div>}
             </div>
             {recentProjects.length > 0 && <button type="button" onClick={handleViewAllProjects} className="home-view-all">{t('home.viewAllShort')}<ArrowRight size={15} aria-hidden="true" /></button>}
           </div>
@@ -416,7 +432,7 @@ export const HomePage = () => {
             <div role="alert" className="home-project-empty"><p>{loadError}</p><p>{t('home.loadFailedHint')}</p><button type="button" onClick={() => { void loadRecent(); }}>{t('common.retry')}</button></div>
           ) : (
             <div className="home-project-empty">
-              {activeHomeTab === 'pinned' && recentProjects.length > 0 ? <><Star size={20} strokeWidth={1.5} aria-hidden="true" /><p>{t('home.pinnedEmptyHint')}</p></> : <><FolderClock size={20} strokeWidth={1.5} aria-hidden="true" /><p>{t('home.emptyWorkspaceHint')}</p></>}
+              <FolderClock size={20} strokeWidth={1.5} aria-hidden="true" /><p>{t('home.emptyWorkspaceHint')}</p>
             </div>
           )}
         </section>

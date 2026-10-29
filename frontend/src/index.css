@@ -659,20 +659,6 @@ textarea::placeholder { opacity: 1; }
   .canvas-toolbar .tool-button-accent {
     @apply border-indigo-200/70 bg-indigo-50/80 px-3 text-indigo-700 hover:bg-indigo-100 dark:border-indigo-500/25 dark:bg-indigo-500/15 dark:text-indigo-200 dark:hover:bg-indigo-500/25;
   }
-  .generation-report[data-compact='true'] {
-    @apply static m-0 shrink-0 rounded-lg border-0 bg-transparent dark:bg-transparent;
-  }
-  .generation-report[data-compact='true'] summary {
-    @apply min-h-9 flex-nowrap gap-1.5 rounded-lg px-2 py-1 text-slate-500 transition-colors hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800;
-  }
-  .generation-report[data-compact='true'] summary .report-memory,
-  .generation-report[data-compact='true'] summary .report-quality { display: none; }
-  .generation-report[data-compact='true'] summary .report-label { @apply text-xs text-slate-500 no-underline dark:text-slate-400; }
-  .generation-report[data-compact='true'] .report-content {
-    @apply absolute right-3 top-full z-30 mt-2 max-h-[65dvh] overflow-auto rounded-2xl border border-slate-200 bg-white p-5 text-slate-700 shadow-e4 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200;
-    width: min(440px, calc(100% - 24px));
-    animation: workspaceReveal 160ms ease-out;
-  }
   .assistant-panel {
     @apply relative flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200/70 bg-white dark:border-white/[0.07] dark:bg-[#101524];
   }
@@ -730,7 +716,7 @@ textarea::placeholder { opacity: 1; }
   .workspace-grid[data-focus='true'] > .workspace-chat-pane { display: none; }
 }
 @container canvas-embed (max-width: 760px) {
-  .canvas-fit-label, .generation-report[data-compact='true'] summary .report-label { display: none; }
+  .canvas-fit-label, .generation-report[data-compact='true'] > summary .report-label { display: none; }
   .workspace-project-toggle span { display: none; }
 }
 @container canvas-embed (max-width: 520px) {

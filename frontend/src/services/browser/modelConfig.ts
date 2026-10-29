@@ -177,9 +177,58 @@ export async function callBrowserModel(
   return choice.message.content;
 }
 
-export async function testBrowserModelConnection(config: BrowserModelConfig, signal?: AbortSignal): Promise<'ready' | 'limited'> {
-  const choice = await requestCompletion(config, 'Reply with OK.', 'Connection test.', signal, 256, 60_000, undefined, 'check');
-  if (choice.finish_reason === 'length') return 'limited';
-  if (typeof choice.message?.content !== 'string' || !choice.message.content.trim()) throw new Error('The model returned no text. Choose a chat-completions compatible model.');
-  return 'ready';
+export type BrowserModelChoice = { id: string; name?: string };
+export type BrowserModelConnection = {
+  status: 'catalog' | 'unsupported' | 'hosted';
+  models: BrowserModelChoice[];
+};
+
+export function modelCatalogUrl(baseUrl: string): string {
+  return completionUrl(baseUrl).replace(/\/chat\/completions$/, '/models');
+}
+
+/** Metadata only: never send a completion, prompt, or an automatic paid fallback. */
+export async function testBrowserModelConnection(config: BrowserModelConfig, signal?: AbortSignal): Promise<BrowserModelConnection> {
+  const controller = new AbortController();
+  const abort = () => controller.abort(signal?.reason);
+  if (signal?.aborted) abort();
+  else signal?.addEventListener('abort', abort, { once: true });
+  const timer = setTimeout(() => controller.abort(), 12000);
+  try {
+    const hosted = config.source === 'hosted';
+    const response = await fetch(hosted ? '/api/model' : modelCatalogUrl(config.baseUrl), {
+      method: 'GET', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer', cache: 'no-store',
+      headers: !hosted && config.apiKey.trim() ? { Authorization: `Bearer ${config.apiKey.trim()}` } : {},
+      signal: controller.signal,
+    });
+    if (!hosted && [404, 405, 501].includes(response.status)) return { status: 'unsupported', models: [] };
+    if (!response.ok) throw new Error(`Model catalog request failed (${response.status}).`);
+    const text = await response.text();
+    if (text.length > 8000000) throw new Error('The model catalog is too large.');
+    let body;
+    try { body = JSON.parse(text); } catch { throw new Error('The model catalog response is invalid.'); }
+    if (hosted) {
+      if (body?.available !== true) throw new Error('The shared model is temporarily unavailable.');
+      return { status: 'hosted', models: [] };
+    }
+    if (body?.error || !Array.isArray(body?.data)) throw new Error('The model catalog response is invalid.');
+    const models: BrowserModelChoice[] = [];
+    const seen = new Set<string>();
+    for (const item of body.data) {
+      if (!item || typeof item.id !== 'string') continue;
+      const id = item.id.trim();
+      if (!id || id.length > 256 || [...id].some(char => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127) || seen.has(id)) continue;
+      seen.add(id);
+      models.push({ id, ...(typeof item.name === 'string' ? { name: item.name.slice(0, 160) } : {}) });
+      if (models.length >= 5000) break;
+    }
+    return { status: 'catalog', models: models.sort((a, b) => a.id.localeCompare(b.id)) };
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error(signal?.aborted ? 'Connection check cancelled.' : 'Connection check timed out.');
+    if (error instanceof TypeError) throw new Error('Cannot reach the model catalog. Check the URL, network and provider CORS support.');
+    throw error;
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', abort);
+  }
 }

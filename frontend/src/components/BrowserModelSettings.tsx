@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { Check, ChevronDown, CircleAlert, Eye, EyeOff, Loader2, X } from 'lucide-react';
+import { Check, ChevronDown, CircleAlert, Eye, EyeOff, Loader2, Settings2, ShieldCheck, X } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageProvider';
 import { completionUrl, forgetModelKey, loadCustomModelConfig, loadModelConfig, saveModelConfig, testBrowserModelConnection } from '../services/browser/modelConfig';
 import { useHostedModel } from '../hooks/useHostedModel';
+import { ChoiceSelect } from './ChoiceSelect';
+import { ModelIdPicker } from './ModelIdPicker';
+import type { BrowserModelChoice } from '../services/browser/modelConfig';
 import type { BrowserModelConfig } from '../services/browser/modelConfig';
 import { MODEL_CONFIG_EVENT, MODEL_SETTINGS_EVENT } from '../services/browser/runtime';
 
@@ -11,12 +14,12 @@ type Feedback = { kind: 'idle' | 'testing' | 'success' | 'limited' | 'error' | '
 function connectionError(error: unknown, zh: boolean): string {
   const message = error instanceof Error ? error.message : '';
   if (!zh) return message || 'Connection failed. Check the endpoint and try again.';
-  if (/401|403/.test(message)) return '密钥或模型权限有误，请检查后重试。';
+  if (/401|403/.test(message)) return '接口鉴权失败，请检查密钥或服务商权限。';
   if (/402|429/.test(message)) return '服务商额度不足或请求受限，请检查账户额度后重试。';
   if (/404/.test(message)) return '找不到接口或模型，请核对 API 地址和模型 ID。';
-  if (/timed out/i.test(message)) return '连接超时，请稍后重试，或换用响应更快的模型。';
+  if (/timed out/i.test(message)) return '连接检查超时，请检查网络或接口地址后重试。';
   if (/CORS|Cannot reach/.test(message)) return '浏览器无法连接。请检查地址和网络；若服务商不支持跨域（CORS），请改用支持浏览器直连的接口，或运行完整本地版。';
-  if (/no text|no completion|invalid response/.test(message)) return '接口未返回有效文本，请确认模型支持 Chat Completions。';
+  if (/catalog.*invalid|catalog.*large/i.test(message)) return '模型目录格式不受支持，可手动输入模型 ID。';
   return '连接失败，请检查接口、模型权限及服务商状态。';
 }
 
@@ -28,6 +31,8 @@ export function BrowserModelSettings() {
   const [config, setConfig] = useState(loadModelConfig);
   const [reveal, setReveal] = useState(false);
   const [hasSavedKey, setHasSavedKey] = useState(false);
+  const [models, setModels] = useState<BrowserModelChoice[]>([]);
+  const [catalogLoaded, setCatalogLoaded] = useState(false);
   const [touched, setTouched] = useState({ baseUrl: false, model: false });
   const [feedback, setFeedback] = useState<Feedback>({ kind: 'idle' });
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -42,8 +47,10 @@ export function BrowserModelSettings() {
   };
   const close = () => { stopRequest(); setReveal(false); setOpen(false); };
   const updateConfig = (patch: Partial<BrowserModelConfig>) => {
-    stopRequest();
-    setFeedback({ kind: 'idle' });
+    if ('baseUrl' in patch || 'apiKey' in patch || 'source' in patch) {
+      stopRequest(); setModels([]); setCatalogLoaded(false);
+    }
+    if (requestRef.current === null) setFeedback({ kind: 'idle' });
     setConfig(current => ({ ...current, ...patch }));
   };
 
@@ -54,6 +61,7 @@ export function BrowserModelSettings() {
       customDraftRef.current = loadCustomModelConfig();
       setConfig(saved);
       setHasSavedKey(Boolean(saved.apiKey));
+      setModels([]); setCatalogLoaded(false);
       setTouched({ baseUrl: false, model: false });
       setFeedback({ kind: 'idle' });
       setReveal(false);
@@ -87,7 +95,7 @@ export function BrowserModelSettings() {
   const canSubmit = isHosted ? hosted.status === 'available' : !urlError && !modelError;
 
   const test = async () => {
-    if (!canSubmit) return;
+    if (isHosted ? hosted.status !== 'available' : Boolean(urlError)) return;
     stopRequest();
     const controller = new AbortController();
     requestRef.current = controller;
@@ -95,9 +103,14 @@ export function BrowserModelSettings() {
     try {
       const result = await testBrowserModelConnection(config, controller.signal);
       if (controller.signal.aborted || requestRef.current !== controller) return;
-      setFeedback(result === 'ready'
-        ? { kind: 'success', message: zh ? '连接成功。保存后即可使用。' : 'Connected. Save to use this model.' }
-        : { kind: 'limited', message: zh ? '接口已连通，但测试输出额度已用尽。可降低推理强度后重试。' : 'Endpoint reached, but the test output budget was exhausted. Try a lower reasoning effort.' });
+      setModels(result.models); setCatalogLoaded(true);
+      setFeedback(result.status === 'unsupported'
+        ? { kind: 'limited', message: zh ? '接口未提供模型目录，可手动填写 ID。尚未验证生成能力。' : 'No model catalog is exposed. Enter an ID manually; generation remains unverified.' }
+        : result.status === 'hosted'
+          ? { kind: 'success', message: zh ? '体验服务在线。未发起生成请求。' : 'Demo service is online. No generation request was sent.' }
+          : { kind: result.models.length ? 'success' : 'limited', message: zh
+            ? `已读取 ${result.models.length} 个模型。未验证生成权限。`
+            : `Models listed: ${result.models.length}. Generation access is unverified.` });
     } catch (error) {
       if (controller.signal.aborted || requestRef.current !== controller) return;
       setFeedback({ kind: 'error', message: connectionError(error, zh) });
@@ -123,6 +136,7 @@ export function BrowserModelSettings() {
     try {
       forgetModelKey();
       customDraftRef.current = { ...customDraftRef.current, apiKey: '', rememberKey: false };
+      setModels([]); setCatalogLoaded(false);
       setConfig(current => ({ ...current, apiKey: '', rememberKey: false }));
       setReveal(false);
       setHasSavedKey(false);
@@ -160,7 +174,7 @@ export function BrowserModelSettings() {
               updateConfig({ source: 'hosted', baseUrl: '/api/model', model: hosted.model, apiKey: '' });
             }}><span>GLM-5.3-Flash</span><small>{hosted.status === 'available' ? (zh ? '默认体验 · 无需密钥' : 'Shared demo · no key needed') : (zh ? '暂不可用' : 'Temporarily unavailable')}</small></button>
             <button type="button" aria-pressed={!isHosted} onClick={() => {
-              if (isHosted) { stopRequest(); setFeedback({ kind: 'idle' }); setConfig({ ...customDraftRef.current, source: 'custom' }); }
+              if (isHosted) { stopRequest(); setModels([]); setCatalogLoaded(false); setFeedback({ kind: 'idle' }); setConfig({ ...customDraftRef.current, source: 'custom' }); }
             }}><span>{zh ? '自己的模型' : 'Your own model'}</span><small>{zh ? '使用你的 API 与额度' : 'Use your API and allowance'}</small></button>
           </div>}
           {isHosted && <p className="text-xs leading-6 text-slate-500 dark:text-slate-400">{zh ? '可以直接生成、评审和局部编辑。共享额度用尽时，可切换到自己的模型继续。' : 'Generate, review and edit directly. Switch to your own model if the shared allowance is reached.'}</p>}
@@ -179,10 +193,9 @@ export function BrowserModelSettings() {
 
           <div>
             <label htmlFor="browser-model-id" className="studio-field-label mb-2 block">{zh ? '模型 ID' : 'Model ID'}</label>
-            <input id="browser-model-id" ref={modelRef} className="studio-form-input" required value={config.model} placeholder={zh ? '服务商提供的完整模型名称' : 'The exact model ID from your provider'} spellCheck={false} autoComplete="off" autoCapitalize="none"
-              aria-invalid={touched.model && Boolean(modelError)} aria-describedby={touched.model && modelError ? 'browser-model-id-error' : undefined}
-              onBlur={() => setTouched(current => ({ ...current, model: true }))}
-              onChange={event => updateConfig({ model: event.target.value })} />
+            <ModelIdPicker inputRef={modelRef} value={config.model} onChange={value => updateConfig({ model: value })}
+              onBlur={() => { if (config.model.length > 0) setTouched(current => ({ ...current, model: true })); }} onLoad={() => { void test(); }}
+              models={models} loading={isTesting} loaded={catalogLoaded} invalid={touched.model && Boolean(modelError)} zh={zh} />
             {touched.model && modelError && <p id="browser-model-id-error" className="studio-field-error">{modelError}</p>}
           </div>
 
@@ -207,7 +220,7 @@ export function BrowserModelSettings() {
           </>}
 
           <details className="studio-details">
-            <summary><span>{zh ? '高级设置与连接帮助' : 'Advanced settings & help'}</span><ChevronDown size={14} /></summary>
+            <summary><span className="studio-disclosure-label"><Settings2 size={15} aria-hidden="true" />{zh ? '高级设置与连接帮助' : 'Advanced settings & help'}</span><ChevronDown size={14} aria-hidden="true" /></summary>
             <div className="space-y-4 pb-1 pt-2">
               <label className="relative flex min-h-11 cursor-pointer items-center gap-3">
                 <input type="checkbox" role="switch" checked={config.refine} onChange={event => updateConfig({ refine: event.target.checked })} aria-describedby="browser-model-review-hint" className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0" />
@@ -215,12 +228,11 @@ export function BrowserModelSettings() {
                 <span className="text-xs text-slate-600 dark:text-slate-300">{zh ? '生成后评审' : 'Review after generation'}<span id="browser-model-review-hint" className="mt-1 block text-[11px] text-slate-500 dark:text-slate-400">{zh ? '额外调用一次模型' : 'One extra model call'}</span></span>
               </label>
               {!isHosted && <>
-              <label className="flex items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-300">{zh ? '推理强度' : 'Reasoning effort'}
-                <select className="create-diagram-select min-w-0 max-w-[65%]" value={config.reasoningEffort || ''} onChange={event => updateConfig({ reasoningEffort: (event.target.value || undefined) as BrowserModelConfig['reasoningEffort'] })}>
-                  <option value="">{zh ? '服务商默认' : 'Provider default'}</option>
-                  <option value="low">{zh ? '低' : 'Low'}</option><option value="medium">{zh ? '中' : 'Medium'}</option><option value="high">{zh ? '高' : 'High'}</option>
-                </select>
-              </label>
+              <div className="flex items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-300"><span>{zh ? '推理强度' : 'Reasoning effort'}</span>
+                <ChoiceSelect label={zh ? '推理强度' : 'Reasoning effort'} value={config.reasoningEffort || ''} placement="below" menuWidth={168} align="end"
+                  options={[{ value: '', label: zh ? '服务商默认' : 'Provider default' }, { value: 'low', label: zh ? '低' : 'Low' }, { value: 'medium', label: zh ? '中' : 'Medium' }, { value: 'high', label: zh ? '高' : 'High' }]}
+                  onChange={value => updateConfig({ reasoningEffort: (value || undefined) as BrowserModelConfig['reasoningEffort'] })} />
+              </div>
               <p className="text-[11px] leading-5 text-slate-500 dark:text-slate-400">{zh ? '仅支持 reasoning_effort 的模型可调整；不确定时保持默认。接口须支持 Chat Completions 和浏览器跨域（CORS）。切换地址会清空密钥输入。' : 'Adjust only for models supporting reasoning_effort; otherwise keep the default. Your endpoint must support Chat Completions and browser access (CORS). Changing the URL clears the key field.'}</p>
               <div className="flex flex-wrap items-center gap-x-3">
                 <button type="button" className="studio-secondary -ml-2 px-2 text-xs" onClick={() => {
@@ -235,23 +247,30 @@ export function BrowserModelSettings() {
               </>}
             </div>
           </details>
-          <p className="break-words text-[11px] leading-5 text-slate-500 dark:text-slate-400">{isHosted
-            ? (zh ? '图表内容经 EvoDesign 转发给智谱。项目仍保存在此浏览器；密钥仅留在服务端。' : 'Diagram content is sent through EvoDesign to BigModel. Projects stay in this browser; the shared key stays on the server.')
-            : zh ? `请求直达 ${destination || '你指定的服务商'}，费用由服务商收取。EvoDesign 不接收密钥。` : `Requests go directly to ${destination || 'your provider'}, who bills usage. EvoDesign does not receive your key.`}</p>
+          <details className="studio-details model-connection-details">
+            <summary><span className="studio-disclosure-label"><ShieldCheck size={15} aria-hidden="true" />{zh ? '数据与费用说明' : 'Data & billing'}</span><ChevronDown size={14} aria-hidden="true" /></summary>
+            <dl className="model-connection-facts">
+              <div><dt>{zh ? '请求去向' : 'Destination'}</dt><dd>{isHosted ? (zh ? 'EvoDesign → 智谱' : 'EvoDesign → BigModel') : destination || (zh ? '你指定的服务商' : 'Your provider')}</dd></div>
+              <div><dt>{zh ? '密钥保管' : 'API key'}</dt><dd>{isHosted ? (zh ? '仅保存在服务端' : 'Kept on the server') : (zh ? '仅保留在你的浏览器，不发送给 EvoDesign' : 'Kept in your browser; never sent to EvoDesign')}</dd></div>
+              <div><dt>{zh ? '项目存储' : 'Projects'}</dt><dd>{zh ? '当前浏览器' : 'This browser'}</dd></div>
+              {!isHosted && <div><dt>{zh ? '使用费用' : 'Billing'}</dt><dd>{zh ? '由模型服务商收取' : 'Billed by your model provider'}</dd></div>}
+            </dl>
+          </details>
         </div>
 
         <footer className="shrink-0 space-y-3 border-t border-slate-200/70 px-5 pb-[max(env(safe-area-inset-bottom),1.25rem)] pt-4 dark:border-white/[0.07] sm:px-7">
+          {feedback.kind === 'idle' && <p className="text-[11px] leading-5 text-slate-500 dark:text-slate-400">{zh ? '连接检查仅读取目录，不发送生成请求。' : 'Connection checks read metadata only; no generation request is sent.'}</p>}
           {feedback.kind !== 'idle' && <div role={feedback.kind === 'error' ? 'alert' : 'status'} aria-live="polite"
             className={`flex items-start gap-2 text-xs leading-5 ${feedback.kind === 'error' ? 'text-rose-600 dark:text-rose-300' : feedback.kind === 'success' ? 'text-teal-700 dark:text-teal-300' : feedback.kind === 'limited' ? 'text-amber-700 dark:text-amber-300' : 'text-slate-500 dark:text-slate-400'}`}>
             {isTesting ? <Loader2 size={14} className="mt-0.5 shrink-0 animate-spin" /> : feedback.kind === 'success' ? <Check size={14} className="mt-0.5 shrink-0" /> : feedback.kind === 'error' || feedback.kind === 'limited' ? <CircleAlert size={14} className="mt-0.5 shrink-0" /> : null}
-            <span>{isTesting ? (zh ? '正在发送小额测试请求，最多等待 60 秒，可随时停止。' : 'Sending a small test request. Up to 60 seconds; stop anytime.') : feedback.message}</span>
+            <span>{isTesting ? (zh ? '正在读取模型目录，不发送生成请求…' : 'Reading the catalog. No generation request is sent…') : feedback.message}</span>
           </div>}
           <div className="flex items-center justify-between gap-2">
-            <button type="button" className="studio-secondary -ml-2 px-2 text-xs" disabled={!isTesting && !canSubmit} title={!canSubmit ? (zh ? '先填写 API 地址和模型 ID' : 'Enter an API URL and model ID first') : undefined}
+            <button type="button" className="studio-secondary -ml-2 px-2 text-xs" disabled={!isTesting && (isHosted ? hosted.status !== 'available' : Boolean(urlError))} title={zh ? '仅读取模型目录，不调用生成接口' : 'Reads metadata only; does not call generation'}
               onClick={() => {
                 if (isTesting) { stopRequest(); setFeedback({ kind: 'notice', message: zh ? '测试已停止。' : 'Test stopped.' }); }
                 else void test();
-              }}>{isTesting ? (zh ? '停止测试' : 'Stop test') : (zh ? '测试连接' : 'Test connection')}</button>
+              }}>{isTesting ? (zh ? '停止测试' : 'Stop test') : (zh ? '检查连接' : 'Check connection')}</button>
             <div className="flex items-center gap-1 sm:gap-2">
               <button type="button" onClick={close} className="studio-secondary px-2 sm:px-3">{zh ? '取消' : 'Cancel'}</button>
               <button type="submit" className="studio-primary" disabled={!canSubmit}>{zh ? '保存' : 'Save'}</button>

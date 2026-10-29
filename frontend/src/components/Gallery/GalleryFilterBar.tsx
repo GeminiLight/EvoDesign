@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { ChevronDown, SlidersHorizontal, X } from 'lucide-react';
 import type { IndustryTag, ComplexityTag } from '../../data/galleryMockData';
 import { INDUSTRY_TAGS, COMPLEXITY_TAGS } from '../../data/galleryMockData';
+import { ChoiceSelect } from '../ChoiceSelect';
 
 type SortValue = 'trending' | 'newest' | 'mostCloned';
 interface GalleryFilterBarProps {
@@ -32,18 +33,20 @@ export const GalleryFilterBar = ({ t, activeTab, selectedIndustryTags, onToggleI
               <fieldset><legend className="mb-2 text-xs font-medium text-slate-500">{t('gallery.filterIndustryLabel')}</legend>
                 <div className="grid grid-cols-2 gap-x-3">{INDUSTRY_TAGS.map((tag) => <label key={tag} className="flex min-h-10 cursor-pointer items-center gap-2 text-xs text-slate-600 dark:text-slate-300"><input type="checkbox" checked={selectedIndustryTags.includes(tag)} onChange={() => onToggleIndustry(tag)} className="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-400 dark:border-slate-600 dark:bg-slate-800" />{t(labelKey('filter', tag))}</label>)}</div>
               </fieldset>
-              <label className="mt-3 block text-xs font-medium text-slate-500">{t('gallery.filterComplexityLabel')}<select className="inspiration-select mt-2 w-full" value={selectedComplexity ?? ''} onChange={(event) => onSetComplexity(event.target.value as ComplexityTag || null)}><option value="">{t('gallery.filterAll')}</option>{COMPLEXITY_TAGS.map((tag) => <option key={tag} value={tag}>{t(labelKey('complexity', tag))}</option>)}</select></label>
+              <div className="mt-3 text-xs font-medium text-slate-500">
+                <label htmlFor="gallery-complexity">{t('gallery.filterComplexityLabel')}</label>
+                <ChoiceSelect id="gallery-complexity" className="choice-select-field mt-2" label={t('gallery.filterComplexityLabel')} value={selectedComplexity ?? ''} menuWidth="anchor"
+                  options={[{ value: '', label: t('gallery.filterAll') }, ...COMPLEXITY_TAGS.map(tag => ({ value: tag, label: t(labelKey('complexity', tag)) }))]}
+                  onChange={value => onSetComplexity(value as ComplexityTag || null)} />
+              </div>
               <button type="button" className="studio-secondary mt-2 w-full" onClick={() => { if (filters.current) { filters.current.open = false; filters.current.querySelector('summary')?.focus(); } }}>{t('gallery.done')}</button>
             </div>
           </details>
           {count > 0 && <button type="button" onClick={onResetFilters} className="studio-secondary"><X size={13} />{t('gallery.resetFilters')}</button>}
         </>}
       </div>
-      <select aria-label={t('gallery.sortByLabel')} className="inspiration-select max-w-full" value={sortBy} onChange={(event) => onSortChange(event.target.value as SortValue)}>
-        <option value="trending">{t('gallery.sortTrending')}</option>
-        {activeTab === 'works' && <option value="newest">{t('gallery.sortNewest')}</option>}
-        <option value="mostCloned">{t('gallery.sortMostCloned')}</option>
-      </select>
+      <ChoiceSelect label={t('gallery.sortByLabel')} value={sortBy} menuWidth={188} align="end" onChange={value => onSortChange(value as SortValue)}
+        options={[{ value: 'trending', label: t('gallery.sortTrending') }, ...(activeTab === 'works' ? [{ value: 'newest', label: t('gallery.sortNewest') }] : []), { value: 'mostCloned', label: t('gallery.sortMostCloned') }]} />
     </div>
   );
 };

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { ArrowUpRight, ChevronDown, Loader2, Settings2, Sparkles, X } from 'lucide-react';
 import type { PromptOption, PromptPill } from '../DiagramPromptComposer';
 import { StageProgress } from '../StageProgress';
+import { ChoiceSelect } from '../ChoiceSelect';
 import type { GenerationProgress } from '../../types/app';
 import { useLanguage } from '../../i18n/LanguageProvider';
 import { BROWSER_MODE, openModelSettings } from '../../services/browser/runtime';
@@ -124,11 +125,11 @@ export function CreateDiagramDialog({
           </div>
 
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <label className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">{t('workspace.createDialogTypeLabel')}
-              <select value={selectedPillId} disabled={isDialogLocked} className="create-diagram-select min-w-0 flex-1 sm:w-36 sm:flex-none" onChange={(event) => { const pill = allPills.find((item) => item.id === event.target.value); if (pill) onSelectPill(pill); }}>
-                {allPills.map((pill) => <option key={pill.id} value={pill.id}>{pill.label}</option>)}
-              </select>
-            </label>
+            <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400"><label htmlFor="create-diagram-type">{t('workspace.createDialogTypeLabel')}</label>
+              <ChoiceSelect id="create-diagram-type" label={t('workspace.createDialogTypeLabel')} value={selectedPillId} disabled={isDialogLocked}
+                options={allPills.map(pill => ({ value: pill.id, label: pill.label, featured: pill.id === 'adaptive' }))}
+                onChange={value => { const pill = allPills.find(item => item.id === value); if (pill) onSelectPill(pill); }} />
+            </div>
             <label className={`relative flex min-h-11 items-center gap-2.5 text-xs text-slate-600 dark:text-slate-300 ${isDialogLocked || !supportsIcons ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
               <input type="checkbox" role="switch" checked={useIcons && supportsIcons} onChange={(event) => onUseIconsChange(event.target.checked)} disabled={isDialogLocked || !supportsIcons} aria-describedby="create-diagram-icons-hint" className="peer absolute inset-0 z-10 h-full w-full cursor-[inherit] opacity-0" />
               <span aria-hidden="true" className="create-diagram-switch" />
@@ -151,8 +152,8 @@ export function CreateDiagramDialog({
           {(canvasOptions.length > 1 || modelOptions.length > 1) && <details className="create-diagram-details mt-3">
             <summary><span className="flex items-center gap-2"><Settings2 size={14} />{t('workspace.createDialogAdvanced')}</span><ChevronDown size={14} /></summary>
             <fieldset disabled={isDialogLocked} className="space-y-3 pb-2 pt-3">
-              {modelOptions.length > 1 && <label className="flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">{t('home.modelIconTitle')}<select className="create-diagram-select w-44" value={modelIndex} onChange={(event) => onModelChange(Number(event.target.value))}>{modelOptions.map((model, index) => <option key={model.id} value={index}>{model.label}</option>)}</select></label>}
-              {canvasOptions.length > 1 && <label className="flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">{t('settings.canvasEngine')}<select className="create-diagram-select w-44" value={canvasIndex} onChange={(event) => onCanvasChange(Number(event.target.value))}>{canvasOptions.map((canvas, index) => <option key={canvas.id} value={index}>{canvas.label}</option>)}</select></label>}
+              {modelOptions.length > 1 && <div className="flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400"><label htmlFor="create-diagram-model">{t('home.modelIconTitle')}</label><ChoiceSelect id="create-diagram-model" label={t('home.modelIconTitle')} value={String(modelIndex)} disabled={isDialogLocked} align="end" options={modelOptions.map((model, index) => ({ value: String(index), label: model.label }))} onChange={value => onModelChange(Number(value))} /></div>}
+              {canvasOptions.length > 1 && <div className="flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400"><label htmlFor="create-diagram-canvas">{t('settings.canvasEngine')}</label><ChoiceSelect id="create-diagram-canvas" label={t('settings.canvasEngine')} value={String(canvasIndex)} disabled={isDialogLocked} align="end" options={canvasOptions.map((canvas, index) => ({ value: String(index), label: canvas.label }))} onChange={value => onCanvasChange(Number(value))} /></div>}
             </fieldset>
           </details>}
 

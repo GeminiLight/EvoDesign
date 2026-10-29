@@ -2196,8 +2196,9 @@ export function WorkspacePage() {
   }, [beginGenerationStart, buildGlobalGenerationMetadata, buildFailedGenerationDraft, workspaceInteractionBlocked, request, canvasMode, preview, openCreateDialogFromPrompt, getValidSelectedNodeIds, handleSendChatMessage, selectedNodeIds, clearSelection, latestSnapshotRef, prepareForGlobalGeneration, generateDiagram, t, finishGenerationStart, scrollCanvasIntoViewOnMobile, setGenerationSummary, clearGenerationFailure, getGenerationIncompleteMessage, saveFailedGenerationDraft, savePendingGenerationDraft]);
 
   return (
-    <div className="workspace-shell min-h-screen overflow-x-hidden bg-canvas text-slate-900 font-sans selection:bg-brand-100 selection:text-brand-900 dark:bg-slate-950 dark:text-slate-100 dark:selection:bg-brand-500/40 dark:selection:text-white">
+    <div className="studio-shell studio-workspace workspace-shell min-h-screen overflow-x-hidden bg-canvas text-slate-900 font-sans selection:bg-brand-100 selection:text-brand-900 dark:bg-slate-950 dark:text-slate-100 dark:selection:bg-brand-500/40 dark:selection:text-white">
       <Header
+        variant="studio"
         authTransitionBlocked={authTransitionBlocked}
         onAuthTransitionBlocked={handleAuthTransitionBlocked}
         onBeforeNavigate={handleBeforeWorkspaceNavigate}
@@ -2608,6 +2609,10 @@ export function WorkspacePage() {
         open={showCreateDialog}
         onClose={() => {
           setShowCreateDialog(false);
+          if (activeCreatePreflight?.source === 'home' && !preview) {
+            navigate('/home', { replace: true, state: { initialPrompt: createPrompt,
+              initialDiagramType: selectedCreateDiagramType, initialUseIcons: createUseIcons } });
+          }
           clearActiveCreatePreflight();
         }}
         prompt={createPrompt}

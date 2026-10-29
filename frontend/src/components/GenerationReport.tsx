@@ -1,7 +1,7 @@
-import { AlertTriangle, BrainCircuit, Check, ChevronDown, Clock3, Sparkles } from 'lucide-react';
+import { AlertTriangle, Check, ChevronDown, Clock3, PencilLine, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { apiV1Url, getStoredAuthToken } from '../services/httpClient';
-import { formatGenerationDuration, type GenerationReport as Report } from '../utils/generationReport';
+import { formatGenerationDuration, getGenerationReviewState, hasCurrentVisualScores, type GenerationReport as Report } from '../utils/generationReport';
 
 const stageKeys: Record<string, string> = {
   memory: 'workflowMemory', structure: 'workflowExtract', styling: 'workflowIntent',
@@ -13,19 +13,46 @@ export function GenerationReport({ report, t, compact = false }: { report: Repor
   const detailsRef = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
     if (!compact) return;
-    const closeOutside = (event: MouseEvent) => {
+    const details = detailsRef.current;
+    const fitToViewport = () => {
+      if (!details?.open) return;
+      const panel = details.querySelector<HTMLElement>(':scope > .report-content');
+      if (!panel) return;
+      const viewport = window.visualViewport;
+      const bottom = viewport ? Math.min(window.innerHeight, viewport.height + viewport.offsetTop) : window.innerHeight;
+      panel.style.maxHeight = `${Math.max(0, Math.min(480, bottom - panel.getBoundingClientRect().top - 12))}px`;
+    };
+    details?.addEventListener('toggle', fitToViewport);
+    window.addEventListener('resize', fitToViewport);
+    window.visualViewport?.addEventListener('resize', fitToViewport);
+    window.visualViewport?.addEventListener('scroll', fitToViewport);
+    fitToViewport();
+    return () => {
+      details?.removeEventListener('toggle', fitToViewport);
+      window.removeEventListener('resize', fitToViewport);
+      window.visualViewport?.removeEventListener('resize', fitToViewport);
+      window.visualViewport?.removeEventListener('scroll', fitToViewport);
+    };
+  }, [compact]);
+  useEffect(() => {
+    if (!compact) return;
+    const closeOutside = (event: Event) => {
       if (detailsRef.current && !detailsRef.current.contains(event.target as Node)) detailsRef.current.open = false;
     };
     const closeEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && detailsRef.current?.open) {
+        event.preventDefault();
+        event.stopPropagation();
         detailsRef.current.open = false;
         detailsRef.current.querySelector('summary')?.focus();
       }
     };
-    document.addEventListener('mousedown', closeOutside);
+    document.addEventListener('pointerdown', closeOutside);
+    document.addEventListener('focusin', closeOutside);
     document.addEventListener('keydown', closeEscape);
     return () => {
-      document.removeEventListener('mousedown', closeOutside);
+      document.removeEventListener('pointerdown', closeOutside);
+      document.removeEventListener('focusin', closeOutside);
       document.removeEventListener('keydown', closeEscape);
     };
   }, [compact]);
@@ -58,60 +85,82 @@ export function GenerationReport({ report, t, compact = false }: { report: Repor
   }, [jobId, report.learning.status]);
   const learningState = learned && learned.jobId === jobId ? learned : report.learning;
   const label = (key: string, count: number) => t(`workspace.${key}`).replace('{count}', String(count));
-  const memory = report.browserEdition ? t('browser.edition') : report.memory.status === 'used'
-    ? label('memoryUsed', report.memory.retrievedCount)
-    : t(`workspace.memory${report.memory.status === 'unavailable' ? 'Unavailable' : report.memory.status === 'disabled' ? 'Disabled' : 'Empty'}`);
-  const edited = report.qualityStatus === 'edited';
-  const attentionLabel = report.browserEdition ? '' : report.qualityStatus === 'needs_attention' ? t('workspace.qualityNeedsAttentionShort')
-    : report.qualityStatus === 'unverified' ? t('workspace.qualityUnverified') : '';
-  const detailsLabel = [t('workspace.generationDetails'), attentionLabel].filter(Boolean).join(' · ');
+  const state = getGenerationReviewState(report);
+  const statusLabel = t(`workspace.reportState_${state}`);
+  const warning = ['needs_attention', 'unverified', 'kept_original'].includes(state);
+  const positive = ['reviewed', 'refined', 'not_needed'].includes(state);
+  const edited = state === 'edited';
+  const note = edited ? t('workspace.reportEditedNote') : state === 'needs_attention' ? t('workspace.reportAttentionNote')
+    : state === 'unverified' ? t(report.browserEdition ? 'workspace.reportContentUnavailable' : 'workspace.reportVisualUnavailable') : null;
+  const memory = report.memory.status === 'used' ? label('memoryUsed', report.memory.retrievedCount)
+    : t(`workspace.${report.memory.status === 'unavailable' ? 'reportMemoryUnavailable' : report.memory.status === 'disabled' ? 'reportMemoryDisabled' : 'memoryEmpty'}`);
   const refined = report.refinement.status === 'completed';
-  const keptOriginal = ['failed', 'unresolved'].includes(report.refinement.status);
-  const skipLabel = report.refinement.status === 'unsupported' ? 'refinementUnsupported'
-    : report.refinement.status === 'disabled' ? 'refinementDisabled' : 'refinementNotNeeded';
-  const refinement = report.browserEdition ? t(`browser.${refined ? 'reviewDone' : report.refinement.status === 'skipped' ? 'reviewOff' : 'reviewKept'}`) : refined ? label('refinementApplied', report.refinement.fixesApplied)
-    : t(`workspace.${keptOriginal ? 'refinementKeptOriginal' : skipLabel}`);
-  const learning = learningState.status === 'saved'
-    ? label('memoryLearned', learningState.savedCount)
-    : t(`workspace.${['queued', 'running'].includes(learningState.status) ? 'memoryLearningQueued'
-      : learningState.status === 'unavailable' ? 'memoryLearningUnavailable' : 'memoryNoNewLesson'}`);
+  const refinement = refined ? (report.browserEdition
+    ? t(edited ? 'workspace.reportReviewedOriginal' : 'workspace.reportCompleted')
+    : label('reportFixCount', report.refinement.fixesApplied))
+    : t(`workspace.reportState_${['failed', 'unresolved'].includes(report.refinement.status) ? 'kept_original'
+      : report.browserEdition ? 'not_reviewed' : report.refinement.status === 'unsupported' ? 'unsupported'
+        : report.refinement.status === 'disabled' ? 'disabled' : report.refinement.status === 'skipped' ? 'not_needed' : 'unverified'}`);
+  const showLearning = !report.browserEdition && ['saved', 'queued', 'running', 'unavailable'].includes(learningState.status);
+  const learning = learningState.status === 'saved' ? label('reportLearnedCount', learningState.savedCount)
+    : t(['queued', 'running'].includes(learningState.status) ? 'workspace.reportLearning' : 'workspace.reportLearningUnavailable');
+  const timings = Object.entries(report.timings).filter(([, ms]) => typeof ms === 'number' && Number.isFinite(ms) && ms >= 0);
+  const stageLabel = (stage: string) => {
+    if (stage === 'memory') return t('workspace.reportMemory');
+    if (report.browserEdition && ['structure', 'refining', 'layout'].includes(stage)) {
+      return t(`browser.${stage === 'structure' ? 'planStage' : stage === 'refining' ? 'reviewStage' : 'layoutStage'}`);
+    }
+    return stageKeys[stage] ? t(`landing.${stageKeys[stage]}`) : t('workspace.reportOtherStage');
+  };
+  const title = t('workspace.reportTitle');
+  const duration = formatGenerationDuration(report.durationMs);
+  const close = () => {
+    if (detailsRef.current) detailsRef.current.open = false;
+    detailsRef.current?.querySelector('summary')?.focus();
+  };
 
   return (
-    <details ref={detailsRef} data-compact={compact} className="generation-report group mb-2 rounded-xl border border-slate-200 bg-white text-slate-700 dark:border-brand-500/25 dark:from-brand-950/50 dark:via-slate-900 dark:to-violet-950/30 dark:text-slate-200">
-      <summary aria-label={detailsLabel} title={detailsLabel} className="flex min-h-10 cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-2 rounded-xl px-3 py-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 [&::-webkit-details-marker]:hidden">
-        {compact && attentionLabel && (
-          <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-300">
-            <AlertTriangle size={14} aria-hidden="true" />
-            <span className="sr-only">{attentionLabel}</span>
-          </span>
-        )}
-        <span className="report-memory inline-flex items-center gap-1.5 font-semibold text-brand-700 dark:text-brand-300"><BrainCircuit size={15} aria-hidden="true" />{memory}</span>
-        <span className="report-quality inline-flex items-center gap-1.5"><Sparkles size={14} aria-hidden="true" />{edited ? t('workspace.qualityEditedShort') : refinement}{report.qualityStatus === 'needs_attention' && ` · ${t('workspace.qualityNeedsAttentionShort')}`}</span>
-        <span className="ml-auto inline-flex items-center gap-1.5 tabular-nums text-slate-500 dark:text-slate-400"><Clock3 size={13} aria-hidden="true" />{formatGenerationDuration(report.durationMs)}</span>
-        <span className="report-label text-[11px] font-medium text-brand-600 underline decoration-brand-200 underline-offset-4 dark:text-brand-300">{t('workspace.generationDetails')}</span>
-        <ChevronDown className="report-chevron h-3 w-3 shrink-0 transition-transform group-open:rotate-180" />
+    <details ref={detailsRef} data-compact={compact} className="generation-report">
+      <summary aria-label={`${title} · ${statusLabel} · ${duration}`} title={`${title} · ${statusLabel}`}>
+        {compact && warning && <span className="report-attention-dot" aria-hidden="true" />}
+        <Clock3 size={14} aria-hidden="true" /><span className="report-duration">{duration}</span>
+        <span className="report-label">{title}</span><ChevronDown className="report-chevron" size={13} aria-hidden="true" />
       </summary>
-      <div className="report-content border-t border-brand-100/80 px-4 pb-4 pt-3 text-xs dark:border-brand-500/20">
-        {compact && <div className="mb-3 flex flex-wrap gap-x-4 gap-y-2 text-brand-700 dark:text-brand-300"><span>{memory}</span><span>{edited ? t('workspace.qualityEditedShort') : refinement}</span></div>}
-        {edited && <p className="mb-2 text-slate-600 dark:text-slate-300">{t('workspace.qualityEdited')}</p>}
-        {report.browserEdition && report.refinement.reason && <p className="mb-2 text-amber-700 dark:text-amber-300">{report.refinement.reason}</p>}
-        {report.qualityStatus === 'needs_attention' && (
-          <p className="mb-2 text-amber-700 dark:text-amber-300">{t('workspace.qualityNeedsAttention')}</p>
-        )}
-        {!report.browserEdition && report.qualityStatus === 'unverified' && (
-          <p className="mb-2 text-amber-700 dark:text-amber-300">{t('workspace.qualityUnverified')}</p>
-        )}
-        <p className="flex items-center gap-1.5"><Check size={14} aria-hidden="true" />{report.browserEdition ? t('browser.scope') : learning}</p>
-        <p className="mt-1.5 leading-relaxed text-slate-500 dark:text-slate-400">{t(report.browserEdition ? 'browser.memory' : 'workspace.memoryLearningHint')}</p>
-        {!edited && report.beforeScore !== undefined && report.afterScore !== undefined && (
-          <p className="mt-2 tabular-nums">{t('workspace.visualQualityScore')}: {report.beforeScore.toFixed(1)} → {report.afterScore.toFixed(1)} / 10</p>
-        )}
-        <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3">
-          {Object.entries(report.timings).map(([stage, ms]) => (
-            <div key={stage} className="flex justify-between gap-2"><dt className="text-slate-500 dark:text-slate-400">{t(report.browserEdition ? `browser.${stage === 'structure' ? 'planStage' : stage === 'refining' ? 'reviewStage' : 'layoutStage'}` : `landing.${stageKeys[stage]}`)}</dt><dd className="tabular-nums">{formatGenerationDuration(ms!)}</dd></div>
-          ))}
-        </dl>
-      </div>
+      <section className="report-content" aria-label={title}>
+        <header className="report-heading">
+          <h3>{title}</h3>
+          <span className="report-total" title={t('workspace.reportTotalTime')}>{duration}</span>
+          {compact && <button type="button" className="report-close" onClick={close} aria-label={t('workspace.reportClose')}><X size={15} aria-hidden="true" /></button>}
+        </header>
+        <div className="report-body">
+          <div className="report-status" data-tone={warning ? 'attention' : positive ? 'positive' : 'neutral'}>
+            {edited ? <PencilLine size={14} aria-hidden="true" /> : warning ? <AlertTriangle size={14} aria-hidden="true" /> : positive ? <Check size={14} aria-hidden="true" /> : null}
+            <span>{statusLabel}</span>
+          </div>
+          {note && <p className="report-note">{note}</p>}
+          {hasCurrentVisualScores(report) && <div className="report-score"><span>{t('workspace.reportScore')}</span>
+            <strong>{report.beforeScore!.toFixed(1)} <span>→</span> {report.afterScore!.toFixed(1)} <small>/ 10</small></strong></div>}
+          {timings.length > 0 && <section className="report-timing-section" aria-label={t('workspace.reportTimings')}>
+            <h4>{t('workspace.reportTimings')}</h4>
+            <dl className="report-timings">
+              {timings.map(([stage, ms]) => <div key={stage}><dt>{stageLabel(stage)}</dt><dd>{formatGenerationDuration(ms!)}</dd></div>)}
+            </dl>
+          </section>}
+          <details className="report-more">
+            <summary>{t('workspace.reportMore')}<ChevronDown size={13} aria-hidden="true" /></summary>
+            <div className="report-more-content">
+              <dl className="report-metadata">
+                <div><dt>{t(report.browserEdition ? 'workspace.reportContentReview' : 'workspace.reportRefinement')}</dt><dd>{refinement}</dd></div>
+                {!report.browserEdition && <div><dt>{t('workspace.reportMemory')}</dt><dd>{memory}</dd></div>}
+                {showLearning && <div><dt>{t('workspace.reportLearningLabel')}</dt><dd>{learning}</dd></div>}
+              </dl>
+              {report.browserEdition && <p className="report-scope">{t('workspace.reportBrowserScope')}</p>}
+              {!report.browserEdition && hasCurrentVisualScores(report) && <p className="report-scope">{t('workspace.reportScoreScope')}</p>}
+              {report.refinement.reason && <p className="report-reason">{report.refinement.reason}</p>}
+            </div>
+          </details>
+        </div>
+      </section>
     </details>
   );
 }

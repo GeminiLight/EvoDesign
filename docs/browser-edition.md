@@ -2,9 +2,9 @@
 
 [Open the online workspace](https://evodesign.vercel.app/) · [Project website](https://tianfu.wang/EvoDesign/) · [Paper](https://arxiv.org/abs/2604.09568)
 
-Start directly with the shared **GLM-5.3-Flash** demo; no API key or EvoDesign account is required. To use your own model, open **Model settings → Your own model**, enter an **OpenAI-compatible Chat Completions endpoint**, model identifier and API key, test the connection, then save. Previously configured custom models stay selected until you choose the shared demo.
+Start directly with the shared **GLM-5.3-Flash** demo; no API key or EvoDesign account is required. To use your own model, open **Model settings → Your own model**, enter an **OpenAI-compatible Chat Completions endpoint**, model identifier and API key, read the model catalog with **Check connection**, then save. The model ID field supports searching the returned catalog and manual entry. The check uses only a metadata GET request: it sends no prompt and never falls back to a generation call. Directory access does not prove generation permissions, balance or Chat Completions compatibility. Providers without a catalog can still be configured manually. Previously configured custom models stay selected until you choose the shared demo.
 
-Describe a diagram, choose optional icons, and generate. Select an object before asking for a local edit. Projects and snapshots stay on this browser and origin; export an editable `.excalidraw` copy as a backup, or PNG/SVG for sharing. In **Design memory**, add a preference in your own words and enable the rules you want included in subsequent requests.
+Describe a diagram, choose optional icons, and generate. Select an object before asking for a local edit. Projects and snapshots stay on this browser and origin; export an editable `.excalidraw` copy as a backup, or PNG/SVG for sharing. In **DNA**, add a preference in your own words and enable the rules you want included in subsequent requests.
 
 ## Choose the edition that fits
 
@@ -23,7 +23,7 @@ Browser diagrams are limited to 60 nodes and 120 connections. AI edits update ex
 
 The default demo sends diagram content through `/api/model` on Vercel to BigModel's general API using `glm-5.3-flash`. The function supplies fixed diagram/edit prompts, bounds requests and output, and keeps the shared credential on the server. It is not a general API or CORS proxy. The application does not archive model request bodies or completions on the server. Projects, editable scenes and personal design preferences stay in your browser.
 
-The shared service reserves a conservative token allowance before each call, with independent daily, concurrent and visitor limits. Its Redis namespace stores only counters, short-lived request leases and daily hashes of visitor IPs; it stores no prompts, raw IPs or diagrams. Generating with review uses two requests; an edit or connection test uses one. If the demo is busy or reaches its allowance, retry later or switch to your own model. Turning off review reduces calls. There is no automatic switch from your own provider to the shared service.
+The shared service reserves a conservative token allowance before each call, with independent daily, concurrent and visitor limits. Its Redis namespace stores only counters, short-lived request leases and daily hashes of visitor IPs; it stores no prompts, raw IPs or diagrams. Generating with review uses two requests; an edit uses one. Connection checks use the status endpoint and do not reserve an inference allowance. If the demo is busy or reaches its allowance, retry later or switch to your own model. Turning off review reduces calls. There is no automatic switch from your own provider to the shared service.
 
 ## Your own model: keys and provider compatibility
 
@@ -57,6 +57,20 @@ npm --prefix frontend run dev:browser
 npm --prefix frontend run build:browser
 ```
 
+The local browser dev server also mounts `/api/model`. Put `DEMO_GLM_API_KEY`
+in a **repository-root `.env.local`** and restart the dev server to enable
+GLM-5.3-Flash locally. Optional `DEMO_GLM_BASE_URL` selects the BigModel general
+API (`https://open.bigmodel.cn/api/paas/v4`, default) or your authorized Coding
+API (`https://open.bigmodel.cn/api/coding/paas/v4`). Other destinations are rejected.
+These values stay on the server and are never exposed through `VITE_*` or
+bundled in the page. Only loopback connections can use this local endpoint.
+The same fixed diagram/edit prompts and input/output limits are reused.
+Local token, concurrency and visitor counters need no Redis and reset when the
+dev server restarts; the deployed service keeps its distributed Redis budget.
+Existing custom-model settings remain available; select the default demo in
+Model settings to use GLM. On Node 24+, `DEMO_USE_ENV_PROXY=1` enables the
+proxy already specified by your shell's `HTTPS_PROXY`/`HTTP_PROXY` settings.
+
 Deploy `frontend/dist` to a static host with SPA fallback. The repository-root `vercel.json` builds this edition automatically. Import the public repository into Vercel with the **repository root** selected; the bundled icon catalog is shared with the engine outside `frontend/`.
 
 For a static host, custom-model mode works without server secrets; shared-demo discovery falls back gracefully when `/api/model` is absent. For the Vercel demo, configure `DEMO_GLM_API_KEY`, `DEMO_REDIS_URL` and `DEMO_REDIS_TOKEN` as server-only secrets. Optional controls are `DEMO_DAILY_TOKENS` (default 2,000,000 reserved tokens), `DEMO_CONCURRENCY` (4) and `DEMO_VISITOR_REQUESTS` (40 requests per IP per UTC day). Missing budget configuration disables the shared service rather than permitting unbounded requests. These reservations are an upper bound, not a provider billing report.
@@ -70,3 +84,7 @@ For a static host, custom-model mode works without server secrets; shared-demo d
 在线版支持生成、可选图标、内容评审、选中对象的局部修改、本机项目保存、重新打开和 PNG / SVG / 可编辑文件导出。设计偏好可以手动添加、编辑和启停。项目保存在当前浏览器，不跨设备同步，清理网站数据会删除本机项目，请及时导出备份。
 
 在线版使用模型生成结构、浏览器完成布局，是轻量体验路径。论文中的多智能体算法、视觉评审、自动经验学习和评测工具仍包含在完整本地版中。
+
+### Creation from Home
+
+Choose a diagram type (Adaptive by default), optional node icons and model in the Home composer. Manage DNA from its page or **Preferences → DNA preferences**; enabled preferences are applied automatically to subsequent requests. **Start creating** launches generation in the workspace directly; it does not open another setup dialog. A missing model configuration opens Model settings on Home while preserving the input. The startup draft retains the icon choice for recovery and retry. Diagram creation and optional review still use the provider’s generation API and normal allowance.

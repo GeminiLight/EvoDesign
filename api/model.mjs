@@ -42,9 +42,9 @@ const reply = (data, status = 200, extra = {}) => Response.json(data, {
 });
 const error = (code, message, status, extra) => reply({ error: { code, message } }, status, extra);
 
-export function createModelHandler(env = process.env, fetcher = fetch) {
+export function createModelHandler(env = process.env, fetcher = fetch, options = {}) {
   return async function handle(request) {
-    const configured = Boolean(env.DEMO_GLM_API_KEY && env.DEMO_REDIS_URL && env.DEMO_REDIS_TOKEN);
+    const configured = Boolean(env.DEMO_GLM_API_KEY && (options.budget || (env.DEMO_REDIS_URL && env.DEMO_REDIS_TOKEN)));
     if (request.method === 'GET') return reply({ available: configured, model: MODEL });
     if (request.method !== 'POST') return error('method', 'Use POST.', 405, { Allow: 'GET, POST' });
     const origin = request.headers.get('origin');
@@ -71,15 +71,17 @@ export function createModelHandler(env = process.env, fetcher = fetch) {
     const visitor = createHmac('sha256', env.DEMO_GLM_API_KEY).update(`${day}:${ip}`).digest('hex').slice(0, 24);
     let reservation;
     try {
-      reservation = await budget(['EVAL', RESERVE_SCRIPT, 1, BUDGET_KEY, reserved,
-        positive(env.DEMO_DAILY_TOKENS, 2_000_000), positive(env.DEMO_CONCURRENCY, 4), id,
-        visitor, positive(env.DEMO_VISITOR_REQUESTS, 40)], env, fetcher);
+      const limits = { reserved, id, visitor, dailyTokens: positive(env.DEMO_DAILY_TOKENS, 2_000_000),
+        concurrency: positive(env.DEMO_CONCURRENCY, 4), visitorRequests: positive(env.DEMO_VISITOR_REQUESTS, 40) };
+      reservation = options.budget ? await options.budget.reserve(limits)
+        : await budget(['EVAL', RESERVE_SCRIPT, 1, BUDGET_KEY, reserved,
+          limits.dailyTokens, limits.concurrency, id, visitor, limits.visitorRequests], env, fetcher);
     } catch { return error('budget', 'The shared model is temporarily unavailable. Retry later or use your own model.', 503); }
     if (reservation === -1) return error('busy', 'The shared model is busy. Retry shortly or use your own model.', 429, { 'Retry-After': '10' });
     if (reservation === 0 || reservation === -2) return error('quota', 'Today’s demo allowance has been reached. Connect your own model to continue.', 429);
     if (reservation !== 1) return error('budget', 'The shared model is temporarily unavailable.', 503);
     try {
-      const response = await fetcher(ENDPOINT, {
+      const response = await fetcher(options.endpoint || ENDPOINT, {
         method: 'POST', headers: { Authorization: `Bearer ${env.DEMO_GLM_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: MODEL, messages: [{ role: 'system', content: system }, { role: 'user', content: input.prompt }],
           max_tokens: maxTokens, stream: false, thinking: { type: 'disabled' },
@@ -94,7 +96,10 @@ export function createModelHandler(env = process.env, fetcher = fetch) {
       return reply({ choices: [{ message: { role: 'assistant', content: choice.message.content }, finish_reason: choice.finish_reason }] });
     } catch { return error('timeout', 'The shared model request timed out or was interrupted. Please retry.', 504); }
     finally {
-      try { await budget(['ZREM', `${BUDGET_KEY}:active`, id], env, fetcher); }
+      try {
+        if (options.budget) await options.budget.release(id);
+        else await budget(['ZREM', `${BUDGET_KEY}:active`, id], env, fetcher);
+      }
       catch { /* The lease expires independently after the request deadline. */ }
     }
   };
