@@ -113,7 +113,9 @@ for (const [key, label] of Object.entries({ gpt: 'GPT-5.5', gemini: 'Gemini-3.1-
   [resultData.pixel, ...resultData[key]].forEach((values, i) => csv.push([i === 0 ? 'GPT-4o-Image (fixed pixel baseline)' : label, ...methodLabels[i], ...values.map(v => v.toFixed(3)), ...means(values).map(v => v.toFixed(3)), 'Supplied manuscript Table 1']));
 }
 write('docs/results.csv', csv.map(row => row.join(',')).join('\n') + '\n');
-let readme = read('README.md');
-if (readme.includes('<!-- CITATION:START -->')) readme = readme.replace(/<!-- CITATION:START -->[\s\S]*?<!-- CITATION:END -->/, `<!-- CITATION:START -->\n\n\`\`\`bibtex\n${bibtex}\n\`\`\`\n\n<!-- CITATION:END -->`);
-write('README.md', readme);
+for (const file of ['README.md', 'README.zh-CN.md']) {
+  let readme = read(file);
+  if (readme.includes('<!-- CITATION:START -->')) readme = readme.replace(/<!-- CITATION:START -->[\s\S]*?<!-- CITATION:END -->/, `<!-- CITATION:START -->\n\n\`\`\`bibtex\n${bibtex}\n\`\`\`\n\n<!-- CITATION:END -->`);
+  write(file, readme);
+}
 console.log('Synced scholarly metadata, static results, BibTeX, RIS, CFF, CSV, sitemap, and asset hashes.');
