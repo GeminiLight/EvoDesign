@@ -47,19 +47,21 @@ Place the research code in the repository alongside `docs/`. Update the README w
 
 `resultData` in `docs/app.js` transcribes Table 1 of the supplied manuscript. Values are ordered as content fidelity, concept logic, semantic relevance, visual aesthetics, styling consistency, flow coherence, space balance, cognitive ease, comprehension accuracy, self-contained explanation. Dimension summaries use arithmetic means of 3, 4, and 3 metrics respectively. The GPT-4o-Image row is fixed across backbone selections. The original manuscript's other two pixel baselines are omitted from this compact comparison; no universal best-in-class claim is made.
 
+The framework and CanvasBench construction figures are direct exports from the current manuscript using the NeurIPS template. Both are visible above the expandable research details and open a wide native dialog, with an original-resolution link and keyboard focus restoration. Source details are recorded in `docs/assets/README.md`.
+
 The refinement images are cropped diagram panels from Figure 9, showing the initial solution and final refinement. They are qualitative examples, not quantitative evidence. No manuscript instructions or hidden PDF text are incorporated into website content.
 
 ## Motion and interaction
 
 The canvas walkthrough highlights each stage and traces its connections. It plays once on desktop when the canvas enters view; on narrow screens, visitors start it themselves. Selecting a step scrolls the canvas horizontally to the relevant node. Dragging a node interrupts playback.
 
-The Motion control pauses presentation effects and remembers the choice locally. The page also respects the system’s reduced-motion preference, provides manual step exploration, stops transient animation when the tab is hidden, and leaves content visible when JavaScript is unavailable. Native figure dialogs support Escape and return focus to their trigger.
+The navigation links directly to Paper. Decorative entrance effects finish after four seconds. The page respects the system’s reduced-motion preference, provides manual step exploration, stops transient animation when the tab is hidden, and leaves content visible when JavaScript is unavailable. Native figure dialogs support Escape and return focus to their trigger.
 
 ## Check before publishing changes
 
 - Verify desktop and mobile layouts and horizontal table scrolling.
 - Exercise flow playback/pause, step selection, model selection, pointer and keyboard node movement, palette switching, reset, and SVG export.
-- Check reduced motion, persisted motion preferences, figure-dialog focus and Escape, and narrow-screen canvas navigation.
+- Check reduced motion, figure-dialog focus and Escape, and narrow-screen canvas navigation.
 - Check resource URLs, image loading, and browser errors.
 - Keep unreleased resources visibly marked as forthcoming.
 
@@ -75,7 +77,7 @@ node scripts/sync-research.mjs
 
 This updates the scholarly meta tags and JSON-LD, the default results in raw HTML, BibTeX/RIS downloads, GitHub `CITATION.cff`, README citation, the all-metrics CSV, sitemap, and CSS/JS content hashes. The generated files are committed; deployment still has no build step. After changing author names, also update the visible author block and README author line. Change `pageModified` and the footer date only when website content actually changes.
 
-The citation block supports clipboard copy, a readable fallback, and downloads. The default GPT-5.5 results remain available without JavaScript; other backbone settings are also available in the CSV. The CSV transcribes the supplied manuscript and is not the CanvasBench dataset.
+The citation block always shows compact BibTeX in ten lines, with the complete author list on one horizontally scrollable line and a small copy button inside the block. Clipboard copying falls back to the browser copy command or selected text when necessary. BibTeX/RIS files remain available at their existing URLs. The default GPT-5.5 results remain available without JavaScript; other backbone settings are also available in the CSV. The CSV transcribes the supplied manuscript and is not the CanvasBench dataset.
 
 `docs/sitemap.xml` lists the canonical project URL. Only the domain-root `https://tianfu.wang/robots.txt` controls crawlers; a project-level `docs/robots.txt` would not. The domain-root file lives in the separate `GeminiLight/geminilight.github.io` repository.
 

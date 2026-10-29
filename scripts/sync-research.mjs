@@ -90,7 +90,7 @@ function replaceBlock(label, content) {
 }
 replaceBlock('RESEARCH-METADATA', tags.join('\n  '));
 replaceBlock('ABSTRACT', `<p>${escape(paper.abstract)}</p>`);
-replaceBlock('BIBTEX', escape(bibtex));
+replaceBlock('BIBTEX', escape(bibtex.replaceAll(' and\n            ', ' and ')));
 
 // Reuse the exact authored metric arrays, without running any DOM code.
 const dataCode = read('docs/app.js').split('const modelSelect =')[0];

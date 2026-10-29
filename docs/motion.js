@@ -5,13 +5,9 @@
 (() => {
   const root = document.documentElement;
   const systemMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const toggle = document.querySelector('#motion-toggle');
-  toggle.hidden = false;
   const animations = new Set();
   const counters = new Set();
-  let preference = true;
-  try { preference = localStorage.getItem('evodesign-motion') !== 'off'; } catch { /* Storage is optional. */ }
-  let enabled = preference && !systemMotion.matches;
+  let enabled = !systemMotion.matches;
 
   function animate(element, frames, options) {
     if (!enabled || document.hidden || !element.animate) return;
@@ -149,23 +145,14 @@
   }
 
   function applyMotionPreference() {
-    enabled = preference && !systemMotion.matches;
+    enabled = !systemMotion.matches;
     root.classList.toggle('motion-paused', !enabled);
-    toggle.setAttribute('aria-pressed', String(!enabled));
-    const label = systemMotion.matches ? 'Animations paused by your reduced-motion preference' : enabled ? 'Pause animations' : 'Enable animations';
-    toggle.setAttribute('aria-label', label); toggle.title = label;
-    toggle.disabled = systemMotion.matches;
     if (!enabled) {
       stopFlow();
       [...animations].forEach(animation => animation.finish());
       [...counters].forEach(finish => finish());
     } else if (!flowPlaying) flowButton.querySelector('span').textContent = 'Play flow';
   }
-  toggle.addEventListener('click', () => {
-    preference = !preference;
-    try { localStorage.setItem('evodesign-motion', preference ? 'on' : 'off'); } catch { /* Storage is optional. */ }
-    applyMotionPreference();
-  });
   systemMotion.addEventListener('change', applyMotionPreference);
   document.addEventListener('visibilitychange', () => {
     root.classList.toggle('page-hidden', document.hidden);
@@ -279,9 +266,16 @@
 
   const dialog = document.querySelector('#figure-dialog');
   const figureImage = document.querySelector('#figure-image');
-  document.querySelectorAll('[data-figure]').forEach(button => button.addEventListener('click', () => {
+  document.querySelectorAll('[data-figure]').forEach(button => button.addEventListener('click', event => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
     const image = button.querySelector('img');
-    document.querySelector('#figure-title').textContent = button.dataset.figure === 'before' ? 'Initial solution' : 'After refinement';
+    const paperFigure = button.classList.contains('paper-figure-view');
+    dialog.classList.toggle('figure-dialog-wide', paperFigure);
+    document.querySelector('#figure-eyebrow').textContent = paperFigure ? 'RESEARCH / PAPER FIGURE' : 'REFINEMENT CASE STUDY';
+    document.querySelector('#figure-title').textContent = button.dataset.figureTitle || (button.dataset.figure === 'before' ? 'Initial solution' : 'After refinement');
+    document.querySelector('#figure-caption').textContent = button.dataset.figureCaption || 'Software development lifecycle with change control · Manuscript Figure 9';
+    document.querySelector('#figure-original').href = image.src;
     figureImage.src = image.src; figureImage.alt = image.alt;
     dialog.showModal(); document.body.classList.add('has-dialog');
     animate(dialog, [{ opacity: 0, transform: 'translateY(10px) scale(.98)' }, { opacity: 1, transform: 'none' }],
@@ -317,7 +311,7 @@
   contents.addEventListener('focusout', event => {
     if (event.relatedTarget && !contents.contains(event.relatedTarget)) contents.open = false;
   });
-  document.querySelectorAll('.research-question, .citation-source, .mobile-contents').forEach(detail => {
+  document.querySelectorAll('.research-question, .mobile-contents').forEach(detail => {
     detail.addEventListener('toggle', () => {
       if (!detail.open) return;
       const content = detail.querySelector('.question-answer, pre, .contents-panel');
@@ -329,31 +323,42 @@
   const copyButton = document.querySelector('#copy-citation');
   const copyStatus = document.querySelector('#copy-status');
   let copyTimer;
+  function showCopySuccess() {
+    copyButton.classList.add('is-copied');
+    copyButton.querySelector('span').textContent = 'Copied';
+    copyButton.setAttribute('aria-label', 'Citation copied');
+    copyStatus.classList.add('sr-only');
+    copyStatus.textContent = 'BibTeX copied. Ready to paste into your bibliography.';
+    animate(copyButton, [{ transform: 'scale(.97)' }, { transform: 'scale(1)' }], { duration: 240, easing: 'ease-out' });
+    copyTimer = setTimeout(() => {
+      copyButton.classList.remove('is-copied');
+      copyButton.querySelector('span').textContent = 'Copy';
+      copyButton.setAttribute('aria-label', 'Copy BibTeX citation');
+    }, 2800);
+  }
   copyButton.hidden = false;
   copyButton.addEventListener('click', async () => {
     clearTimeout(copyTimer);
     copyButton.classList.remove('is-copied');
-    copyButton.querySelector('span').textContent = 'Copy BibTeX';
+    copyButton.querySelector('span').textContent = 'Copy';
+    copyButton.setAttribute('aria-label', 'Copy BibTeX citation');
     const code = document.querySelector('#bibtex');
     try {
       if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
       await navigator.clipboard.writeText(code.textContent.trim());
-      copyButton.classList.add('is-copied');
-      copyButton.querySelector('span').textContent = 'Copied';
-      copyStatus.textContent = 'BibTeX copied. Ready to paste into your bibliography.';
-      animate(copyButton, [{ transform: 'scale(.97)' }, { transform: 'scale(1)' }], { duration: 240, easing: 'ease-out' });
-      copyTimer = setTimeout(() => {
-        copyButton.classList.remove('is-copied');
-        copyButton.querySelector('span').textContent = 'Copy BibTeX';
-      }, 2800);
+      showCopySuccess();
     } catch {
-      document.querySelector('.citation-source').open = true;
+      code.parentElement.focus();
       const range = document.createRange();
       range.selectNodeContents(code);
       const selection = window.getSelection();
       selection.removeAllRanges(); selection.addRange(range);
-      code.parentElement.focus();
-      copyStatus.textContent = 'Automatic copy is unavailable. Copy the selected BibTeX below, or download the .bib file.';
+      // Local file previews and older browsers may only expose this copy path.
+      try {
+        if (document.execCommand('copy')) { showCopySuccess(); return; }
+      } catch { /* Keep the citation selected for manual copying. */ }
+      copyStatus.classList.remove('sr-only');
+      copyStatus.textContent = 'Citation selected. Press ⌘C or Ctrl+C to copy.';
     }
   });
 })();

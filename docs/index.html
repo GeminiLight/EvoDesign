@@ -291,9 +291,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&family=Manrope:wght@400;500;600;650;700;750;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=e60e427d9c">
-  <link rel="stylesheet" href="polish.css?v=2e6b7d5cda">
+  <link rel="stylesheet" href="polish.css?v=b4d7e8c1af">
   <script src="app.js?v=8717afafe5" defer></script>
-  <script src="motion.js?v=2f8dd69f3c" defer></script>
+  <script src="motion.js?v=c224cf5a93" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -302,7 +302,7 @@
     <nav class="nav wrap" aria-label="Main navigation">
       <a class="wordmark" href="#" aria-label="EvoDesign home"><img src="assets/studio-logo.svg" width="27" height="27" alt=""><span class="wordmark-name">Evo<span>Design</span></span></a>
       <div class="nav-links"><a href="#features">Features</a><a href="#playground">Workflow</a><a href="#get-started">Get started</a><a href="#overview">Research</a></div>
-      <div class="nav-actions"><a class="nav-cite" href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer">Open Studio <span aria-hidden="true">↗</span></a><details class="mobile-contents"><summary aria-label="Page contents">Menu <span aria-hidden="true">⌄</span></summary><div class="contents-panel"><a href="#features">Features <span>01</span></a><a href="#playground">Workflow <span>02</span></a><a href="#get-started">Get started <span>03</span></a><a href="#overview">Research <span>04</span></a><a href="#research-details">Method &amp; results <span>05</span></a><a href="#questions">Questions <span>06</span></a><a href="#citation">Citation <span>07</span></a></div></details><button hidden class="motion-toggle" id="motion-toggle" type="button" aria-label="Pause animations" aria-pressed="false" title="Pause animations"><svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path class="pause-icon" d="M7 5v10M13 5v10"/><path class="play-icon" d="m7 4 9 6-9 6Z"/></svg><span>Motion</span></button><a class="nav-github" href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></div>
+      <div class="nav-actions"><a class="nav-cite" href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer">Open Studio <span aria-hidden="true">↗</span></a><details class="mobile-contents"><summary aria-label="Page contents">Menu <span aria-hidden="true">⌄</span></summary><div class="contents-panel"><a href="#features">Features <span>01</span></a><a href="#playground">Workflow <span>02</span></a><a href="#get-started">Get started <span>03</span></a><a href="#overview">Research <span>04</span></a><a href="#research-details">Method &amp; results <span>05</span></a><a href="#questions">Questions <span>06</span></a><a href="#citation">Citation <span>07</span></a></div></details><a class="nav-github nav-paper" href="https://arxiv.org/abs/2604.09568" target="_blank" rel="noopener noreferrer">Paper <span aria-hidden="true">↗</span></a><a class="nav-github" href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></div>
     </nav>
   </header>
   <main id="main">
@@ -312,9 +312,9 @@
       <h1 id="hero-title">Evo<span>Design</span><span class="title-spark" aria-hidden="true">✳</span></h1>
       <p class="paper-title product-promise">Turn an idea into a diagram.<br><span>Keep every detail in your hands.</span></p>
       <p class="product-lead">Describe what you want to explain. Shape the result on an editable canvas, from the first draft to the final detail.</p>
-      <div class="hero-actions"><a class="button primary" href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer">Open Studio <span aria-hidden="true">↗</span></a><a class="button secondary" href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">Explore the code <span aria-hidden="true">↗</span></a></div>
+      <div class="hero-actions"><a class="button primary" href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer">Open Studio <span aria-hidden="true">↗</span></a><a class="button secondary" href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a><a class="button secondary" href="https://arxiv.org/abs/2604.09568" target="_blank" rel="noopener noreferrer">Paper <span aria-hidden="true">↗</span></a></div>
       <p class="hero-caption"><span>No installation</span><span>No API key to try</span><span>Yours to edit</span></p>
-      <a class="hero-paper-link text-link" href="https://arxiv.org/abs/2604.09568" target="_blank" rel="noopener noreferrer">Meet the research behind the canvas <span aria-hidden="true">↗</span></a>
+      <a class="hero-paper-link text-link" href="#research-figures">See how EvoDesign works <span aria-hidden="true">↓</span></a>
       </div>
       <figure class="studio-preview">
         <a class="studio-window" href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer" aria-label="Open EvoDesign Studio, the online diagram workspace">
@@ -330,9 +330,9 @@
     <section id="features" class="product-features wrap section" aria-labelledby="features-title">
       <div class="section-top"><div><p class="eyebrow">MADE FOR YOUR NEXT DIAGRAM</p><h2 id="features-title">From first draft<br>to <em>your final say.</em></h2></div><p>Architecture, sequences, complex flows.<br>A workspace for the details that matter.</p></div>
       <div class="product-grid">
-        <article class="product-card"><span class="product-number" aria-hidden="true">01 / CREATE</span><h3>Describe the idea.<br>Find its shape.</h3><p>Turn your content into a structured first draft. Review its meaning, then adjust the layout, labels and visual style on the canvas.</p><span class="product-tag">Generate &amp; review</span></article>
-        <article class="product-card"><span class="product-number" aria-hidden="true">02 / MAKE IT YOURS</span><h3>Stay in control<br>of every element.</h3><p>Move nodes, change styles or request a local edit. Add icons when they help. Save, reopen and export your work.</p><span class="product-tag">Edit &amp; export</span></article>
-        <article class="product-card"><span class="product-number" aria-hidden="true">03 / REMEMBER</span><h3>Your preferences.<br>Ready for next time.</h3><p>Keep structure, style and layout rules in Your DNA. Choose what to enable, pin useful preferences, and carry them between projects.</p><span class="product-tag">Personal design memory</span></article>
+        <article class="product-card"><div class="feature-card-top"><span class="feature-label" aria-hidden="true">01 / CREATE</span><svg class="feature-graphic" viewBox="0 0 132 64" fill="none" aria-hidden="true" focusable="false"><path d="M34 32h20m18-17h17m-17 34h17M54 15v34m0-34h18m-18 34h18"/><rect x="5" y="19" width="29" height="26" rx="7" class="feature-fill"/><path d="M13 28h12m-12 8h8"/><rect x="72" y="5" width="40" height="20" rx="6"/><rect x="72" y="39" width="40" height="20" rx="6" class="feature-fill"/><path d="m118 26 3 5 6 1-5 4 1 6-5-3-5 3 1-6-5-4 6-1Z" class="feature-spark"/></svg></div><h3>Describe the idea.<br>Find its shape.</h3><p>Turn your content into a structured first draft. Review its meaning, then adjust the layout, labels and visual style on the canvas.</p><span class="product-tag">Generate &amp; review</span></article>
+        <article class="product-card"><div class="feature-card-top"><span class="feature-label" aria-hidden="true">02 / MAKE IT YOURS</span><svg class="feature-graphic" viewBox="0 0 132 64" fill="none" aria-hidden="true" focusable="false"><rect x="16" y="9" width="83" height="46" rx="7" stroke-dasharray="3 4"/><rect x="30" y="20" width="26" height="24" rx="5" class="feature-fill"/><path d="M65 24h21m-21 8h15m-15 8h19"/><rect x="13" y="6" width="6" height="6" rx="1.5"/><rect x="96" y="6" width="6" height="6" rx="1.5"/><rect x="13" y="52" width="6" height="6" rx="1.5"/><path d="m89 37 23 10-11 3-5 11Z" class="feature-cursor"/></svg></div><h3>Stay in control<br>of every element.</h3><p>Move nodes, change styles or request a local edit. Add icons when they help. Save, reopen and export your work.</p><span class="product-tag">Edit &amp; export</span></article>
+        <article class="product-card"><div class="feature-card-top"><span class="feature-label" aria-hidden="true">03 / REMEMBER</span><svg class="feature-graphic" viewBox="0 0 132 64" fill="none" aria-hidden="true" focusable="false"><rect x="31" y="5" width="78" height="40" rx="7"/><rect x="22" y="13" width="78" height="40" rx="7" class="feature-white"/><rect x="13" y="21" width="78" height="38" rx="7" class="feature-fill"/><path d="m25 39 4 4 7-9m9 1h29m-29 9h20"/><path d="M109 25v21a7 7 0 0 1-7 7h-5m8-4-4 4 4 4"/><circle cx="111" cy="13" r="9" class="feature-white"/><path d="m107 13 3 3 5-6"/></svg></div><h3>Your preferences.<br>Ready for next time.</h3><p>Keep structure, style and layout rules in Your DNA. Choose what to enable, pin useful preferences, and carry them between projects.</p><span class="product-tag">Personal design memory</span></article>
       </div>
     </section>
 
@@ -371,6 +371,17 @@
       <div class="affiliations"><span><sup>1</sup> The Hong Kong University of Science and Technology (Guangzhou)</span><span><sup>2</sup> University of Science and Technology of China</span><span><sup>3</sup> Peking University</span><span><sup>4</sup> The Hong Kong University of Science and Technology</span></div>
       </div>
 </details></section>
+    <section id="research-figures" class="paper-figures wrap section" aria-labelledby="research-figures-title">
+      <div class="section-top"><div><p class="eyebrow">INSIDE THE RESEARCH</p><h2 id="research-figures-title">The full picture,<br><em>from canvas to expertise.</em></h2></div><p>The framework and the benchmark,<br>directly from our NeurIPS manuscript.</p></div>
+      <figure class="paper-figure" id="framework-figure">
+        <figcaption><div><span class="eyebrow">01 / EVODESIGN FRAMEWORK</span><h3>Create. Verify. Evolve.</h3></div><p>Coordinated agents build an editable canvas. Verification guides local refinement, and experience becomes reusable design expertise.</p></figcaption>
+        <a class="paper-figure-view" href="assets/method-overview.png" data-figure="framework" data-figure-title="EvoDesign framework" data-figure-caption="Agentic canvas generation, verification and refinement, experience exploration, and design knowledge promotion." aria-label="Enlarge the EvoDesign framework figure"><img src="assets/method-overview.png" width="2448" height="1192" loading="lazy" alt="Four-panel EvoDesign framework: structure, style and layout agents generate a canvas; diagnostic feedback refines it; repeated trajectories provide experience; and knowledge promotion builds a hierarchy of reusable design expertise."><span>Explore the framework <span aria-hidden="true">↗</span></span></a>
+      </figure>
+      <figure class="paper-figure" id="canvasbench-figure">
+        <figcaption><div><span class="eyebrow">02 / CANVASBENCH</span><h3>A benchmark built for editable diagrams.</h3></div><p>Image collection, renderability validation and instruction synthesis lead to CanvasBench and its content, visual and cognitive evaluation protocol.</p></figcaption>
+        <a class="paper-figure-view" href="assets/canvasbench-overview.png" data-figure="benchmark" data-figure-title="CanvasBench construction and evaluation" data-figure-caption="CanvasBench construction pipeline, diagram-type distribution and evaluation protocol, exported from the NeurIPS manuscript." aria-label="Enlarge the CanvasBench figure"><img src="assets/canvasbench-overview.png" width="2448" height="608" loading="lazy" alt="CanvasBench pipeline: collect diagram images and webpages, filter and review renderability, synthesize descriptions and user queries, then establish 6,273 samples including 420 test samples and evaluate content integrity, visual presentation and cognitive utility."><span>Explore CanvasBench <span aria-hidden="true">↗</span></span></a>
+      </figure>
+    </section>
     <details id="research-details" class="research-depth">
       <summary class="wrap"><span><span class="eyebrow">FOR A CLOSER LOOK</span><strong>Explore the method &amp; reported results</strong></span><span class="research-depth-arrow" aria-hidden="true">+</span></summary>
     <section id="method" class="method section">
@@ -410,24 +421,10 @@
 
     <section id="citation" class="citation-section wrap" aria-labelledby="citation-title">
       <div class="citation-intro"><p class="eyebrow">CITATION</p><h2 id="citation-title">Build on<br><em>this work.</em></h2><p>If EvoDesign or CanvasBench informs your research, please cite the paper.</p><a href="https://doi.org/10.48550/arXiv.2604.09568" target="_blank" rel="noopener noreferrer" class="citation-id">arXiv:2604.09568 <span aria-hidden="true">↗</span></a><span class="citation-orbit" aria-hidden="true"><i></i><i></i><i></i></span></div>
-      <div class="citation-card"><p class="reference-authors">Tianfu Wang, Leilei Ding, Ziyang Tao, et al. <span>2026</span></p><p class="reference-title">EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution</p><p class="reference-venue">arXiv preprint · DOI: 10.48550/arXiv.2604.09568</p><div class="citation-actions"><button type="button" id="copy-citation" class="button primary" hidden><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="7" y="6" width="9" height="11" rx="2"/><path d="M12 6V4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy BibTeX</span></button><a href="citation.bib" download class="citation-download">BibTeX <span aria-hidden="true">↓</span></a><a href="citation.ris" download class="citation-download">RIS <span aria-hidden="true">↓</span></a></div><p class="copy-status" id="copy-status" role="status" aria-live="polite">Import BibTeX or RIS into your reference manager.</p><details class="citation-source"><summary>View BibTeX <span aria-hidden="true">+</span></summary><pre tabindex="0" aria-label="BibTeX citation"><code id="bibtex"><!-- BIBTEX:START -->
+      <div class="citation-codeblock"><button type="button" id="copy-citation" class="code-copy" hidden aria-label="Copy BibTeX citation" title="Copy citation"><svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="7" y="6" width="9" height="11" rx="2"/><path d="M12 6V4a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></svg><span>Copy</span></button><pre tabindex="0" aria-label="BibTeX citation; scroll horizontally to read long lines"><code id="bibtex"><!-- BIBTEX:START -->
 @misc{wang2026evodesign,
   title = {{EvoDesign}: Agentic Editable Diagram Creation via Design Expertise Evolution},
-  author = {Wang, Tianfu and
-            Ding, Leilei and
-            Tao, Ziyang and
-            Zhan, Yi and
-            Ma, Zhiyuan and
-            Wu, Wei and
-            Lei, Yuxuan and
-            Wang, Junyang and
-            Wu, Yin and
-            Xu, Yizhao and
-            Zhu, Hongyuan and
-            Liu, Qi and
-            Yuan, Nicholas Jing and
-            Zhang, Yanyong and
-            Xiong, Hui},
+  author = {Wang, Tianfu and Ding, Leilei and Tao, Ziyang and Zhan, Yi and Ma, Zhiyuan and Wu, Wei and Lei, Yuxuan and Wang, Junyang and Wu, Yin and Xu, Yizhao and Zhu, Hongyuan and Liu, Qi and Yuan, Nicholas Jing and Zhang, Yanyong and Xiong, Hui},
   year = {2026},
   eprint = {2604.09568},
   archivePrefix = {arXiv},
@@ -435,12 +432,12 @@
   doi = {10.48550/arXiv.2604.09568},
   url = {https://arxiv.org/abs/2604.09568}
 }
-<!-- BIBTEX:END --></code></pre></details></div>
+<!-- BIBTEX:END --></code></pre><p class="copy-status sr-only" id="copy-status" role="status" aria-live="polite"></p></div>
     </section>
 
     <section id="resources" class="resources wrap"><div><p class="eyebrow">CONTINUE EXPLORING</p><h2>Built to be <em>built upon.</em></h2><p>Explore the workspace, diagram engine <br>and your personal design memory.</p></div><div class="resource-links"><a class="resource-studio" href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer"><span><strong>Open EvoDesign Studio</strong><small>Try the shared demo · No installation</small></span><span aria-hidden="true">↗</span></a><a href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer"><span><strong>Project repository</strong><small>Source code available</small></span><span aria-hidden="true">↗</span></a><a href="https://arxiv.org/abs/2604.09568" target="_blank" rel="noopener noreferrer"><span><strong>Research paper</strong><small>arXiv:2604.09568</small></span><span aria-hidden="true">↗</span></a><a href="https://github.com/GeminiLight/EvoDesign/blob/main/docs/design-memory.md" target="_blank" rel="noopener noreferrer"><span><strong>Personal design memory</strong><small>Preferences, examples &amp; portability</small></span><span aria-hidden="true">↗</span></a></div></section>
   </main>
-  <dialog id="figure-dialog" class="figure-dialog" aria-labelledby="figure-title"><div class="dialog-heading"><div><span class="eyebrow">REFINEMENT CASE STUDY</span><h2 id="figure-title">Initial solution</h2></div><button id="close-figure" type="button" aria-label="Close diagram">×</button></div><div class="dialog-image"><img id="figure-image" alt=""></div><p>Software development lifecycle with change control · Manuscript Figure 9</p></dialog>
+  <dialog id="figure-dialog" class="figure-dialog" aria-labelledby="figure-title"><div class="dialog-heading"><div><span class="eyebrow" id="figure-eyebrow">PAPER FIGURE</span><h2 id="figure-title">Initial solution</h2></div><button id="close-figure" type="button" aria-label="Close diagram">×</button></div><div class="dialog-image"><img id="figure-image" alt=""></div><div class="figure-dialog-footer"><p id="figure-caption">Software development lifecycle with change control · Manuscript Figure 9</p><a id="figure-original" href="assets/refinement-before.webp" target="_blank" rel="noopener noreferrer">Open full resolution <span aria-hidden="true">↗</span></a></div></dialog>
   <footer class="footer wrap"><a class="wordmark" href="#">Evo<span>Design</span></a><p>Editable diagrams. Evolving expertise.<span class="page-updated">Page updated <time datetime="2026-10-29">29 October 2026</time></span></p><a href="mailto:xionghui@ust.hk">Contact <span aria-hidden="true">↗</span></a><a href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></footer>
 </body>
 </html>
