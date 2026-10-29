@@ -10,6 +10,8 @@
 
 ### Turn ideas into diagrams you can keep editing.
 
+**English** · [简体中文](README.zh-CN.md)
+
 <!-- PROJECT-LINKS:START -->
 <div align="center">
 
@@ -22,7 +24,7 @@
 
 [中文入门](docs/quickstart-zh.md) · [Browser edition guide](docs/browser-edition.md)
 
-![EvoDesign Studio home with the current creation form, reference input, diagram-type selector and model controls](docs/screenshots/studio-home.png)
+![EvoDesign Studio home in English, with the creation form, reference input, diagram-type selector and model controls](docs/screenshots/studio-home-en.jpg)
 
 <sub>The current browser edition: start from a prompt, add reference content, and choose your diagram type and model.</sub>
 

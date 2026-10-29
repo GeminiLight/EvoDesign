@@ -2,7 +2,14 @@
 
 ## Studio home
 
-The repository README uses `../screenshots/studio-home.png`, captured for the current Studio interface in commit `8fffdd857e36e7a935348bd293bf97846218ac3c` (2026-10-29). It shows the browser edition, including reference input, diagram-type selection, model controls and optional icons. It replaces the older dark landing-page image at `workspace-preview.png`; that older file is retained for existing links.
+The two repository READMEs use matching-language screenshots:
+
+- `README.md` (English): `../screenshots/studio-home-en.jpg`.
+- `README.zh-CN.md` (Simplified Chinese): `../screenshots/studio-home-zh-CN.jpg`.
+
+Both were captured on 2026-10-29 from the current frontend code (UI release `8fffdd857e36e7a935348bd293bf97846218ac3c`) running locally in browser mode, using the user's existing Google Chrome. The app's Preferences control selects Light and the corresponding language; labels are rendered by the application, not painted into the image. Both captures use the same 1880 × 873 region, excluding the browser-extension control at the far right edge. They show an empty browser workspace with Your model / 你的模型 selected; no model request or private project data is used.
+
+The earlier `../screenshots/studio-home.png` and dark `workspace-preview.png` remain available for existing links. Keep the two language versions on the same UI release and update their captures together.
 
 ## Method overview
 
