@@ -256,7 +256,9 @@
   });
 
   const header = document.querySelector('.site-header');
-  const navSections = [...document.querySelectorAll('.nav-links a, .nav-cite')].map(link => ({ link, section: document.querySelector(link.getAttribute('href')) }));
+  const navSections = [...document.querySelectorAll('.nav-links a[href^="#"]')]
+    .map(link => ({ link, section: document.getElementById(link.hash.slice(1)) }))
+    .filter(item => item.section);
   let scrollFrame = 0;
   function updateScroll() {
     scrollFrame = 0;

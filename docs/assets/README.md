@@ -7,9 +7,17 @@ The two repository READMEs use matching-language screenshots:
 - `README.md` (English): `../screenshots/studio-home-en.jpg`.
 - `README.zh-CN.md` (Simplified Chinese): `../screenshots/studio-home-zh-CN.jpg`.
 
-Both were captured on 2026-10-29 from the current frontend code (UI release `8fffdd857e36e7a935348bd293bf97846218ac3c`) running locally in browser mode, using the user's existing Google Chrome. The app's Preferences control selects Light and the corresponding language; labels are rendered by the application, not painted into the image. Both captures use the same 1880 × 873 region, excluding the browser-extension control at the far right edge. They show an empty browser workspace with Your model / 你的模型 selected; no model request or private project data is used.
+Both were refreshed on 2026-10-29 from the current frontend code (commit `05f418f04619652ae3c393950774db7fad4af4e1`, including the homepage centering fix) running locally in browser mode, using the user's existing Google Chrome. The app's Preferences control selects Light and the corresponding language; labels are rendered by the application, not painted into the image. Both captures use the same 1880 × 873 region, excluding the browser-extension control at the far right edge. They show an empty browser workspace with Your model / 你的模型 selected; no model request or private project data is used. The website hero also uses the English capture.
 
 The earlier `../screenshots/studio-home.png` and dark `workspace-preview.png` remain available for existing links. Keep the two language versions on the same UI release and update their captures together.
+
+## Studio identity
+
+`studio-logo.svg` is copied directly from `frontend/public/evodiagram.svg`. The website navigation and favicon use this same product mark. When the product identity changes, refresh this copy from the application source.
+
+## Website verification
+
+`../screenshots/website-desktop.jpg` and `../screenshots/website-mobile.jpg` record the 2026-10-29 website update in the same Google Chrome: the normal 1920 × 873 viewport and a 390 × 844 responsive viewport. They are review evidence, not assets displayed inside the website. A 320px layout and the intermediate 1024px layout were also checked.
 
 ## Method overview
 
