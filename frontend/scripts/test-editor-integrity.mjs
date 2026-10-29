@@ -20,16 +20,119 @@ const { documentAppState, inPlaceAppState, retainedSelection, sceneFiles } = awa
 const { workspaceAuthTransition, canRestoreWorkspaceDraft } = await load('src/utils/workspaceAuth.ts');
 const { normalizeBackendTimestamp, snapshotSourceKey, generatedProjectTitle } = await load('src/utils/projectHistory.ts');
 const { homeProjectKey, sortHomeProjects } = await load('src/utils/homeProjects.ts');
+const { workspaceDocumentKey, openWorkspaceDocument, closeWorkspaceDocument, parseWorkspaceDocuments } = await load('src/utils/workspaceDocuments.ts');
 const { getGenerationReviewState, hasCurrentVisualScores } = await load('src/utils/generationReport.ts');
 const { getInitialStartupGenerationDraft, getInitialPreflightGeneration } = await load('src/services/workspaceRouteHandoff.ts');
 const { saveStartupGenerationDraft, loadStartupGenerationDraft, clearStartupGenerationDraft } = await load('src/services/startupGenerationDraft.ts');
 const { guestSaveDiagram, guestExportProjects, guestSyncProjectSchema, guestFetchRecentDiagrams, guestFetchProjectSnapshots, guestLoadDnaRules, guestSaveDnaRules } = await load('src/services/guestStorage.ts');
-const { fetchRecentDiagrams, fetchProjectDiagram, fetchProjectSnapshots, syncProjectSchema, saveDnaRules, loadDnaRules } = await load('src/services/backendApi.ts');
+const { fetchRecentDiagrams, fetchProjectDiagram, fetchProjectSnapshots, syncProjectSchema, saveDnaRules, loadDnaRules, createBlankCanvasProject } = await load('src/services/backendApi.ts');
+const { createBlankExcalidrawScene } = await load('src/utils/blankCanvas.ts');
+const { requestCanvasFullscreen } = await load('src/hooks/useCanvasFullscreen.ts');
 const { notifyAuthInvalidated } = await load('src/features/auth/authEvents.ts');
 const { shouldSubmitOnEnter, shouldSubmitOnModifiedEnter } = await load('src/utils/keyboard.ts');
 const { saveWorkspacePreflightDraft, loadWorkspacePreflightDraft } = await load('src/services/workspacePreflightDraft.ts');
 const { rememberDnaDraft, readDnaDraft, clearDnaDraft, isLatestDnaDraft, sameDnaPreferences } = await load('src/utils/dnaSyncDraft.ts');
+const { filterDnaPreferences, emptyDnaFilters } = await load('src/utils/dnaLibrary.ts');
 rmSync(temp, { recursive: true });
+
+test('fullscreen uses the native canvas element and verifies ownership after entering', async () => {
+  const ownerDocument = { fullscreenEnabled: true, fullscreenElement: null };
+  const element = { ownerDocument, requestFullscreen: async options => {
+    assert.deepEqual(options, { navigationUI: 'hide' }); ownerDocument.fullscreenElement = element;
+  } };
+  assert.equal(await requestCanvasFullscreen(element), true);
+  ownerDocument.fullscreenElement = null;
+  element.requestFullscreen = async () => {};
+  assert.equal(await requestCanvasFullscreen(element), false, 'a fulfilled but ineffective request needs the viewport layout');
+});
+test('embedded browsers can fall back when fullscreen is unavailable or denied', async () => {
+  let calls = 0;
+  const element = { ownerDocument: { fullscreenEnabled: false }, requestFullscreen: async () => { calls++; throw new Error('Denied'); } };
+  assert.equal(await requestCanvasFullscreen(element), false);
+  assert.equal(calls, 0);
+  element.ownerDocument.fullscreenEnabled = true;
+  assert.equal(await requestCanvasFullscreen(element), false);
+  assert.equal(calls, 1);
+  assert.equal(await requestCanvasFullscreen({ ownerDocument: { fullscreenEnabled: true } }), false);
+});
+
+test('DNA overview includes every category and all rules without modifying their data', () => {
+  const rule = (id, title) => ({ id, title, preview: 'A preference', enabled: true, pinned: false, usageCount: 0 });
+  const library = { structure: Array.from({ length: 5 }, (_, id) => rule(id, `Structure ${id}`)),
+    style: [rule(0, 'Style')], layout: [rule(0, 'Layout')] };
+  const before = JSON.stringify(library);
+  const results = filterDnaPreferences(library, emptyDnaFilters);
+  assert.equal(results.length, 7);
+  assert.deepEqual(results.filter(item => item.rule.id === 0).map(item => item.cabinId), ['structure', 'style', 'layout']);
+  assert.equal(JSON.stringify(library), before);
+});
+
+test('DNA category, search and enabled-state filters combine without hiding other category counts', () => {
+  const library = { structure: [], style: [{ id: 1, title: 'VIOLET', preview: '青紫配色', enabled: true }],
+    layout: [{ id: 2, title: 'Left to right', preview: 'Align nodes', enabled: false }] };
+  assert.equal(filterDnaPreferences(library, { ...emptyDnaFilters, query: ' violet ' }).length, 1);
+  assert.equal(filterDnaPreferences(library, { ...emptyDnaFilters, query: '青紫' })[0].cabinId, 'style');
+  assert.deepEqual(filterDnaPreferences(library, { category: 'layout', query: 'ALIGN', status: 'disabled' }).map(item => item.rule.id), [2]);
+  assert.equal(filterDnaPreferences(library, { category: 'layout', query: '', status: 'enabled' }).length, 0);
+  assert.equal(library.layout.length, 1);
+});
+
+test('DNA overview prioritizes active preferences while preserving a stable pinned and usage order', () => {
+  const rule = (id, enabled, pinned, usageCount) => ({ id, title: `Rule ${id}`, preview: '', enabled, pinned, usageCount });
+  const library = { structure: [rule(1, false, true, 100), rule(2, true, false, 8), rule(3, true, true, 0), rule(4, true, false, 8)], style: [], layout: [] };
+  assert.deepEqual(filterDnaPreferences(library, emptyDnaFilters).map(item => item.rule.id), [3, 2, 4, 1]);
+  assert.deepEqual(library.structure.map(rule => rule.id), [1, 2, 3, 4]);
+});
+
+test('canvas tabs deduplicate project versions and update names without changing tab order', () => {
+  const first = { key: workspaceDocumentKey('p1', 'old'), projectId: 'p1', diagramId: 'old', title: 'Architecture' };
+  const second = { key: workspaceDocumentKey('p2', 'd2'), projectId: 'p2', diagramId: 'd2', title: 'Sequence' };
+  const tabs = openWorkspaceDocument(openWorkspaceDocument([], first), second);
+  const next = openWorkspaceDocument(tabs, { ...first, diagramId: 'new-version', title: 'Renamed' });
+  assert.equal(next.length, 2);
+  assert.equal(next[0].title, 'Renamed');
+  assert.equal(next[1], second);
+  assert.equal(workspaceDocumentKey('p1', 'old'), workspaceDocumentKey('p1', 'new-version'));
+  assert.equal(openWorkspaceDocument(next, next[0]), next);
+});
+
+test('closing the active tab chooses its nearest surviving neighbor', () => {
+  const tabs = ['p1', 'p2', 'p3'].map(projectId => ({ key: workspaceDocumentKey(projectId), projectId, diagramId: projectId, title: projectId }));
+  assert.equal(closeWorkspaceDocument(tabs, 'project:p2', 'project:p2').activeKey, 'project:p3');
+  assert.equal(closeWorkspaceDocument(tabs, 'project:p3', 'project:p3').activeKey, 'project:p2');
+  assert.equal(closeWorkspaceDocument(tabs, 'project:p1', 'project:p1').activeKey, 'project:p2');
+  assert.equal(tabs.length, 3);
+});
+
+test('closing a background tab preserves the active canvas and closing the last returns to draft', () => {
+  const first = { key: 'project:p1', projectId: 'p1', diagramId: 'd1', title: 'A' };
+  const second = { key: 'project:p2', projectId: 'p2', diagramId: 'd2', title: 'B' };
+  const result = closeWorkspaceDocument([first, second], second.key, first.key);
+  assert.deepEqual(result, { documents: [first], activeKey: first.key });
+  assert.deepEqual(closeWorkspaceDocument([first], first.key, first.key), { documents: [], activeKey: 'draft' });
+  assert.deepEqual(first, { key: 'project:p1', projectId: 'p1', diagramId: 'd1', title: 'A' });
+});
+
+test('restored canvas tabs reject malformed state and retain identifiers without schema or conversation content', () => {
+  for (const raw of [null, '{broken', '{}', '42', 'null']) assert.deepEqual(parseWorkspaceDocuments(raw), []);
+  const parsed = parseWorkspaceDocuments(JSON.stringify([
+    { key: 'forged', projectId: 'p1', diagramId: 'd1', title: 'A', schema: { secret: true }, messages: ['private'], view: { scrollX: 200 } },
+    { projectId: '', diagramId: 'bad', title: 'Invalid' },
+    { projectId: 3, diagramId: 'bad', title: 'Invalid' },
+    { projectId: 'p1', diagramId: 'd2', title: 'Latest title' },
+  ]));
+  assert.deepEqual(parsed, [{ key: 'project:p1', projectId: 'p1', diagramId: 'd2', title: 'Latest title' }]);
+});
+
+test('legacy documents have distinct keys and restored metadata is bounded', () => {
+  assert.equal(workspaceDocumentKey(null, 'd1'), 'diagram:d1');
+  assert.notEqual(workspaceDocumentKey(null, 'd1'), workspaceDocumentKey(null, 'd2'));
+  assert.equal(workspaceDocumentKey(), 'draft');
+  const records = Array.from({ length: 200 }, (_, i) => ({ projectId: `p${i}`, diagramId: `d${i}`, title: 'x'.repeat(400) }));
+  const parsed = parseWorkspaceDocuments(JSON.stringify(records));
+  assert.equal(parsed.length, 100);
+  assert.equal(parsed[0].title.length, 300);
+});
 
 const reviewedReport = {
   memory: { status: 'used', retrievedCount: 2 },
@@ -164,6 +267,58 @@ test('fresh titles replace placeholders from either language while retaining nam
 const values = new Map([['auth_token', 'local-test-token']]);
 globalThis.localStorage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
 globalThis.window = { localStorage: globalThis.localStorage };
+test('blank documents start with independent empty scenes without placeholder shapes', () => {
+  const first = createBlankExcalidrawScene();
+  const next = createBlankExcalidrawScene();
+  first.elements.push(node('drawn'));
+  first.files.test = { id: 'test' };
+  assert.equal(next.type, 'excalidraw');
+  assert.deepEqual(next.elements, []);
+  assert.deepEqual(next.files, {});
+  assert.equal(snapshotSourceKey('MANUAL_CREATE'), 'workspace.snapshotSourceCreated');
+});
+test('blank browser canvases save, reopen and edit independently without model requests', async () => {
+  const stored = values.get('evodiagram_guest_diagrams');
+  const previousFetch = globalThis.fetch;
+  values.delete('auth_token');
+  globalThis.fetch = () => { throw new Error('Blank creation must not contact a model or backend'); };
+  try {
+    const request = { id: 'manual-test', prompt: 'An older prompt', diagramType: 'flow', metadata: { projectId: 'guest_previous' } };
+    const first = await createBlankCanvasProject(request, 'Blank 1');
+    const second = await createBlankCanvasProject(request, 'Blank 2');
+    assert.notEqual(first.project_id, second.project_id);
+    assert.notEqual(first.project_id, 'guest_previous');
+    assert.equal(guestFetchProjectSnapshots(first.project_id).snapshots[0].edit_source, 'MANUAL_CREATE');
+    assert.deepEqual(first.excalidraw_payload.elements, []);
+    await syncProjectSchema({ project_id: first.project_id, schema_patch: { elements: [node('drawn')] }, create_snapshot: true });
+    const reopened = await fetchProjectDiagram(first.project_id);
+    assert.equal(reopened.excalidraw_payload.elements[0].id, 'drawn');
+    assert.deepEqual((await fetchProjectDiagram(second.project_id)).excalidraw_payload.elements, []);
+  } finally {
+    values.set('auth_token', 'local-test-token'); globalThis.fetch = previousFetch;
+    if (stored === undefined) values.delete('evodiagram_guest_diagrams'); else values.set('evodiagram_guest_diagrams', stored);
+  }
+});
+test('signed-in blank canvases use project creation and initial revision, with no generation', async () => {
+  const previousFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url: String(url), body: JSON.parse(init.body), method: init.method });
+    if (String(url).endsWith('/projects')) return new Response(JSON.stringify({ project_id: 'blank-auth', created_at: '2026-10-30T00:00:00Z' }));
+    assert.ok(String(url).endsWith('/schema/sync'));
+    return new Response(JSON.stringify({ snapshot_id: 'blank-snapshot', version: 1, latest_schema: createBlankExcalidrawScene() }));
+  };
+  try {
+    const result = await createBlankCanvasProject({ id: 'manual-auth', prompt: '', diagramType: 'automated' }, 'Blank');
+    assert.equal(calls.length, 2);
+    assert.equal(calls[1].body.project_id, 'blank-auth');
+    assert.equal(calls[1].body.base_snapshot_id, null);
+    assert.equal(calls[1].body.create_snapshot, true);
+    assert.equal(result.project_version, 1);
+    assert.equal(result.snapshot_id, 'blank-snapshot');
+    assert.deepEqual(result.excalidraw_payload.elements, []);
+  } finally { globalThis.fetch = previousFetch; }
+});
 test('preflight reload preserves icon choice and supports older drafts without enabling icons', () => {
   const session = new Map();
   globalThis.window.sessionStorage = { getItem: key => session.get(key) ?? null, setItem: (key, value) => session.set(key, value), removeItem: key => session.delete(key) };

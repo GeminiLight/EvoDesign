@@ -83,7 +83,7 @@ export function guestExportProjects(): GuestDiagram[] {
   return JSON.parse(JSON.stringify(readGuestDiagrams())) as GuestDiagram[];
 }
 
-export function guestSaveDiagram(request: DiagramRequest, response: DiagramResponse): GuestSaveResult {
+export function guestSaveDiagram(request: DiagramRequest, response: DiagramResponse, options: { editSource?: string } = {}): GuestSaveResult {
   const diagrams = readGuestDiagrams();
 
   let excalidrawPayload: Record<string, unknown> | null = null;
@@ -112,7 +112,7 @@ export function guestSaveDiagram(request: DiagramRequest, response: DiagramRespo
     snapshot_id: snapshotId,
     parent_id: null,
     schema_blob: schemaBlob,
-    edit_source: 'AI_GEN',
+    edit_source: options.editSource ?? 'AI_GEN',
     generation_report: response.generationReport,
     thought_trace: null,
     timestamp: new Date().toISOString(),

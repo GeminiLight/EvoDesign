@@ -1,11 +1,10 @@
-import { useBrowserModelLabel } from '../hooks/useBrowserModelLabel';
 import '../styles/home.css';
 import { useHostedModel } from '../hooks/useHostedModel';
 import { completionUrl, loadModelConfig } from '../services/browser/modelConfig';
 import { BROWSER_MODE, openModelSettings } from '../services/browser/runtime';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, Box, ChevronDown, FolderClock, GitBranch, Network, Shapes, Workflow } from 'lucide-react';
+import { ArrowRight, FolderClock, GitBranch, Network, Shapes, Workflow } from 'lucide-react';
 import { DiagramPromptComposer } from '../components/DiagramPromptComposer';
 import { Header } from '../components/Header';
 import { BrandLockup } from '../components/BrandLockup';
@@ -70,10 +69,7 @@ export const HomePage = () => {
   const { showToast } = useToast();
   const { user } = useBackendAuth();
   const { t, language } = useLanguage();
-  const zh = language === 'zh';
   const hosted = useHostedModel();
-  const modelLabel = useBrowserModelLabel(t);
-  const isSharedModel = BROWSER_MODE && loadModelConfig().source === 'hosted';
   const authIdentity = user?.user_id ?? null;
   const activeAuthIdentityRef = useRef<string | null>(authIdentity);
   const previousAuthIdentityRef = useRef<string | null | undefined>(undefined);
@@ -246,7 +242,7 @@ export const HomePage = () => {
   ];
 
 
-  const modelOptions = defaultConfigs.map((c) => ({ id: c.id, label: modelLabel }));
+  const modelOptions = defaultConfigs.map((c) => ({ id: c.id, label: c.label }));
 
   const canvasOptions: Array<{ id: 'tldraw' | 'excalidraw'; label: string }> = [
     { id: 'excalidraw', label: t('home.canvasExcalidraw') },
@@ -372,13 +368,6 @@ export const HomePage = () => {
               variant="home"
               leadingContent={
                 <div className="home-composer-tools">
-                  {BROWSER_MODE ? (
-                    <button type="button" onClick={openModelSettings} className="home-model-button" aria-label={`${t('browser.modelSettings')}: ${modelLabel}`}>
-                      <Box size={17} className={isSharedModel && hosted.status === 'available' ? 'is-ready' : ''} aria-hidden="true" />
-                      <span className="truncate">{hosted.status === 'loading' && !loadModelConfig().model ? (zh ? '正在连接…' : 'Connecting…') : modelLabel}</span>
-                      <ChevronDown size={13} aria-hidden="true" />
-                    </button>
-                  ) : <span className="home-model-button"><Box size={17} aria-hidden="true" /><span className="truncate">{modelLabel}</span></span>}
                   <button type="button" role="switch" aria-checked={useIcons && canvasOptions[canvasIndex].id === 'excalidraw'}
                     aria-label={t('home.nodeIcons')} title={t('home.nodeIconsHint')} className="home-icons-toggle"
                     disabled={referenceLoading || canvasOptions[canvasIndex].id !== 'excalidraw'} onClick={() => setUseIcons(value => !value)}>

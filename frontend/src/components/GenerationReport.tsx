@@ -1,4 +1,4 @@
-import { AlertTriangle, Check, ChevronDown, Clock3, PencilLine, X } from 'lucide-react';
+import { Activity, AlertTriangle, Check, ChevronDown, Clock3, PencilLine, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { apiV1Url, getStoredAuthToken } from '../services/httpClient';
 import { formatGenerationDuration, getGenerationReviewState, hasCurrentVisualScores, type GenerationReport as Report } from '../utils/generationReport';
@@ -9,7 +9,7 @@ const stageKeys: Record<string, string> = {
   refining: 'workflowRefining', final_verification: 'workflowFinalVerification', learning: 'workflowLearning',
 };
 
-export function GenerationReport({ report, t, compact = false }: { report: Report; t: (key: string) => string; compact?: boolean }) {
+export function GenerationReport({ report, t, compact = false, compactLabel }: { report: Report; t: (key: string) => string; compact?: boolean; compactLabel?: string }) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
     if (!compact) return;
@@ -123,8 +123,8 @@ export function GenerationReport({ report, t, compact = false }: { report: Repor
     <details ref={detailsRef} data-compact={compact} className="generation-report">
       <summary aria-label={`${title} · ${statusLabel} · ${duration}`} title={`${title} · ${statusLabel}`}>
         {compact && warning && <span className="report-attention-dot" aria-hidden="true" />}
-        <Clock3 size={14} aria-hidden="true" /><span className="report-duration">{duration}</span>
-        <span className="report-label">{title}</span><ChevronDown className="report-chevron" size={13} aria-hidden="true" />
+        {compactLabel ? <Activity size={14} aria-hidden="true" /> : <><Clock3 size={14} aria-hidden="true" /><span className="report-duration">{duration}</span></>}
+        <span className="report-label">{compactLabel || title}</span><ChevronDown className="report-chevron" size={13} aria-hidden="true" />
       </summary>
       <section className="report-content" aria-label={title}>
         <header className="report-heading">

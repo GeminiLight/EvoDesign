@@ -1,6 +1,6 @@
 import { shouldSubmitOnEnter } from '../../utils/keyboard';
 import { snapshotSourceKey } from '../../utils/projectHistory';
-import { AlertTriangle, Check, PanelLeftClose, Dna, FolderKanban, History, List, Loader2, LogIn, Pencil, Plus, RefreshCcw, Save } from 'lucide-react';
+import { AlertTriangle, Check, PanelLeftClose, Dna, FolderKanban, History, List, Loader2, LogIn, Pencil, Plus, RefreshCcw, Save, X } from 'lucide-react';
 import type { DiagramResponse, ProjectSnapshotItem } from '../../types/api';
 import type { RecentCanvasLibrary, RecentDiagram } from '../../types/app';
 import { useLanguage } from '../../i18n/LanguageProvider';
@@ -10,6 +10,7 @@ import { detectCanvasPayloadKind } from '../../utils/app';
 type WorkspaceLoadStatus = 'idle' | 'loading' | 'ready' | 'failed';
 
 export interface ProjectSidebarProps {
+  historyOnly?: boolean;
   onToggleCollapse: () => void;
   projectName: string;
   isEditingProjectName: boolean;
@@ -48,6 +49,7 @@ export interface ProjectSidebarProps {
 }
 
 export function ProjectSidebar({
+  historyOnly = false,
   onToggleCollapse,
   projectName,
   isEditingProjectName,
@@ -84,7 +86,7 @@ export function ProjectSidebar({
   hasProjectDna,
   onOpenProjectDna,
 }: ProjectSidebarProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const panelId = 'workspace-project-sidebar-panel';
   const listId = 'workspace-project-sidebar-list';
   const focusRingClass = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-brand-500 dark:focus-visible:ring-offset-slate-950';
@@ -214,15 +216,48 @@ export function ProjectSidebar({
     return mode === 'tldraw' || mode === 'excalidraw' ? mode : null;
   };
 
+  if (historyOnly) return <section className="workspace-version-list" aria-busy={isListLoading}>
+    <header className="workspace-version-heading"><h2>{t('studio.documentVersions')}</h2>
+      <span>{displayedProjectSnapshots.length}</span>
+      <button type="button" onClick={onToggleCollapse} aria-label={t('common.close')}><X size={15} /></button>
+    </header>
+    {isListLoadFailed && <div className="workspace-version-notice" role="alert">
+      <span>{language === 'zh' ? '暂时无法加载历史版本' : 'Could not load version history'}</span>
+      <button type="button" onClick={currentRetryHandler} disabled={isInteractionDisabled}>{t('common.retry')}</button>
+    </div>}
+    {isListLoading && <p className="workspace-version-empty" role="status"><Loader2 size={15} className="animate-spin" />{t('common.loading')}</p>}
+    {!isListLoading && !isListLoadFailed && !displayedProjectSnapshots.length && <p className="workspace-version-empty">
+      {language === 'zh' ? '还没有保存的版本' : 'No saved versions yet'}</p>}
+    <div className="workspace-version-items">
+      {displayedProjectSnapshots.map(snapshot => {
+        const current = snapshot.snapshot_id === preview?.snapshotId;
+        const date = new Date(snapshot.timestamp);
+        const timestamp = Number.isNaN(date.getTime()) ? snapshot.timestamp : date.toLocaleString(language === 'zh' ? 'zh-CN' : 'en-GB',
+          { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        return <button key={snapshot.snapshot_id} type="button" className="workspace-version-item" disabled={isInteractionDisabled}
+          aria-current={current ? 'true' : undefined}
+          aria-label={`${getSnapshotSourceLabel(snapshot.edit_source)}, ${timestamp}${getCurrentSuffix(current)}`}
+          onClick={() => { onSelectSnapshot(snapshot); onToggleCollapse(); }}>
+          <span className="workspace-version-node" aria-hidden="true">{current ? <Check size={13} /> : <History size={13} />}</span>
+          <span className="workspace-version-copy"><strong>{getSnapshotSourceLabel(snapshot.edit_source)}</strong><time dateTime={snapshot.timestamp}>{timestamp}</time></span>
+          {current && <small>{t('app.current')}</small>}
+        </button>;
+      })}
+    </div>
+    {(isSaveFailed || isSaveConflict || isSaveAuthExpired || isSaveMissingProject) && onSaveSnapshot && <footer className="workspace-version-recovery">
+      <button type="button" disabled={saveButtonDisabled} onClick={handleSaveButtonClick}><SaveStatusIcon size={14} />{saveButtonLabel}</button>
+    </footer>}
+  </section>;
+
   return (
     <aside
       id={panelId}
-      aria-label={t('workspace.projectPanelLabel')}
+      aria-label={t(historyOnly ? 'studio.documentVersions' : 'workspace.projectPanelLabel')}
       aria-busy={Boolean(generatingDiagramId)}
       className="workspace-project-sidebar p-3"
     >
       <div className="mb-3 flex min-h-8 items-center justify-between gap-2 px-1">
-        <h2 className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('workspace.projectNavigation')}</h2>
+        <h2 className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t(historyOnly ? 'studio.documentVersions' : 'workspace.projectNavigation')}</h2>
         <button type="button" onClick={onToggleCollapse}
           className={`hidden h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 lg:inline-flex ${focusRingClass}`}
           title={t('workspace.collapsePanel')} aria-label={t('workspace.collapsePanel')}
@@ -230,7 +265,7 @@ export function ProjectSidebar({
           <PanelLeftClose size={16} />
         </button>
       </div>
-      <div className="mb-3 border-b border-slate-200 px-1 pb-3 dark:border-slate-700">
+      {!historyOnly && <div className="mb-3 border-b border-slate-200 px-1 pb-3 dark:border-slate-700">
         <div className="flex items-start justify-between gap-2">
           <div className="flex min-w-0 flex-1 items-start gap-2">
                 {isEditingProjectName ? (
@@ -280,10 +315,10 @@ export function ProjectSidebar({
           </div>
         </div>
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{currentListLabel}</p>
-      </div>
+      </div>}
 
       <>
-          <button
+          {!historyOnly && <button
             type="button"
             onClick={onOpenCreateDialog}
             disabled={isInteractionDisabled}
@@ -292,9 +327,9 @@ export function ProjectSidebar({
           >
             <Plus className="h-4 w-4" />
             {t('workspace.newDiagram')}
-          </button>
+          </button>}
 
-          {onSaveSnapshot && (
+          {onSaveSnapshot && (!historyOnly || isSaveFailed || isSaveConflict || isSaveAuthExpired || isSaveMissingProject) && (
             <button
               type="button"
               onClick={handleSaveButtonClick}
@@ -309,7 +344,7 @@ export function ProjectSidebar({
             </button>
           )}
 
-          {onOpenProjectDna && (
+          {!historyOnly && onOpenProjectDna && (
             <button
               type="button"
               onClick={onOpenProjectDna}
@@ -332,7 +367,7 @@ export function ProjectSidebar({
             </button>
           )}
 
-          {canViewProjectHistory && (
+          {!historyOnly && canViewProjectHistory && (
             <div
               role="tablist"
               aria-label={t('workspace.historyViewLabel')}

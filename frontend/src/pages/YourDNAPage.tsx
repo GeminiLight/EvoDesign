@@ -3,20 +3,16 @@ import { BrowserPreferenceDialog } from '../components/DNA/BrowserPreferenceDial
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BrainCircuit,
-  CheckCircle2,
-  ChevronDown,
   LayoutTemplate,
   Palette,
   Plus,
-  Pencil,
   Search,
-  ToggleLeft,
-  ToggleRight,
   X,
   Zap,
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DnaSyncStatus } from '../components/DNA/DnaSyncStatus';
+import { DnaPreferenceLibrary } from '../components/DNA/DnaPreferenceLibrary';
 import { Header } from '../components/Header';
 import { CloneModal } from '../components/DNA/CloneModal';
 import { useBackendAuth } from '../features/auth/BackendAuthProvider';
@@ -27,6 +23,7 @@ import { useCloneFlow } from '../hooks/useCloneFlow';
 import type { CabinId } from '../types/dna';
 import { defaultConfigs } from '../constants/app';
 import { dnaPreferenceExample } from '../utils/dnaPreferenceExamples';
+import { emptyDnaFilters, type DnaLibraryFilters } from '../utils/dnaLibrary';
 
 type DnaRouteState = {
   highlightCabinId?: CabinId;
@@ -52,12 +49,13 @@ export function YourDNAPage() {
     activeDrawerCabin, searchKeywords, setSearchKeywords,
     editing, setEditing, draftTitle, setDraftTitle, draftPreview, setDraftPreview,
     editErrors, setEditErrors, canSaveEdit,
-    topRulesByCabin, toggleRuleEnabled, openEdit, saveEdit,
+    toggleRuleEnabled, openEdit, saveEdit,
     openDrawer, closeDrawer, toggleSelectRule, batchSetEnabled,
     drawerRules, drawerSelectedIds,
   } = useRuleLibrary();
 
   const [addingPreference, setAddingPreference] = useState(false);
+  const [libraryFilters, setLibraryFilters] = useState<DnaLibraryFilters>(emptyDnaFilters);
   const [newPreferenceCategory, setNewPreferenceCategory] = useState<CabinId>('style');
   const [prefillPreference, setPrefillPreference] = useState(false);
   const primaryAddRef = useRef<HTMLButtonElement | null>(null);
@@ -138,10 +136,14 @@ export function YourDNAPage() {
     };
   }, [isAnyDnaOverlayOpen]);
 
-  const openCloneFromButton = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const openPreferenceFromButton = (event: React.MouseEvent<HTMLButtonElement>, cabinId: CabinId, prefill = false) => {
     cloneTriggerRef.current = event.currentTarget;
-    if (BROWSER_MODE) { setNewPreferenceCategory('style'); setPrefillPreference(false); setAddingPreference(true); }
+    if (BROWSER_MODE) { setNewPreferenceCategory(cabinId); setPrefillPreference(prefill); setAddingPreference(true); }
     else openCloneModal();
+  };
+
+  const openCloneFromButton = (event: React.MouseEvent<HTMLButtonElement>) => {
+    openPreferenceFromButton(event, libraryFilters.category === 'all' ? 'style' : libraryFilters.category);
   };
 
   const restoreAddFocus = () => window.setTimeout(() => {
@@ -257,27 +259,30 @@ export function YourDNAPage() {
     const state = location.state as DnaRouteState | null;
     const params = new URLSearchParams(location.search);
     const queryCabinId = params.get('cabin');
-    const queryRuleId = Number(params.get('rule'));
+    const ruleParam = params.get('rule');
+    const queryRuleId = ruleParam?.trim() ? Number(ruleParam) : null;
     const highlightCabinId = isCabinId(queryCabinId)
       ? queryCabinId
       : state && isCabinId(state.highlightCabinId)
         ? state.highlightCabinId
         : null;
-    const highlightRuleId = Number.isFinite(queryRuleId)
+    const highlightRuleId = queryRuleId !== null && Number.isFinite(queryRuleId)
       ? queryRuleId
       : typeof state?.highlightRuleId === 'number'
         ? state.highlightRuleId
         : null;
 
-    if (!highlightCabinId || highlightRuleId === null) return;
+    if (!highlightCabinId) return;
 
-    const stateKey = `${highlightCabinId}:${highlightRuleId}`;
-    if (processedHighlightRef.current === stateKey && activeDrawerCabin === highlightCabinId) return;
+    const stateKey = `${location.key}:${highlightCabinId}:${highlightRuleId ?? 'category'}`;
+    if (processedHighlightRef.current === stateKey) return;
     processedHighlightRef.current = stateKey;
+    setLibraryFilters({ ...emptyDnaFilters, category: highlightCabinId });
+    if (highlightRuleId === null) return;
     setHighlightedRule({ cabinId: highlightCabinId, ruleId: highlightRuleId });
     setSearchKeywords((prev) => ({ ...prev, [highlightCabinId]: '' }));
     openDrawer(highlightCabinId);
-  }, [activeDrawerCabin, location.search, location.state, openDrawer, setSearchKeywords]);
+  }, [location.key, location.search, location.state, openDrawer, setSearchKeywords]);
 
   return (
     <div className="studio-shell studio-library studio-memory relative min-h-screen overflow-x-hidden">
@@ -304,65 +309,12 @@ export function YourDNAPage() {
               <span id="dna-create-with-current-status" className="sr-only">{t(canCreateWithCurrentDna ? 'dna.page.heroCreateActionDesc' : 'dna.page.heroCreateDisabledDesc')}</span>
             </div>
           </fieldset>
-            <div className="memory-summary">
-              <p className="memory-auto-apply"><CheckCircle2 size={13} aria-hidden="true" />{isZh ? '已启用偏好自动用于新创作' : 'Enabled preferences apply to new diagrams'}</p>
-              <DnaSyncStatus syncStatus={syncStatus} retrySync={retrySync} acceptServerRules={acceptServerRules} />
-            </div>
-          <fieldset disabled={!canEditRules} className="min-w-0">
-            <div>
-              {cabins.map((cabin) => {
-                const CabinIcon = cabin.icon;
-                const topRules = topRulesByCabin(cabin.id);
-                const example = dnaPreferenceExample(cabin.id, language);
-                return <section key={cabin.id} className="memory-cabin">
-                  <div className="memory-cabin-heading">
-                    <h2><CabinIcon size={18} strokeWidth={1.6} className={cabin.color.accent} />{cabin.name}{evoStats.counts[cabin.id] > 0 && <span>{evoStats.counts[cabin.id]}</span>}</h2>
-                    <p>{cabin.hint}</p>
-                  </div>
-                  <div className="memory-cabin-content">
-                  {topRules.length === 0 ? <div className="memory-empty">
-                    {BROWSER_MODE ? <button type="button" className="memory-suggestion" aria-label={isZh ? `试用${example.title}偏好` : `Try ${example.title.toLowerCase()}`} onClick={event => {
-                      cloneTriggerRef.current = event.currentTarget;
-                      setNewPreferenceCategory(cabin.id); setPrefillPreference(true); setAddingPreference(true);
-                    }}><Plus size={13} aria-hidden="true" />{cabin.id === 'style' && <span className="memory-palette" aria-hidden="true"><i /><i /><i /></span>}{example.title}</button> : <p>{example.description}</p>}
-                    <button type="button" className="studio-secondary shrink-0" aria-label={isZh ? `添加${cabin.name}偏好` : `Add ${cabin.name.toLowerCase()} preference`} onClick={(event) => {
-                      cloneTriggerRef.current = event.currentTarget;
-                      if (BROWSER_MODE) { setNewPreferenceCategory(cabin.id); setPrefillPreference(false); setAddingPreference(true); } else openCloneModal();
-                    }}><Plus size={14} />{isZh ? '自定义' : 'Custom'}</button>
-                  </div> : (
-                    <div>
-                      {topRules.map((rule) => <article key={rule.id} className="memory-rule">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                            <h3 className="break-words text-[13px] font-semibold text-slate-800 dark:text-slate-100">{rule.title}</h3>
-                            <span className={`inline-flex items-center gap-1.5 text-[11px] ${rule.enabled ? 'text-violet-600 dark:text-violet-300' : 'text-slate-400'}`}>
-                              <span className={`h-1.5 w-1.5 rounded-full ${rule.enabled ? 'bg-violet-400' : 'bg-slate-400'}`} />
-                              {t(rule.enabled ? 'dna.page.ruleActive' : 'dna.page.ruleInactive')}
-                            </span>
-                          </div>
-                          <p className="mt-1.5 line-clamp-2 max-w-3xl break-words text-[13px] leading-6 text-slate-500 dark:text-slate-400">{rule.preview}</p>
-                          {!BROWSER_MODE && <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">{t(rule.source === 'ai' ? 'dna.page.aiLearned' : 'dna.page.manualSet')} · {t('dna.page.usage')}: {rule.usageCount}</p>}
-                        </div>
-                        <div className="memory-rule-actions">
-                          <button type="button" onClick={(event) => openEditFromButton(event, cabin.id, rule)} aria-label={ruleActionLabel('dna.page.editRuleLabel', rule.title)} className="studio-secondary text-xs">
-                            <Pencil size={13} />{t('dna.page.edit')}
-                          </button>
-                          <button type="button" onClick={() => toggleRuleEnabled(cabin.id, rule.id)} aria-label={ruleActionLabel(rule.enabled ? 'dna.page.disableRuleLabel' : 'dna.page.enableRuleLabel', rule.title)} aria-pressed={rule.enabled} className="studio-secondary text-xs">
-                            {rule.enabled ? <ToggleRight size={18} className="text-violet-500 dark:text-violet-300" /> : <ToggleLeft size={18} />}
-                            {t(rule.enabled ? 'dna.page.disable' : 'dna.page.enable')}
-                          </button>
-                        </div>
-                      </article>)}
-                    </div>
-                  )}
-                  {evoStats.counts[cabin.id] > topRules.length && <button type="button" onClick={(event) => openDrawerFromButton(event, cabin.id)} className="studio-secondary memory-manage text-xs">
-                    {t('dna.page.manageLibraryAction')}<ChevronDown size={14} className="-rotate-90" />
-                  </button>}
-                  </div>
-                </section>;
-              })}
-            </div>
-          </fieldset>
+          {syncStatus !== 'local' && syncStatus !== 'synced' && <DnaSyncStatus
+            syncStatus={syncStatus} retrySync={retrySync} acceptServerRules={acceptServerRules} />}
+          <DnaPreferenceLibrary cabins={cabins} library={ruleLibrary} filters={libraryFilters}
+            onFilterChange={setLibraryFilters} canEdit={canEditRules} onEdit={openEditFromButton}
+            onToggle={toggleRuleEnabled} onManage={openDrawerFromButton} onAdd={openPreferenceFromButton}
+            onExample={BROWSER_MODE ? (event, cabinId) => openPreferenceFromButton(event, cabinId, true) : undefined} />
         </div></main>
       </div>
 
@@ -474,6 +426,7 @@ export function YourDNAPage() {
           id: Math.max(0, ...Object.values(previous).flat().map(rule => rule.id)) + 1,
           title, preview: description, source: 'manual', enabled: true, pinned: true, usageCount: 0, updatedAt: isZh ? '刚刚' : 'just now',
         }] }));
+        setLibraryFilters({ ...emptyDnaFilters, category });
         setAddingPreference(false); restoreAddFocus();
         showToast(t('studio.preferenceSaved'), 'success');
       }} />}

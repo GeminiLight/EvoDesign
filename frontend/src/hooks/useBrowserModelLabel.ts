@@ -18,7 +18,7 @@ export function useBrowserModelLabel(t: (key: string) => string): string {
   const model = useSyncExternalStore(subscribe, () => {
     if (!BROWSER_MODE) return '';
     const config = loadModelConfig();
-    return config.source === 'hosted' ? 'GLM-5.3-Flash' : config.model.trim();
+    return config.model.trim();
   }, () => '');
-  return BROWSER_MODE ? model || t('browser.yourModel') : t('home.serverModel');
+  return BROWSER_MODE ? model || t('browser.configureModel') : t('home.serverModel');
 }
