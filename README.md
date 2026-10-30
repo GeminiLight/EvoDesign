@@ -22,8 +22,6 @@
 </div>
 <!-- PROJECT-LINKS:END -->
 
-[中文入门](docs/quickstart-zh.md) · [Browser edition guide](docs/browser-edition.md)
-
 ![EvoDesign Studio home in English, with the creation form, reference input, diagram-type selector and model controls](docs/screenshots/studio-home-en.jpg)
 
 <sub>The current browser edition: start from a prompt, add reference content, and choose your diagram type and model.</sub>
@@ -165,14 +163,11 @@ See [contributing](CONTRIBUTING.md), [configuration](docs/configuration.md) and 
 
 ## Contributors
 
-EvoDesign builds on the earlier EvoDiagram project. We credit the contributors to that work as well as the current workspace.
-
-| Contributor | Contributions |
-| --- | --- |
-| [Tianfu Wang](https://github.com/GeminiLight) | Diagram engine, editable web workspace, design memory, research tooling and project maintenance |
-| [Yi Zhan](https://github.com/USTChandsomeboy) | Diagram generation quality, architecture diagram layout and styling, edge routing and collision detection |
-
-Yi Zhan's earlier EvoDiagram contributions are preserved through a [filtered history import](docs/contributor-history.md), with original author information and timestamps. For the full research author list, see the [paper](https://arxiv.org/abs/2604.09568) and [citation](#citation).
+<p>
+  <a href="https://github.com/GeminiLight"><img src="docs/assets/contributors/geminilight.svg" width="64" height="64" alt="Tianfu Wang" title="Tianfu Wang" /></a>
+  &nbsp;
+  <a href="https://github.com/USTChandsomeboy"><img src="docs/assets/contributors/ustchandsomeboy.svg" width="64" height="64" alt="Yi Zhan" title="Yi Zhan" /></a>
+</p>
 
 ## Citation
 

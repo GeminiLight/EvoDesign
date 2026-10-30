@@ -22,8 +22,6 @@
 </div>
 <!-- PROJECT-LINKS:END -->
 
-[中文入门](docs/quickstart-zh.md) · [浏览器版使用说明（英文）](docs/browser-edition.md)
-
 ![EvoDesign Studio 中文首页，展示创作输入框、参考资料、图表类型、模型选择和图标开关](docs/screenshots/studio-home-zh-CN.jpg)
 
 <sub>当前浏览器版界面：输入想法，添加参考资料，选择图表类型和模型，即可开始创作。</sub>
@@ -165,14 +163,11 @@ python -m pip install -e ".[dev]"
 
 ## 贡献者
 
-EvoDesign 延续了早期 EvoDiagram 项目的工作。我们在此列出早期项目与当前工作台的贡献者。
-
-| 贡献者 | 贡献内容 |
-| --- | --- |
-| [Tianfu Wang](https://github.com/GeminiLight) | 图表引擎、可编辑 Web 工作台、设计记忆、科研工具与项目维护 |
-| [Yi Zhan（占一）](https://github.com/USTChandsomeboy) | 图表生成质量、架构图布局与样式、连线路由和碰撞检测 |
-
-占一早期在 EvoDiagram 的贡献已通过[筛选后的历史导入](docs/contributor-history.md)保留，作者信息与原始时间均保持不变。完整科研作者名单见[论文](https://arxiv.org/abs/2604.09568)与[引用](#引用)。
+<p>
+  <a href="https://github.com/GeminiLight"><img src="docs/assets/contributors/geminilight.svg" width="64" height="64" alt="Tianfu Wang" title="Tianfu Wang" /></a>
+  &nbsp;
+  <a href="https://github.com/USTChandsomeboy"><img src="docs/assets/contributors/ustchandsomeboy.svg" width="64" height="64" alt="Yi Zhan" title="Yi Zhan" /></a>
+</p>
 
 ## 引用
 
