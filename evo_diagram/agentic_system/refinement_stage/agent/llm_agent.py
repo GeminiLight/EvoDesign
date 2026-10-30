@@ -1,0 +1,283 @@
+"""Single-shot VLM refiner agent.
+
+One model call per refinement iteration. Receives:
+- the current PNG (base64 — never visually inspected by Claude)
+- the **remaining** findings (after deterministic pass)
+- the original verifier subjective critique (loaded once at start)
+- a compact manifest summary
+- previous-iteration edit log (so the model doesn't loop)
+
+Returns a List[EditOp]. Schema-violating items are dropped with a log
+warning rather than raising.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import time
+from typing import Any, Dict, Iterable, List, Optional
+
+from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import HumanMessage, SystemMessage
+
+from ..state import EditOp
+from .prompts import REFINER_LLM_SYSTEM_PROMPT, build_refiner_user_prompt
+from evo_diagram.core.base_agent import (
+    _is_transient_status_code,
+    _status_code_from_exception,
+)
+from evo_diagram.core.llm_factory import LLMFactory
+from evo_diagram.utils.io_utils import image_to_data_url
+from evo_diagram.utils.llm_output import convert_json_output
+
+logger = logging.getLogger(__name__)
+
+
+def _coerce_to_edits(raw_list: List[Any]) -> List[EditOp]:
+    """Validate each item with the EditOp pydantic model. Drop bad ones."""
+    edits: List[EditOp] = []
+    for i, item in enumerate(raw_list):
+        if not isinstance(item, dict):
+            logger.warning("LLM edit %d is not a dict; skip", i)
+            continue
+        # Inject source so audit trail tags it correctly.
+        item.setdefault("source", "llm")
+        try:
+            edit = EditOp.model_validate(item)
+        except Exception as exc:  # pydantic ValidationError
+            logger.warning(
+                "LLM edit %d failed validation: %s; payload=%r", i, exc, item
+            )
+            continue
+        edits.append(edit)
+    return edits
+
+
+def build_manifest_summary(
+    manifest: Dict[str, Any],
+    *,
+    cap: int = 120,
+    pinned_ids: Optional[Iterable[str]] = None,
+) -> List[Dict[str, Any]]:
+    """Produce a compact element list for the LLM prompt.
+
+    Each entry: ``{id, type, bbox: [x, y, w, h], text?}``. Skips arrows
+    (the LLM doesn't reposition arrow waypoints — too risky for now)
+    and isDeleted elements. ``pinned_ids`` are emitted first so elements tied
+    to active verifier findings are not lost when the prompt is capped.
+    """
+    pinned: List[Dict[str, Any]] = []
+    regular: List[Dict[str, Any]] = []
+    pinned_set = {value for value in (pinned_ids or []) if isinstance(value, str)}
+    seen_ids: set[str] = set()
+    elements = manifest.get("elements", [])
+    if not isinstance(elements, list):
+        return []
+    for elem in elements:
+        if not isinstance(elem, dict) or elem.get("isDeleted"):
+            continue
+        try:
+            x = float(elem.get("x", 0) or 0)
+            y = float(elem.get("y", 0) or 0)
+            w = float(elem.get("width", 0) or 0)
+            h = float(elem.get("height", 0) or 0)
+        except (TypeError, ValueError):
+            continue
+        entry: Dict[str, Any] = {
+            "id": elem.get("id"),
+            "type": elem.get("type"),
+            "bbox": [x, y, w, h],
+        }
+        element_id = entry.get("id")
+        if not isinstance(element_id, str) or not element_id or element_id in seen_ids:
+            continue
+        text = elem.get("text") or elem.get("originalText")
+        if text:
+            entry["text"] = str(text)[:60]
+        if element_id in pinned_set:
+            pinned.append(entry)
+        else:
+            regular.append(entry)
+        seen_ids.add(element_id)
+    return (pinned + regular)[:cap]
+
+
+def _is_permanent_http_error(exc: BaseException) -> bool:
+    """True for provider HTTP errors that outer retries cannot fix."""
+    status_code = _status_code_from_exception(exc)
+    if status_code is not None:
+        return not _is_transient_status_code(status_code)
+
+    cls_name = type(exc).__name__
+    return cls_name in {
+        "AuthenticationError",
+        "BadRequestError",
+        "NotFoundError",
+        "PermissionDeniedError",
+        "UnprocessableEntityError",
+    }
+
+
+class RefinerLLMAgent:
+    """Single-shot VLM call wrapper that emits validated EditOps."""
+
+    def __init__(
+        self,
+        model: Optional[BaseChatModel] = None,
+        max_retries: int = 3,
+        retry_delay_seconds: float = 5.0,
+    ) -> None:
+        if model is None:
+            from evo_diagram.config.model_loader import ModelConfig
+
+            ModelConfig.get_default().require_model_capabilities(
+                "refiner", {"vision"}
+            )
+        self.model = model or LLMFactory.create_for_role("refiner")
+        self.max_retries = max_retries
+        self.retry_delay_seconds = retry_delay_seconds
+        # Set whenever a propose_edits() call exhausts retries OR exits early
+        # on a permanent HTTP error. Workflow reads this to surface the failure
+        # in state.errors / refiner_report.json — otherwise a silent empty list
+        # looks identical to "LLM had nothing to propose".
+        self.last_exhaustion_error: Optional[str] = None
+
+    def propose_edits(
+        self,
+        image_path: str,
+        chart_type: Optional[str],
+        remaining_findings: List[Dict[str, Any]],
+        critique: Optional[Dict[str, Any]],
+        manifest_summary: List[Dict[str, Any]],
+        previous_attempts: Optional[List[Dict[str, Any]]] = None,
+        iteration: int = 1,
+        max_iterations: int = 3,
+    ) -> List[EditOp]:
+        """Run one VLM call; return validated EditOps. Empty list on parse failure."""
+        # Reset for this call. Set below when retries exhaust or we exit early
+        # on a permanent HTTP error.
+        self.last_exhaustion_error = None
+
+        data_url = image_to_data_url(image_path)
+        user_text = build_refiner_user_prompt(
+            chart_type=chart_type,
+            remaining_findings=remaining_findings,
+            critique=critique,
+            manifest_summary=manifest_summary,
+            previous_attempts=previous_attempts,
+            iteration=iteration,
+            max_iterations=max_iterations,
+        )
+        messages = [
+            SystemMessage(content=REFINER_LLM_SYSTEM_PROMPT),
+            HumanMessage(
+                content=[
+                    {"type": "image_url", "image_url": {"url": data_url}},
+                    {"type": "text", "text": user_text},
+                ]
+            ),
+        ]
+
+        delay = self.retry_delay_seconds
+        last_exc: Optional[Exception] = None
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                response = self.model.invoke(messages)
+                if response is None or not getattr(response, "content", None):
+                    raise ValueError("VLM returned empty response")
+                raw = response.content
+                if isinstance(raw, list):
+                    raw = "".join(p.get("text", "") for p in raw if isinstance(p, dict))
+                if not isinstance(raw, str):
+                    raw = str(raw)
+
+                try:
+                    arr = convert_json_output(raw)
+                except json.JSONDecodeError:
+                    logger.warning(
+                        "Could not extract JSON array from VLM response (attempt %d). "
+                        "Raw head: %s",
+                        attempt,
+                        raw[:200],
+                    )
+                    raise ValueError("no JSON array found")
+                if not isinstance(arr, list):
+                    logger.warning(
+                        "VLM response parsed but is not a JSON array (attempt %d). "
+                        "Got type: %s",
+                        attempt,
+                        type(arr).__name__,
+                    )
+                    raise ValueError("VLM response is not a JSON array")
+
+                edits = _coerce_to_edits(arr)
+                logger.info(
+                    "VLM proposed %d edits (%d valid after schema check)",
+                    len(arr),
+                    len(edits),
+                )
+                return edits
+
+            except Exception as exc:  # noqa: BLE001
+                last_exc = exc
+                logger.warning(
+                    "Refiner LLM attempt %d/%d failed: %s",
+                    attempt,
+                    self.max_retries,
+                    exc,
+                )
+                # Permanent provider/client errors should stop immediately.
+                # Transient 408/409/429/5xx/connection failures still get the
+                # outer retry budget so refiner behavior matches BaseAgent.
+                if _is_permanent_http_error(exc):
+                    logger.warning(
+                        "Refiner LLM exiting retry loop early — non-retryable "
+                        "provider HTTP error"
+                    )
+                    break
+                if attempt < self.max_retries:
+                    time.sleep(delay)
+                    delay *= 2
+
+        # All retries exhausted — return empty list rather than crashing the
+        # workflow; deterministic pass result is still valuable. Surface the
+        # failure via last_exhaustion_error so the workflow's state.errors
+        # captures it (otherwise the empty list looks like "no proposals").
+        if last_exc is not None:
+            logger.error("Refiner LLM exhausted retries: %s", last_exc)
+            self.last_exhaustion_error = f"{type(last_exc).__name__}: {last_exc}"
+        return []
+
+
+def refine_with_llm(
+    image_path: str,
+    *,
+    chart_type: Optional[str] = None,
+    remaining_findings: Optional[List[Dict[str, Any]]] = None,
+    critique: Optional[Dict[str, Any]] = None,
+    manifest_summary: Optional[List[Dict[str, Any]]] = None,
+    previous_attempts: Optional[List[Dict[str, Any]]] = None,
+    iteration: int = 1,
+    max_iterations: int = 3,
+    model: Optional[BaseChatModel] = None,
+) -> List[EditOp]:
+    """Convenience function — single LLM call, validated EditOps out."""
+    agent = RefinerLLMAgent(model=model)
+    return agent.propose_edits(
+        image_path=image_path,
+        chart_type=chart_type,
+        remaining_findings=remaining_findings or [],
+        critique=critique,
+        manifest_summary=manifest_summary or [],
+        previous_attempts=previous_attempts,
+        iteration=iteration,
+        max_iterations=max_iterations,
+    )
+
+
+__all__ = [
+    "RefinerLLMAgent",
+    "refine_with_llm",
+    "build_manifest_summary",
+]
