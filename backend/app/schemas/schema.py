@@ -17,8 +17,8 @@ class SchemaSyncRequest(BaseModel):
     )
     base_snapshot_id: str | None = Field(default=None, description="Base snapshot ID")
     create_snapshot: bool = Field(default=False, description="Whether to create a new snapshot")
-    version: int | None = Field(
-        default=None,
+    version: int = Field(
+        ..., ge=1,
         description="Expected project version for optimistic locking",
     )
 

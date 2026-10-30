@@ -3,6 +3,17 @@ import { readLocalStorage, writeLocalStorage, removeLocalStorage } from './safeL
 export type DnaRules = Record<CabinId, Rule[]>;
 type Draft = { rules: DnaRules; marker: string; durable: boolean };
 const latest = new Map<string, Draft>();
+const flushers = new Map<string, Set<() => void>>();
+
+export function registerDnaFlusher(key: string, flush: () => void): () => void {
+  const entries = flushers.get(key) ?? new Set();
+  entries.add(flush); flushers.set(key, entries);
+  return () => { entries.delete(flush); if (!entries.size) flushers.delete(key); };
+}
+
+export function flushDnaDraft(key: string): void {
+  flushers.get(key)?.forEach(flush => flush());
+}
 
 export function rememberDnaDraft(key: string, rules: DnaRules): Draft {
   const marker = JSON.stringify({ rules, at: Date.now() });

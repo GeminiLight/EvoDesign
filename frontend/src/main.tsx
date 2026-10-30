@@ -19,6 +19,7 @@ import { DashboardPage } from './pages/DashboardPage'
 import { GalleryPage } from './pages/GalleryPage'
 import { YourDNAPage } from './pages/YourDNAPage'
 import { NotFoundPage } from './pages/NotFoundPage'
+import { AgentConnectPage } from './pages/AgentConnectPage'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -33,6 +34,7 @@ createRoot(document.getElementById('root')!).render(
           <RouteScrollReset />
           {BROWSER_MODE && <BrowserModelSettings />}
           <Routes>
+            <Route path="/agent/connect" element={<AgentConnectPage />} />
             <Route path="/" element={BROWSER_MODE ? <Navigate to="/home" replace /> : <IndexPage />} />
             <Route path="/home" element={<HomePage />} />
             <Route path="/projects" element={<DashboardPage />} />

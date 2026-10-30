@@ -7,14 +7,20 @@ from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Protocol
 
 from loguru import logger
-from sqlalchemy import func, select, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from evo_diagram.canvas_environment import EditError
 
 from app.core.exceptions import (
     LOWERCASE_PROJECT_NOT_FOUND_DETAIL,
     ProjectNotFoundException,
 )
-from app.db.base import utc_now
+from app.services.document_commit_service import commit_document, VersionConflictError, MissingVersionError
+from app.services.document_service import effective_constraints, digest
+from app.models.agent import AgentProposal
+import copy
+import time
+from uuid import uuid4
 from app.models.project import Project
 from app.models.snapshot import Snapshot
 from app.services.thumbnail_service import ThumbnailGenerationError, generate_svg_thumbnail
@@ -30,6 +36,8 @@ class DiagramPersistenceInput:
     project_id: str | None
     canvas_library: str
     workflow_result: Mapping[str, Any]
+    base_version: int | None = None
+    base_schema: dict[str, Any] | None = None
 
 
 class DiagramPersistenceRequest(Protocol):
@@ -46,9 +54,10 @@ class PersistedDiagramResult:
     """Database identifiers created or updated for a generated diagram."""
 
     project_id: str
-    snapshot_id: str
+    snapshot_id: str | None
     thumbnail_url: str | None
     version: int | None = None
+    proposal_id: str | None = None
 
 
 ThumbnailGenerator = Callable[[dict[str, Any], str], str | None]
@@ -68,6 +77,8 @@ def build_diagram_persistence_input(
         project_id=request.project_id,
         canvas_library=request.canvas_library,
         workflow_result=workflow_result,
+        base_version=getattr(request, "base_version", None),
+        base_schema=getattr(request, "current_schema", None),
     )
 
 
@@ -88,31 +99,33 @@ class DiagramPersistenceService:
     ) -> PersistedDiagramResult:
         """Persist a workflow result and return project/snapshot identifiers."""
         project = await self._resolve_project(payload)
-        latest_snapshot = await self._get_latest_snapshot(project.project_id)
-
         schema_blob = payload.workflow_result["schema_blob"]
-        # Generation is a document write too. Invalidate stale editor versions
-        # with the same atomic counter used by schema sync.
-        await self.db.execute(update(Project).where(Project.project_id == project.project_id).values(
-            canvas_engine=payload.canvas_library, latest_schema=schema_blob,
-            updated_at=utc_now(), version=func.coalesce(Project.version, 1) + 1,
-        ).execution_options(synchronize_session=False))
-        await self.db.refresh(project)
+        if payload.project_id and payload.base_version is None:
+            raise MissingVersionError()
+        try:
+            snapshot = await commit_document(
+                self.db, project, schema_blob,
+                expected_version=payload.base_version if payload.project_id else project.version,
+                source="AI_GEN", checkpoint=True,
+                metrics=payload.workflow_result.get("metrics_scores"), canvas_library=payload.canvas_library,
+                thought_trace=json.dumps(payload.workflow_result.get("thought_trace") or {}, ensure_ascii=False),
+            )
+        except (VersionConflictError, EditError):
+            constraints = await effective_constraints(self.db, project)
+            request_id = payload.workflow_result.get("request_id") or str(uuid4())
+            proposal = AgentProposal(
+                project_id=project.project_id, user_id=payload.user_id, author_kind="AI_GEN",
+                operation_id="generation:" + str(request_id), request_hash=digest(schema_blob),
+                base_version=payload.base_version, base_schema=copy.deepcopy(payload.base_schema or {}),
+                candidate_schema=copy.deepcopy(schema_blob), constraints_hash=constraints["constraints_hash"],
+                expires_at=time.time()+7*86400,
+            )
+            self.db.add(proposal)
+            await self.db.flush()
+            await self.db.refresh(project)
+            return PersistedDiagramResult(project.project_id, None, project.thumbnail_url,
+                                          project.version, proposal.proposal_id)
         self._update_thumbnail(project, schema_blob, payload.canvas_library)
-
-        snapshot = Snapshot(
-            project_id=project.project_id,
-            parent_id=latest_snapshot.snapshot_id if latest_snapshot else None,
-            schema_blob=schema_blob,
-            edit_source="AI_GEN",
-            thought_trace=json.dumps(
-                payload.workflow_result.get("thought_trace") or {},
-                ensure_ascii=False,
-            ),
-            metrics_scores=payload.workflow_result.get("metrics_scores"),
-        )
-        self.db.add(snapshot)
-        await self.db.flush()
 
         return PersistedDiagramResult(
             project_id=project.project_id,
@@ -167,6 +180,7 @@ class DiagramPersistenceService:
         try:
             thumbnail = self.thumbnail_generator(schema_blob, canvas_library)
         except ThumbnailGenerationError as exc:
+            project.thumbnail_url = None
             logger.warning("Thumbnail generation failed: {}", exc)
             return
 

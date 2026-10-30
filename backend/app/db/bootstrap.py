@@ -38,6 +38,7 @@ async def initialize_database_schema(engine: AsyncEngine) -> None:
         await conn.run_sync(Base.metadata.create_all)
 
     await ensure_project_version_column(engine)
+    await ensure_agent_document_columns(engine)
     await ensure_user_provider_identity_index(engine)
 
     logger.info("Database tables created")
@@ -133,3 +134,37 @@ def _has_table_index(
     return any(
         index["name"] == index_name for index in inspector.get_indexes(table_name)
     )
+
+
+async def ensure_agent_document_columns(engine: AsyncEngine) -> None:
+    """Repair additive document columns in databases created before Agent CLI."""
+    async with engine.begin() as conn:
+        if not await conn.run_sync(_has_table_column, "projects", "current_snapshot_id"):
+            await conn.execute(text("ALTER TABLE projects ADD COLUMN current_snapshot_id VARCHAR(36)"))
+        if not await conn.run_sync(_has_table_column, "snapshots", "is_checkpoint"):
+            await conn.execute(text("ALTER TABLE snapshots ADD COLUMN is_checkpoint BOOLEAN NOT NULL DEFAULT FALSE"))
+            await conn.execute(text("UPDATE snapshots SET is_checkpoint = TRUE WHERE edit_source = 'AI_GEN'"))
+        if await conn.run_sync(_has_table_column, 'projects', 'latest_schema'):
+            await conn.run_sync(backfill_document_heads)
+
+
+def backfill_document_heads(conn: Connection) -> None:
+    """Only associate a historical snapshot when its content matches the head."""
+    from sqlalchemy import insert, select, update
+    from uuid import uuid4
+    from app.db.base import utc_now
+    from app.models.project import Project
+    from app.models.snapshot import Snapshot
+
+    projects = conn.execute(select(Project.project_id, Project.latest_schema).where(
+        Project.current_snapshot_id.is_(None), Project.latest_schema.is_not(None))).all()
+    for project_id, schema in projects:
+        snapshots = conn.execute(select(Snapshot.snapshot_id, Snapshot.schema_blob).where(
+            Snapshot.project_id == project_id).order_by(Snapshot.timestamp.desc(), Snapshot.snapshot_id.desc())).all()
+        snapshot_id = next((sid for sid, candidate in snapshots if candidate == schema), None)
+        if snapshot_id is None:
+            snapshot_id = str(uuid4())
+            conn.execute(insert(Snapshot).values(snapshot_id=snapshot_id, project_id=project_id,
+                schema_blob=schema, edit_source='HUMAN', is_checkpoint=False, timestamp=utc_now()))
+        conn.execute(update(Project).where(Project.project_id == project_id,
+            Project.current_snapshot_id.is_(None)).values(current_snapshot_id=snapshot_id))

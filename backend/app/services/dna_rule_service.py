@@ -6,7 +6,7 @@ from collections.abc import Callable, Iterable
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ProjectNotFoundException
@@ -55,6 +55,12 @@ class DnaRuleService:
         if project_id is not None:
             await self._require_owned_project(user_id=user_id, project_id=project_id)
 
+        supplied_ids = [rule.rule_id for _, rule in iter_payload_rules(payload) if rule.rule_id]
+        foreign_ids = set((await self.db.scalars(select(DnaRule.rule_id).where(
+            DnaRule.rule_id.in_(supplied_ids),
+            or_(DnaRule.user_id != user_id, DnaRule.project_id.is_distinct_from(project_id)),
+        ))).all()) if supplied_ids else set()
+
         await self.db.execute(
             delete(DnaRule).where(
                 DnaRule.user_id == user_id,
@@ -62,10 +68,15 @@ class DnaRuleService:
             )
         )
 
-        rows = self._build_rows(user_id=user_id, payload=payload)
+        rows = self._build_rows(user_id=user_id, payload=payload, reserved_ids=foreign_ids)
         if rows:
             self.db.add_all(rows)
 
+        affected = [Project.user_id == user_id]
+        if project_id is not None:
+            affected.append(Project.project_id == project_id)
+        await self.db.execute(update(Project).where(*affected).values(version=Project.version+1)
+                              .execution_options(synchronize_session=False))
         await self.db.flush()
         saved = await self._fetch_rows(user_id=user_id, project_id=project_id)
         return rows_to_payload(saved, project_id)
@@ -94,12 +105,13 @@ class DnaRuleService:
         )
         return list(result.scalars().all())
 
-    def _build_rows(self, *, user_id: str, payload: DnaRulesPayload) -> list[DnaRule]:
+    def _build_rows(self, *, user_id: str, payload: DnaRulesPayload,
+                    reserved_ids: set[str] | None = None) -> list[DnaRule]:
         now = self.clock()
         rows: list[DnaRule] = []
         # Rule IDs come from the client, so a payload can repeat one and collide
         # on the primary key. Repeats get a fresh server-side ID instead.
-        used_rule_ids: set[str] = set()
+        used_rule_ids: set[str] = set(reserved_ids or ())
         for cabin_id, rule in iter_payload_rules(payload):
             rule_id = rule.rule_id or self.id_factory()
             if rule_id in used_rule_ids:

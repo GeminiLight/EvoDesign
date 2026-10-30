@@ -1,5 +1,7 @@
 import { type Dispatch, type SetStateAction, useCallback, useEffect, useRef, useState } from 'react';
 import type { CanvasLibrary, DiagramResponse } from '../types/api';
+import type { AgentDocument } from '../services/agentApi';
+import { parseGenerationReport } from '../utils/generationReport';
 import type { TLEditorSnapshot } from '@tldraw/tldraw';
 import type { CanvasMode } from '../components/DiagramCanvas/CanvasModeSelector';
 import { isApiError, syncProjectSchema } from '../services/backendApi';
@@ -810,7 +812,41 @@ export function useDiagramSync(
     clearSnapshotChangeThrottle();
   }, [clearAutoSyncTimer, clearSaveStatusTimer, clearSnapshotChangeThrottle]);
 
+  const isDocumentSaving = useCallback(() => syncInFlightRef.current || manualSaveInFlightRef.current, []);
+  const isDocumentDirty = useCallback(() => Boolean(hasUnsavedChangesRef.current
+    || pendingAutoSyncRef.current || pendingSnapshotChangeRef.current
+    || (latestSnapshotRef.current && getSnapshotDocSignature(latestSnapshotRef.current) !== lastSyncedDocSignatureRef.current)), []);
+  const pauseForRemoteUpdate = useCallback(() => {
+    if (isDocumentDirty()) setUnsavedChanges(true);
+    autoSyncPausedUntilManualSaveRef.current = true;
+    clearAutoSyncTimer();
+    clearSnapshotChangeThrottle();
+    pendingAutoSyncRef.current = null;
+  }, [clearAutoSyncTimer, clearSnapshotChangeThrottle, isDocumentDirty, setUnsavedChanges]);
+  const applyRemoteDocument = useCallback((doc: AgentDocument, discardDraft: boolean) => {
+    if (doc.project_id !== preview?.projectId || isDocumentSaving()
+      || (!discardDraft && isDocumentDirty()) || doc.version < (projectVersionRef.current ?? 0)) return false;
+    const signature = getSnapshotDocSignature(doc.schema);
+    const split = splitCanvasPayload(doc.schema);
+    beginHistorySwitch(signature, doc.version);
+    hydrationSourceRef.current = signature;
+    latestSnapshotRef.current = doc.schema;
+    activeEditingSnapshotIdRef.current = doc.snapshot_id;
+    setPreview(prev => prev?.projectId === doc.project_id ? {
+      ...prev, diagramId: doc.snapshot_id ?? prev.diagramId, snapshotId: doc.snapshot_id ?? undefined,
+      projectVersion: doc.version, rawSchemaBlob: doc.schema,
+      generationReport: parseGenerationReport(doc.metrics_scores), persistError: false, proposalId: undefined,
+      excalidrawPayload: split.excalidrawPayload, tldrawSnapshot: split.tldrawSnapshot,
+    } : prev);
+    setError(null);
+    return true;
+  }, [beginHistorySwitch, isDocumentDirty, isDocumentSaving, preview?.projectId, setError, setPreview]);
+
   return {
+    isDocumentSaving,
+    isDocumentDirty,
+    pauseForRemoteUpdate,
+    applyRemoteDocument,
     manualSaveStatus,
     hasUnsavedChanges,
     latestSnapshotRef,

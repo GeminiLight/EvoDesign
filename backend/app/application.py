@@ -56,6 +56,7 @@ def configure_logging(settings: Settings, *, force: bool = False) -> None:
     logger.remove()
     logger.add(
         sys.stdout,
+        diagnose=False,
         level="DEBUG" if settings.debug else "INFO",
         format=(
             "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "
@@ -66,12 +67,14 @@ def configure_logging(settings: Settings, *, force: bool = False) -> None:
     )
     logger.add(
         "logs/error.log",
+        diagnose=False,
         level="ERROR",
         rotation="10 MB",
         retention="7 days",
     )
     logger.add(
         "logs/combined.log",
+        diagnose=False,
         level="INFO",
         rotation="10 MB",
         retention="7 days",
@@ -170,6 +173,16 @@ def create_app(
             status_code=exc.status_code,
             content={"detail": exc.public_detail},
         )
+
+    from app.services.agent_contract import AgentError
+
+    @app.exception_handler(AgentError)
+    async def agent_exception_handler(request: Request, exc: AgentError):
+        return JSONResponse(status_code=exc.status_code, content={
+            'ok': False, 'protocol_version': 1,
+            'error': {'code': exc.code, 'message': exc.message,
+                      'retryable': exc.status_code >= 500, **exc.extra},
+        })
 
     app.include_router(api_router, prefix="/api")
 

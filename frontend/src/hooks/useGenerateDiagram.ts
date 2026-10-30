@@ -42,6 +42,8 @@ export interface GenerateDiagramParams {
 function getGenerationErrorMessage(error: unknown, t: (key: string) => string): string {
   if (isApiError(error)) {
     switch (error.code) {
+      case 'version_conflict':
+        return t('agent.errors.version_conflict');
       case 'generation_guest_unavailable':
         return t('workspace.generationGuestUnavailable');
       case 'generation_auth_expired':
@@ -301,6 +303,13 @@ export function useGenerateDiagram(deps: GenerateDiagramDeps) {
         return false;
       }
 
+      if (response.proposalId) {
+        const message = t('agent.generatedCandidate');
+        setError?.(message);
+        showToast(message, 'info');
+        // A candidate must never replace or become the saved canvas baseline.
+        return false;
+      }
       const unusableCanvasWarning = getBlockingCanvasWarning(response);
       if (unusableCanvasWarning) {
         const payloadMessage = getCanvasPayloadWarningMessage(unusableCanvasWarning, t);

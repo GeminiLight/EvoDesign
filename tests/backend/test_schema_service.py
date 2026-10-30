@@ -103,7 +103,9 @@ async def test_sync_schema_create_snapshot_replaces_editor_schema_and_bumps_vers
         assert updated_project.version == 2
         assert updated_project.latest_schema == {"elements": [{"id": "n1"}]}
         assert snapshot.schema_blob == {"elements": [{"id": "n1"}]}
-        assert snapshot.parent_id is None
+        parent = await session.get(Snapshot, snapshot.parent_id)
+        assert parent is not None and parent.is_checkpoint
+        assert parent.schema_blob == {"elements": []}
         assert json.loads(snapshot.thought_trace) == {
             "editor": "excalidraw",
             "action": "schema_sync",

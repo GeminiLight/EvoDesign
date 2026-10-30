@@ -42,6 +42,9 @@ jobs:
       - name: Run backend quality gate
         run: ./scripts/check_quality.sh backend
 
+      - name: Run CLI quality gate
+        run: ./scripts/check_quality.sh cli
+
       - name: Run engine quality gate
         run: ./scripts/check_quality.sh engine
 

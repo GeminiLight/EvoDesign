@@ -20,6 +20,8 @@ ROOT = Path(__file__).resolve().parents[2]
 BACKEND_DIR = ROOT / "backend"
 
 EXPECTED_APP_TABLES = {
+    "agent_connections",
+    "agent_proposals",
     "users",
     "projects",
     "snapshots",

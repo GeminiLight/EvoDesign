@@ -30,6 +30,7 @@ async def _create_session():
 def _payload(**overrides) -> DiagramPersistenceInput:
     data = {
         "user_id": "user-1",
+        "base_version": 1,
         "context": "A flows to B",
         "requirements": "Draw a flow",
         "project_id": None,

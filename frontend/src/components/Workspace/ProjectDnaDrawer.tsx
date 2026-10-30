@@ -3,6 +3,8 @@ import { Dna, X, Pencil, Check } from 'lucide-react';
 import { DnaSyncStatus } from '../DNA/DnaSyncStatus';
 import { useRuleLibrary } from '../../hooks/useRuleLibrary';
 import { guestHasProjectDna, guestDeleteProjectDnaRules } from '../../services/guestStorage';
+import { loadDnaRules, saveDnaRules } from '../../services/backendApi';
+import { flushDnaDraft } from '../../utils/dnaSyncDraft';
 import { useBackendAuth } from '../../features/auth/BackendAuthProvider';
 import { useLanguage } from '../../i18n/LanguageProvider';
 import type { CabinId } from '../../types/dna';
@@ -174,13 +176,31 @@ export function ProjectDnaDrawer({ projectId, onClose }: ProjectDnaDrawerProps) 
   const zh = language === 'zh';
   const storageScopeId = token && user?.user_id ? user.user_id : null;
   const [enabled, setEnabled] = useState(() => guestHasProjectDna(projectId, storageScopeId));
+  const [disabling, setDisabling] = useState(false);
+  const [scopeError, setScopeError] = useState(false);
+  const [scopeLoading, setScopeLoading] = useState(Boolean(token));
+  const [scopeRevision, setScopeRevision] = useState(0);
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const lastFocusedElementRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     setEnabled(guestHasProjectDna(projectId, storageScopeId));
-  }, [projectId, storageScopeId]);
+    setScopeLoading(Boolean(token));
+    setScopeError(false);
+    if (token && storageScopeId) {
+      void loadDnaRules(projectId, token, storageScopeId).then(rules => {
+        if (cancelled) return;
+        setScopeLoading(false);
+        if (!rules) { setScopeError(true); return; }
+        setEnabled(rules.structure.length + rules.style.length + rules.layout.length > 0);
+      });
+    }
+    const update = () => setEnabled(guestHasProjectDna(projectId, storageScopeId));
+    window.addEventListener('evodesign:dna-scope-changed', update);
+    return () => { cancelled = true; window.removeEventListener('evodesign:dna-scope-changed', update); };
+  }, [projectId, storageScopeId, token, scopeRevision]);
 
   useEffect(() => {
     lastFocusedElementRef.current = document.activeElement instanceof HTMLElement
@@ -198,9 +218,16 @@ export function ProjectDnaDrawer({ projectId, onClose }: ProjectDnaDrawerProps) 
     };
   }, []);
 
-  const handleToggleOff = () => {
+  const handleToggleOff = async () => {
+    setDisabling(true); setScopeError(false);
+    if (token && storageScopeId) {
+      flushDnaDraft(`evodesign:dna-pending:${storageScopeId}:${projectId}`);
+      const saved = await saveDnaRules({ structure: [], style: [], layout: [] }, projectId, { token, ownerId: storageScopeId });
+      if (!saved) { setScopeError(true); setDisabling(false); return; }
+    }
     guestDeleteProjectDnaRules(projectId, storageScopeId);
     setEnabled(false);
+    setDisabling(false);
   };
 
   const handleToggleOn = () => {
@@ -299,7 +326,8 @@ export function ProjectDnaDrawer({ projectId, onClose }: ProjectDnaDrawerProps) 
               role="switch"
               aria-checked={enabled}
               aria-label={zh ? '启用项目专属 DNA' : 'Use project-specific DNA'}
-              onClick={enabled ? handleToggleOff : handleToggleOn}
+              disabled={disabling || scopeLoading || scopeError}
+              onClick={() => { if (enabled) void handleToggleOff(); else handleToggleOn(); }}
               className="relative inline-flex h-11 w-14 shrink-0 cursor-pointer items-center justify-center rounded-xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
             >
               <span className={`flex h-6 w-11 items-center rounded-full border-2 border-transparent transition-colors ${enabled ? 'bg-brand-600' : 'bg-slate-200 dark:bg-slate-700'}`}>
@@ -311,9 +339,10 @@ export function ProjectDnaDrawer({ projectId, onClose }: ProjectDnaDrawerProps) 
           </div>
         </div>
 
+        {scopeError && <p role="alert" className="px-5 text-sm text-red-600 dark:text-red-300">{zh ? '偏好未能同步，项目规则仍保留。' : 'Could not sync preferences. Project rules are kept.'} <button type="button" className="min-h-11 underline" onClick={() => setScopeRevision(value => value + 1)}>{zh ? '重试' : 'Try again'}</button></p>}
         {/* Content */}
         <div className="custom-scrollbar flex-1 overflow-y-auto px-5 py-4">
-          {enabled ? (
+          {scopeLoading ? <p role="status">{zh ? '正在加载已保存的规则…' : 'Loading saved rules…'}</p> : scopeError ? null : enabled ? (
             <ProjectDnaCabins projectId={projectId} />
           ) : (
             <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">

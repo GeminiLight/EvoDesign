@@ -20,6 +20,7 @@ from app.services.diagram_stream_service import (
 def _request(**overrides) -> DiagramGenerateRequest:
     data = {
         "context": "A flows to B",
+        "base_version": 1,
         "requirements": "Draw a flow",
         "canvas_library": "excalidraw",
     }

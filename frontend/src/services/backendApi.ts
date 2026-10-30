@@ -194,13 +194,14 @@ export async function fetchProjectDiagram(projectId: string): Promise<RecentDiag
   }
   const project = await response.json() as BackendProjectDetailResponse;
   const snapshot = history.snapshots[0];
-  const schema = snapshot?.schema_blob ?? project.latest_schema;
+  const currentSnapshot = snapshot?.snapshot_id === project.current_snapshot_id ? snapshot : undefined;
   const canvas = normalizeCanvasLibraryOrNull(project.canvas_library ?? project.canvas_engine);
+  const schema = project.latest_schema ?? (canvas === 'excalidraw' ? createBlankExcalidrawScene() : null);
   return {
     id: projectId, project_id: projectId, request_id: projectId,
-    diagram_id: snapshot?.snapshot_id ?? projectId, snapshot_id: snapshot?.snapshot_id,
-    project_version: history.project_version ?? project.version,
-    generation_report: snapshot?.generation_report ?? parseGenerationReport(snapshot?.metrics_scores),
+    diagram_id: project.current_snapshot_id ?? projectId, snapshot_id: project.current_snapshot_id ?? undefined,
+    project_version: project.version,
+    generation_report: currentSnapshot?.generation_report ?? parseGenerationReport(currentSnapshot?.metrics_scores),
     prompt: project.source_text ?? '', summary: project.title,
     diagram_type: normalizeBackendDiagramType(project.diagram_type), canvas_library: canvas,
     excalidraw_payload: canvas === 'excalidraw' ? schema : null,
@@ -251,7 +252,7 @@ export async function createBlankCanvasProject(request: DiagramRequest, title: s
   }
   const project = await createProject({ title, diagram_type: 'automated', canvas_library: 'excalidraw', source_text: '' });
   const synced = await syncProjectSchema({ project_id: project.project_id, schema_patch: schema,
-    editor: 'excalidraw', base_snapshot_id: null, create_snapshot: true, version: null });
+    editor: 'excalidraw', base_snapshot_id: null, create_snapshot: true, version: project.version ?? 1 });
   return { id: project.project_id, project_id: project.project_id, request_id: request.id,
     diagram_id: synced.snapshot_id, snapshot_id: synced.snapshot_id, project_version: synced.version,
     prompt: '', diagram_type: 'automated', summary: title, canvas_library: 'excalidraw',
@@ -567,9 +568,8 @@ export async function syncProjectSchema(
     }
   }
 
-  // Missing a revision must not silently disable conflict protection on overwrite.
-  // New snapshot imports keep their existing compatibility contract.
-  if (!payload.create_snapshot && payload.version == null) {
+  // Every formal write, including snapshot imports, carries its expected version.
+  if (payload.version == null) {
     throw new ApiError('Reload project history before saving an unversioned document', 409);
   }
 

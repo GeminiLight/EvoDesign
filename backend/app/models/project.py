@@ -28,6 +28,7 @@ class Project(Base):
     source_text: Mapped[str | None] = mapped_column(Text)
     source_image: Mapped[str | None] = mapped_column(Text)
     latest_schema: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    current_snapshot_id: Mapped[str | None] = mapped_column(String(36))
     thumbnail_url: Mapped[str | None] = mapped_column(Text)
     version: Mapped[int] = mapped_column(Integer, default=1, server_default="1", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)

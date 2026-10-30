@@ -1,4 +1,7 @@
 import { BROWSER_MODE } from './browser/runtime';
+import { readAgentDocument } from './agentApi';
+import { loadDnaRules } from './backendApi';
+import { flushDnaDraft } from '../utils/dnaSyncDraft';
 import { parseGenerationReport } from '../utils/generationReport';
 import type {
   DiagramRequest,
@@ -23,7 +26,7 @@ import {
   readResponseDetail,
 } from './httpClient';
 import { guestLoadDnaRules, guestLoadProjectDnaRules } from './guestStorage';
-import { inspectCanvasPayload, splitCanvasPayload } from '../utils/app';
+import { getSnapshotDocSignature, inspectCanvasPayload, splitCanvasPayload } from '../utils/app';
 import { AUTH_USER_ID_STORAGE_KEY, notifyAuthInvalidated } from '../features/auth/authEvents';
 import { normalizeCanvasLibraryOrDefault } from '../contracts/canvas';
 import {
@@ -154,11 +157,11 @@ function parseCurrentSchema(value: string | undefined): Record<string, unknown> 
   return value ? JSON.parse(value) as Record<string, unknown> : null;
 }
 
-function buildGenerateDiagramPayload(
+async function buildGenerateDiagramPayload(
   request: DiagramRequest,
   canvasLibrary: CanvasLibrary,
-): BackendDiagramGenerateRequest {
-  return {
+): Promise<BackendDiagramGenerateRequest> {
+  const payload: BackendDiagramGenerateRequest = {
     context: request.prompt,
     diagram_type: request.diagramType === 'automated' ? null : request.diagramType,
     use_icons: request.useIcons ?? request.metadata?.useIcons === 'true',
@@ -168,6 +171,32 @@ function buildGenerateDiagramPayload(
     current_schema: parseCurrentSchema(request.metadata?.currentSchema),
     canvas_library: canvasLibrary,
   };
+  const projectId = request.metadata?.projectId;
+  if (projectId && getStoredAuthToken()) {
+    const owner = localStorage.getItem(AUTH_USER_ID_STORAGE_KEY);
+    if (owner) {
+      flushDnaDraft(`evodesign:dna-pending:${owner}:global`);
+      flushDnaDraft(`evodesign:dna-pending:${owner}:${projectId}`);
+      const rules = await Promise.all([loadDnaRules(undefined, undefined, owner), loadDnaRules(projectId, undefined, owner)]);
+      if (rules.some(value => !value)) throw new ApiError('Design preferences are unavailable', 503);
+    }
+    const expectedVersion = Number(request.metadata?.projectVersion);
+    const doc = await readAgentDocument(projectId);
+    const localSchema = parseCurrentSchema(request.metadata?.currentSchema);
+    const sameContent = Boolean(localSchema && getSnapshotDocSignature(localSchema) === getSnapshotDocSignature(doc.schema));
+    if (!Number.isInteger(expectedVersion) || doc.canvas_library !== canvasLibrary
+      || (expectedVersion !== doc.version && !sameContent)) {
+      throw new ApiError('The design changed. Review the saved version before generating.', 409, undefined, 'version_conflict');
+    }
+    payload.base_version = doc.version;
+    payload.current_schema = doc.schema;
+    payload.locked_nodes = [...new Set([...(request.lockedNodes ?? []), ...doc.constraints.locked_ids])];
+    payload.requirements = [
+      `Create a ${request.diagramType} diagram that visualizes the provided text.`,
+      ...doc.constraints.dna.map(rule => `${rule.cabin}: ${rule.title}: ${rule.description}`),
+    ].join('\n');
+  }
+  return payload;
 }
 
 export const apiDiagramService: DiagramService = {
@@ -185,7 +214,7 @@ export const apiDiagramService: DiagramService = {
 
     let response: Response;
     try {
-      const payload = buildGenerateDiagramPayload(request, canvasLibrary);
+      const payload = await buildGenerateDiagramPayload(request, canvasLibrary);
       response = await fetch(apiV1Url('/diagram/generate'), {
         method: 'POST',
         headers: {
@@ -219,6 +248,8 @@ export const apiDiagramService: DiagramService = {
       generationReport: parseGenerationReport(data.metrics_scores),
       requestId: data.request_id || request.id,
       projectId: data.project_id ?? undefined,
+      proposalId: data.proposal_id ?? undefined,
+      persistError: data.persist_error,
       snapshotId: data.snapshot_id ?? undefined,
       projectVersion: data.version ?? undefined,
       diagramId: data.snapshot_id || `diagram_${Math.random().toString(36).slice(2, 8)}`,
@@ -328,7 +359,7 @@ export async function generateDiagramStream(
 
   let response: Response;
   try {
-    const payload = buildGenerateDiagramPayload(request, canvasLibrary);
+    const payload = await buildGenerateDiagramPayload(request, canvasLibrary);
     response = await fetch(apiV1Url('/diagram/generate/stream'), {
       method: 'POST',
       headers: {
@@ -478,6 +509,7 @@ export async function generateDiagramStream(
     generationReport: parseGenerationReport(resultData.metrics_scores),
     requestId: resultData.request_id || request.id,
     projectId: resultData.project_id ?? undefined,
+    proposalId: resultData.proposal_id,
     snapshotId: resultData.snapshot_id ?? undefined,
     projectVersion: resultData.version ?? undefined,
     diagramId: resultData.snapshot_id || `diagram_${Math.random().toString(36).slice(2, 8)}`,

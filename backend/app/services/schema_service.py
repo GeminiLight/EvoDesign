@@ -2,7 +2,7 @@ import copy
 import json
 from typing import Any
 
-from sqlalchemy import func, select, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import (
@@ -10,7 +10,7 @@ from app.core.exceptions import (
     ProjectNotFoundException,
     PublicErrorMixin,
 )
-from app.db.base import utc_now
+from app.services.document_commit_service import commit_document, VersionConflictError
 from app.models.project import Project
 from app.models.snapshot import Snapshot
 from app.schemas.schema_contract import (
@@ -19,12 +19,6 @@ from app.schemas.schema_contract import (
     SchemaEditor,
     normalize_schema_editor,
 )
-
-
-class VersionConflictError(PublicErrorMixin, Exception):
-    """Raised when optimistic lock version doesn't match."""
-
-    default_public_detail = "version conflict"
 
 
 class SchemaSyncError(PublicErrorMixin, ValueError):
@@ -150,41 +144,6 @@ class SchemaService:
         else:
             next_schema = self._apply_json_merge_patch(current_schema, schema_patch)
 
-        # Atomic version bump: UPDATE with SQL expression (version = COALESCE(version,1)+1)
-        # so concurrent requests each get a unique monotonically-increasing version even
-        # when the client sends the same (or no) version hint.
-        now = utc_now()
-        update_values = {
-            "latest_schema": next_schema,
-            "updated_at": now,
-            "version": func.coalesce(Project.version, 1) + 1,
-        }
-        if should_replace_schema:
-            update_values["canvas_engine"] = editor
-        update_where = [
-            Project.project_id == project.project_id,
-            Project.user_id == user_id,
-        ]
-        if version is not None:
-            update_where.append(Project.version == version)
-
-        result = await self.db.execute(
-            update(Project)
-            .where(*update_where)
-            .values(**update_values)
-            .execution_options(synchronize_session=False)
-        )
-        if result.rowcount == 0:
-            if version is not None:
-                raise VersionConflictError(
-                    f"version conflict: expected {version}, current version has changed"
-                )
-            raise ProjectUpdateFailedError()
-
-        # Refresh the ORM object so callers see the DB-assigned version and timestamps
-        # without triggering a second UPDATE on commit.
-        await self.db.refresh(project)
-
         assessment_source = base_snapshot or latest_snapshot
         metrics = copy.deepcopy(assessment_source.metrics_scores) if assessment_source else None
         if metrics and next_schema != assessment_source.schema_blob:
@@ -195,32 +154,13 @@ class SchemaService:
             else:
                 metrics = None
 
-        if create_snapshot:
-            snapshot = Snapshot(
-                project_id=project.project_id,
-                parent_id=base_snapshot_id or (latest_snapshot.snapshot_id if latest_snapshot else None),
-                schema_blob=next_schema,
-                edit_source="HUMAN",
-                thought_trace=self._build_thought_trace(editor=editor, mode="create"),
-                metrics_scores=metrics,
-            )
-            self.db.add(snapshot)
-            await self.db.flush()
-            return project, snapshot
-
-        target_snapshot: Snapshot | None = base_snapshot
-        if target_snapshot is None:
-            raise BaseSnapshotNotFoundError()
-
-        target_snapshot.metrics_scores = metrics
-        target_snapshot.schema_blob = next_schema
-        target_snapshot.edit_source = "HUMAN"
-        target_snapshot.thought_trace = self._build_thought_trace(
-            editor=editor,
-            mode="overwrite",
+        snapshot = await commit_document(
+            self.db, project, next_schema, expected_version=version, source="HUMAN",
+            checkpoint=create_snapshot, base_snapshot=base_snapshot, metrics=metrics,
+            canvas_library=editor if should_replace_schema else None,
+            thought_trace=self._build_thought_trace(editor, "create" if create_snapshot else "overwrite"),
         )
-
-        return project, target_snapshot
+        return project, snapshot
 
     def _apply_json_merge_patch(
         self,

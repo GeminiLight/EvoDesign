@@ -1,5 +1,8 @@
+import { agentMessages } from './agentMessages';
+
 export const messages = {
   en: {
+    agent: agentMessages.en,
     studio: { browseExamples: 'Browse examples', preferenceSaved: 'Design preference saved', documentVersions: 'Version history' },
     browser: {
       startHint: 'Bring your own API key. Projects stay in this browser; export a copy to keep them safe.',
@@ -1197,6 +1200,7 @@ export const messages = {
     },
   },
   zh: {
+    agent: agentMessages.zh,
     studio: { browseExamples: '从示例开始', preferenceSaved: '设计偏好已保存', documentVersions: '历史版本' },
     browser: {
       startHint: '使用你自己的 API key。项目保存在此浏览器，建议导出一份备份。',

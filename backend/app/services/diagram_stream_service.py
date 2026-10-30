@@ -61,6 +61,10 @@ class DiagramStreamService:
                 result_data["snapshot_id"] = persisted.snapshot_id
                 result_data["version"] = persisted.version
                 result_data["thumbnail_url"] = persisted.thumbnail_url
+                if getattr(persisted, "proposal_id", None):
+                    result_data["proposal_id"] = persisted.proposal_id
+                    result_data["persist_error"] = True
+                    result_data["persist_error_message"] = "Document changed. Generated result preserved as a candidate."
             except ProjectNotFoundException as exc:
                 await persist_db.rollback()
                 logger.warning("Persist rejected (HTTP 404): {}", exc)
