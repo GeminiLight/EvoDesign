@@ -163,6 +163,17 @@ python -m pip install -e ".[dev]"
 
 See [contributing](CONTRIBUTING.md), [configuration](docs/configuration.md) and [third-party notices](THIRD_PARTY_NOTICES.md). Please include a minimal input, model identifier, release commit and relevant redacted logs when reporting a bug. Do not attach API keys, account databases or private prompts.
 
+## Contributors
+
+EvoDesign builds on the earlier EvoDiagram project. We credit the contributors to that work as well as the current workspace.
+
+| Contributor | Contributions |
+| --- | --- |
+| [Tianfu Wang](https://github.com/GeminiLight) | Diagram engine, editable web workspace, design memory, research tooling and project maintenance |
+| [Yi Zhan](https://github.com/USTChandsomeboy) | Diagram generation quality, architecture diagram layout and styling, edge routing and collision detection |
+
+Yi Zhan's contributions were recorded in the earlier EvoDiagram development history and are acknowledged here across the transition to EvoDesign. For the full research author list, see the [paper](https://arxiv.org/abs/2604.09568) and [citation](#citation).
+
 ## Citation
 
 If you use EvoDesign or CanvasBench, please cite the paper. GitHub's **Cite this repository** action is backed by `CITATION.cff`.
