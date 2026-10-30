@@ -9,7 +9,7 @@ const stageKeys: Record<string, string> = {
   refining: 'workflowRefining', final_verification: 'workflowFinalVerification', learning: 'workflowLearning',
 };
 
-export function GenerationReport({ report, t, compact = false, compactLabel }: { report: Report; t: (key: string) => string; compact?: boolean; compactLabel?: string }) {
+export function GenerationReport({ report, t, compact = false, compactLabel, hideTimings = false }: { report: Report; t: (key: string) => string; compact?: boolean; compactLabel?: string; hideTimings?: boolean }) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
     if (!compact) return;
@@ -140,7 +140,7 @@ export function GenerationReport({ report, t, compact = false, compactLabel }: {
           {note && <p className="report-note">{note}</p>}
           {hasCurrentVisualScores(report) && <div className="report-score"><span>{t('workspace.reportScore')}</span>
             <strong>{report.beforeScore!.toFixed(1)} <span>→</span> {report.afterScore!.toFixed(1)} <small>/ 10</small></strong></div>}
-          {timings.length > 0 && <section className="report-timing-section" aria-label={t('workspace.reportTimings')}>
+          {!hideTimings && timings.length > 0 && <section className="report-timing-section" aria-label={t('workspace.reportTimings')}>
             <h4>{t('workspace.reportTimings')}</h4>
             <dl className="report-timings">
               {timings.map(([stage, ms]) => <div key={stage}><dt>{stageLabel(stage)}</dt><dd>{formatGenerationDuration(ms!)}</dd></div>)}

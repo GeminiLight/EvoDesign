@@ -53,7 +53,7 @@ const pillIconMap: Record<string, LucideIcon> = {
 
 const getPillIcon = (id: string) => pillIconMap[id] ?? Network;
 
-type Props = {
+export type DiagramPromptComposerProps = {
   prompt: string;
   onPromptChange: (value: string) => void;
   onGenerate: () => void;
@@ -117,7 +117,7 @@ export function DiagramPromptComposer({
   t,
   autoFocusPrompt = false,
   promptFocusRequest = 0,
-}: Props) {
+}: DiagramPromptComposerProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const modelMenuRef = useRef<HTMLDivElement>(null);
   const canvasMenuRef = useRef<HTMLDivElement>(null);

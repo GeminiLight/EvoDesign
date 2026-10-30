@@ -1,9 +1,10 @@
 import { Minimize2 } from 'lucide-react';
-import type { RefObject } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import { useLanguage } from '../../i18n/LanguageProvider';
 import { AssistantAvatar } from './AssistantAvatar';
 
-export function CanvasFullscreenControls({ assistantVisible, assistantButtonRef, onToggleAssistant, onExit }: {
+export function CanvasFullscreenControls({ assistantVisible, assistantButtonRef, onToggleAssistant, onExit, activity }: {
+  activity?: ReactNode;
   assistantVisible: boolean;
   assistantButtonRef: RefObject<HTMLButtonElement | null>;
   onToggleAssistant: () => void;
@@ -11,6 +12,7 @@ export function CanvasFullscreenControls({ assistantVisible, assistantButtonRef,
 }) {
   const { t } = useLanguage();
   return <div className="canvas-fullscreen-controls" role="group" aria-label={t('workspace.fullscreenControls')}>
+    {activity}
     <button ref={assistantButtonRef} type="button" onClick={onToggleAssistant}
       aria-label={t(assistantVisible ? 'workspace.hideAssistant' : 'workspace.showAssistant')}
       title={t(assistantVisible ? 'workspace.hideAssistant' : 'workspace.showAssistant')}

@@ -1,6 +1,6 @@
-import { Check, FilePlus2, FolderOpen, Loader2, Plus, Search, Shapes, Sparkles, X } from 'lucide-react';
+import { Check, FolderOpen, Loader2, Plus, Search, Shapes, X } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
-import type { RefObject } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import { useAnchoredPopover } from '../../hooks/useAnchoredPopover';
 import { useLanguage } from '../../i18n/LanguageProvider';
 import type { WorkspaceDocument } from '../../utils/workspaceDocuments';
@@ -23,24 +23,22 @@ type Props = {
   onActivate: (document: WorkspaceDocument) => void;
   onClose: (document: WorkspaceDocument) => void;
   onNew: () => void;
-  onCreateBlank: () => void;
+  status?: ReactNode;
 };
 
 export function WorkspaceTabs({ documents, recent, activeKey, title, dirty, busy, saving,
   editingName, nameDraft, nameInputRef, onNameChange, onRename, onSaveName, onCancelName,
-  onActivate, onClose, onNew, onCreateBlank }: Props) {
+  onActivate, onClose, onNew, status }: Props) {
   const { language, t } = useLanguage();
   const zh = language === 'zh';
   const draftTitle = zh ? '新画布' : 'New canvas';
   const id = useId();
   const [open, setOpen] = useState(false);
-  const [newOpen, setNewOpen] = useState(false);
   const [query, setQuery] = useState('');
   const rootRef = useRef<HTMLDivElement>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
   const pickerButtonRef = useRef<HTMLButtonElement>(null);
   const newButtonRef = useRef<HTMLButtonElement>(null);
-  const newPanelRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const tabRefs = useRef(new Map<string, HTMLButtonElement>());
   const tabListRef = useRef<HTMLDivElement>(null);
@@ -50,7 +48,6 @@ export function WorkspaceTabs({ documents, recent, activeKey, title, dirty, busy
   const all = [...new Map([...documents, ...recent].map(document => [document.key, document])).values()];
   const filtered = all.filter(document => document.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
   useAnchoredPopover(open, rootRef, pickerRef, 328, 'below', 'end');
-  useAnchoredPopover(newOpen, newButtonRef, newPanelRef, 260, 'below', 'start');
 
   useEffect(() => {
     const active = tabRefs.current.get(activeKey);
@@ -61,13 +58,12 @@ export function WorkspaceTabs({ documents, recent, activeKey, title, dirty, busy
     return () => observer.disconnect();
   }, [activeKey, documents]);
   useEffect(() => {
-    if (!open && !newOpen) return;
+    if (!open) return;
     const frame = requestAnimationFrame(() => {
-      if (open) searchRef.current?.focus();
-      else newPanelRef.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus();
+      searchRef.current?.focus();
     });
     const dismiss = (event: Event) => {
-      if (event.target instanceof Node && !rootRef.current?.contains(event.target)) { setOpen(false); setNewOpen(false); }
+      if (event.target instanceof Node && !rootRef.current?.contains(event.target)) { setOpen(false); }
     };
     document.addEventListener('pointerdown', dismiss);
     document.addEventListener('focusin', dismiss);
@@ -76,14 +72,14 @@ export function WorkspaceTabs({ documents, recent, activeKey, title, dirty, busy
       document.removeEventListener('pointerdown', dismiss);
       document.removeEventListener('focusin', dismiss);
     };
-  }, [open, newOpen]);
-  useEffect(() => { if (busy) { setOpen(false); setNewOpen(false); } }, [busy]);
+  }, [open]);
+  useEffect(() => { if (busy) { setOpen(false); } }, [busy]);
 
   return <div className="workspace-documents" ref={rootRef} onKeyDown={event => {
     if (event.nativeEvent.isComposing) return;
-    if (event.key === 'Escape' && (open || newOpen)) {
+    if (event.key === 'Escape' && open) {
       event.preventDefault(); event.stopPropagation();
-      (newOpen ? newButtonRef : pickerButtonRef).current?.focus(); setOpen(false); setNewOpen(false);
+      pickerButtonRef.current?.focus(); setOpen(false);
     }
   }}>
     <div ref={tabListRef} role="tablist" aria-label={zh ? '已打开的画布' : 'Open canvases'} className="workspace-tabs">
@@ -119,8 +115,9 @@ export function WorkspaceTabs({ documents, recent, activeKey, title, dirty, busy
             }}>
             {active && saving ? <Loader2 size={14} className="animate-spin" aria-hidden="true" /> : <Shapes size={14} aria-hidden="true" />}
             <span>{document.key === 'draft' ? draftTitle : active ? title : document.title}</span>
-            {active && dirty && <i className="workspace-tab-dirty" aria-label={zh ? '未保存' : 'Unsaved changes'} />}
+            {active && dirty && !status && <i className="workspace-tab-dirty" aria-label={zh ? '未保存' : 'Unsaved changes'} />}
           </button>}
+          {active && status}
           {document.key !== 'draft' && <button type="button" className="workspace-tab-close" disabled={busy}
             aria-label={`${zh ? '关闭画布' : 'Close canvas'}: ${document.title}`} title={zh ? '关闭标签，保留画布' : 'Close tab; keep canvas'}
             tabIndex={active ? 0 : -1} onClick={() => { focusAfterCloseRef.current = true; onClose(document); }}><X size={13} aria-hidden="true" /></button>}
@@ -128,29 +125,12 @@ export function WorkspaceTabs({ documents, recent, activeKey, title, dirty, busy
       })}
     </div>
     <button ref={newButtonRef} type="button" className="workspace-tab-action" disabled={busy}
-      aria-haspopup="menu" aria-expanded={newOpen} aria-controls={`${id}-new`}
-      onClick={() => { setOpen(false); setNewOpen(value => !value); }}
+      onClick={() => { setOpen(false); onNew(); }}
       aria-label={zh ? '新建画布' : 'New canvas'} title={zh ? '新建画布' : 'New canvas'}><Plus size={18} aria-hidden="true" /></button>
-    {newOpen && <div ref={newPanelRef} id={`${id}-new`} popover="manual" role="menu" aria-label={zh ? '新建画布' : 'New canvas'} className="workspace-new-menu"
-      onKeyDown={event => {
-        const buttons = [...(newPanelRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? [])];
-        const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
-        const next = event.key === 'ArrowDown' ? (current + 1) % buttons.length : event.key === 'ArrowUp' ? (current + buttons.length - 1) % buttons.length
-          : event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : null;
-        if (next === null) return;
-        event.preventDefault(); buttons[next]?.focus();
-      }}>
-      <button type="button" role="menuitem" onClick={() => { setNewOpen(false); newButtonRef.current?.focus(); onCreateBlank(); }}>
-        <FilePlus2 size={19} aria-hidden="true" /><span><strong>{zh ? '空白画布' : 'Blank canvas'}</strong><small>{zh ? '直接绘制与编辑' : 'Start drawing and editing'}</small></span>
-      </button>
-      <button type="button" role="menuitem" onClick={() => { setNewOpen(false); newButtonRef.current?.focus(); onNew(); }}>
-        <Sparkles size={19} aria-hidden="true" /><span><strong>{zh ? 'AI 生成' : 'Generate with AI'}</strong><small>{zh ? '描述想法，生成图表' : 'Turn a description into a diagram'}</small></span>
-      </button>
-    </div>}
     <button ref={pickerButtonRef} type="button" className="workspace-tab-action" disabled={busy}
       aria-label={zh ? '打开画布' : 'Open a canvas'} title={zh ? '打开已有画布' : 'Open an existing canvas'}
       aria-haspopup="dialog" aria-expanded={open} aria-controls={`${id}-picker`}
-      onClick={() => { setNewOpen(false); setQuery(''); setOpen(value => !value); }}><FolderOpen size={18} aria-hidden="true" /></button>
+      onClick={() => { setQuery(''); setOpen(value => !value); }}><FolderOpen size={18} aria-hidden="true" /></button>
     {open && <div id={`${id}-picker`} ref={pickerRef} popover="manual" role="dialog"
       aria-label={zh ? '打开画布' : 'Open a canvas'} className="workspace-canvas-picker"
       onKeyDown={event => {
@@ -172,7 +152,7 @@ export function WorkspaceTabs({ documents, recent, activeKey, title, dirty, busy
         </button>)}
         {!filtered.length && <p>{zh ? '没有找到画布' : 'No canvases found'}</p>}
       </div>
-      <button type="button" className="workspace-picker-new" onClick={() => { setOpen(false); setNewOpen(true); newButtonRef.current?.focus(); }}><FilePlus2 size={15} aria-hidden="true" />{zh ? '新建画布' : 'New canvas'}</button>
+      <button type="button" className="workspace-picker-new" onClick={() => { setOpen(false); onNew(); }}><Plus size={15} aria-hidden="true" />{zh ? '新建画布' : 'New canvas'}</button>
     </div>}
   </div>;
 }

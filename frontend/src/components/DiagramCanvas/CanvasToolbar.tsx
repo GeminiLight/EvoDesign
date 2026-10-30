@@ -1,4 +1,4 @@
-import { ChevronDown, Download, Loader2, Maximize2, Scan } from 'lucide-react';
+import { ChevronDown, Download, Loader2, Maximize2 } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { getSnapshot, type Editor } from '@tldraw/tldraw';
@@ -8,7 +8,6 @@ import { useToast } from '../toastContext';
 import { GenerationReport } from '../GenerationReport';
 import type { GenerationReport as Report } from '../../utils/generationReport';
 import { documentAppState, sceneFiles } from '../../utils/excalidrawScene';
-import { fitExcalidraw } from '../../utils/fitExcalidraw';
 
 type Props = { projectNavigation?: ReactNode; saveIndicator?: ReactNode; api: ExcalidrawImperativeAPI | null; tldrawEditor?: Editor | null; toolbarTarget?: HTMLElement | null; name: string; disabled?: boolean; report?: Report; onToggleFullscreen?: () => void };
 
@@ -105,11 +104,7 @@ export function CanvasToolbar({ projectNavigation, saveIndicator, api, tldrawEdi
       {projectNavigation}
       {!toolbarTarget && <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100" title={name}>{name}</p>}
       {saveIndicator}
-      {report && <GenerationReport report={report} t={t} compact compactLabel={toolbarTarget ? t('workspace.reportTitle') : undefined} />}
-      <button type="button" disabled={unavailable} className="tool-button" title={t('workspace.fitCanvas')}
-        onClick={() => { if (api) void fitExcalidraw(api, api.getSceneElements()).catch(() => showToast(t('workspace.fitFailed'), 'error')); else tldrawEditor?.zoomToFit(); }}>
-        <Scan size={15} aria-hidden="true" /><span className="canvas-fit-label">{t('workspace.fitCanvas')}</span>
-      </button>
+      {!toolbarTarget && report && <GenerationReport report={report} t={t} compact compactLabel={toolbarTarget ? t('workspace.reportTitle') : undefined} />}
       {onToggleFullscreen && <button type="button" disabled={unavailable} className="tool-button" onClick={onToggleFullscreen}
         aria-label={t('workspace.enterFullscreen')} title={t('workspace.enterFullscreen')}>
         <Maximize2 size={16} aria-hidden="true" />

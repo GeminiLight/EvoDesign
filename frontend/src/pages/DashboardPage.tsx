@@ -14,7 +14,6 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { RecentProjectPreview } from '../components/Home/RecentProjectPreview';
 import { Header } from '../components/Header';
-import { StudioPageHeading } from '../components/StudioPageHeading';
 import { ChoiceSelect } from '../components/ChoiceSelect';
 import { useBackendAuth } from '../features/auth/BackendAuthProvider';
 import { useLanguage } from '../i18n/LanguageProvider';
@@ -495,11 +494,7 @@ export const DashboardPage = () => {
       <Header variant="studio" />
 
       <main id="main-content" className="studio-page-main"><div className="studio-page-content">
-        <StudioPageHeading titleInHeader title={t('nav.projects')} actions={
-          <button type="button" onClick={() => navigate('/workspace')} className="studio-primary shrink-0"><Plus size={16} />{t('dashboard.newProject')}</button>
-        } />
-
-        {hasLoadedProjects && <section className="relative z-30 mb-5 flex flex-wrap items-center gap-3 border-b border-slate-200/70 pb-4 dark:border-white/[0.07]">
+        <section className="project-library-toolbar">
           <div className="flex items-center gap-1" role="group" aria-label={t('dashboard.projectSpaces')}>
             {projectScopeTabs.map((tab) => <button key={tab.id} type="button" aria-pressed={projectScope === tab.id}
               onClick={() => handleProjectScopeChange(tab.id)}
@@ -528,7 +523,8 @@ export const DashboardPage = () => {
               key={view.id} type="button" onClick={() => setViewMode(view.id)} aria-label={view.label} aria-pressed={viewMode === view.id}
               className={`studio-icon-button ${viewMode === view.id ? 'studio-tab-active' : ''}`}><view.icon size={16} /></button>)}
           </div>
-        </section>}
+        <button type="button" onClick={() => navigate('/workspace')} className="studio-primary project-create-action"><Plus size={16} />{t('dashboard.newProject')}</button>
+        </section>
 
         {/* ── Flash message ── */}
         {flashMessage && (

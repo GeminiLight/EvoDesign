@@ -100,7 +100,10 @@ export function guestSaveDiagram(request: DiagramRequest, response: DiagramRespo
 
   const canvasLibrary = normalizeCanvasLibraryOrNull(request.metadata?.canvasLibrary)
     ?? (response.tldrawSnapshot ? 'tldraw' : 'excalidraw');
-  const projectId = response.projectId || guestId();
+  const requestedProjectId = request.metadata?.projectId;
+  const existingProjectId = requestedProjectId && diagrams.some(diagram => diagram.project_id === requestedProjectId)
+    ? requestedProjectId : undefined;
+  const projectId = response.projectId || existingProjectId || guestId();
   const snapshotId = response.snapshotId || guestId();
   const schemaBlob: Record<string, unknown> = response.rawSchemaBlob ?? response.tldrawSnapshot ?? excalidrawPayload ?? {};
   const splitPayload = splitCanvasPayload(schemaBlob);
@@ -132,6 +135,10 @@ export function guestSaveDiagram(request: DiagramRequest, response: DiagramRespo
     existing.excalidraw_payload = normalizedExcalidrawPayload;
     existing.canvas_library = canvasLibrary;
     existing.summary = response.summary ?? existing.summary;
+    existing.request_id = request.id;
+    existing.prompt = request.prompt;
+    existing.diagram_type = request.diagramType;
+    existing.style = request.style;
     existing.updated_at = newSnapshot.timestamp;
 
     // Move project to the top (most recent)

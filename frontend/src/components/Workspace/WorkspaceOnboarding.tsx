@@ -1,89 +1,47 @@
-import { useEffect, useId, useRef, useState } from 'react';
-import type { FormEvent } from 'react';
-import { ArrowRight, Sparkles, X } from 'lucide-react';
+import '../../styles/home.css';
+import { useRef, useState } from 'react';
+import { Shapes, X } from 'lucide-react';
 import { useLanguage } from '../../i18n/LanguageProvider';
+import { DiagramPromptComposer } from '../DiagramPromptComposer';
+import type { DiagramPromptComposerProps } from '../DiagramPromptComposer';
+import { HomeReferencePreview } from '../Home/HomeReferencePreview';
+import { HOME_REFERENCE_ACCEPT, HomeReferenceError, promptWithReference, readHomeReference } from '../../utils/homeReference';
+import type { HomeReference } from '../../utils/homeReference';
 
-interface WorkspaceOnboardingProps {
-  onGeneratePrompt: (prompt: string) => void;
-  isGenerating?: boolean;
-  initialPrompt?: string;
-  dismissed: boolean;
-  onDismissedChange: (dismissed: boolean) => void;
-}
+type ComposerProps = Pick<DiagramPromptComposerProps, 'prompt' | 'onPromptChange' | 'onEnhance' | 'onSelectPill' | 'selectedPillId' | 'pills' | 'morePills' | 'modelOptions' | 'modelIndex' | 'onModelChange' | 'canvasOptions' | 'canvasIndex' | 'onCanvasChange'>;
+type Props = { awaitingDocument?: boolean; composer: ComposerProps; onGeneratePrompt: (prompt: string) => void; disabled: boolean;
+  useIcons: boolean; onUseIconsChange: (value: boolean) => void; onClose: () => void };
 
-export function WorkspaceOnboarding({
-  onGeneratePrompt,
-  isGenerating = false,
-  initialPrompt = '',
-  dismissed,
-  onDismissedChange,
-}: WorkspaceOnboardingProps) {
-  const { t, language } = useLanguage();
-  const promptHintId = useId();
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const [promptDraft, setPromptDraft] = useState('');
-
-  useEffect(() => {
-    const trimmedInitialPrompt = initialPrompt.trim();
-    if (!trimmedInitialPrompt) return;
-    setPromptDraft((current) => current || trimmedInitialPrompt);
-  }, [initialPrompt]);
-
-  if (dismissed) {
-    return (
-      <div className="pointer-events-none absolute inset-x-0 bottom-16 z-10 flex justify-center px-4">
-        <button type="button" data-testid="workspace-onboarding-launcher" onClick={() => onDismissedChange(false)}
-          className="studio-secondary pointer-events-auto border border-slate-200 bg-white/95 shadow-sm dark:border-white/10 dark:bg-slate-900/95">
-          <Sparkles size={16} className="text-violet-500 dark:text-violet-300" />
-          {t('workspace.onboardingLauncherAction')}<ArrowRight size={14} />
-        </button>
-      </div>
-    );
-  }
-
-  const hasPromptDraft = promptDraft.trim().length > 0;
-  const promptHint = hasPromptDraft ? t('workspace.onboardingPromptReadyHint') : (language === 'zh' ? '写下想法，或选择一个示例开始。' : 'Write your idea or choose an example to get started.');
-  const canSubmit = hasPromptDraft && !isGenerating;
-  const examples = [
-    { label: language === 'zh' ? '微服务架构' : 'Architecture', prompt: t('workspace.onboardingPlaceholder') },
-    { label: language === 'zh' ? '登录流程' : 'Login flow', prompt: t('workspace.onboardingExample2') },
-    { label: language === 'zh' ? '数据关系' : 'Data model', prompt: t('workspace.onboardingExample3') },
-  ];
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (canSubmit) onGeneratePrompt(promptDraft.trim());
-  };
-
-  return (
-    <div className="workspace-onboarding-overlay pointer-events-none absolute inset-0 z-10 flex items-start justify-center overflow-y-auto overscroll-contain px-4 pb-20 pt-20 sm:items-center sm:p-6">
-      <section data-testid="workspace-onboarding" aria-labelledby="workspace-onboarding-title"
-        className="workspace-onboarding-panel pointer-events-auto relative w-full max-w-lg rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_8px_40px_-20px_rgba(15,23,42,0.25)] dark:border-white/10 dark:bg-[#101524] sm:p-6">
-        <button type="button" onClick={() => onDismissedChange(true)} className="studio-icon-button absolute right-2 top-2" aria-label={t('workspace.dismissOnboarding')}><X size={16} /></button>
-        <div className="pr-6">
-          <Sparkles size={20} className="mb-3 text-violet-500 dark:text-violet-300" />
-          <h2 id="workspace-onboarding-title" className="text-base font-semibold text-slate-900 dark:text-slate-100">{t('workspace.onboardingTitle')}</h2>
-          <p className="mt-1.5 text-[13px] leading-6 text-slate-500 dark:text-slate-400">{language === 'zh' ? '描述你的想法，再确认生成选项。' : 'Describe your idea, then choose how to create it.'}</p>
-        </div>
-        <form onSubmit={handleSubmit} className="mt-4">
-          <div className="diagram-prompt-surface overflow-hidden rounded-xl border border-slate-200 dark:border-white/10">
-            <textarea ref={inputRef} value={promptDraft} onChange={(event) => setPromptDraft(event.target.value)} rows={3}
-              placeholder={t('workspace.onboardingInputPlaceholder')} aria-label={t('workspace.onboardingPromptLabel')} aria-describedby={promptHintId}
-              className="diagram-prompt-input block min-h-24 w-full resize-y border-0 bg-transparent p-3 text-sm leading-6 text-slate-800 placeholder:text-slate-400 focus:ring-0 dark:text-slate-100 dark:placeholder:text-slate-500" />
-            <div className="flex flex-wrap items-center gap-1 border-t border-slate-200/60 px-2 py-1 dark:border-white/[0.06]">
-              {examples.map((example) => <button key={example.label} type="button" disabled={isGenerating}
-                onClick={() => { setPromptDraft(example.prompt); inputRef.current?.focus(); }}
-                className="studio-secondary min-h-9 px-2 text-xs" title={example.prompt}>{example.label}</button>)}
-            </div>
-          </div>
-          <div className="mt-4 flex justify-end">
-            <span id={promptHintId} className="sr-only">{promptHint}</span>
-            <button type="submit" disabled={!canSubmit} className="studio-primary" title={!hasPromptDraft ? t('workspace.onboardingPromptRequiredHint') : undefined}>
-              {t('workspace.onboardingContinueSetup')}<ArrowRight size={15} />
-            </button>
-          </div>
-        </form>
-      </section>
-    </div>
-  );
+export function WorkspaceOnboarding({ composer, onGeneratePrompt, disabled, useIcons, onUseIconsChange, onClose, awaitingDocument }: Props) {
+  const { language, t } = useLanguage();
+  const zh = language === 'zh';
+  const input = useRef<HTMLInputElement>(null);
+  const attachmentTrigger = useRef<HTMLElement | null>(null);
+  const [reference, setReference] = useState<HomeReference | null>(null);
+  const [reading, setReading] = useState(false);
+  const [error, setError] = useState('');
+  return <div className="workspace-onboarding-overlay pointer-events-none" data-awaiting-document={awaitingDocument}>
+    <section className="workspace-start-composer pointer-events-auto" aria-label={zh ? '从想法开始' : 'Start with an idea'}>
+      <button type="button" className="workspace-start-close tool-button" disabled={disabled || reading} onClick={onClose}
+        aria-label={zh ? '关闭输入区，使用空白画布' : 'Close composer and use blank canvas'} title={zh ? '使用空白画布' : 'Use blank canvas'}><X size={17} /></button>
+      <DiagramPromptComposer {...composer} variant="home" t={t} autoFocusPrompt isDisabled={disabled || reading}
+        attachTitle={t('home.referenceFormats')} enhanceTitle={t('home.enhancePrompt')} moreLabel={t('home.pillMoreLabel')}
+        generateTitle={zh ? '生成图表' : 'Generate diagram'}
+        onGenerate={() => onGeneratePrompt(promptWithReference(composer.prompt, reference, language))}
+        onAttachmentClick={() => { attachmentTrigger.current = document.activeElement as HTMLElement; input.current?.click(); }}
+        attachmentContent={reference ? <HomeReferencePreview reference={reference} disabled={disabled} onRemove={() => setReference(null)} /> : undefined}
+        leadingContent={<div className="home-composer-tools"><button type="button" className="home-icons-toggle" role="switch" aria-label={zh ? '节点图标' : 'Node icons'} aria-checked={useIcons}
+          disabled={disabled || reading} onClick={() => onUseIconsChange(!useIcons)}><Shapes size={15} aria-hidden="true" /><span>{zh ? '图标' : 'Icons'}</span><i aria-hidden="true" /></button></div>} />
+      <input ref={input} className="sr-only" tabIndex={-1} type="file" accept={HOME_REFERENCE_ACCEPT} aria-label={zh ? '添加参考文件' : 'Add a reference file'}
+        onChange={async event => {
+          const file = event.target.files?.[0]; event.target.value = '';
+          if (!file) return;
+          setReading(true); setError('');
+          try { setReference(await readHomeReference(file)); }
+          catch (error) { setError(error instanceof HomeReferenceError ? t(`home.referenceError_${error.reason}`) : zh ? '无法读取文件' : 'Could not read file'); }
+          finally { setReading(false); attachmentTrigger.current?.focus(); }
+        }} />
+      {error && <p className="workspace-start-error" role="alert">{error}</p>}
+    </section>
+  </div>;
 }

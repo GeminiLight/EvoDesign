@@ -1,6 +1,7 @@
 .studio-shell.studio-memory { overflow-x: clip; }
-.dna-library { margin-top: 20px; }
-.dna-library-toolbar { position: sticky; top: 80px; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 10px 0 16px; border-bottom: 1px solid var(--studio-line); background: var(--studio-bg); }
+.dna-library { margin-top: 0; }
+.dna-library-toolbar { position: sticky; top: 64px; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 0 16px; border-bottom: 1px solid var(--studio-line); background: var(--studio-bg); }
+.dna-library-tools { display: flex; align-items: center; justify-content: flex-end; gap: 12px; min-width: 0; }
 .dna-library-search { display: flex; align-items: center; gap: 8px; width: 242px; min-height: 42px; padding: 6px 11px; border: 1px solid var(--studio-line); border-radius: 8px; color: var(--studio-muted); background: var(--studio-surface); }
 .dna-library-search > svg { flex-shrink: 0; }
 .dna-library-search input { min-width: 0; width: 100%; padding: 0; border: 0; color: var(--studio-ink); background: transparent; font-size: 12px; outline: none; box-shadow: none; }
@@ -44,9 +45,9 @@
 .dna-empty-suggestions span { display: flex; flex-direction: column; gap: 3px; font-size: 10px; }
 .dna-empty-suggestions strong { color: var(--studio-ink); font-size: 12px; font-weight: 500; }
 @media (min-width: 1280px) { .dna-preference-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 1023px) { .dna-library-toolbar { flex-wrap: wrap; gap: 12px; } .dna-library-search { width: 100%; } }
+@media (max-width: 1023px) { .dna-library-toolbar { flex-wrap: wrap; gap: 12px; } .dna-library-tools { width: 100%; } .dna-library-search { flex: 1; width: auto; } }
 @media (max-width: 767px) {
-  .dna-library-toolbar { top: 68px; }
+  .dna-library-toolbar { top: 64px; }
   .dna-category-tabs { width: 100%; gap: 4px; }
   .dna-category-tabs > .studio-tab { flex: 1; padding-inline: 8px; gap: 5px; font-size: 12px; }
   .dna-category-tabs > button > svg { width: 14px; }
