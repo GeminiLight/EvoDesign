@@ -163,6 +163,17 @@ python -m pip install -e ".[dev]"
 
 更多信息见[贡献指南](CONTRIBUTING.md)、[配置说明](docs/configuration.md) 和[第三方声明](THIRD_PARTY_NOTICES.md)。报告问题时，请附最小输入、模型标识、所用版本的提交号，以及隐去敏感信息的日志。不要附上 API Key、账户数据库或私人提示词。
 
+## 贡献者
+
+EvoDesign 延续了早期 EvoDiagram 项目的工作。我们在此列出早期项目与当前工作台的贡献者。
+
+| 贡献者 | 贡献内容 |
+| --- | --- |
+| [Tianfu Wang](https://github.com/GeminiLight) | 图表引擎、可编辑 Web 工作台、设计记忆、科研工具与项目维护 |
+| [Yi Zhan（占一）](https://github.com/USTChandsomeboy) | 图表生成质量、架构图布局与样式、连线路由和碰撞检测 |
+
+占一早期在 EvoDiagram 的贡献已通过[筛选后的历史导入](docs/contributor-history.md)保留，作者信息与原始时间均保持不变。完整科研作者名单见[论文](https://arxiv.org/abs/2604.09568)与[引用](#引用)。
+
 ## 引用
 
 如果使用了 EvoDesign 或 CanvasBench，请引用论文。GitHub 的 **Cite this repository** 功能读取仓库中的 `CITATION.cff`。
