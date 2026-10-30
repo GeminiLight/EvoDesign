@@ -63,6 +63,9 @@ htmlcov/
 /examples/*
 !/examples/design-memory/
 !/examples/diagrams/
+!/examples/agent_cli/
+/examples/agent_cli/*
+!/examples/agent_cli/quickstart.py
 /evo_diagram/data/
 /evo_diagram/results/
 

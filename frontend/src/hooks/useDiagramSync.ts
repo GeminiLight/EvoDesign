@@ -814,7 +814,7 @@ export function useDiagramSync(
 
   const isDocumentSaving = useCallback(() => syncInFlightRef.current || manualSaveInFlightRef.current, []);
   const isDocumentDirty = useCallback(() => Boolean(hasUnsavedChangesRef.current
-    || pendingAutoSyncRef.current || pendingSnapshotChangeRef.current
+    || pendingAutoSyncRef.current
     || (latestSnapshotRef.current && getSnapshotDocSignature(latestSnapshotRef.current) !== lastSyncedDocSignatureRef.current)), []);
   const pauseForRemoteUpdate = useCallback(() => {
     if (isDocumentDirty()) setUnsavedChanges(true);

@@ -135,7 +135,11 @@ def execute(args) -> dict | list:
             if args.operation_id and body.get('operation_id') not in {None, args.operation_id}:
                 raise CliError('invalid_input', 'Operation ID differs between file and command', 2)
             body['operation_id'] = args.operation_id or body.get('operation_id') or str(uuid4())
-            return client.request('POST', prefix + '/agent-proposals', body=body)
+            try:
+                return client.request('POST', prefix + '/agent-proposals', body=body)
+            except CliError as error:
+                error.extra.setdefault('operation_id', body['operation_id'])
+                raise
         path = prefix + '/agent-proposals/' + quote(args.proposal_id, safe='')
         if args.action == 'get':
             return client.request('GET', path, timeout=50)
@@ -159,6 +163,10 @@ def execute(args) -> dict | list:
                 time.sleep(min(2, max(0, deadline-time.monotonic())))
             raise CliError('wait_timeout', 'Candidate may still be checking; query it again', 8, proposal_id=args.proposal_id)
         raise CliError('invalid_command', 'Unsupported command', 2)
+    except CliError as error:
+        if args.command == 'proposal' and args.action != 'create':
+            error.extra.setdefault('proposal_id', args.proposal_id)
+        raise
     finally:
         client.close()
 

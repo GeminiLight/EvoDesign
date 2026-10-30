@@ -102,3 +102,31 @@ async def test_missing_versions_rejected_before_formal_document_write(api):
     async with factory() as db:
         project = await db.get(Project, project_id)
         assert project.version == 1 and project.latest_schema == {'elements': []}
+
+
+@pytest.mark.asyncio
+async def test_agent_validation_errors_use_protocol_without_echoing_secrets(api):
+    client, owner, project_id, _, _ = api
+    response = await client.post('/api/v1/agent/connections/not-a-real-id/claim',
+                                 json={'device_secret':'private-short-value'})
+    assert response.status_code == 422
+    result = response.json()
+    assert result['protocol_version'] == 1 and result['error']['code'] == 'invalid_request'
+    assert 'private-short-value' not in response.text
+
+
+@pytest.mark.asyncio
+async def test_head_poll_reads_only_metadata_without_loading_scene_blobs(api):
+    from sqlalchemy import event
+    client, owner, project_id, _, factory = api
+    statements = []
+    engine = factory.kw['bind'].sync_engine
+    def record(_conn, _cursor, statement, _parameters, _context, _many):
+        statements.append(statement.lower())
+    event.listen(engine, 'before_cursor_execute', record)
+    try:
+        result = await client.get(f'/api/v1/projects/{project_id}/document/head',headers=owner)
+    finally:
+        event.remove(engine, 'before_cursor_execute', record)
+    assert result.status_code == 200 and result.json()['data']['version'] == 1
+    assert not any('latest_schema' in sql or 'schema_blob' in sql for sql in statements)

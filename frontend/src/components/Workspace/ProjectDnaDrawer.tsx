@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Dna, X, Pencil, Check } from 'lucide-react';
 import { DnaSyncStatus } from '../DNA/DnaSyncStatus';
 import { useRuleLibrary } from '../../hooks/useRuleLibrary';
-import { guestHasProjectDna, guestDeleteProjectDnaRules } from '../../services/guestStorage';
+import { guestHasProjectDna, guestDeleteProjectDnaRules, guestSaveProjectDnaRules } from '../../services/guestStorage';
 import { loadDnaRules, saveDnaRules } from '../../services/backendApi';
 import { flushDnaDraft } from '../../utils/dnaSyncDraft';
 import { useBackendAuth } from '../../features/auth/BackendAuthProvider';
@@ -178,6 +178,7 @@ export function ProjectDnaDrawer({ projectId, onClose }: ProjectDnaDrawerProps) 
   const [enabled, setEnabled] = useState(() => guestHasProjectDna(projectId, storageScopeId));
   const [disabling, setDisabling] = useState(false);
   const [scopeError, setScopeError] = useState(false);
+  const [needsRules, setNeedsRules] = useState(false);
   const [scopeLoading, setScopeLoading] = useState(Boolean(token));
   const [scopeRevision, setScopeRevision] = useState(0);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -189,6 +190,7 @@ export function ProjectDnaDrawer({ projectId, onClose }: ProjectDnaDrawerProps) 
     setEnabled(guestHasProjectDna(projectId, storageScopeId));
     setScopeLoading(Boolean(token));
     setScopeError(false);
+    setNeedsRules(false);
     if (token && storageScopeId) {
       void loadDnaRules(projectId, token, storageScopeId).then(rules => {
         if (cancelled) return;
@@ -230,9 +232,20 @@ export function ProjectDnaDrawer({ projectId, onClose }: ProjectDnaDrawerProps) 
     setDisabling(false);
   };
 
-  const handleToggleOn = () => {
+  const handleToggleOn = async () => {
+    setDisabling(true); setScopeError(false); setNeedsRules(false);
+    if (token && storageScopeId) {
+      const rules = await loadDnaRules(undefined, token, storageScopeId);
+      if (!rules) { setScopeError(true); setDisabling(false); return; }
+      if (!Object.values(rules).some(items => items.length > 0)) {
+        setNeedsRules(true); setDisabling(false); return;
+      }
+      const saved = await saveDnaRules(rules, projectId, { token, ownerId: storageScopeId });
+      if (!saved) { setScopeError(true); setDisabling(false); return; }
+      guestSaveProjectDnaRules(projectId, rules, storageScopeId);
+    }
     setEnabled(true);
-    // ProjectDnaCabins will mount and useRuleLibrary will pre-populate from global on first save
+    setDisabling(false);
   };
 
   return (
@@ -316,7 +329,7 @@ export function ProjectDnaDrawer({ projectId, onClose }: ProjectDnaDrawerProps) 
               </p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 {enabled
-                  ? zh ? '当前使用项目专属规则' : 'Using project-specific rules'
+                  ? zh ? '保存的项目规则优先于通用规则' : 'Saved project rules take precedence over global rules'
                   : zh ? '当前使用通用 DNA' : 'Currently using global DNA'}
               </p>
             </div>
@@ -327,7 +340,7 @@ export function ProjectDnaDrawer({ projectId, onClose }: ProjectDnaDrawerProps) 
               aria-checked={enabled}
               aria-label={zh ? '启用项目专属 DNA' : 'Use project-specific DNA'}
               disabled={disabling || scopeLoading || scopeError}
-              onClick={() => { if (enabled) void handleToggleOff(); else handleToggleOn(); }}
+              onClick={() => { if (enabled) void handleToggleOff(); else void handleToggleOn(); }}
               className="relative inline-flex h-11 w-14 shrink-0 cursor-pointer items-center justify-center rounded-xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
             >
               <span className={`flex h-6 w-11 items-center rounded-full border-2 border-transparent transition-colors ${enabled ? 'bg-brand-600' : 'bg-slate-200 dark:bg-slate-700'}`}>
@@ -340,6 +353,7 @@ export function ProjectDnaDrawer({ projectId, onClose }: ProjectDnaDrawerProps) 
         </div>
 
         {scopeError && <p role="alert" className="px-5 text-sm text-red-600 dark:text-red-300">{zh ? '偏好未能同步，项目规则仍保留。' : 'Could not sync preferences. Project rules are kept.'} <button type="button" className="min-h-11 underline" onClick={() => setScopeRevision(value => value + 1)}>{zh ? '重试' : 'Try again'}</button></p>}
+        {needsRules && <p role="status" className="px-5 py-2 text-sm text-slate-600 dark:text-slate-300">{zh ? '请先在 DNA 库中添加通用规则，再启用项目专属 DNA。' : 'Add global rules in the DNA library before enabling project DNA.'}</p>}
         {/* Content */}
         <div className="custom-scrollbar flex-1 overflow-y-auto px-5 py-4">
           {scopeLoading ? <p role="status">{zh ? '正在加载已保存的规则…' : 'Loading saved rules…'}</p> : scopeError ? null : enabled ? (

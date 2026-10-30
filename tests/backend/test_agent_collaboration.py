@@ -11,6 +11,7 @@ from app.services.agent_connection_service import (AgentActor, approve_connectio
     claim_connection, create_connection)
 from app.services.agent_contract import AgentError, ProposalRequest
 from app.services.agent_proposal_service import commit_proposal, create_proposal, restore_proposal
+from app.services.agent_proposal_service import prepare_preview
 from app.services.document_service import effective_constraints
 from app.services.schema_service import SchemaService
 
@@ -122,7 +123,10 @@ async def test_expired_and_unpreviewed_candidates_cannot_commit(workspace):
     with pytest.raises(AgentError) as error:
         await commit_proposal(db, actor, project.project_id, proposal.proposal_id)
     assert error.value.code == 'proposal_not_ready'
+    proposal.status = 'ready'
     proposal.expires_at = time.time() - 1
+    await prepare_preview(db, proposal)
+    assert proposal.status == 'expired'
     with pytest.raises(AgentError) as error:
         await commit_proposal(db, actor, project.project_id, proposal.proposal_id)
     assert error.value.code == 'proposal_expired'
@@ -148,3 +152,53 @@ async def test_long_generation_preserves_result_without_overwriting_newer_docume
     assert project.latest_schema == saved and project.version == 2
     candidate = await db.get(AgentProposal, result.proposal_id)
     assert candidate.base_schema == base and candidate.candidate_schema['elements'][0]['id'] == 'generated'
+
+
+@pytest.mark.asyncio
+async def test_automatic_commit_rechecks_the_original_shared_selection(workspace):
+    from evo_diagram.canvas_environment import apply_operations
+    db, project, owner = workspace
+    project.latest_schema = apply_operations({'elements': []}, [
+        {'op': 'add_node', 'id': 'selected', 'x': 0, 'y': 0,
+         'width': 160, 'height': 80, 'text': 'Original'}])[0]
+    row, secret = await create_connection(db, 'selection test')
+    await approve_connection(db, row.connection_id, 'owner', project.project_id, row.user_code, True)
+    claimed = await claim_connection(db, row.connection_id, secret)
+    await db.commit()
+    scoped = await authenticate_connection(db, claimed['access_token'])
+    row.context_version = 1
+    row.context_json = {'version': project.version, 'selected_ids': ['selected'],
+                        'locked_ids': [], 'expires_at': time.time()+600}
+    await db.commit()
+    constraints = await effective_constraints(db, project)
+    proposal = await create_proposal(db, scoped, project.project_id, ProposalRequest(
+        operation_id='shared-selection', base_version=project.version, context_version=1,
+        constraints_hash=constraints['constraints_hash'], scope={'kind':'elements','element_ids':['selected']},
+        operations=[{'op':'set_text','id':'selected','text':'Candidate'}]))
+    proposal.status = 'ready'
+    row.context_version = 2
+    await db.commit()
+    with pytest.raises(AgentError) as error:
+        await commit_proposal(db, scoped, project.project_id, proposal.proposal_id)
+    assert error.value.code == 'context_stale'
+    assert project.version == 1
+    # The owner can still explicitly review and accept the immutable candidate.
+    await commit_proposal(db, owner, project.project_id, proposal.proposal_id)
+    assert project.version == 2
+
+
+@pytest.mark.asyncio
+async def test_editing_legacy_history_forks_instead_of_overwriting_the_old_working_snapshot(workspace):
+    db, project, _ = workspace
+    old = Snapshot(project_id=project.project_id, schema_blob={'elements': [{'id':'legacy'}]}, edit_source='HUMAN')
+    current = Snapshot(project_id=project.project_id, schema_blob={'elements': [{'id':'head'}]}, edit_source='HUMAN')
+    db.add_all([old,current])
+    await db.flush()
+    project.latest_schema = copy.deepcopy(current.schema_blob)
+    project.current_snapshot_id = current.snapshot_id
+    await db.commit()
+    saved = copy.deepcopy(old.schema_blob)
+    _, fork = await SchemaService(db).sync_schema('owner',project.project_id,
+        {'elements':[{'id':'new-history-edit'}]},base_snapshot_id=old.snapshot_id,version=project.version)
+    assert fork.snapshot_id not in {old.snapshot_id,current.snapshot_id}
+    assert fork.parent_id == old.snapshot_id and old.schema_blob == saved

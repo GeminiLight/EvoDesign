@@ -13,7 +13,12 @@ class CliError(Exception):
 
 
 def server_origin(value: str) -> str:
-    parsed = urlsplit(value.rstrip('/'))
+    try:
+        parsed = urlsplit(value.rstrip('/'))
+        if parsed.port is not None and not 1 <= parsed.port <= 65535:
+            raise ValueError('Invalid port')
+    except ValueError as exc:
+        raise CliError('invalid_server', 'Use a valid server origin and port', 2) from exc
     local = parsed.hostname in {'localhost', '127.0.0.1', '::1'}
     if parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path not in {'', '/'}:
         raise CliError('invalid_server', 'Use a server origin without credentials, path or query', 2)
@@ -52,6 +57,10 @@ class Client:
             except ValueError:
                 payload = {}
             error = payload.get('error') or payload.get('detail') or {}
+            if isinstance(error, list):
+                error = {'code': 'invalid_request', 'message': 'Request fields are invalid',
+                         'fields': [{'location': item.get('loc'), 'message': item.get('msg')}
+                                    for item in error if isinstance(item, dict)]}
             if not isinstance(error, dict):
                 error = {'message': str(error)}
             code = error.get('code', 'http_error')

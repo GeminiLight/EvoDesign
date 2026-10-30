@@ -47,6 +47,7 @@ Try the [browser edition](https://evodesign.vercel.app/) with the shared GLM-5.3
 | --- | --- |
 | **Diagram engine** | Generate architecture, sequence, flow and other diagram types; evaluate and refine their design |
 | **Web workspace** | Generate, edit, save, reopen and export diagrams; turn icons on or off |
+| **Agent CLI + skill** | Use your existing terminal Agent to prepare candidates, inspect previews and continue from saved Web edits |
 | **Personal design memory** | Manage structure, style and layout preferences; learn from edits; import and export portable rules |
 | **Design expertise** | Retrieve reusable strategies from 126 bundled seed entries and evolve knowledge through feedback |
 | **Research tooling** | Run baseline adapters, ablations and evaluation with your own data |
@@ -65,6 +66,7 @@ The browser edition offers editable generation, optional icons, content review, 
 | **Generation & review** | Graph planning, local layout and optional content review | Structure, style and layout agents; verification and optional visual refinement |
 | **Design memory** | Manage preferences locally and include them in prompts | Personal memory, expertise retrieval and knowledge evolution |
 | **Project storage** | This browser; export copies for backup | Your backend and database |
+| **External Agent collaboration** | Guide to setting up the backend edition | Project-scoped CLI connections, previews, safe commits and checkpoint restoration |
 
 The online edition is a lightweight path for trying editable generation; the method below describes the full research framework. See the [capability and privacy guide](docs/browser-edition.md) for details.
 
@@ -106,6 +108,20 @@ Open **http://localhost:5175**. The API is on port 3010 and rendering service on
 
 The renderer needs Playwright Chromium for image export. On a machine without it, run `cd evo_diagram/agentic_system/tool_services && npx playwright install chromium`. Linux may need `npx playwright install --with-deps chromium` and native Canvas libraries (`libcairo2-dev`, `libpango1.0-dev`, `libjpeg-dev`, `libgif-dev`, `librsvg2-dev`, `pkg-config`). The first design-memory run may download its embedding model.
 
+### Work with your existing Agent
+
+With the backend, Web and renderer running, install the lightweight CLI and connect one Excalidraw project:
+
+```sh
+python -m pip install ./cli
+evodesign connect --server http://localhost:3010 --profile paper
+evodesign document get --profile paper --json
+```
+
+Approve the printed code in Web. Give your Agent [the EvoDesign skill](skills/evodesign/SKILL.md) to prepare semantic edits and inspect the real PNG. You can accept candidates in Web or allow the connection to commit. Saved manual edits and DNA are shared; conflicts retain candidates, and incoming versions preserve unsaved Web drafts. Restoring a checkpoint creates a new version.
+
+This v1 uses the backend edition; browser-local projects, MCP and TLDraw editing are outside its scope. See the **[Agent collaboration guide](docs/agent-collaboration.md)** for installation, commands, handoffs and recovery. CLI edits use your Agent's reasoning and do not invoke the backend generation model.
+
 ### Use the engine without the web UI
 
 With the Python environment, model configuration and renderer running:
@@ -140,6 +156,8 @@ The repository includes the implementation, evaluation tools and baseline adapte
 evo_diagram/          Core agents, refinement, memory and renderer service
 backend/              FastAPI, projects, authentication and personal DNA
 frontend/             React workspace and editable canvas adapters
+cli/                  Standalone Agent CLI (no engine installation required)
+skills/evodesign/     Portable workflow and operation references for Agents
 configs/              Model roles and application settings
 dataset_construction/ Dataset preparation utilities
 evaluation/           Evaluation and analysis

@@ -11,6 +11,8 @@ from typing import Awaitable, Callable, Mapping
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from loguru import logger
@@ -175,6 +177,18 @@ def create_app(
         )
 
     from app.services.agent_contract import AgentError
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(request: Request, exc: RequestValidationError):
+        parts = request.url.path.split('/')
+        agent_resource = request.url.path.startswith('/api/v1/agent/') or bool(set(parts) & {
+            'document', 'agent-proposals', 'agent-history', 'agent-context', 'restore-proposals'})
+        if not agent_resource:
+            return await request_validation_exception_handler(request, exc)
+        return JSONResponse(status_code=422, content={'ok': False, 'protocol_version': 1,
+            'error': {'code': 'invalid_request', 'message': 'Request fields are invalid', 'retryable': False,
+                'fields': [{'location': list(error['loc']), 'message': error['msg']}
+                           for error in exc.errors()]}})
 
     @app.exception_handler(AgentError)
     async def agent_exception_handler(request: Request, exc: AgentError):

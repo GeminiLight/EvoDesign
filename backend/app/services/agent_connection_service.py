@@ -46,7 +46,9 @@ async def create_connection(db: AsyncSession, name: str) -> tuple[AgentConnectio
 
 async def approve_connection(db: AsyncSession, connection_id: str, user_id: str,
                              project_id: str, code: str, can_commit: bool) -> None:
-    await owned_project(db, user_id, project_id)
+    project = await owned_project(db, user_id, project_id)
+    if project.canvas_engine != 'excalidraw':
+        raise AgentError('unsupported_canvas', 'Agent connections currently support Excalidraw projects', 422)
     result = await db.execute(update(AgentConnection).where(
         AgentConnection.connection_id == connection_id, AgentConnection.status == 'pending',
         AgentConnection.expires_at > time.time(), AgentConnection.user_code == code.upper(),

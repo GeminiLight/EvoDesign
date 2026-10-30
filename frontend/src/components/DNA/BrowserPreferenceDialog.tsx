@@ -4,6 +4,7 @@ import { useLanguage } from '../../i18n/LanguageProvider';
 import type { CabinId } from '../../types/dna';
 import { ChoiceSelect } from '../ChoiceSelect';
 import { dnaPreferenceExample } from '../../utils/dnaPreferenceExamples';
+import { BROWSER_MODE } from '../../services/browser/runtime';
 
 export function BrowserPreferenceDialog({ onSave, onClose, initialCategory = 'style', initialDraft }: {
   onSave: (category: CabinId, title: string, description: string) => void;
@@ -23,7 +24,9 @@ export function BrowserPreferenceDialog({ onSave, onClose, initialCategory = 'st
   return <dialog ref={dialog} className="studio-dialog workspace-settings-dialog w-[min(480px,calc(100vw-24px))]" aria-labelledby="preference-title" onCancel={onClose}>
     <form className="space-y-4 p-6" onSubmit={e => { e.preventDefault(); if (title.trim() && description.trim()) onSave(category, title.trim(), description.trim()); }}>
       <div className="flex items-center justify-between gap-3"><h2 id="preference-title" className="text-base font-semibold">{zh ? '添加设计偏好' : 'Add a design preference'}</h2><button type="button" className="studio-icon-button" onClick={onClose} aria-label={zh ? '关闭' : 'Close'}><X size={18} /></button></div>
-      <p className="text-xs leading-6 text-slate-500 dark:text-slate-400">{zh ? '保存在此浏览器，供下次生成参考。' : 'Saved in this browser for your next generation.'}</p>
+      <p className="text-xs leading-6 text-slate-500 dark:text-slate-400">{BROWSER_MODE
+        ? zh ? '保存在此浏览器，供下次生成参考。' : 'Saved in this browser for your next generation.'
+        : zh ? '保存到账号，供后续绘图和已连接的 Agent 使用。' : 'Save to your account for future diagrams and connected Agents.'}</p>
       <div className="text-sm"><label htmlFor="preference-category">{zh ? '类别' : 'Category'}</label>
         <ChoiceSelect id="preference-category" className="choice-select-field mt-2" label={zh ? '类别' : 'Category'} value={category} menuWidth="anchor"
           options={[{ value: 'structure', label: zh ? '结构' : 'Structure', Icon: BrainCircuit }, { value: 'style', label: zh ? '样式' : 'Style', Icon: Palette }, { value: 'layout', label: zh ? '布局' : 'Layout', Icon: LayoutTemplate }]}

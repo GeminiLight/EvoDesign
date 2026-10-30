@@ -31,7 +31,7 @@ def test_profile_credentials_are_private_and_removed(private_config):
         load_profile('paper')
 
 
-@pytest.mark.parametrize('url', ['http://example.org', 'https://user:secret@example.org', 'https://example.org/api', 'file:///etc/passwd'])
+@pytest.mark.parametrize('url', ['http://example.org', 'https://user:secret@example.org', 'https://example.org/api', 'file:///etc/passwd', 'http://localhost:wrong', 'https://example.org:99999'])
 def test_never_sends_credentials_to_an_unsafe_server(url):
     with pytest.raises(CliError):
         server_origin(url)
@@ -71,3 +71,20 @@ def test_imports_do_not_load_engine_or_backend():
     result = subprocess.run([sys.executable, '-c', script], text=True, capture_output=True,
         env={**os.environ, 'PYTHONPATH': str(Path(__file__).resolve().parents[1] / 'src')})
     assert result.returncode == 0, result.stderr
+
+
+def test_uncertain_create_returns_the_operation_id_for_an_exact_retry(private_config, monkeypatch, tmp_path, capsys):
+    from evodesign_cli import main as cli_main
+    save_profile('default', {'server':'https://example.org','project_id':'project','connection_id':'connection'}, 'private-token')
+    path=tmp_path/'operations.json'
+    path.write_text(json.dumps({'base_version':1,'constraints_hash':'hash','scope':{'kind':'project'},'operations':[]}))
+    class OfflineClient:
+        def __init__(self,*_args): pass
+        def request(self,*_args,**_kwargs): raise CliError('network_error','Response was lost',8)
+        def close(self): pass
+    monkeypatch.setattr(cli_main,'Client',OfflineClient)
+    with pytest.raises(SystemExit) as result:
+        cli_main.main(['proposal','create','--file',str(path),'--json'])
+    payload=json.loads(capsys.readouterr().out)
+    assert result.value.code==8 and payload['error']['operation_id']
+    assert 'private-token' not in json.dumps(payload)

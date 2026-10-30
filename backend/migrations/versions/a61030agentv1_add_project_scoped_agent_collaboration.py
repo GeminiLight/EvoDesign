@@ -50,6 +50,7 @@ def upgrade() -> None:
     sa.Column('operation_id', sa.String(length=128), nullable=False),
     sa.Column('request_hash', sa.String(length=64), nullable=False),
     sa.Column('base_version', sa.Integer(), nullable=False),
+    sa.Column('context_version', sa.Integer(), nullable=True),
     sa.Column('base_schema', sa.JSON(), nullable=False),
     sa.Column('constraints_hash', sa.String(length=80), nullable=False),
     sa.Column('candidate_schema', sa.JSON(), nullable=False),

@@ -31,4 +31,6 @@ The actual affected set includes bound text and connector references. A node's b
 
 For a blank graph, use project scope and add nodes before their connections. Readability comes from a small, coherent set of entities and meaningful edges, not from exporting arbitrary scene JSON. Preserve user layout during local edits; there is no automatic global layout operation in v1.
 
+Element scope edits existing objects and may create their bound text. Adding standalone nodes or new connections requires project scope in v1; use it only when the user's task authorizes those additions. Do not expand the scope just to bypass a shared selection.
+
 `locked_element`, `context_stale`, `constraints_changed`, and `version_conflict` require fresh context or user action. Do not repair these by manipulating a version or constraint hash in an old request. A candidate that renders can still have geometric issues or incorrect content; use its report and actual image.

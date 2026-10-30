@@ -65,6 +65,9 @@ def apply_operations(
     def add(eid: str, kind: str, **values: Any) -> dict[str, Any]:
         if not isinstance(eid, str) or not eid or len(eid) > 128 or eid in by_id:
             raise EditError('duplicate_id', 'New elements require unique nonempty IDs')
+        if permitted is not None and eid not in permitted:
+            if kind != 'text' or values.get('containerId') not in permitted:
+                raise EditError('scope_violation', 'Creating a standalone node or connection requires project scope')
         index = max((e.get('index') or 'a0' for e in elements), default='a0') + 'V'
         el = {**excalidraw_element_defaults(eid), 'id': eid, 'type': kind,
               'x': 0, 'y': 0, 'width': 1, 'height': 1, 'angle': 0,

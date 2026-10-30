@@ -53,7 +53,8 @@ async def commit_document(
     elif checkpoint and current:
         current.is_checkpoint = True
     target = base_snapshot
-    if checkpoint or target is None or target.is_checkpoint:
+    if (checkpoint or target is None or target.is_checkpoint
+        or (current is not None and target.snapshot_id != current.snapshot_id)):
         target = Snapshot(project_id=project.project_id, parent_id=(base_snapshot or current).snapshot_id if (base_snapshot or current) else None,
                           schema_blob=copy.deepcopy(schema), edit_source=source, is_checkpoint=checkpoint,
                           metrics_scores=metrics, thought_trace=thought_trace)

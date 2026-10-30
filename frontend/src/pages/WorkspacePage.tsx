@@ -4,7 +4,7 @@ import { useBrowserModelLabel } from '../hooks/useBrowserModelLabel';
 import { BROWSER_MODE } from '../services/browser/runtime';
 import { parseGenerationReport } from '../utils/generationReport';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, Columns3, History, Loader2, MessageSquare, PencilLine, RefreshCcw, Save, Terminal, X } from 'lucide-react';
+import { AlertTriangle, Columns3, Dna, History, Loader2, MessageSquare, PencilLine, RefreshCcw, Save, Terminal, X } from 'lucide-react';
 import { AgentConnectionPanel } from '../components/Workspace/AgentConnectionPanel';
 import { useRemoteDocument } from '../hooks/useRemoteDocument';
 import type {
@@ -441,6 +441,7 @@ export function WorkspacePage() {
     apply: (document, discardDraft) => {
       const applied = applyRemoteDocument(document, discardDraft);
       if (applied) {
+        clearSelection();
         setCanvasMode(document.canvas_library);
         setRecentReloadNonce(value => value + 1);
         setProjectHistoryReloadNonce(value => value + 1);
@@ -2385,8 +2386,10 @@ export function WorkspacePage() {
         onBeforeNavigate={handleBeforeWorkspaceNavigate}
         onOpenSettings={() => setShowWorkspaceSettings(true)}
       ><div className="workspace-header-tools">
-            <button type="button" className="tool-button" aria-label={t('agent.title')} title={t('agent.title')}
-              onClick={() => setShowAgentPanel(true)}><Terminal size={16} aria-hidden="true" /></button>
+            {preview?.projectId && <button type="button" className="tool-button" aria-label={t('workspace.projectDnaLabel')} title={t('workspace.projectDnaLabel')}
+              disabled={workspaceInteractionBlocked} onClick={() => setShowProjectDna(true)}><Dna size={16} aria-hidden="true" /></button>}
+            <button type="button" className="tool-button agent-launcher" aria-label={t('agent.title')} title={t('agent.title')}
+              onClick={() => setShowAgentPanel(true)}><Terminal size={16} aria-hidden="true" /><span>{t('agent.shortTitle')}</span></button>
             {workspaceHistoryControl}
             {!isCanvasFullscreen && generationActivity}
             <div className="workspace-canvas-actions" ref={setToolbarTarget} />
@@ -2659,7 +2662,7 @@ export function WorkspacePage() {
       </main>
 
       {showAgentPanel && <AgentConnectionPanel key={`${authIdentity}:${preview?.projectId}`}
-        open onClose={() => setShowAgentPanel(false)} projectId={preview?.projectId}
+        open onClose={() => setShowAgentPanel(false)} projectId={preview?.projectId} projectTitle={projectName || t('workspace.untitledProject')}
         signedIn={Boolean(authIdentity && canvasOwnerIdentity === authIdentity)} canvas={canvasMode}
         selectedIds={selectedNodeIds} dirty={hasUnsavedChanges || isDocumentDirty()}
         blocked={workspaceInteractionBlocked || isDocumentSaving()} version={preview?.projectVersion ?? projectVersionRef.current}

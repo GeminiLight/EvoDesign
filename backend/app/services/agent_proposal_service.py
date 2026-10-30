@@ -17,6 +17,7 @@ from app.services.agent_connection_service import AgentActor
 from app.services.agent_contract import AgentError, ProposalRequest
 from app.services.document_commit_service import commit_document, VersionConflictError
 from app.services.document_service import digest, effective_constraints, owned_project
+from app.services.agent_artifact_service import prune_old_previews
 
 _render_slots = asyncio.Semaphore(4)
 
@@ -86,6 +87,7 @@ async def create_proposal(db: AsyncSession, actor: AgentActor, project_id: str, 
     proposal = AgentProposal(project_id=project_id, user_id=actor.user_id,
         connection_id=actor.connection.connection_id if actor.connection else None,
         operation_id=body.operation_id, request_hash=request_hash, base_version=project.version,
+        context_version=body.context_version,
         base_schema=copy.deepcopy(project.latest_schema or {}), constraints_hash=constraints['constraints_hash'],
         candidate_schema=candidate, changed_ids=changed, expires_at=time.time()+7*86400)
     try:
@@ -115,8 +117,13 @@ def render_candidate(schema: dict, output: Path) -> dict:
 
 
 async def prepare_preview(db: AsyncSession, proposal: AgentProposal) -> AgentProposal:
+    if proposal.expires_at <= time.time() and proposal.status in {'queued', 'checking', 'ready'}:
+        proposal.status = 'expired'
+        await db.flush()
+        return proposal
     if proposal.status not in {'queued', 'checking'}:
         return proposal
+    await asyncio.to_thread(prune_old_previews, artifact_root())
     now = time.time()
     if proposal.expires_at <= now:
         proposal.status = 'expired'
@@ -181,9 +188,18 @@ async def commit_proposal(db: AsyncSession, actor: AgentActor, project_id: str, 
         ).values(status='active').execution_options(synchronize_session=False))
         if fence.rowcount != 1:
             raise AgentError('commit_forbidden', 'Connection cannot commit or has been revoked', 403)
+        await db.refresh(actor.connection)
     proposal = await get_proposal(db, actor, project_id, proposal_id)
     if proposal.status == 'committed':
         return proposal
+    if actor.connection and proposal.context_version is not None:
+        connection = actor.connection
+        context = connection.context_json or {}
+        if (proposal.connection_id != connection.connection_id
+            or proposal.context_version != connection.context_version
+            or context.get('expires_at', 0) <= time.time()
+            or context.get('version') != proposal.base_version):
+            raise AgentError('context_stale', 'The shared selection changed or expired; publish it again')
     if proposal.expires_at <= time.time():
         raise AgentError('proposal_expired', 'Proposal expired; prepare a new candidate')
     if proposal.status != 'ready':

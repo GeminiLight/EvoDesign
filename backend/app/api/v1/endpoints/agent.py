@@ -20,19 +20,24 @@ from app.core.rate_limit import limiter
 from app.db.session import get_db
 from app.models.agent import AgentConnection, AgentProposal
 from app.models.snapshot import Snapshot
+from app.models.project import Project
 from app.services.agent_connection_service import AgentActor, approve_connection, claim_connection, create_connection
 from app.services.agent_contract import (AgentError, ApprovalRequest, ClaimRequest, ConnectionRequest,
     ContextRequest, ProposalRequest, RestoreRequest, envelope)
 from app.services.agent_proposal_service import (artifact_root, commit_proposal, create_proposal,
     get_proposal, prepare_preview, render_candidate, restore_proposal)
 from app.services.document_service import digest, effective_constraints, node_index, owned_project
+from app.services.agent_artifact_service import prune_old_previews
 
 router = APIRouter(tags=['Agent collaboration'])
 
 
 def proposal_view(row: AgentProposal) -> dict:
-    return {k: getattr(row, k) for k in ('proposal_id', 'project_id', 'base_version', 'status', 'changed_ids',
+    result = {k: getattr(row, k) for k in ('proposal_id', 'project_id', 'base_version', 'status', 'changed_ids',
             'report', 'committed_version', 'committed_snapshot_id', 'expires_at', 'author_kind')}
+    if row.expires_at <= time.time() and row.status in {'queued', 'checking', 'ready'}:
+        result['status'] = 'expired'
+    return result
 
 
 def connection_view(row: AgentConnection) -> dict:
@@ -108,8 +113,11 @@ async def publish_context(connection_id: str, body: ContextRequest, user_id: str
 @router.get('/projects/{project_id}/document/head')
 async def document_head(project_id: str, actor: AgentActor = Depends(get_agent_actor), db: AsyncSession = Depends(get_db)):
     actor.require_project(project_id)
-    project = await owned_project(db, actor.user_id, project_id)
-    return envelope({'project_id': project_id, 'version': project.version, 'snapshot_id': project.current_snapshot_id})
+    head = (await db.execute(select(Project.version, Project.current_snapshot_id).where(
+        Project.project_id == project_id, Project.user_id == actor.user_id))).one_or_none()
+    if head is None:
+        raise AgentError('project_missing', 'Project not found', 404)
+    return envelope({'project_id': project_id, 'version': head.version, 'snapshot_id': head.current_snapshot_id})
 
 
 @router.get('/projects/{project_id}/document')
@@ -120,7 +128,7 @@ async def document(project_id: str, actor: AgentActor = Depends(get_agent_actor)
     schema = project.latest_schema or {'elements': []}
     snapshot = await db.get(Snapshot, project.current_snapshot_id) if project.current_snapshot_id else None
     constraints = await effective_constraints(db, project)
-    version = await db.scalar(select(type(project).version).where(type(project).project_id == project_id))
+    version = await db.scalar(select(Project.version).where(Project.project_id == project_id))
     if version != project.version:
         raise AgentError('version_conflict', 'Document changed while reading; read it again', current_version=version)
     return envelope({'project_id': project_id, 'title': project.title, 'version': project.version,
@@ -143,6 +151,7 @@ async def document_preview(request: Request, project_id: str, version: int,
     if project.canvas_engine != 'excalidraw':
         raise AgentError('unsupported_canvas', 'Preview currently supports Excalidraw', 422)
     schema = copy.deepcopy(project.latest_schema or {'elements': []})
+    await asyncio.to_thread(prune_old_previews, artifact_root())
     directory = artifact_root() / 'formal' / project_id
     directory.mkdir(parents=True, exist_ok=True, mode=0o700)
     output = directory / f'{version}-{digest(schema)[:16]}.png'

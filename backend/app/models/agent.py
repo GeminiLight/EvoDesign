@@ -40,6 +40,7 @@ class AgentProposal(Base):
     operation_id: Mapped[str] = mapped_column(String(128))
     request_hash: Mapped[str] = mapped_column(String(64))
     base_version: Mapped[int] = mapped_column(Integer)
+    context_version: Mapped[int | None] = mapped_column(Integer)
     base_schema: Mapped[dict[str, Any]] = mapped_column(JSON)
     constraints_hash: Mapped[str] = mapped_column(String(80))
     candidate_schema: Mapped[dict[str, Any]] = mapped_column(JSON)

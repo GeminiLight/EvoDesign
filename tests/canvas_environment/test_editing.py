@@ -88,3 +88,10 @@ def test_vertical_connections_use_facing_ports_and_labels_are_centered():
     assert arrow['points'] == [[0, 0], [0, 200]]
     label = by_id['top-label']
     assert label['y'] + label['height']/2 == 50
+
+
+def test_selection_does_not_implicitly_authorize_unrelated_new_shapes():
+    with pytest.raises(EditError) as error:
+        apply_operations(scene(), [{'op': 'add_node', 'id': 'outside', 'x': 900, 'y': 900,
+            'width': 160, 'height': 80}], scope=['a'])
+    assert error.value.code == 'scope_violation'

@@ -60,7 +60,9 @@ export function useRemoteDocument(options: Options) {
         // The canvas may have changed during the document fetch.
         const now = latest.current;
         const finalDecision = remoteDocumentDecision({ incoming: doc.version, known: now.versionRef.current,
-          saving: now.isSaving(), dirty: now.isDirty(), blocked: now.busy, historical });
+          saving: now.isSaving(), dirty: now.isDirty(), blocked: now.busy,
+          historical: Boolean(knownHead.current && knownHead.current.version === now.versionRef.current
+            && knownHead.current.snapshot !== now.snapshotRef.current) });
         if (finalDecision === 'ignore') { clearPending(); return; }
         if (finalDecision === 'apply' && now.apply(doc, false)) {
           knownHead.current = { version: doc.version, snapshot: doc.snapshot_id };
