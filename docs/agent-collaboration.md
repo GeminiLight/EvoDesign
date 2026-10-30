@@ -22,7 +22,7 @@ evodesign connect --server http://localhost:3010 --profile paper
 
 The CLI depends on `httpx` and its dependencies. It does not install or import the diagram engine. The backend and renderer run where your project is stored. Agent edits use deterministic operations, structural checks and PNG rendering; these operations do not call an EvoDesign generation model. The existing Web generation workflow uses its own model configuration.
 
-In Web, sign in, enter the code printed by the CLI, and select an Excalidraw project or create a blank one. Leave **Allow this Agent to submit changes** off to review and accept candidates in Web. Enable it when the Agent should be able to commit. Each connection grants access to one project and expires after 24 hours. Revoke it in the project's Agent panel or run `evodesign disconnect --profile paper`.
+In Web, sign in, enter the code printed by the CLI, and select an Excalidraw project or create a blank one. **I review and apply** is the default. Choose **Let my Agent apply changes** when the Agent should be able to commit. Each connection grants access to one project and expires after 24 hours. Revoke it in the project's Agent panel or run `evodesign disconnect --profile paper`.
 
 Use `--no-browser` when you want to open the printed approval link yourself. Remote backends require HTTPS; local loopback HTTP is supported. The server origin excludes `/api/v1`.
 

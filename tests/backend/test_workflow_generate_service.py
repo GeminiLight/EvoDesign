@@ -1533,6 +1533,13 @@ async def test_streaming_generation_honors_structure_chart_type_for_downstream_s
 @pytest.mark.asyncio
 async def test_streaming_generation_uses_current_pipeline_modules(monkeypatch, tmp_path):
     monkeypatch.setenv("LLM_MODEL_NAME", "offline-test-model")
+    verified = []
+
+    class FakeVerifierWorkflow:
+        def run(self, **kwargs):
+            verified.append(kwargs)
+            return SimpleNamespace(objective_findings=[], critique=None)
+
     class FakeGenerator(_FakePipelineGeneratorMixin):
         def __init__(self):
             self.structure = _FakeStage(
@@ -1581,6 +1588,10 @@ async def test_streaming_generation_uses_current_pipeline_modules(monkeypatch, t
 
     monkeypatch.setattr("evo_diagram.agentic_system.workflow.Text2DiagramWorkflow", FakeWorkflow)
     monkeypatch.setattr("evo_diagram.canvas_environment.render_manifest", fake_render_manifest)
+    monkeypatch.setattr(
+        "evo_diagram.agentic_system.verification_stage.workflow.VerifierWorkflow",
+        FakeVerifierWorkflow,
+    )
 
     async def direct_to_thread(func, /, *args, **kwargs):
         return func(*args, **kwargs)
@@ -1607,6 +1618,8 @@ async def test_streaming_generation_uses_current_pipeline_modules(monkeypatch, t
     assert result["schema_blob"]["elements"][0]["id"] == "shape_1"
     assert result["metrics_scores"]["node_count"] == 1
     assert result["metrics_scores"]["edge_count"] == 1
+    assert verified and verified[0]["skip_critic"] is True
+    assert verified[0]["manifest_path"] == str(tmp_path / "diagram.json")
     assert result["metrics_scores"]["generation"]["total_duration_ms"] >= 0
     assert any(chunk.startswith("event: refine_complete\n") for chunk in chunks)
 
