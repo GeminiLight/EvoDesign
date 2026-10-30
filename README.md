@@ -172,7 +172,7 @@ EvoDesign builds on the earlier EvoDiagram project. We credit the contributors t
 | [Tianfu Wang](https://github.com/GeminiLight) | Diagram engine, editable web workspace, design memory, research tooling and project maintenance |
 | [Yi Zhan](https://github.com/USTChandsomeboy) | Diagram generation quality, architecture diagram layout and styling, edge routing and collision detection |
 
-Yi Zhan's contributions were recorded in the earlier EvoDiagram development history and are acknowledged here across the transition to EvoDesign. For the full research author list, see the [paper](https://arxiv.org/abs/2604.09568) and [citation](#citation).
+Yi Zhan's earlier EvoDiagram contributions are preserved through a [filtered history import](docs/contributor-history.md), with original author information and timestamps. For the full research author list, see the [paper](https://arxiv.org/abs/2604.09568) and [citation](#citation).
 
 ## Citation
 

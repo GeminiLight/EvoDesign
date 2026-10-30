@@ -172,7 +172,7 @@ EvoDesign 延续了早期 EvoDiagram 项目的工作。我们在此列出早期�
 | [Tianfu Wang](https://github.com/GeminiLight) | 图表引擎、可编辑 Web 工作台、设计记忆、科研工具与项目维护 |
 | [Yi Zhan（占一）](https://github.com/USTChandsomeboy) | 图表生成质量、架构图布局与样式、连线路由和碰撞检测 |
 
-占一的贡献记录保留在早期 EvoDiagram 开发历史中，这里补充其在项目迁移至 EvoDesign 后的贡献署名。完整科研作者名单见[论文](https://arxiv.org/abs/2604.09568)与[引用](#引用)。
+占一早期在 EvoDiagram 的贡献已通过[筛选后的历史导入](docs/contributor-history.md)保留，作者信息与原始时间均保持不变。完整科研作者名单见[论文](https://arxiv.org/abs/2604.09568)与[引用](#引用)。
 
 ## 引用
 
