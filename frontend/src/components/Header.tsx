@@ -313,7 +313,7 @@ export const Header = ({
             <span className={`header-wordmark hidden font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:inline ${variant === 'landing' ? 'text-xl dark:text-white' : 'text-lg'}`}>Evo<span className="text-brand-600 dark:text-brand-400">Design</span></span>
           </button>
 
-          {pageTitle && <h1 className="header-page-title">{pageTitle}</h1>}
+          {pageTitle && <h1 className="header-page-title" data-page={location.pathname.slice(1)}>{pageTitle}</h1>}
           {isApp && (
             <nav className={`header-nav hidden md:flex items-center gap-1 ${isStudio ? 'studio-rail' : ''}`} aria-label={t('nav.menu')}>
               <NavLink to="/home" onClick={handleNavLinkClick('/home')} className={({ isActive }) => `${navBaseClass} ${isActive ? navActiveClass : navInactiveClass}`}>

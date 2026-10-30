@@ -28,6 +28,8 @@ const { guestSaveDiagram, guestExportProjects, guestSyncProjectSchema, guestFetc
 const { fetchRecentDiagrams, fetchProjectDiagram, fetchProjectSnapshots, syncProjectSchema, saveDnaRules, loadDnaRules, createBlankCanvasProject } = await load('src/services/backendApi.ts');
 const { createBlankExcalidrawScene } = await load('src/utils/blankCanvas.ts');
 const { requestCanvasFullscreen } = await load('src/hooks/useCanvasFullscreen.ts');
+const { generationActivityStages, activityCanAutoClose } = await load('src/utils/generationActivity.ts');
+const { clampFloatingAnchor, defaultFloatingAnchor, floatingPanelPosition, isAnchorDrag } = await load('src/utils/floatingAnchor.ts');
 const { notifyAuthInvalidated } = await load('src/features/auth/authEvents.ts');
 const { shouldSubmitOnEnter, shouldSubmitOnModifiedEnter } = await load('src/utils/keyboard.ts');
 const { saveWorkspacePreflightDraft, loadWorkspacePreflightDraft } = await load('src/services/workspacePreflightDraft.ts');
@@ -623,4 +625,76 @@ test('new design-memory scopes start empty without changing previously saved pre
   assert.deepEqual(guestLoadDnaRules('existing-account', 'en'), saved);
   assert.deepEqual(guestLoadDnaRules('another-account', 'en'), empty);
   values.delete('evodiagram_user_dna_existing-account');
+});
+
+
+test('live browser stages use the real review configuration and measured durations', () => {
+  const progress = { currentStage: 'refining', stageIndex: 2, totalStages: 3, completedStages: ['structure'], stageStartedAt: 1000,
+    stageDurations: { structure: 1523 } };
+  const stages = generationActivityStages(progress, undefined, true, true, 4300);
+  assert.deepEqual(stages.map(stage => [stage.key, stage.state]), [['structure', 'done'], ['refining', 'running'], ['layout', 'pending']]);
+  assert.equal(stages[0].durationMs, 1523);
+  assert.equal(stages[1].durationMs, 3300);
+  const withoutReview = generationActivityStages({ ...progress, currentStage: 'layout', totalStages: 2 }, undefined, true, true, 900);
+  assert.deepEqual(withoutReview.map(stage => stage.key), ['structure', 'layout']);
+  assert.equal(withoutReview[1].durationMs, 0);
+});
+test('generation records never invent completion, timings or successful refinement', () => {
+  const stopped = generationActivityStages({ currentStage: 'layout', totalStages: 2, completedStages: ['structure'] }, undefined, false, true, 9999);
+  assert.equal(stopped[1].state, 'interrupted');
+  assert.equal(stopped[1].durationMs, undefined);
+  const report = { timings: { structure: 0, layout: 10, refining: 400, render: NaN }, refinement: { status: 'failed' } };
+  const finished = generationActivityStages(null, report, false, true, 9999);
+  assert.deepEqual(finished.map(stage => stage.key), ['structure', 'refining', 'layout']);
+  assert.equal(finished[1].state, 'interrupted');
+  assert.equal(activityCanAutoClose(false, false, true), true);
+  assert.equal(activityCanAutoClose(false, true, true), false);
+  assert.equal(activityCanAutoClose(false, false, false), false);
+  assert.equal(activityCanAutoClose(true, false, true), false);
+});
+test('assistant drag threshold separates activation from movement and keeps the launcher on screen', () => {
+  assert.equal(isAnchorDrag({ x: 0, y: 0 }, { x: 3, y: 4 }), false);
+  assert.equal(isAnchorDrag({ x: 0, y: 0 }, { x: 6, y: 0 }), true);
+  assert.deepEqual(defaultFloatingAnchor({ width: 1456, height: 763, top: 64 }), { x: 1360, y: 623 });
+  assert.deepEqual(clampFloatingAnchor({ x: -500, y: -500 }, { width: 375, height: 667, top: 64 }), { x: 12, y: 76 });
+  assert.deepEqual(clampFloatingAnchor({ x: 900, y: 900 }, { width: 320, height: 560, top: 64 }), { x: 260, y: 476 });
+});
+test('assistant bubbles fit above or below a moved anchor after viewport resize', () => {
+  for (const bounds of [{ width: 320, height: 560, top: 64 }, { width: 1456, height: 763, top: 64 }]) {
+    for (const anchor of [{ x: 10, y: 76 }, { x: 1000, y: 600 }]) {
+      const panel = floatingPanelPosition(clampFloatingAnchor(anchor, bounds), bounds);
+      assert.ok(panel.left >= 12 && panel.left + panel.width <= bounds.width - 12);
+      assert.ok(panel.top >= bounds.top + 12 && panel.top + panel.height <= bounds.height - 12);
+    }
+  }
+});
+
+
+test('AI generation reuses a saved blank canvas and preserves its earlier revision', async () => {
+  const stored = values.get('evodiagram_guest_diagrams');
+  values.delete('auth_token');
+  try {
+    const request = { id: 'blank-to-ai', prompt: '', diagramType: 'automated', style: 'neutral' };
+    const blank = await createBlankCanvasProject(request, 'Blank to AI');
+    const beforeCount = guestExportProjects().length;
+    const generated = guestSaveDiagram({ ...request, id: 'generated-flow', prompt: 'Submit, run, complete', diagramType: 'flow', style: 'gentle',
+      metadata: { projectId: blank.project_id } }, { excalidrawPayload: JSON.stringify({ elements: [node('generated')] }), summary: 'Task flow' });
+    assert.equal(generated.projectId, blank.project_id);
+    assert.equal(guestExportProjects().length, beforeCount);
+    const snapshots = guestFetchProjectSnapshots(blank.project_id).snapshots;
+    assert.equal(snapshots.length, 2);
+    assert.deepEqual(snapshots[0].schema_blob.elements, []);
+    assert.equal(snapshots[1].parent_id, snapshots[0].snapshot_id);
+    const reopened = await fetchProjectDiagram(blank.project_id);
+    assert.equal(reopened.excalidraw_payload.elements[0].id, 'generated');
+    const project = guestExportProjects().find(item => item.project_id === blank.project_id);
+    assert.equal(project.diagram_type, 'flow');
+    assert.equal(project.prompt, 'Submit, run, complete');
+    const independent = guestSaveDiagram({ ...request, metadata: { projectId: 'missing-project' } }, { excalidrawPayload: JSON.stringify(createBlankExcalidrawScene()) });
+    assert.notEqual(independent.projectId, 'missing-project');
+    assert.notEqual(independent.projectId, blank.project_id);
+  } finally {
+    values.set('auth_token', 'local-test-token');
+    if (stored === undefined) values.delete('evodiagram_guest_diagrams'); else values.set('evodiagram_guest_diagrams', stored);
+  }
 });

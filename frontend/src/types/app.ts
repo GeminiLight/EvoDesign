@@ -39,6 +39,7 @@ export type StreamStageExtended = StreamStage | 'refining';
 export interface GenerationProgress {
   startedAt?: number;
   stageStartedAt?: number;
+  stageDurations?: Partial<Record<StreamStageExtended, number>>;
   currentStage: StreamStageExtended;
   stageIndex: number;
   totalStages: number;

@@ -8,9 +8,8 @@ import {
   Plus,
   Search,
   X,
-  Zap,
 } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { DnaSyncStatus } from '../components/DNA/DnaSyncStatus';
 import { DnaPreferenceLibrary } from '../components/DNA/DnaPreferenceLibrary';
 import { Header } from '../components/Header';
@@ -21,7 +20,6 @@ import { useToast } from '../components/toastContext';
 import { useRuleLibrary } from '../hooks/useRuleLibrary';
 import { useCloneFlow } from '../hooks/useCloneFlow';
 import type { CabinId } from '../types/dna';
-import { defaultConfigs } from '../constants/app';
 import { dnaPreferenceExample } from '../utils/dnaPreferenceExamples';
 import { emptyDnaFilters, type DnaLibraryFilters } from '../utils/dnaLibrary';
 
@@ -33,11 +31,9 @@ type DnaRouteState = {
 const isCabinId = (value: unknown): value is CabinId => (
   value === 'structure' || value === 'style' || value === 'layout'
 );
-const DNA_CABIN_IDS: CabinId[] = ['structure', 'style', 'layout'];
 
 export function YourDNAPage() {
   const location = useLocation();
-  const navigate = useNavigate();
   const { user } = useBackendAuth();
   const { language, t } = useLanguage();
   const { showToast } = useToast();
@@ -45,7 +41,7 @@ export function YourDNAPage() {
   const dnaAuthScope = user?.user_id ?? 'guest';
 
   const {
-    ruleLibrary, setRuleLibrary, evoStats, syncStatus, retrySync, acceptServerRules, canEditRules,
+    ruleLibrary, setRuleLibrary, syncStatus, retrySync, acceptServerRules, canEditRules,
     activeDrawerCabin, searchKeywords, setSearchKeywords,
     editing, setEditing, draftTitle, setDraftTitle, draftPreview, setDraftPreview,
     editErrors, setEditErrors, canSaveEdit,
@@ -67,7 +63,6 @@ export function YourDNAPage() {
   const editTriggerRef = useRef<HTMLButtonElement | null>(null);
   const processedHighlightRef = useRef<string | null>(null);
   const [highlightedRule, setHighlightedRule] = useState<{ cabinId: CabinId; ruleId: number } | null>(null);
-  const canCreateWithCurrentDna = evoStats.enabled > 0;
 
   const cabins = useMemo(() => [
     {
@@ -186,35 +181,6 @@ export function YourDNAPage() {
     }
   };
 
-  const createWithCurrentDna = () => {
-    const enabledRules = DNA_CABIN_IDS.flatMap((cabinId) => (
-      ruleLibrary[cabinId]
-        .filter((rule) => rule.enabled)
-        .map((rule) => ({
-          cabinId,
-          title: rule.title,
-          preview: rule.preview,
-        }))
-    ));
-
-    if (enabledRules.length === 0) {
-      showToast(t('dna.page.heroCreateDisabledToast'), 'error');
-      return;
-    }
-
-    navigate('/workspace', {
-      state: {
-        preflightGeneration: true,
-        preflightKind: 'dna',
-        preflightRules: enabledRules,
-        preflightRuleCount: enabledRules.length,
-        initialDiagramType: 'automated',
-        initialLlmConfigId: defaultConfigs[0]?.id ?? 'default',
-        initialCanvasMode: 'excalidraw',
-        initialSource: 'dna',
-      },
-    });
-  };
 
   const handleDialogTabTrap = (event: React.KeyboardEvent, container: HTMLElement | null, onEscape: () => void) => {
     if (event.key === 'Escape') {
@@ -293,25 +259,10 @@ export function YourDNAPage() {
         <Header variant="studio" />
 
         <main id="main-content" className="studio-page-main"><div className="studio-page-content">
-          <fieldset disabled={!canEditRules} className="memory-toolbar min-w-0">
-            <div className="memory-overview">
-              <h2>{isZh ? '创作偏好' : 'Design preferences'}</h2>
-              <p aria-live="polite">{isZh ? `${evoStats.total} 条偏好 · ${evoStats.enabled} 条已启用` : `${evoStats.total} ${evoStats.total === 1 ? 'preference' : 'preferences'} · ${evoStats.enabled} enabled`}</p>
-            </div>
-            <div className="memory-toolbar-actions">
-              {canCreateWithCurrentDna && <button type="button" onClick={createWithCurrentDna}
-                aria-describedby="dna-create-with-current-status" className="studio-secondary">
-                <Zap size={15} />{isZh ? '开始创作' : 'Start creating'}
-              </button>}
-              <button ref={primaryAddRef} type="button" onClick={openCloneFromButton} className="studio-primary">
-                <Plus size={15} />{BROWSER_MODE ? (isZh ? '添加偏好' : 'Add preference') : t('dna.page.heroPrimaryAction')}
-              </button>
-              <span id="dna-create-with-current-status" className="sr-only">{t(canCreateWithCurrentDna ? 'dna.page.heroCreateActionDesc' : 'dna.page.heroCreateDisabledDesc')}</span>
-            </div>
-          </fieldset>
           {syncStatus !== 'local' && syncStatus !== 'synced' && <DnaSyncStatus
             syncStatus={syncStatus} retrySync={retrySync} acceptServerRules={acceptServerRules} />}
-          <DnaPreferenceLibrary cabins={cabins} library={ruleLibrary} filters={libraryFilters}
+          <DnaPreferenceLibrary actions={<button ref={primaryAddRef} type="button" disabled={!canEditRules}
+            onClick={openCloneFromButton} className="studio-primary"><Plus size={15} />{isZh ? '添加偏好' : 'Add preference'}</button>} cabins={cabins} library={ruleLibrary} filters={libraryFilters}
             onFilterChange={setLibraryFilters} canEdit={canEditRules} onEdit={openEditFromButton}
             onToggle={toggleRuleEnabled} onManage={openDrawerFromButton} onAdd={openPreferenceFromButton}
             onExample={BROWSER_MODE ? (event, cabinId) => openPreferenceFromButton(event, cabinId, true) : undefined} />

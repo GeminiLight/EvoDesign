@@ -1,3 +1,4 @@
+import { useFloatingAssistant } from '../../hooks/useFloatingAssistant';
 import { shouldSubmitOnEnter } from '../../utils/keyboard';
 import { useRef, useEffect } from 'react';
 import type { FormEvent } from 'react';
@@ -307,6 +308,7 @@ export function AgentChatPanel({
     </div>
   );
 
+  const floatingAnchor = useFloatingAssistant();
   const launcherRef = useRef<HTMLButtonElement>(null);
   const focusComposerOnOpenRef = useRef(false);
   const previousCollapsedRef = useRef(isCollapsed);
@@ -319,7 +321,8 @@ export function AgentChatPanel({
       focusComposerOnOpenRef.current = false;
     }
   }, [isCollapsed, showLauncher]);
-  const launcher = <button ref={launcherRef} type="button" className="assistant-launcher" onClick={() => {
+  const launcher = <button ref={launcherRef} type="button" className="assistant-launcher" style={floatingAnchor.launcherStyle} {...floatingAnchor.handlers} data-dragging={floatingAnchor.dragging} onClick={() => {
+    if (floatingAnchor.consumeDragClick()) return;
     focusComposerOnOpenRef.current = isCollapsed; onToggleCollapse?.();
   }}
     aria-label={t(isCollapsed ? 'workspace.expandChat' : 'workspace.collapseChat')}
@@ -333,6 +336,8 @@ export function AgentChatPanel({
 
   return (
     <><aside
+      style={isFloating ? floatingAnchor.panelStyle : undefined}
+      data-anchor-below={isFloating && floatingAnchor.panelBelow}
       id={panelId}
       aria-label={t('workspace.agentName')}
       aria-busy={isWorkspaceBusy}

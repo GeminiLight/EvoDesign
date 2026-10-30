@@ -1,5 +1,5 @@
 import { Dna, Layers3, ListChecks, Pencil, Plus, Search, X, type LucideIcon } from 'lucide-react';
-import { useRef, type MouseEvent } from 'react';
+import { useRef, type MouseEvent, type ReactNode } from 'react';
 import { useLanguage } from '../../i18n/LanguageProvider';
 import { BROWSER_MODE } from '../../services/browser/runtime';
 import { ChoiceSelect } from '../ChoiceSelect';
@@ -10,6 +10,7 @@ import '../../styles/dna-library.css';
 
 type Cabin = { id: CabinId; name: string; icon: LucideIcon };
 type Props = {
+  actions?: ReactNode;
   cabins: Cabin[];
   library: Record<CabinId, Rule[]>;
   filters: DnaLibraryFilters;
@@ -22,7 +23,7 @@ type Props = {
   onExample?: (event: MouseEvent<HTMLButtonElement>, cabinId: CabinId) => void;
 };
 
-export function DnaPreferenceLibrary({ cabins, library, filters, onFilterChange, canEdit,
+export function DnaPreferenceLibrary({ actions, cabins, library, filters, onFilterChange, canEdit,
   onEdit, onToggle, onManage, onAdd, onExample }: Props) {
   const { language, t } = useLanguage();
   const zh = language === 'zh';
@@ -60,13 +61,13 @@ export function DnaPreferenceLibrary({ cabins, library, filters, onFilterChange,
           </button>;
         })}
       </div>
-      <label className="dna-library-search"><Search size={16} aria-hidden="true" />
+      <div className="dna-library-tools"><label className="dna-library-search"><Search size={16} aria-hidden="true" />
         <input ref={searchRef} type="search" value={filters.query} aria-label={zh ? '搜索偏好' : 'Search preferences'}
           placeholder={zh ? '搜索偏好…' : 'Search preferences…'}
           onChange={event => onFilterChange({ ...filters, query: event.target.value })} />
         {filters.query && <button type="button" onClick={() => { onFilterChange({ ...filters, query: '' }); searchRef.current?.focus(); }}
           aria-label={zh ? '清除搜索' : 'Clear search'}><X size={14} /></button>}
-      </label>
+      </label>{actions}</div>
     </div>
 
     <div className="dna-library-meta">

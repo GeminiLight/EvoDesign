@@ -1,8 +1,8 @@
+import { GenerationActivity } from '../components/Workspace/GenerationActivity';
 import '../styles/workspace-documents.css';
 import { useBrowserModelLabel } from '../hooks/useBrowserModelLabel';
 import { BROWSER_MODE } from '../services/browser/runtime';
 import { parseGenerationReport } from '../utils/generationReport';
-import { GenerationReport } from '../components/GenerationReport';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, Columns3, History, Loader2, MessageSquare, PencilLine, RefreshCcw, Save, X } from 'lucide-react';
 import type {
@@ -58,7 +58,6 @@ import { guestHasProjectDna } from '../services/guestStorage';
 import { removeLocalStorage } from '../utils/safeLocalStorage';
 import { loadProjectName, saveProjectName } from '../services/projectPreferences';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { StageProgress } from '../components/StageProgress';
 import {
   clearStartupGenerationDraft,
   markStartupGenerationDraftFailed,
@@ -243,7 +242,7 @@ export function WorkspacePage() {
   }, [toggleFullscreen, showToast, t]);
   // Lifted out of WorkspaceOnboarding so the chat panel can tell whether the
   // onboarding card is currently the one offering starter prompts.
-  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(Boolean(initialResumeProjectId));
   const {
     projectName, setProjectName, projectNameDraft, setProjectNameDraft,
     isEditingProjectName, isSavingProjectName, projectNameInputRef,
@@ -263,7 +262,6 @@ export function WorkspacePage() {
     createModelIndex, setCreateModelIndex, createCanvasIndex, setCreateCanvasIndex,
     createPills, createMorePills, createModelOptions, createCanvasOptions,
     selectedCreateDiagramType,
-    handleOpenCreateDialog,
   } = useCreateDialog(request, canvasMode, t);
   const [createUseIcons, setCreateUseIcons] = useState(false);
   const [chatInput, setChatInput] = useState('');
@@ -275,7 +273,6 @@ export function WorkspacePage() {
   const activeDocumentKey = workspaceDocumentKey(preview?.projectId, preview?.diagramId);
   const [toolbarTarget, setToolbarTarget] = useState<HTMLDivElement | null>(null);
   const viewReaderRef = useRef<(() => CanvasViewState) | null>(null);
-  const createNewDocumentRef = useRef(false);
   const handleViewReader = useCallback((reader: (() => CanvasViewState) | null) => { viewReaderRef.current = reader; }, []);
   const rememberCurrentDocument = useCallback(() => {
     if (!preview || canvasOwnerIdentity !== authIdentity) return;
@@ -445,7 +442,8 @@ export function WorkspacePage() {
     [activeCreatePreflight, t],
   );
   const preflightReviewActive = showCreateDialog && Boolean(activeCreatePreflight) && !preview;
-  const onboardingVisible = !preview && !isGenerationBusy && !preflightReviewActive;
+  const createInCanvas = !preview || Boolean(latestSnapshotRef.current && inspectCanvasPayload(latestSnapshotRef.current, canvasMode).status === 'empty');
+  const onboardingVisible = createInCanvas && !isGenerationBusy && !isHistorySwitching && !isSaveRecoveryActive;
   const persistCreatePreflightDraft = useCallback((overrides: CreatePreflightDraftOverrides = {}) => {
     if (!activeCreatePreflight) {
       return;
@@ -1208,15 +1206,6 @@ export function WorkspacePage() {
     workspaceInteractionBlocked,
   ]);
 
-  const handleOpenCreateDiagram = useCallback(() => {
-    if (workspaceInteractionBlocked) {
-      handleWorkspaceInteractionBlocked();
-      return;
-    }
-    clearActiveCreatePreflight();
-    handleOpenCreateDialog();
-  }, [clearActiveCreatePreflight, handleOpenCreateDialog, handleWorkspaceInteractionBlocked, workspaceInteractionBlocked]);
-
   const handleSaveAction = useCallback(() => {
     if (workspaceInteractionBlocked) return;
     if (manualSaveStatus === 'conflict') handleResolveSaveConflict();
@@ -1343,8 +1332,8 @@ export function WorkspacePage() {
     workspaceInteractionBlocked,
   ]);
 
-  const handleGenerateFromDialog = async () => {
-    const promptText = createPrompt.trim();
+  const handleGenerateFromDialog = async (promptOverride?: string) => {
+    const promptText = (promptOverride ?? createPrompt).trim();
     if (!promptText || workspaceInteractionBlocked || !beginGenerationStart()) return;
 
     const preparationAbortController = new AbortController();
@@ -1360,13 +1349,6 @@ export function WorkspacePage() {
         projectName: projectName.trim() || '',
         ...(activeCreatePreflight ? { handoffSource: activeCreatePreflight.kind } : {}),
       });
-      const creatingNewDocument = createNewDocumentRef.current;
-      if (creatingNewDocument) {
-        delete metadata.projectId;
-        delete metadata.currentSchema;
-        delete metadata.projectName;
-      }
-
       clearGenerationFailure();
       setGenerationSummary(promptText, selectedCreateDiagramType, selectedCanvasMode);
       const nextFailedDraft = buildFailedGenerationDraft(
@@ -1384,12 +1366,8 @@ export function WorkspacePage() {
         saveFailedGenerationDraft(nextFailedDraft);
         return;
       }
-      if (creatingNewDocument) {
-        rememberCurrentDocument();
-        setChatMessages([{ id: 'agent-init', role: 'agent', content: t('workspace.agentReady') },
-          { id: createId('msg'), role: 'user', content: promptText }]);
-        setChatInput('');
-      }
+      if (promptOverride !== undefined) setChatMessages(messages => [...messages,
+        { id: createId('msg'), role: 'user', content: createPrompt.trim() }]);
       if (generationPreparationAbortControllerRef.current === preparationAbortController) {
         generationPreparationAbortControllerRef.current = null;
       }
@@ -1405,12 +1383,10 @@ export function WorkspacePage() {
         metadata,
       });
       if (didGenerate) {
-        createNewDocumentRef.current = false;
         clearStartupGenerationDraft();
         clearActiveCreatePreflight();
         scrollCanvasIntoViewOnMobile();
       } else {
-        if (creatingNewDocument) restoreDocumentContext(activeDocumentKey);
         saveFailedGenerationDraft(nextFailedDraft);
       }
     } finally {
@@ -1734,13 +1710,8 @@ export function WorkspacePage() {
     closeDocument, handleActivateDocument, latestSnapshotRef, navigate, openDocuments, restoreDocumentContext,
     runSavedHistorySwitch, setProjectName, t, workspaceInteractionBlocked]);
 
-  const handleNewDocument = useCallback(() => {
+  const handleCreateBlankDocument = useCallback(async (showComposer = true) => {
     if (workspaceInteractionBlocked) return;
-    createNewDocumentRef.current = true;
-    handleOpenCreateDiagram();
-  }, [handleOpenCreateDiagram, workspaceInteractionBlocked]);
-
-  const handleCreateBlankDocument = useCallback(async () => {
     const titleBase = language === 'zh' ? '未命名画布' : 'Untitled canvas';
     const titles = new Set([...recentDiagrams.map(item => item.summary), ...openDocuments.map(item => item.title)]);
     let title = titleBase;
@@ -1753,12 +1724,30 @@ export function WorkspacePage() {
         if (activeAuthIdentityRef.current === owner && document.project_id) saveProjectName(owner, document.project_id, title);
         return document;
       });
-      if (opened) { setRecentReloadNonce(value => value + 1); setOnboardingDismissed(true); }
+      if (opened) {
+        setRecentReloadNonce(value => value + 1); setOnboardingDismissed(!showComposer);
+        setCreatePrompt(''); setCreateSelectedPillId('adaptive'); setCreateCanvasIndex(0); setCreateUseIcons(false);
+        setShowCreateDialog(false); clearActiveCreatePreflight();
+      }
     } catch (error) {
       console.error('Blank canvas creation failed:', error);
       showToast(language === 'zh' ? '无法创建画布，请重试。当前画布已保留。' : 'Could not create a canvas. Your current canvas is kept.', 'error');
     }
-  }, [handleLoadDiagram, language, openDocuments, recentDiagrams, request, showToast]);
+  }, [clearActiveCreatePreflight, handleLoadDiagram, language, openDocuments, recentDiagrams, request, setCreateCanvasIndex, setCreatePrompt, setCreateSelectedPillId, setShowCreateDialog, showToast, workspaceInteractionBlocked]);
+
+  const handleNewDocument = useCallback(() => { void handleCreateBlankDocument(); }, [handleCreateBlankDocument]);
+
+  const initialBlankStarted = useRef(false);
+  useEffect(() => {
+    if (initialBlankStarted.current || authLoading || workspaceInteractionBlocked || preview
+      || initialResumeProjectId || initialStartupDraft || initialPreflightGeneration || location.state?.pendingLoadProject) return;
+    const frame = requestAnimationFrame(() => {
+      initialBlankStarted.current = true;
+      void handleCreateBlankDocument();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [authLoading, handleCreateBlankDocument, initialPreflightGeneration, initialResumeProjectId,
+    initialStartupDraft, location.state, preview, workspaceInteractionBlocked]);
 
   const displayedProjectSnapshots = useMemo(
     () => projectSnapshots,
@@ -2280,6 +2269,66 @@ export function WorkspacePage() {
     }
   }, [beginGenerationStart, buildGlobalGenerationMetadata, buildFailedGenerationDraft, workspaceInteractionBlocked, request, canvasMode, preview, openCreateDialogFromPrompt, getValidSelectedNodeIds, handleSendChatMessage, selectedNodeIds, clearSelection, latestSnapshotRef, prepareForGlobalGeneration, generateDiagram, t, finishGenerationStart, scrollCanvasIntoViewOnMobile, setGenerationSummary, clearGenerationFailure, getGenerationIncompleteMessage, saveFailedGenerationDraft, savePendingGenerationDraft]);
 
+  const workspaceHistoryControl = (<WorkspaceHistoryPopover open={isHistoryOpen}
+                  disabled={workspaceInteractionBlocked || !preview?.projectId}
+                  mobileAnchorRef={isCompactWorkspace ? mobileHistoryRef : undefined}
+                  onOpenChange={open => { setIsHistoryOpen(open); if (open) handleShowProjectHistory(); }}>
+                  <ProjectSidebar
+              historyOnly
+              onToggleCollapse={() => setIsHistoryOpen(false)}
+              projectName={projectName}
+              isEditingProjectName={false}
+              projectNameDraft={projectNameDraft}
+              onProjectNameDraftChange={setProjectNameDraft}
+              onStartEdit={() => {
+                if (workspaceInteractionBlocked) {
+                  handleWorkspaceInteractionBlocked();
+                  return;
+                }
+                handleStartProjectNameEdit();
+              }}
+              onSaveEdit={() => {
+                if (workspaceInteractionBlocked) {
+                  handleWorkspaceInteractionBlocked();
+                  return;
+                }
+                handleSaveProjectNameEdit();
+              }}
+              onCancelEdit={handleCancelProjectNameEdit}
+              projectNameInputRef={projectNameInputRef}
+              visibleItemsCount={visibleItemsCount}
+              isViewingProjectHistory={isViewingProjectHistory}
+              canViewProjectHistory={Boolean(preview?.projectId)}
+              displayedProjectSnapshots={displayedProjectSnapshots}
+              displayedRecentDiagrams={displayedRecentDiagrams}
+              preview={preview}
+              onSelectSnapshot={(snapshot) => { void handleSelectSnapshot(snapshot); }}
+              onSelectRecentDiagram={(item) => { void handleSelectRecentDiagram(item); }}
+              onShowProjectHistory={handleShowProjectHistory}
+              onShowRecentDiagrams={handleShowRecentDiagrams}
+              onOpenCreateDialog={handleNewDocument}
+              isInteractionDisabled={workspaceInteractionBlocked}
+              interactionDisabledReason={workspaceInteractionBlockedReason}
+              onSaveSnapshot={() => { void handleManualSaveSnapshot(); }}
+              onResolveSaveConflict={handleResolveSaveConflict}
+              onRecoverMissingProject={() => { void handleRecoverMissingProject(); }}
+              onReauth={handleReauthFromWorkspace}
+              manualSaveStatus={sidebarSaveStatus}
+              hasUnsavedChanges={hasUnsavedChanges}
+              recentLoadStatus={recentLoadStatus}
+              projectHistoryLoadStatus={projectHistoryLoadStatus}
+              onRetryRecentLoad={() => setRecentReloadNonce((prev) => prev + 1)}
+              onRetryProjectHistoryLoad={() => setProjectHistoryReloadNonce((prev) => prev + 1)}
+              generatingDiagramId={generatingDiagramId}
+              hasProjectDna={hasProjectDna}
+              onOpenProjectDna={preview?.projectId ? () => setShowProjectDna(true) : undefined}
+            />
+                </WorkspaceHistoryPopover>);
+
+  const generationActivity = <GenerationActivity documentKey={activeDocumentKey} running={isGenerationBusy} progress={progress}
+    report={preview?.generationReport} contextLabel={activeGenerationSummary?.diagramTypeLabel}
+    failed={Boolean(failedGenerationDraft)} cancelled={wasLastGenerationCancelled()} onCancel={handleCancelActiveGeneration} />;
+
   return (
     <div data-canvas-fullscreen={isCanvasFullscreen} className="studio-shell studio-workspace workspace-shell min-h-screen overflow-x-hidden bg-canvas text-slate-900 font-sans selection:bg-brand-100 selection:text-brand-900 dark:bg-slate-950 dark:text-slate-100 dark:selection:bg-brand-500/40 dark:selection:text-white">
       <Header
@@ -2296,12 +2345,17 @@ export function WorkspacePage() {
           onSaveName={handleSaveProjectNameEdit} onCancelName={handleCancelProjectNameEdit}
           onActivate={document => { void handleActivateDocument(document); }}
           onClose={document => { void handleCloseDocument(document); }} onNew={handleNewDocument}
-          onCreateBlank={() => { void handleCreateBlankDocument(); }} />}
+          status={preview?.projectId && !isGenerationBusy ? <WorkspaceSaveIndicator compact status={sidebarSaveStatus}
+                  dirty={hasUnsavedChanges} disabled={workspaceInteractionBlocked} onSave={handleSaveAction} /> : undefined} />}
         authTransitionBlocked={authTransitionBlocked}
         onAuthTransitionBlocked={handleAuthTransitionBlocked}
         onBeforeNavigate={handleBeforeWorkspaceNavigate}
         onOpenSettings={() => setShowWorkspaceSettings(true)}
-      ><div className="workspace-header-tools" ref={setToolbarTarget} /></Header>
+      ><div className="workspace-header-tools">
+            {workspaceHistoryControl}
+            {!isCanvasFullscreen && generationActivity}
+            <div className="workspace-canvas-actions" ref={setToolbarTarget} />
+          </div></Header>
       <WorkspaceSettingsDialog open={showWorkspaceSettings} onClose={() => setShowWorkspaceSettings(false)}
         canvasMode={canvasMode} onCanvasChange={handleCanvasModeChange} getModeUnavailableReason={getCanvasModeUnavailableReason} />
 
@@ -2407,63 +2461,10 @@ export function WorkspacePage() {
           data-chat-collapsed={isCanvasFullscreen || isChatPanelCollapsed || isAssistantFloating} data-mobile-pane={mobilePane}>
           {isCanvasFullscreen && <CanvasFullscreenControls assistantVisible={!isChatPanelCollapsed}
             assistantButtonRef={fullscreenAssistantButtonRef} onToggleAssistant={() => setIsChatPanelCollapsed(value => !value)}
-            onExit={handleToggleCanvasFullscreen} />}
+            onExit={handleToggleCanvasFullscreen} activity={generationActivity} />}
 
           <section id="workspace-pane-canvas" role="tabpanel" aria-label={projectName} ref={workspaceCanvasSectionRef} className="workspace-canvas-pane">
-            {isGenerationBusy && (progress || isGenerationStarting || startupGenerationActive) && (
-              <div className="mb-2 rounded-2xl border border-brand-200/80 bg-brand-50/70 px-4 py-3 backdrop-blur-xl dark:border-brand-500/30 dark:bg-brand-500/10">
-                <div className="flex items-start gap-3">
-                  <svg className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-brand-500" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
-                  <div className="min-w-0 flex-1">
-                    {progress ? (
-                      <>
-                        <StageProgress progress={progress} t={t} />
-                        {progress.message && (
-                          <p className="mt-1 text-xs font-medium leading-relaxed text-brand-700 dark:text-brand-200">
-                            {progress.message}
-                          </p>
-                        )}
-                      </>
-                    ) : (
-                      <span className="text-xs font-semibold text-brand-700 dark:text-brand-300">
-                        {t('workspace.generationPreparing')}
-                      </span>
-                    )}
-                  </div>
-                  {isGenerating && (
-                    <button
-                      type="button"
-                      onClick={handleCancelActiveGeneration}
-                      className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-xl border border-brand-200 bg-white/75 px-3 py-1.5 text-xs font-semibold text-brand-700 transition hover:border-brand-300 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 dark:border-brand-500/35 dark:bg-slate-950/30 dark:text-brand-200 dark:hover:border-brand-400/55 dark:focus-visible:ring-offset-slate-950"
-                    >
-                      {t('workspace.stopGeneration')}
-                    </button>
-                  )}
-                </div>
 
-                {activeGenerationSummary && (
-                  <div className="mt-3 grid gap-2 border-t border-brand-200/70 pt-3 text-[11px] text-brand-800 dark:border-brand-500/20 dark:text-brand-200 sm:grid-cols-[minmax(0,1fr),auto]">
-                    <p className="min-w-0 truncate font-semibold">
-                      {activeGenerationSummary.prompt}
-                    </p>
-                    <div className="flex min-w-0 flex-wrap gap-1.5 sm:justify-end">
-                      <span className="rounded-lg border border-brand-200/70 bg-white/65 px-2 py-1 font-medium dark:border-brand-500/30 dark:bg-slate-950/30">
-                        {activeGenerationSummary.diagramTypeLabel}
-                      </span>
-                      <span className="rounded-lg border border-brand-200/70 bg-white/65 px-2 py-1 font-medium dark:border-brand-500/30 dark:bg-slate-950/30">
-                        {activeGenerationSummary.modelLabel}
-                      </span>
-                      <span className="rounded-lg border border-brand-200/70 bg-white/65 px-2 py-1 font-medium dark:border-brand-500/30 dark:bg-slate-950/30">
-                        {activeGenerationSummary.canvasLabel}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-            {canvasMode !== 'excalidraw' && !isGenerationBusy && preview?.generationReport && (
-              <GenerationReport report={preview.generationReport} t={t} />
-            )}
             {showWorkspaceRecoveryNotice && preview && (
               <section
                 role="status"
@@ -2556,46 +2557,18 @@ export function WorkspacePage() {
               </section>
             )}
             <div className="relative min-h-[28rem] flex-1 lg:min-h-0">
-              {!preview && preflightReviewActive && (
-                <div className="absolute inset-0 z-10 flex items-start justify-center overflow-y-auto overscroll-contain p-3 pointer-events-none sm:items-center sm:p-6">
-                  <div
-                    data-testid="workspace-preflight-review"
-                    role="status"
-                    className="pointer-events-none w-full max-w-xl rounded-2xl border border-brand-200/70 bg-white/90 p-4 text-left shadow-[0_24px_70px_rgba(82,112,148,0.22)] ring-1 ring-white/80 backdrop-blur-2xl dark:border-brand-500/25 dark:bg-slate-950/88 dark:shadow-[0_26px_80px_rgba(2,6,23,0.58)] dark:ring-white/10 sm:p-5"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-500 dark:bg-brand-500/20 dark:text-brand-300">
-                        <PencilLine className="h-5 w-5" />
-                      </div>
-                      <div className="min-w-0">
-                        <h2 className="text-lg font-bold leading-tight text-slate-900 dark:text-slate-100">
-                          {t('workspace.preflightReviewTitle')}
-                        </h2>
-                        <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                          {t('workspace.preflightReviewHint')}
-                        </p>
-                      </div>
-                    </div>
-                    {createPrompt.trim() && (
-                      <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/85 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-900/80">
-                        <p className="text-[10px] font-semibold text-brand-600 dark:text-brand-300">
-                          {t('workspace.preflightReviewPromptLabel')}
-                        </p>
-                        <p className="mt-1 line-clamp-3 text-sm leading-relaxed text-slate-700 dark:text-slate-200">
-                          {createPrompt.trim()}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-              {onboardingVisible && (
-                <WorkspaceOnboarding
-                  onGeneratePrompt={handleQuickPrompt}
-                  isGenerating={workspaceInteractionBlocked}
-                  initialPrompt={request.prompt}
-                  dismissed={onboardingDismissed}
-                  onDismissedChange={setOnboardingDismissed}
+              {onboardingVisible && !onboardingDismissed && (
+                <WorkspaceOnboarding key={activeDocumentKey} awaitingDocument={!preview}
+                  composer={{ prompt: createPrompt, onPromptChange: value => { setCreatePrompt(value); persistCreatePreflightDraft({ promptText: value }); },
+                    onEnhance: () => { const value = createPrompt.trim(); if (value) setCreatePrompt(`${value}\n\n${t('home.enhancePromptInstruction')}`); },
+                    onSelectPill: pill => { setCreateSelectedPillId(pill.id); persistCreatePreflightDraft({ diagramType: pillIdToDiagramType[pill.id] ?? 'automated' }); },
+                    selectedPillId: createSelectedPillId, pills: createPills, morePills: createMorePills,
+                    modelOptions: createModelOptions, modelIndex: createModelIndex, onModelChange: setCreateModelIndex,
+                    canvasOptions: createCanvasOptions, canvasIndex: createCanvasIndex, onCanvasChange: setCreateCanvasIndex }}
+                  onGeneratePrompt={prompt => { void handleGenerateFromDialog(prompt); }} disabled={workspaceInteractionBlocked}
+                  useIcons={createUseIcons} onUseIconsChange={setCreateUseIcons}
+                  onClose={() => { if (preview) { setOnboardingDismissed(true); setShowCreateDialog(false); clearActiveCreatePreflight(); }
+                    else void handleCreateBlankDocument(false); }}
                 />
               )}
               <DiagramCanvasPanel
@@ -2605,63 +2578,6 @@ export function WorkspacePage() {
                 canvasMode={canvasMode}
                 preview={preview}
                 projectName={projectName}
-                saveIndicator={preview?.projectId && !isGenerationBusy ? <WorkspaceSaveIndicator status={sidebarSaveStatus}
-                  dirty={hasUnsavedChanges} disabled={workspaceInteractionBlocked} onSave={handleSaveAction} /> : undefined}
-                projectNavigation={<WorkspaceHistoryPopover open={isHistoryOpen}
-                  disabled={workspaceInteractionBlocked || !preview?.projectId}
-                  mobileAnchorRef={isCompactWorkspace ? mobileHistoryRef : undefined}
-                  onOpenChange={open => { setIsHistoryOpen(open); if (open) handleShowProjectHistory(); }}>
-                  <ProjectSidebar
-              historyOnly
-              onToggleCollapse={() => setIsHistoryOpen(false)}
-              projectName={projectName}
-              isEditingProjectName={false}
-              projectNameDraft={projectNameDraft}
-              onProjectNameDraftChange={setProjectNameDraft}
-              onStartEdit={() => {
-                if (workspaceInteractionBlocked) {
-                  handleWorkspaceInteractionBlocked();
-                  return;
-                }
-                handleStartProjectNameEdit();
-              }}
-              onSaveEdit={() => {
-                if (workspaceInteractionBlocked) {
-                  handleWorkspaceInteractionBlocked();
-                  return;
-                }
-                handleSaveProjectNameEdit();
-              }}
-              onCancelEdit={handleCancelProjectNameEdit}
-              projectNameInputRef={projectNameInputRef}
-              visibleItemsCount={visibleItemsCount}
-              isViewingProjectHistory={isViewingProjectHistory}
-              canViewProjectHistory={Boolean(preview?.projectId)}
-              displayedProjectSnapshots={displayedProjectSnapshots}
-              displayedRecentDiagrams={displayedRecentDiagrams}
-              preview={preview}
-              onSelectSnapshot={(snapshot) => { void handleSelectSnapshot(snapshot); }}
-              onSelectRecentDiagram={(item) => { void handleSelectRecentDiagram(item); }}
-              onShowProjectHistory={handleShowProjectHistory}
-              onShowRecentDiagrams={handleShowRecentDiagrams}
-              onOpenCreateDialog={handleNewDocument}
-              isInteractionDisabled={workspaceInteractionBlocked}
-              interactionDisabledReason={workspaceInteractionBlockedReason}
-              onSaveSnapshot={() => { void handleManualSaveSnapshot(); }}
-              onResolveSaveConflict={handleResolveSaveConflict}
-              onRecoverMissingProject={() => { void handleRecoverMissingProject(); }}
-              onReauth={handleReauthFromWorkspace}
-              manualSaveStatus={sidebarSaveStatus}
-              hasUnsavedChanges={hasUnsavedChanges}
-              recentLoadStatus={recentLoadStatus}
-              projectHistoryLoadStatus={projectHistoryLoadStatus}
-              onRetryRecentLoad={() => setRecentReloadNonce((prev) => prev + 1)}
-              onRetryProjectHistoryLoad={() => setProjectHistoryReloadNonce((prev) => prev + 1)}
-              generatingDiagramId={generatingDiagramId}
-              hasProjectDna={hasProjectDna}
-              onOpenProjectDna={preview?.projectId ? () => setShowProjectDna(true) : undefined}
-            />
-                </WorkspaceHistoryPopover>}
                 onToggleFullscreen={handleToggleCanvasFullscreen}
                 isGenerating={isGenerationBusy}
                 canvasBusyKind={canvasBusyKind}
@@ -2714,10 +2630,9 @@ export function WorkspacePage() {
           setCreateUseIcons(value);
           persistCreatePreflightDraft({ useIcons: value });
         }}
-        open={showCreateDialog}
+        open={showCreateDialog && !createInCanvas}
         onClose={() => {
-          createNewDocumentRef.current = false;
-          setShowCreateDialog(false);
+            setShowCreateDialog(false);
           if (activeCreatePreflight?.source === 'home' && !preview) {
             navigate('/home', { replace: true, state: { initialPrompt: createPrompt,
               initialDiagramType: selectedCreateDiagramType, initialUseIcons: createUseIcons } });

@@ -69,7 +69,7 @@
 .home-shortcut:hover > svg:last-child { transform: translateX(3px); }
 .dark .home-shortcut { color: #c0c7db; }
 .dark .home-shortcut:hover { background: #242138; color: #c1b1ef; }
-.home-creation-sketch { display: none; position: absolute; top: -82px; right: -224px; width: 210px; pointer-events: none; }
+.home-creation-sketch { display: none; position: absolute; top: -82px; right: -254px; width: 210px; pointer-events: none; }
 .home-sketch-note { display: flex; align-items: center; gap: 10px; width: 177px; margin-left: 13px; padding: 10px 12px; background: #fff; border: 1px solid #e4e6f1; border-radius: 9px; transform: rotate(-5deg); box-shadow: 0 8px 20px -15px #5a529f2b; color: #7d869c; font-size: 11px; }
 .home-sketch-file-icon { display: flex; align-items: center; justify-content: center; width: 30px; height: 34px; border-radius: 5px; background: #f1f4fd; color: #8ba4d9; }
 .home-sketch-note small { display: block; margin-top: 3px; color: #a1a8ba; font-size: 9px; }

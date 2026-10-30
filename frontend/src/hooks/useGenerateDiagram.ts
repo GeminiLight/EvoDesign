@@ -240,7 +240,8 @@ export function useGenerateDiagram(deps: GenerateDiagramDeps) {
             if (!isCurrentRun()) return;
             setProgress((prev) => prev ? {
               ...prev,
-              completedStages: [...prev.completedStages, event.stage],
+              completedStages: [...new Set([...prev.completedStages, event.stage])],
+              stageDurations: { ...prev.stageDurations, [event.stage]: event.duration_ms },
             } : prev);
           },
           onRefineComplete(event) {
