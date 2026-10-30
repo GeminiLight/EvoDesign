@@ -15,6 +15,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  cli:
+    name: Standalone CLI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install only CLI and test dependencies
+        run: python -m pip install ./cli pytest
+
+      - name: Verify installed CLI without engine dependencies
+        run: |
+          evodesign --version
+          python -I -c "import importlib.util, evodesign_cli.main; assert importlib.util.find_spec('evo_diagram') is None"
+          python -m pytest -c cli/pyproject.toml cli/tests
+
   python:
     name: Python Architecture And Backend
     runs-on: ubuntu-latest
@@ -41,6 +62,9 @@ jobs:
 
       - name: Run backend quality gate
         run: ./scripts/check_quality.sh backend
+
+      - name: Run CLI quality gate
+        run: ./scripts/check_quality.sh cli
 
       - name: Run engine quality gate
         run: ./scripts/check_quality.sh engine

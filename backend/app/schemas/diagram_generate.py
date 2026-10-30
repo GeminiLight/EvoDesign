@@ -1,6 +1,6 @@
 from typing import Any, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.core.canvas import CanvasLibrary, normalize_canvas_library_value
 
@@ -14,11 +14,18 @@ class DiagramGenerateRequest(BaseModel):
     requirements: Optional[str] = Field(default=None, description="Generation requirements")
     locked_nodes: list[str] = Field(default_factory=list, description="Locked nodes")
     project_id: Optional[str] = Field(default=None, description="Existing project ID, can be empty")
+    base_version: int | None = Field(default=None, ge=1)
     current_schema: Optional[dict[str, Any]] = Field(default=None, description="Current diagram schema")
     canvas_library: CanvasLibrary = Field(
         ...,
         description="Canvas type: excalidraw/tldraw",
     )
+
+    @model_validator(mode="after")
+    def require_project_version(self):
+        if self.project_id and not self.project_id.startswith("guest_") and self.base_version is None:
+            raise ValueError("base_version is required when generating into an existing project")
+        return self
 
     @field_validator("canvas_library", mode="before")
     @classmethod
@@ -38,6 +45,8 @@ class DiagramGenerateRequest(BaseModel):
 
 
 class DiagramGenerateResponse(BaseModel):
+    proposal_id: str | None = None
+    persist_error: bool = False
     request_id: str
     project_id: Optional[str] = None
     snapshot_id: Optional[str] = None

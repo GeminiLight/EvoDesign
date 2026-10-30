@@ -267,6 +267,8 @@ async def generate_diagram(
         metrics_scores=workflow_result.get("metrics_scores"),
         summary=workflow_result.get("summary"),
         thumbnail_url=persisted.thumbnail_url,
+        proposal_id=getattr(persisted, "proposal_id", None),
+        persist_error=bool(getattr(persisted, "proposal_id", None)),
     )
 
 

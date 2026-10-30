@@ -35,7 +35,19 @@ const { shouldSubmitOnEnter, shouldSubmitOnModifiedEnter } = await load('src/uti
 const { saveWorkspacePreflightDraft, loadWorkspacePreflightDraft } = await load('src/services/workspacePreflightDraft.ts');
 const { rememberDnaDraft, readDnaDraft, clearDnaDraft, isLatestDnaDraft, sameDnaPreferences } = await load('src/utils/dnaSyncDraft.ts');
 const { filterDnaPreferences, emptyDnaFilters } = await load('src/utils/dnaLibrary.ts');
+const { remoteDocumentDecision } = await load('src/utils/remoteDocumentPolicy.ts');
 rmSync(temp, { recursive: true });
+
+test('external document updates preserve an unsaved draft and an open historical version', () => {
+  const clean = { incoming: 5, known: 4, saving: false, dirty: false, blocked: false, historical: false };
+  assert.equal(remoteDocumentDecision(clean), 'apply');
+  assert.equal(remoteDocumentDecision({ ...clean, dirty: true }), 'conflict');
+  assert.equal(remoteDocumentDecision({ ...clean, dirty: true, saving: true }), 'wait');
+  assert.equal(remoteDocumentDecision({ ...clean, blocked: true }), 'wait');
+  assert.equal(remoteDocumentDecision({ ...clean, historical: true }), 'history');
+  assert.equal(remoteDocumentDecision({ ...clean, incoming: 4, dirty: true }), 'ignore');
+  assert.equal(remoteDocumentDecision({ ...clean, known: null }), 'ignore');
+});
 
 test('fullscreen uses the native canvas element and verifies ownership after entering', async () => {
   const ownerDocument = { fullscreenEnabled: true, fullscreenElement: null };
@@ -367,17 +379,16 @@ test('project list and snapshot history carry server revisions to the first edit
   assert.equal(history.snapshots[0].project_version, 8);
 });
 
-test('direct reopen uses the latest snapshot and its revision, not an outdated detail response', async () => {
+test('direct reopen keeps a coherent formal document even when the history request sees a newer revision', async () => {
   globalThis.fetch = async url => new Response(JSON.stringify(url.includes('/snapshots?')
     ? { project_version: 9, total: 2, snapshots: [{ snapshot_id: 'latest', schema_blob: { elements: [node('fresh')] }, metrics_scores: { generation: { total_duration_ms: 1250, quality_status: 'edited' } }, timestamp: '2026-10-24T14:00:00' }] }
     : { project_id: 'older-project', title: 'Saved work', canvas_engine: 'excalidraw', version: 8,
-      latest_schema: { elements: [node('stale')] }, created_at: '2026-10-24T13:00:00', updated_at: '2026-10-24T14:00:00' }));
+      current_snapshot_id: 'saved', latest_schema: { elements: [node('saved-scene')] }, created_at: '2026-10-24T13:00:00', updated_at: '2026-10-24T14:00:00' }));
   const project = await fetchProjectDiagram('older-project');
-  assert.equal(project.project_version, 9);
-  assert.equal(project.snapshot_id, 'latest');
-  assert.equal(project.generation_report.durationMs, 1250, 'reopening retains the generation details');
-  assert.equal(project.generation_report.qualityStatus, 'edited');
-  assert.equal(project.excalidraw_payload.elements[0].id, 'fresh');
+  assert.equal(project.project_version, 8);
+  assert.equal(project.snapshot_id, 'saved');
+  assert.equal(project.generation_report, undefined, 'reports from another snapshot are not attached to this scene');
+  assert.equal(project.excalidraw_payload.elements[0].id, 'saved-scene');
   assert.equal(project.updated_at, '2026-10-24T14:00:00Z');
 });
 test('unversioned overwrites fail closed before sending a request; versioned saves send the revision', async () => {

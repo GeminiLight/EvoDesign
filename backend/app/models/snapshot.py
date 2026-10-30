@@ -25,6 +25,7 @@ class Snapshot(Base):
     )
     schema_blob: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     edit_source: Mapped[str] = mapped_column(String(20), nullable=False)
+    is_checkpoint: Mapped[bool] = mapped_column(default=False, server_default="0", nullable=False)
     thought_trace: Mapped[str | None] = mapped_column(Text)
     metrics_scores: Mapped[dict[str, Any] | None] = mapped_column(JSON)
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False, index=True)

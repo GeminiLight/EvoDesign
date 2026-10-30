@@ -47,6 +47,7 @@ EvoDesign 是一个用 AI 创建可编辑图表的开源工作台。描述你要
 | --- | --- |
 | **图表引擎** | 生成架构图、时序图、流程图等图表，评估并改进图表设计 |
 | **网页工作台** | 生成、编辑、保存、重新打开和导出图表，按需开启或关闭图标 |
+| **Agent CLI 与 Skill** | 让已有终端 Agent 准备候选、检查预览，并接着 Web 中已保存的人工修改继续工作 |
 | **个人设计记忆** | 管理结构、风格与布局偏好，从编辑中学习，导入和导出可迁移的规则 |
 | **设计经验库** | 检索 126 条内置种子经验，并通过反馈积累和演化知识 |
 | **研究工具** | 使用自己的数据运行基线方法、消融实验和评估 |
@@ -65,6 +66,7 @@ EvoDesign 是一个用 AI 创建可编辑图表的开源工作台。描述你要
 | **生成与检查** | 生成图结构，在本地计算布局，可选内容检查 | 结构、样式与布局智能体，验证和可选视觉修复 |
 | **设计记忆** | 在本地管理偏好，并将其加入后续提示词 | 个人记忆、设计经验检索与知识进化 |
 | **项目存储** | 当前浏览器；可导出副本备份 | 你运行的后端和数据库 |
+| **外部 Agent 协作** | 提供后端版配置指南 | 项目范围 CLI 连接、预览、安全提交和检查点恢复 |
 
 在线版适合直接体验可编辑生成；下文的方法图介绍完整的研究框架。两版的能力与数据处理方式详见[能力和隐私说明（英文）](docs/browser-edition.md)。
 
@@ -106,6 +108,20 @@ python scripts/setup_local.py
 
 渲染器导出图片需要 Playwright Chromium。若尚未安装，执行 `cd evo_diagram/agentic_system/tool_services && npx playwright install chromium`。Linux 可能还需要 `npx playwright install --with-deps chromium` 和 Canvas 原生依赖（`libcairo2-dev`、`libpango1.0-dev`、`libjpeg-dev`、`libgif-dev`、`librsvg2-dev`、`pkg-config`）。首次使用设计记忆时，可能会下载嵌入模型。
 
+### 与你已有的 Agent 协作
+
+后端、Web 和渲染器启动后，安装轻量 CLI 并连接一个 Excalidraw 项目：
+
+```sh
+python -m pip install ./cli
+evodesign connect --server http://localhost:3010 --profile paper
+evodesign document get --profile paper --json
+```
+
+在 Web 批准终端显示的配对码。将 [EvoDesign Skill](skills/evodesign/SKILL.md) 交给已有 Agent，它会准备语义操作并检查真实 PNG。你可以在 Web 接受候选，也可以授权连接提交。两端共享已保存的人工修改与 DNA；冲突保留候选，外部更新会保护未保存草稿。恢复检查点也会创建新版本。
+
+首版需要后端版，不连接浏览器本地项目，暂不提供 MCP 和 TLDraw 编辑。[Agent 协作指南](docs/agent-collaboration.zh-CN.md) 说明安装、完整命令、两端交接和冲突恢复。CLI 编辑使用你已有 Agent 的推理，不调用后端生成模型。
+
 ### 不启动网页，直接使用引擎
 
 准备好 Python 环境、模型配置，并启动渲染服务后，运行：
@@ -140,6 +156,8 @@ python scripts/design_memory.py validate examples/design-memory/blue-violet.json
 evo_diagram/          核心智能体、修复、记忆与渲染服务
 backend/              FastAPI、项目、认证与个人 DNA
 frontend/             React 工作台与可编辑画布适配器
+cli/                  独立 Agent CLI，无需安装图表引擎
+skills/evodesign/     Agent 可复用的协作流程与操作参考
 configs/              模型角色与应用设置
 dataset_construction/ 数据集准备工具
 evaluation/           评估与分析

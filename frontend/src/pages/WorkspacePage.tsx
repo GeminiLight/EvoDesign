@@ -4,7 +4,9 @@ import { useBrowserModelLabel } from '../hooks/useBrowserModelLabel';
 import { BROWSER_MODE } from '../services/browser/runtime';
 import { parseGenerationReport } from '../utils/generationReport';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, Columns3, History, Loader2, MessageSquare, PencilLine, RefreshCcw, Save, X } from 'lucide-react';
+import { AlertTriangle, Columns3, Dna, History, Loader2, MessageSquare, PencilLine, RefreshCcw, Save, Terminal, X } from 'lucide-react';
+import { AgentConnectionPanel } from '../components/Workspace/AgentConnectionPanel';
+import { useRemoteDocument } from '../hooks/useRemoteDocument';
 import type {
   DiagramRequest,
   DiagramResponse,
@@ -295,6 +297,7 @@ export function WorkspacePage() {
   const [activeCreatePreflight, setActiveCreatePreflight] = useState<WorkspacePreflightGeneration | null>(null);
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [showProjectDna, setShowProjectDna] = useState(false);
+  const [showAgentPanel, setShowAgentPanel] = useState(false);
   const [hasProjectDna, setHasProjectDna] = useState(false);
   const [isLocalEditing, setIsLocalEditing] = useState(false);
   const [isGenerationStarting, setIsGenerationStarting] = useState(false);
@@ -356,6 +359,10 @@ export function WorkspacePage() {
     resetSyncState,
     markAuthExpiredPreservingDirtyState,
     restoreRecoveryDraftSyncState,
+    isDocumentSaving,
+    isDocumentDirty,
+    pauseForRemoteUpdate,
+    applyRemoteDocument,
   } = useDiagramSync(preview, setPreview, canvasMode, setError, t);
 
   const getGenerationRunGuard = useCallback(() => (
@@ -425,6 +432,23 @@ export function WorkspacePage() {
 
   const isGenerationBusy = isGenerationStarting || isGenerating || startupGenerationActive;
   const workspaceInteractionBlocked = isGenerationBusy || isLocalEditing || isSaveRecoveryActive || isHistorySwitching || isSavingProjectName;
+  const remoteDocument = useRemoteDocument({
+    projectId: !BROWSER_MODE && authIdentity && canvasOwnerIdentity === authIdentity
+      && !preview?.projectId?.startsWith('guest_') ? preview?.projectId : undefined,
+    identity: authIdentity, versionRef: projectVersionRef, snapshotRef: activeEditingSnapshotIdRef,
+    busy: workspaceInteractionBlocked, isSaving: isDocumentSaving, isDirty: isDocumentDirty,
+    pause: pauseForRemoteUpdate,
+    apply: (document, discardDraft) => {
+      const applied = applyRemoteDocument(document, discardDraft);
+      if (applied) {
+        clearSelection();
+        setCanvasMode(document.canvas_library);
+        setRecentReloadNonce(value => value + 1);
+        setProjectHistoryReloadNonce(value => value + 1);
+      }
+      return applied;
+    },
+  });
   const canvasBusyKind = isLocalEditing
     ? 'local-edit'
     : isSaveRecoveryActive || isSavingProjectName
@@ -621,10 +645,11 @@ export function WorkspacePage() {
       // instead of borrowing the previous request's setting.
       useIcons: String(schemaForGeneration ? savedIconsEnabled : request.useIcons ?? false),
       ...(preview?.projectId ? { projectId: preview.projectId } : {}),
+      ...(preview?.projectId ? { projectVersion: String(projectVersionRef.current ?? preview.projectVersion ?? '') } : {}),
       ...(schemaForGeneration ? { currentSchema: JSON.stringify(schemaForGeneration) } : {}),
       ...extras,
     };
-  }, [canvasMode, latestSnapshotRef, preview?.projectId, request.useIcons]);
+  }, [canvasMode, latestSnapshotRef, preview?.projectId, preview?.projectVersion, projectVersionRef, request.useIcons]);
 
   const getLocalEditFailureMessage = useCallback((err: unknown) => {
     // The browser adapter sanitizes provider failures; show its actionable reason.
@@ -1096,6 +1121,11 @@ export function WorkspacePage() {
 
   const handleResolveSaveConflict = useCallback(() => {
     if (!preview?.projectId) return;
+    if (!BROWSER_MODE && authIdentity) {
+      remoteDocument.refresh();
+      setShowAgentPanel(true);
+      return;
+    }
 
     preserveCanvasDuringHistoryReloadRef.current = 'rebase';
     prepareSaveConflictRetry();
@@ -1104,7 +1134,7 @@ export function WorkspacePage() {
     setProjectHistoryReloadNonce((prev) => prev + 1);
     setError(null);
     showToast(t('workspace.saveConflictRefreshed'), 'info');
-  }, [prepareSaveConflictRetry, preview?.projectId, showToast, t]);
+  }, [authIdentity, prepareSaveConflictRetry, preview?.projectId, remoteDocument, showToast, t]);
 
   const handleRecoverMissingProject = useCallback(async () => {
     if (workspaceInteractionBlocked) {
@@ -1883,6 +1913,10 @@ export function WorkspacePage() {
         setProjectSnapshots(snapshots);
         setProjectHistoryLoadStatus('ready');
 
+        // History is a list, not a version-rebase operation. Shared documents
+        // are loaded through the formal document endpoint and remote-sync hook.
+        if (!BROWSER_MODE && requestAuthIdentity) return;
+
         if (preserveCanvasDuringHistoryReloadRef.current) {
           const allowRebase = preserveCanvasDuringHistoryReloadRef.current === 'rebase';
           preserveCanvasDuringHistoryReloadRef.current = false;
@@ -2352,6 +2386,10 @@ export function WorkspacePage() {
         onBeforeNavigate={handleBeforeWorkspaceNavigate}
         onOpenSettings={() => setShowWorkspaceSettings(true)}
       ><div className="workspace-header-tools">
+            {preview?.projectId && <button type="button" className="tool-button" aria-label={t('workspace.projectDnaLabel')} title={t('workspace.projectDnaLabel')}
+              disabled={workspaceInteractionBlocked} onClick={() => setShowProjectDna(true)}><Dna size={16} aria-hidden="true" /></button>}
+            <button type="button" className="tool-button agent-launcher" aria-label={t('agent.title')} title={t('agent.title')}
+              onClick={() => setShowAgentPanel(true)}><Terminal size={16} aria-hidden="true" /><span>{t('agent.shortTitle')}</span></button>
             {workspaceHistoryControl}
             {!isCanvasFullscreen && generationActivity}
             <div className="workspace-canvas-actions" ref={setToolbarTarget} />
@@ -2364,6 +2402,12 @@ export function WorkspacePage() {
             title, but the document still needs one: without it the heading
             outline started at h2 and screen-reader users got no page name. */}
         <h1 className="sr-only">{t('nav.workspace')}</h1>
+
+        {remoteDocument.pending && <div className="agent-update-banner" role="status">
+          <div><strong>{t('agent.newVersion')} v{remoteDocument.pending.version}</strong><p>{t('agent.draftSafe')}</p></div>
+          <button type="button" className="agent-button" onClick={() => setShowAgentPanel(true)}>{t('agent.preview')}</button>
+        </div>}
+        {remoteDocument.offline && authIdentity && !BROWSER_MODE && <p className="agent-muted text-xs" role="status">{t('agent.checkingOffline')}</p>}
 
         {error && (
           <div role="alert" className="mb-4 flex items-center gap-3 rounded-2xl border border-red-200/80 bg-red-50/80 px-4 py-3 text-sm text-red-600 backdrop-blur-xl shrink-0 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300 lg:mb-6">
@@ -2616,6 +2660,23 @@ export function WorkspacePage() {
           </div>
         </div>
       </main>
+
+      {showAgentPanel && <AgentConnectionPanel key={`${authIdentity}:${preview?.projectId}`}
+        open onClose={() => setShowAgentPanel(false)} projectId={preview?.projectId} projectTitle={projectName || t('workspace.untitledProject')}
+        signedIn={Boolean(authIdentity && canvasOwnerIdentity === authIdentity)} canvas={canvasMode}
+        selectedIds={selectedNodeIds} dirty={hasUnsavedChanges || isDocumentDirty()}
+        blocked={workspaceInteractionBlocked || isDocumentSaving()} version={preview?.projectVersion ?? projectVersionRef.current}
+        save={() => persistLatestSnapshot({ waitForInFlight: true, showError: true })}
+        pending={remoteDocument.pending} adopt={remoteDocument.adopt} refreshCanvas={remoteDocument.refresh}
+        downloadDraft={() => {
+          const draft = latestSnapshotRef.current;
+          if (!draft) return;
+          const data = canvasMode === 'excalidraw' ? { type: 'excalidraw', version: 2, source: 'EvoDesign', ...draft } : draft;
+          const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+          const link = document.createElement('a'); link.href = url;
+          link.download = `evodesign-draft.${canvasMode === 'excalidraw' ? 'excalidraw' : 'json'}`;
+          link.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }} />}
 
       {showProjectDna && preview?.projectId && (
         <ProjectDnaDrawer

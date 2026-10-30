@@ -47,7 +47,7 @@ async def create_project(
     """Create a blank project"""
     service = ProjectService(db)
     project = await service.create_project(user_id, data)
-    return ProjectCreateResponse(project_id=project.project_id, created_at=project.created_at)
+    return ProjectCreateResponse(project_id=project.project_id, created_at=project.created_at, version=project.version)
 
 
 # Snapshots route BEFORE /{project_id} to avoid route conflicts

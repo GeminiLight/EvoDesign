@@ -133,12 +133,12 @@ export function YourDNAPage() {
 
   const openPreferenceFromButton = (event: React.MouseEvent<HTMLButtonElement>, cabinId: CabinId, prefill = false) => {
     cloneTriggerRef.current = event.currentTarget;
-    if (BROWSER_MODE) { setNewPreferenceCategory(cabinId); setPrefillPreference(prefill); setAddingPreference(true); }
-    else openCloneModal();
+    setNewPreferenceCategory(cabinId); setPrefillPreference(prefill); setAddingPreference(true);
   };
 
   const openCloneFromButton = (event: React.MouseEvent<HTMLButtonElement>) => {
-    openPreferenceFromButton(event, libraryFilters.category === 'all' ? 'style' : libraryFilters.category);
+    cloneTriggerRef.current = event.currentTarget;
+    openCloneModal();
   };
 
   const restoreAddFocus = () => window.setTimeout(() => {
@@ -261,8 +261,10 @@ export function YourDNAPage() {
         <main id="main-content" className="studio-page-main"><div className="studio-page-content">
           {syncStatus !== 'local' && syncStatus !== 'synced' && <DnaSyncStatus
             syncStatus={syncStatus} retrySync={retrySync} acceptServerRules={acceptServerRules} />}
-          <DnaPreferenceLibrary actions={<button ref={primaryAddRef} type="button" disabled={!canEditRules}
-            onClick={openCloneFromButton} className="studio-primary"><Plus size={15} />{isZh ? '添加偏好' : 'Add preference'}</button>} cabins={cabins} library={ruleLibrary} filters={libraryFilters}
+          <DnaPreferenceLibrary actions={<>
+            {!BROWSER_MODE && <button type="button" disabled={!canEditRules} onClick={openCloneFromButton} className="studio-secondary">{isZh ? '从图片提取' : 'Extract from image'}</button>}
+            <button ref={primaryAddRef} type="button" disabled={!canEditRules}
+            onClick={event => openPreferenceFromButton(event, libraryFilters.category === 'all' ? 'style' : libraryFilters.category)} className="studio-primary"><Plus size={15} />{isZh ? '添加偏好' : 'Add preference'}</button></>} cabins={cabins} library={ruleLibrary} filters={libraryFilters}
             onFilterChange={setLibraryFilters} canEdit={canEditRules} onEdit={openEditFromButton}
             onToggle={toggleRuleEnabled} onManage={openDrawerFromButton} onAdd={openPreferenceFromButton}
             onExample={BROWSER_MODE ? (event, cabinId) => openPreferenceFromButton(event, cabinId, true) : undefined} />

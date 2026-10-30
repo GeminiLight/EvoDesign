@@ -37,7 +37,7 @@ async def test_two_initial_editors_cannot_silently_overwrite_each_other():
             project_id = created.json()["project_id"]
             initial = await client.patch("/api/v1/schema/sync", json={
                 "project_id": project_id, "schema_patch": {"elements": [{"id": "initial"}]},
-                "editor": "excalidraw", "create_snapshot": True,
+                "editor": "excalidraw", "create_snapshot": True, "version": 1,
             })
             snapshot_id = initial.json()["snapshot_id"]
             projects = (await client.get("/api/v1/projects")).json()["projects"]

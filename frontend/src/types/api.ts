@@ -91,6 +91,7 @@ export interface DiagramRequest {
 }
 
 export interface DiagramResponse {
+  proposalId?: string;
   generationReport?: import('../utils/generationReport').GenerationReport;
   diagramId: string;
   requestId: string;
@@ -115,6 +116,7 @@ export interface HistoryItem extends DiagramResponse {
 }
 
 export interface ProjectSnapshotItem {
+  is_checkpoint?: boolean;
   generation_report?: import('../utils/generationReport').GenerationReport;
   project_version?: number;
   snapshot_id: string;
@@ -189,6 +191,7 @@ export interface StreamRefineErrorEvent {
 }
 
 export interface StreamResultEvent {
+  proposal_id?: string;
   version?: number | null;
   request_id: string;
   project_id: string | null;

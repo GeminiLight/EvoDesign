@@ -43,6 +43,11 @@ run_backend() {
     "$PY" -m pytest tests/backend
 }
 
+run_cli() {
+    cd "$PROJECT_ROOT"
+    PYTHONPATH="$PROJECT_ROOT/cli/src${PYTHONPATH:+:$PYTHONPATH}" "$PY" -m pytest cli/tests tests/canvas_environment/test_editing.py
+}
+
 run_evaluation() {
     cd "$PROJECT_ROOT"
     "$PY" -m pytest tests/evaluation
@@ -89,11 +94,12 @@ run_renderer() {
 
 usage() {
     cat <<'EOF'
-Usage: ./scripts/check_quality.sh [architecture|backend|engine|evaluation|baselines|user-memory|frontend|renderer|all]
+Usage: ./scripts/check_quality.sh [architecture|backend|cli|engine|evaluation|baselines|user-memory|frontend|renderer|all]
 
 Targets:
   architecture  Import boundaries, generated API contract, canvas_environment facade, repo doc, and script contract checks.
   backend       Full FastAPI service, API, database, auth, and boundary checks.
+  cli           Independent CLI contracts and deterministic Excalidraw edits.
   engine        Package-local engine contracts plus cross-stage pipeline smoke checks.
   evaluation    Evaluation CLI/result contract checks.
   baselines     Baseline entrypoint and output-layout contract checks.
@@ -114,6 +120,10 @@ case "$TARGET" in
     backend)
         run_hygiene
         run_backend
+        ;;
+    cli)
+        run_hygiene
+        run_cli
         ;;
     engine)
         run_hygiene
@@ -143,6 +153,7 @@ case "$TARGET" in
         run_hygiene
         run_architecture
         run_backend
+        run_cli
         run_engine
         run_evaluation
         run_baselines

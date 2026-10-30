@@ -161,7 +161,7 @@ async def test_project_service_persists_canvas_library_alias_on_create_and_updat
         updated = await service.update_project(
             "user-1",
             project.project_id,
-            ProjectUpdateRequest(canvas_library="excalidraw"),
+            ProjectUpdateRequest(canvas_library="excalidraw", version=project.version),
         )
 
         assert updated.canvas_engine == "excalidraw"

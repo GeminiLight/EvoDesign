@@ -7,12 +7,11 @@ import {
   guestSaveDnaRules,
   guestLoadProjectDnaRules,
   guestSaveProjectDnaRules,
-  hasDnaRulesForScope,
-  guestHasProjectDna,
+  guestDeleteProjectDnaRules,
 } from '../services/guestStorage';
 import { loadDnaRules, saveDnaRules } from '../services/backendApi';
 
-import { rememberDnaDraft, readDnaDraft, isLatestDnaDraft, clearDnaDraft, sameDnaPreferences, type DnaRules } from '../utils/dnaSyncDraft';
+import { rememberDnaDraft, readDnaDraft, isLatestDnaDraft, clearDnaDraft, sameDnaPreferences, registerDnaFlusher, type DnaRules } from '../utils/dnaSyncDraft';
 
 const CABIN_IDS: CabinId[] = ['structure', 'style', 'layout'];
 
@@ -25,12 +24,6 @@ function loadLocalRules(
     return guestLoadProjectDnaRules(projectId, scopeId, locale) ?? guestLoadDnaRules(scopeId, locale);
   }
   return guestLoadDnaRules(scopeId, locale);
-}
-
-function hasStoredLocalRules(projectId?: string, scopeId?: string | null): boolean {
-  return projectId
-    ? guestHasProjectDna(projectId, scopeId) || hasDnaRulesForScope(scopeId)
-    : hasDnaRulesForScope(scopeId);
 }
 
 function hasAnyRules(rules: Record<CabinId, Rule[]>): boolean {
@@ -70,7 +63,13 @@ export function useRuleLibrary(options?: { projectId?: string }) {
     if (aliveRef.current && activeScopeRef.current === ruleScopeKey) setSyncStatus('saving');
     void saveDnaRules(rules, projectId, { token, keepalive: true, ownerId: storageScopeId }).then(ok => {
       if (!isLatestDnaDraft(pendingKey, draft)) return;
-      if (ok) clearDnaDraft(pendingKey, draft);
+      if (ok) {
+        clearDnaDraft(pendingKey, draft);
+        if (projectId && !hasAnyRules(rules)) {
+          guestDeleteProjectDnaRules(projectId, storageScopeId);
+          window.dispatchEvent(new CustomEvent('evodesign:dna-scope-changed', { detail: { projectId } }));
+        }
+      }
       if (aliveRef.current && activeScopeRef.current === ruleScopeKey) {
         setSyncStatus(ok ? 'synced' : draft.durable ? 'failed' : 'failedVolatile');
       }
@@ -106,30 +105,43 @@ export function useRuleLibrary(options?: { projectId?: string }) {
       setCanEditRules(true);
       return;
     }
-    void loadDnaRules(projectId, token, storageScopeId ?? undefined).then(backendRules => {
+    void loadDnaRules(projectId, token, storageScopeId ?? undefined).then(async backendRules => {
       if (cancelled) return;
       if (!backendRules) {
         setSyncStatus('loadFailed'); // Retry reloads; it must not PUT a stale copy.
         return;
       }
-      serverRulesRef.current = backendRules;
+      const inherited = Boolean(projectId && !hasAnyRules(backendRules));
+      const effectiveRules = inherited
+        ? await loadDnaRules(undefined, token, storageScopeId ?? undefined) : backendRules;
+      if (cancelled) return;
+      if (!effectiveRules) { setSyncStatus('loadFailed'); return; }
+      // An inherited rule becomes a new project rule on first edit.
+      const rules = inherited ? Object.fromEntries(Object.entries(effectiveRules).map(([cabin, items]) =>
+        [cabin, items.map(rule => ({ ...rule, ruleId: undefined }))])) as typeof effectiveRules : effectiveRules;
+      serverRulesRef.current = rules;
       if (pending && !sameDnaPreferences(pending.rules, backendRules)) {
         // Preserve both copies. Resuming never silently overwrites another device.
         setSyncStatus('conflict');
         return;
       }
       if (pending) clearDnaDraft(pendingKey, pending);
-      const remoteHasRules = hasAnyRules(backendRules);
-      const rules = remoteHasRules ? backendRules : localRules;
       latestRuleLibraryRef.current = rules;
       setRuleLibraryState(rules);
-      if (remoteHasRules || hasStoredLocalRules(projectId, storageScopeId)) storeLocal(rules);
+      storeLocal(rules);
       readyScopeRef.current = ruleScopeKey;
       setCanEditRules(true);
-      setSyncStatus(remoteHasRules ? 'synced' : 'local');
+      setSyncStatus('synced');
     });
     return () => { cancelled = true; };
   }, [language, projectId, storageScopeId, token, pendingKey, ruleScopeKey, reloadNonce, storeLocal]);
+
+  useEffect(() => registerDnaFlusher(pendingKey, () => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    const pending = pendingSaveRef.current;
+    pendingSaveRef.current = null;
+    pending?.();
+  }), [pendingKey]);
 
   useEffect(() => {
     if (!dirtyRef.current || readyScopeRef.current !== ruleScopeKey) return;

@@ -2,6 +2,8 @@
 
 # EvoDesign — 系统架构
 
+Agent CLI v1 的当前实现与协议见 [协作架构](specs/spec-agent-cli-v1.md) 和 [CLI、Skill 契约](specs/agent-cli-v1-cli-and-skill.md)。下文保留早期架构记录，未随本次功能逐项重新核验。
+
 ## 技术栈
 
 | 层 | 技术 | 版本 | 选型理由 |

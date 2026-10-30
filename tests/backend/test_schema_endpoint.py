@@ -24,6 +24,7 @@ def _request() -> SchemaSyncRequest:
         project_id="project-1",
         schema_patch={"elements": []},
         create_snapshot=True,
+        version=1,
     )
 
 

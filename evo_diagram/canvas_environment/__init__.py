@@ -16,6 +16,7 @@ from .constants import (
     VALID_CANVAS_LIBRARIES,
 )
 from .environment import CanvasEnvironment
+from .editing import EditError, apply_operations, assert_preserves_locks
 from .geometry import (
     ARROW_SIDES,
     ArrowRouteGeometry,
@@ -51,6 +52,9 @@ from .validation import (
 )
 
 __all__ = [
+    "EditError",
+    "apply_operations",
+    "assert_preserves_locks",
     "color_contrast_ratio",
     "compact_architecture_layout",
     "disjoint_segment_box_distance",

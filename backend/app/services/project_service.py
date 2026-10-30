@@ -4,12 +4,14 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.dna_rule import DnaRule
 from app.models.project import Project
 from app.models.snapshot import Snapshot
+from app.models.agent import AgentConnection, AgentProposal
+from app.core.exceptions import AppException
 from app.schemas.project import ProjectCreateRequest, ProjectUpdateRequest
 from app.core.exceptions import ProjectNotFoundException
 
@@ -106,7 +108,7 @@ class ProjectService:
             select(
                 Project,
                 func.coalesce(snap_count_sq.c.snapshot_count, 0).label("snapshot_count"),
-                latest_snapshot_id_sq.label("latest_snapshot_id"),
+                func.coalesce(Project.current_snapshot_id, latest_snapshot_id_sq).label("latest_snapshot_id"),
             )
             .outerjoin(snap_count_sq, Project.project_id == snap_count_sq.c.project_id)
             .where(Project.user_id == user_id)
@@ -175,6 +177,21 @@ class ProjectService:
     ) -> Project:
         project = await self.get_project(user_id, project_id)
 
+        changes_design = ((data.diagram_type is not None and data.diagram_type != project.diagram_type)
+                          or (data.canvas_engine is not None and data.canvas_engine != project.canvas_engine))
+        if changes_design:
+            if data.canvas_engine and data.canvas_engine != project.canvas_engine and project.latest_schema:
+                raise AppException('Create a new project to change the canvas engine', 422,
+                                   public_detail='Cannot change the engine of a nonempty project')
+            if data.version is None:
+                raise AppException('Expected project version is required', 409,
+                                   public_detail='Reload the project before changing its design settings')
+            written = await self.db.execute(update(Project).where(Project.project_id == project_id,
+                Project.user_id == user_id, Project.version == data.version).values(version=Project.version+1)
+                .execution_options(synchronize_session=False))
+            if written.rowcount != 1:
+                raise AppException('Project version conflict', 409, public_detail='Project version conflict')
+            await self.db.refresh(project)
         if data.title is not None:
             project.title = data.title
         if data.diagram_type is not None:
@@ -188,6 +205,8 @@ class ProjectService:
 
     async def delete_project(self, user_id: str, project_id: str) -> None:
         project = await self.get_project(user_id, project_id)
+        await self.db.execute(delete(AgentProposal).where(AgentProposal.project_id == project_id))
+        await self.db.execute(delete(AgentConnection).where(AgentConnection.project_id == project_id))
         # SQLite does not enforce ON DELETE CASCADE by default, so project-scoped
         # children are removed explicitly and behave the same on both backends.
         await self.db.execute(

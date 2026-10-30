@@ -21,6 +21,7 @@ class ProjectSnapshotItem(BaseModel):
     parent_id: str | None = None
     schema_blob: dict[str, Any]
     edit_source: str
+    is_checkpoint: bool = False
     thought_trace: str | None = None
     metrics_scores: dict[str, Any] | None = None
     timestamp: datetime
@@ -84,6 +85,7 @@ class ProjectCreateRequest(BaseModel):
 
 
 class ProjectCreateResponse(BaseModel):
+    version: int = 1
     project_id: str
     created_at: datetime
 
@@ -92,6 +94,7 @@ class ProjectUpdateRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     title: str | None = None
+    version: int | None = Field(default=None, ge=1)
     diagram_type: str | None = None
     canvas_engine: CanvasLibrary | None = Field(
         default=None,
@@ -115,6 +118,7 @@ class ProjectDetailResponse(BaseModel):
     canvas_engine: str
     source_text: str | None = None
     latest_schema: dict[str, Any] | None = None
+    current_snapshot_id: str | None = None
     thumbnail_url: str | None = None
     created_at: datetime
     updated_at: datetime

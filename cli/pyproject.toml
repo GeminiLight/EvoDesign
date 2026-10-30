@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=70", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evodesign-cli"
+version = "0.1.0"
+description = "Project-scoped Agent collaboration client for EvoDesign"
+requires-python = ">=3.11"
+dependencies = ["httpx>=0.27,<1"]
+
+[project.scripts]
+evodesign = "evodesign_cli.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

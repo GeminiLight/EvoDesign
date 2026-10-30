@@ -304,3 +304,26 @@ async def test_replace_rules_regenerates_rule_ids_repeated_within_one_payload():
     finally:
         await session.close()
         await engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_project_copy_of_global_dna_has_independent_identity_and_keeps_global_rules():
+    engine, session = await _create_session()
+    try:
+        await _seed_project(session, project_id='project-1', user_id='user-1')
+        service = DnaRuleService(session)
+        await service.replace_rules(user_id='user-1', payload=DnaRulesPayload(
+            structure=[_rule(rule_id='global-rule')]))
+        copied = await service.replace_rules(user_id='user-1', payload=DnaRulesPayload(
+            project_id='project-1', structure=[_rule(rule_id='global-rule')]))
+        assert copied.structure[0].rule_id != 'global-rule'
+        assert (await service.get_rules(user_id='user-1', project_id=None)).structure[0].rule_id == 'global-rule'
+        copied_id = copied.structure[0].rule_id
+        edited = await service.replace_rules(user_id='user-1', payload=DnaRulesPayload(
+            project_id='project-1', structure=[_rule(rule_id=copied_id, title='Edited project rule')]))
+        assert edited.structure[0].rule_id == copied_id
+        await service.replace_rules(user_id='user-1', payload=DnaRulesPayload(project_id='project-1'))
+        assert (await service.get_rules(user_id='user-1', project_id=None)).structure[0].title == 'Layered flow'
+    finally:
+        await session.close()
+        await engine.dispose()

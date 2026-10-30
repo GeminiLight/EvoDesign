@@ -10,7 +10,7 @@ from fastapi.routing import APIRoute
 from app.application import create_app
 from app.core.rate_limit import limiter
 
-AUTH_DEPENDENCY_MODULE = "app.api.deps"
+AUTH_DEPENDENCY_MODULES = {"app.api.deps", "app.api.agent_deps"}
 
 
 @dataclass(frozen=True)
@@ -31,6 +31,26 @@ class RouteContract:
 
 R = RouteContract
 EXPECTED_V1_ROUTES: tuple[RouteContract, ...] = (
+    R('GET', '/api/v1/projects/{project_id}/document/preview', 'Agent collaboration', 'document_preview', None, 200, 'get_agent_actor', '20 per 1 minute'),
+    R('POST', '/api/v1/agent/connections', 'Agent collaboration', 'start_connection', None, 201, None, '10 per 1 minute'),
+    R('POST', '/api/v1/agent/connections/{connection_id}/claim', 'Agent collaboration', 'claim', None, 200, None, '30 per 1 minute'),
+    R('GET', '/api/v1/agent/connections', 'Agent collaboration', 'connections', None, 200, 'get_current_user_id', None),
+    R('GET', '/api/v1/agent/connections/{connection_id}', 'Agent collaboration', 'connection_status', None, 200, 'get_agent_actor', None),
+    R('POST', '/api/v1/agent/connections/{connection_id}/approve', 'Agent collaboration', 'approve', None, 200, 'get_current_user_id', None),
+    R('DELETE', '/api/v1/agent/connections/{connection_id}', 'Agent collaboration', 'revoke', None, 200, 'get_agent_actor', None),
+    R('PUT', '/api/v1/agent/connections/{connection_id}/context', 'Agent collaboration', 'publish_context', None, 200, 'get_current_user_id', None),
+    R('GET', '/api/v1/projects/{project_id}/document/head', 'Agent collaboration', 'document_head', None, 200, 'get_agent_actor', None),
+    R('GET', '/api/v1/projects/{project_id}/document', 'Agent collaboration', 'document', None, 200, 'get_agent_actor', None),
+    R('GET', '/api/v1/projects/{project_id}/agent-context', 'Agent collaboration', 'context', None, 200, 'get_agent_actor', None),
+    R('GET', '/api/v1/projects/{project_id}/agent-history', 'Agent collaboration', 'history', None, 200, 'get_agent_actor', None),
+    R('POST', '/api/v1/projects/{project_id}/agent-proposals', 'Agent collaboration', 'propose', None, 202, 'get_agent_actor', None),
+    R('GET', '/api/v1/projects/{project_id}/agent-proposals', 'Agent collaboration', 'proposals', None, 200, 'get_agent_actor', None),
+    R('GET', '/api/v1/projects/{project_id}/agent-proposals/{proposal_id}', 'Agent collaboration', 'proposal_status', None, 200, 'get_agent_actor', None),
+    R('GET', '/api/v1/projects/{project_id}/agent-proposals/{proposal_id}/preview', 'Agent collaboration', 'preview', None, 200, 'get_agent_actor', None),
+    R('POST', '/api/v1/projects/{project_id}/agent-proposals/{proposal_id}/commit', 'Agent collaboration', 'commit', None, 200, 'get_agent_actor', None),
+    R('POST', '/api/v1/projects/{project_id}/agent-proposals/{proposal_id}/reject', 'Agent collaboration', 'reject', None, 200, 'get_agent_actor', None),
+    R('POST', '/api/v1/projects/{project_id}/restore-proposals', 'Agent collaboration', 'restore', None, 202, 'get_agent_actor', None),
+
     R("GET", "/api/v1/health", "Health", "health_check", "HealthResponse", 200, None, None),
     R("POST", "/api/v1/auth/login", "Authentication", "login", "AuthResponse", 200, None, "5 per 1 minute"),
     R("POST", "/api/v1/auth/register", "Authentication", "register", "AuthResponse", 201, None, "3 per 1 minute"),
@@ -121,7 +141,7 @@ def _auth_dependency_name(route: Any) -> str | None:
     names = sorted(
         dependency.call.__name__
         for dependency in route.dependant.dependencies
-        if getattr(dependency.call, "__module__", "") == AUTH_DEPENDENCY_MODULE
+        if getattr(dependency.call, "__module__", "") in AUTH_DEPENDENCY_MODULES
     )
     return "+".join(names) or None
 
@@ -194,6 +214,7 @@ def test_backend_v1_router_group_counts_are_explicit():
         counts[contract.tag] = counts.get(contract.tag, 0) + 1
 
     assert counts == {
+        "Agent collaboration": 19,
         "Authentication": 8,
         "DNA": 3,
         "Diagram Workflow": 4,

@@ -336,7 +336,7 @@ async def test_generate_diagram_hides_unexpected_exception_details(monkeypatch):
 
     with pytest.raises(HTTPException) as exc_info:
         await _call_generate_diagram(
-            body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+            body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
             current_user=None,
             workflow_service=FakeWorkflowGenerateService(),
         )
@@ -354,7 +354,7 @@ async def test_generate_diagram_hides_backend_llm_configuration_errors(monkeypat
 
     with pytest.raises(HTTPException) as exc_info:
         await _call_generate_diagram(
-            body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+            body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
             current_user=None,
             workflow_service=FakeWorkflowGenerateService(),
         )
@@ -375,7 +375,7 @@ async def test_generate_diagram_returns_validation_errors_as_bad_request(monkeyp
 
     with pytest.raises(HTTPException) as exc_info:
         await _call_generate_diagram(
-            body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+            body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
             current_user=None,
             workflow_service=FakeWorkflowGenerateService(),
         )
@@ -392,7 +392,7 @@ async def test_generate_diagram_does_not_publish_plain_value_error_prefixes(monk
 
     with pytest.raises(HTTPException) as exc_info:
         await _call_generate_diagram(
-            body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+            body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
             current_user=None,
             workflow_service=FakeWorkflowGenerateService(),
         )
@@ -410,7 +410,7 @@ async def test_generate_diagram_hides_unexpected_value_error_details(monkeypatch
 
     with pytest.raises(HTTPException) as exc_info:
         await _call_generate_diagram(
-            body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+            body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
             current_user=None,
             workflow_service=FakeWorkflowGenerateService(),
         )
@@ -458,7 +458,7 @@ async def test_generate_diagram_persists_request_fields(monkeypatch):
             )
 
     response = await _call_generate_diagram(
-        body=DiagramGenerateRequest(
+        body=DiagramGenerateRequest(base_version=1,
             context="A to B",
             requirements="Draw a flow",
             project_id="project-1",
@@ -486,7 +486,7 @@ async def test_generate_diagram_stream_scopes_dna_to_user_and_project():
             yield 'event: stage_start\ndata: {"stage": "structure"}\n\n'
 
     response = await _call_generate_diagram_stream(
-        body=DiagramGenerateRequest(
+        body=DiagramGenerateRequest(base_version=1,
             context="A to B",
             project_id="project-1",
             canvas_library="excalidraw",
@@ -515,7 +515,7 @@ async def test_generate_diagram_passes_guest_scope_without_dna_identity():
             return workflow_result
 
     response = await _call_generate_diagram(
-        body=DiagramGenerateRequest(
+        body=DiagramGenerateRequest(base_version=1,
             context="A to B",
             project_id="",
             canvas_library="excalidraw",
@@ -554,7 +554,7 @@ async def test_generate_diagram_returns_not_found_for_missing_project_without_pr
 
     with pytest.raises(HTTPException) as exc_info:
         await _call_generate_diagram(
-            body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw", project_id="project-1"),
+            body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw", project_id="project-1"),
             current_user=_user_with_subscription("active"),
             workflow_service=FakeWorkflowGenerateService(),
             persistence_service=FakeDiagramPersistenceService(object()),
@@ -587,7 +587,7 @@ async def test_generate_diagram_uses_project_not_found_public_detail(monkeypatch
 
     with pytest.raises(HTTPException) as exc_info:
         await _call_generate_diagram(
-            body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw", project_id="project-1"),
+            body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw", project_id="project-1"),
             current_user=_user_with_subscription("active"),
             workflow_service=FakeWorkflowGenerateService(),
             persistence_service=FakeDiagramPersistenceService(object()),
@@ -616,7 +616,7 @@ async def test_generate_diagram_hides_persistence_exception_details(monkeypatch)
 
     with pytest.raises(HTTPException) as exc_info:
         await _call_generate_diagram(
-            body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw", project_id="project-1"),
+            body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw", project_id="project-1"),
             current_user=_user_with_subscription("active"),
             workflow_service=FakeWorkflowGenerateService(),
             persistence_service=FakeDiagramPersistenceService(object()),
@@ -814,7 +814,7 @@ async def test_generate_diagram_stream_passes_through_normal_chunks(monkeypatch)
             return chunk
 
     response = await _call_generate_diagram_stream(
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=None,
         workflow_service=FakeWorkflowGenerateService(),
         stream_service=FakeDiagramStreamService(),
@@ -850,7 +850,7 @@ async def test_generate_diagram_stream_stops_when_client_disconnected_before_sta
 
     response = await _call_generate_diagram_stream(
         request=FakeRequest(),
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=None,
         workflow_service=FakeWorkflowGenerateService(),
         stream_service=FakeDiagramStreamService(),
@@ -885,7 +885,7 @@ async def test_generate_diagram_stream_stops_before_rewrite_after_disconnect(
 
     response = await _call_generate_diagram_stream(
         request=FakeRequest(),
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=None,
         workflow_service=FakeWorkflowGenerateService(),
         stream_service=FakeDiagramStreamService(),
@@ -910,7 +910,7 @@ async def test_generate_diagram_stream_passes_active_subscription_as_pro_tier(
             return chunk
 
     response = await _call_generate_diagram_stream(
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=_user_with_subscription("active"),
         workflow_service=FakeWorkflowGenerateService(),
         stream_service=FakeDiagramStreamService(),
@@ -929,7 +929,7 @@ async def test_generate_diagram_stream_hides_unexpected_init_exception(monkeypat
             yield
 
     response = await _call_generate_diagram_stream(
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=None,
         workflow_service=FakeWorkflowGenerateService(),
     )
@@ -953,7 +953,7 @@ async def test_generate_diagram_stream_marks_post_start_generation_failures(
             return chunk
 
     response = await _call_generate_diagram_stream(
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=None,
         workflow_service=FakeWorkflowGenerateService(),
         stream_service=FakeDiagramStreamService(),
@@ -1000,7 +1000,7 @@ async def test_generate_diagram_stream_marks_post_start_internal_errors_as_gener
             return chunk
 
     response = await _call_generate_diagram_stream(
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=None,
         workflow_service=FakeWorkflowGenerateService(),
         stream_service=FakeDiagramStreamService(),
@@ -1034,7 +1034,7 @@ async def test_generate_diagram_stream_marks_post_start_validation_errors_as_gen
             return chunk
 
     response = await _call_generate_diagram_stream(
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=None,
         workflow_service=FakeWorkflowGenerateService(),
         stream_service=FakeDiagramStreamService(),
@@ -1069,7 +1069,7 @@ async def test_generate_diagram_stream_passes_through_workflow_error_chunks(monk
             return chunk
 
     response = await _call_generate_diagram_stream(
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=None,
         workflow_service=FakeWorkflowGenerateService(),
         stream_service=FakeDiagramStreamService(),
@@ -1089,7 +1089,7 @@ async def test_generate_diagram_stream_hides_unexpected_rewrite_exception(monkey
             raise RuntimeError("persistence secret leaked in stack")
 
     response = await _call_generate_diagram_stream(
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=None,
         workflow_service=FakeWorkflowGenerateService(),
         stream_service=FakeDiagramStreamService(),
@@ -1120,7 +1120,7 @@ async def test_generate_diagram_stream_returns_rewrite_public_validation_errors_
             )
 
     response = await _call_generate_diagram_stream(
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=None,
         workflow_service=FakeWorkflowGenerateService(),
         stream_service=FakeDiagramStreamService(),
@@ -1149,7 +1149,7 @@ async def test_generate_diagram_stream_hides_rewrite_backend_llm_configuration_e
             raise BackendLLMConfigurationError("LLM API key is missing: secret")
 
     response = await _call_generate_diagram_stream(
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=None,
         workflow_service=FakeWorkflowGenerateService(),
         stream_service=FakeDiagramStreamService(),
@@ -1177,7 +1177,7 @@ async def test_generate_diagram_stream_hides_unexpected_rewrite_value_error_deta
             raise ValueError("internal parser secret-token")
 
     response = await _call_generate_diagram_stream(
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=None,
         workflow_service=FakeWorkflowGenerateService(),
         stream_service=FakeDiagramStreamService(),
@@ -1208,7 +1208,7 @@ async def test_generate_diagram_stream_hides_escaped_project_not_found_details(
             )
 
     response = await _call_generate_diagram_stream(
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=None,
         workflow_service=FakeWorkflowGenerateService(),
         stream_service=FakeDiagramStreamService(),
@@ -1231,7 +1231,7 @@ async def test_generate_diagram_stream_hides_backend_llm_configuration_errors(mo
             yield
 
     response = await _call_generate_diagram_stream(
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=None,
         workflow_service=FakeWorkflowGenerateService(),
     )
@@ -1254,7 +1254,7 @@ async def test_generate_diagram_stream_returns_public_validation_errors_as_sse(
             yield
 
     response = await _call_generate_diagram_stream(
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=None,
         workflow_service=FakeWorkflowGenerateService(),
     )
@@ -1277,7 +1277,7 @@ async def test_generate_diagram_stream_hides_unexpected_init_value_error_details
             yield
 
     response = await _call_generate_diagram_stream(
-        body=DiagramGenerateRequest(context="A to B", canvas_library="excalidraw"),
+        body=DiagramGenerateRequest(base_version=1, context="A to B", canvas_library="excalidraw"),
         current_user=None,
         workflow_service=FakeWorkflowGenerateService(),
     )
