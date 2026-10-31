@@ -2122,5 +2122,53 @@
       "Top-to-bottom flow with convergence hubs in biology diagrams"
     ],
     "id": "kp_126"
+  },
+  {
+    "agent": "Structure",
+    "title": "Architecture components as named cards with a one-line role",
+    "description": "Architecture readers scan components by name and responsibility; a bare name forces them to guess what each box does, while extra nodes for collective nouns blur the topology.",
+    "content": "Emit 5-9 components (never more than 12). Give each a source name, a sublabel of at most 6 words (CJK: 12 characters) stating its responsibility or technology with parts joined by ' / ', one canonical role (actor, client, gateway, service, worker, model, database, cache, queue, storage, search, observability, external) and one outline icon. Keep labels in the source language, emit no layer groups unless the source names a trust or deployment boundary, and never create a node for a collective noun such as 'services'.",
+    "when_to_use": "Use for system, software or platform architecture diagrams generated from a short prose description.",
+    "confidence": 0.8,
+    "tier": "domain_guideline",
+    "domain": "Software Engineering",
+    "diagram_type": "architecture",
+    "provenance": {
+      "source": "authored",
+      "evidence": "reference-style study of card architecture diagrams; kept after a 5-case ablation against free-form generation"
+    },
+    "id": "kg_127"
+  },
+  {
+    "agent": "Styling",
+    "title": "Role-grouped palette families for architecture cards",
+    "description": "Colour works as a role legend in architecture diagrams: consistent families per role let readers separate entry points, services and storage at a glance, and distinct families for sibling services keep parallel services apart.",
+    "content": "Assign one palette family per role group (clients, gateways, data stores, external systems), give sibling services distinct families when the palette allows, and reserve the accent family for one focal node, at most two. Use rectangles for every component and let colour and icon carry the role; edges take their source node's family.",
+    "when_to_use": "Use when styling architecture diagrams whose nodes carry canonical roles.",
+    "confidence": 0.78,
+    "tier": "domain_guideline",
+    "domain": "Software Engineering",
+    "diagram_type": "architecture",
+    "provenance": {
+      "source": "authored",
+      "evidence": "reference-style study of card architecture diagrams; kept after a 5-case ablation against free-form generation"
+    },
+    "id": "kg_128"
+  },
+  {
+    "agent": "Layout",
+    "title": "Left-to-right tier plan with a storage bus row",
+    "description": "Architecture diagrams read best when request flow runs left to right through tiers and shared infrastructure sits on one row underneath, so many service-to-store dependencies collapse into one bus instead of a web of lines.",
+    "content": "Plan columns left to right: people, clients, entry points, services and workers, then side systems (models, third-party providers). Put stores, caches, queues, search and observability in one bottom row. Order nodes so connected nodes face each other, keep at most 5 nodes per column, and place a person who only receives results below the system that notifies them in the last column. Route edges across a column gap through one shared trunk and edges into the bottom row through one shared bus.",
+    "when_to_use": "Use when laying out architecture diagrams with clients, gateways, services and shared data infrastructure.",
+    "confidence": 0.8,
+    "tier": "domain_guideline",
+    "domain": "Software Engineering",
+    "diagram_type": "architecture",
+    "provenance": {
+      "source": "authored",
+      "evidence": "reference-style study of card architecture diagrams; kept after a 5-case ablation against free-form generation"
+    },
+    "id": "kg_129"
   }
 ]

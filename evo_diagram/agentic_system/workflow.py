@@ -1187,6 +1187,7 @@ class Text2DiagramWorkflow:
             structure_instantiation=generation.structure_instantiation,
             canvas_library=self.canvas_library,
             output_dir=render_dir,
+            layout_specification=generation.layout_specification,
         )
         if not render_result.png_path or not os.path.exists(render_result.png_path):
             raise RuntimeError(f"Render failed: PNG not found at {render_result.png_path}")

@@ -4,6 +4,10 @@ This release contains the maintained implementation: structure, style and layout
 
 The manuscript's result tables on the project website remain **manuscript-reported results**. This code snapshot includes subsequent engineering changes. A full regeneration of all manuscript scores has not been performed for this release, and the default endpoint/model is deliberately user-configured.
 
+## Release changes that affect comparisons
+
+- **Architecture design-system tool.** In this release, architecture diagrams on the Excalidraw canvas are finished by a deterministic tool. The structure agent emits sublabels, canonical roles and icons; the style agent assigns palette families; the layout agent emits a `tier_plan`. The tool executes those decisions with fixed card geometry and shared-trunk routing (`render_engine/excalidraw/architecture_design_system.py`). The manuscript's architecture results were produced without it and with free-form agent geometry. Set `EVODESIGN_ARCH_DESIGN_SYSTEM=0` to disable the tool; the architecture stage rules in `system_prompt/type_patterns/architecture.md` and seeds `kg_127`-`kg_129` also postdate the manuscript, so a faithful reproduction should use the manuscript-era commit.
+
 ## Record a run
 
 1. Record the commit and the hashes of your own input files.

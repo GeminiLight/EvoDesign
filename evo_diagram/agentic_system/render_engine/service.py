@@ -40,6 +40,7 @@ def render_manifest(
     output_dir: Optional[str] = None,
     viewport_width: int = CANVAS_DEFAULT_VIEWPORT_WIDTH,
     viewport_height: int = CANVAS_DEFAULT_VIEWPORT_HEIGHT,
+    layout_specification: Optional[Dict[str, Any]] = None,
 ) -> RenderResult:
     """Build manifest from layout+structure, then render to PNG.
 
@@ -51,6 +52,8 @@ def render_manifest(
             files are written to a unique temp directory owned by the caller.
         viewport_width: Render viewport width in pixels.
         viewport_height: Render viewport height in pixels.
+        layout_specification: Layout agent strategy; architecture tier plans
+            are executed by the architecture design-system tool.
 
     Returns:
         RenderResult with manifest dict, png_path, and manifest_path.
@@ -62,6 +65,7 @@ def render_manifest(
     render_state = RenderWorkflowState(
         structure_instantiation=structure_instantiation,
         layout_instantiation=layout_instantiation,
+        layout_specification=layout_specification,
         canvas_library=canvas_library,
     )
     render_state = render_wf.run(render_state)

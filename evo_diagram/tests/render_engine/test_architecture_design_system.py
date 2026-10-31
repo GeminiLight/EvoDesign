@@ -1,3 +1,4 @@
+import base64
 import copy
 
 from evo_diagram.agentic_system.common.node_icons import CARD_KEY, ICON_KEY, sync_node_icons
@@ -122,3 +123,49 @@ def test_icon_sync_leaves_design_system_cards_alone():
     before = copy.deepcopy(scene['elements'])
     sync_node_icons(scene)
     assert scene['elements'] == before
+
+
+def test_layout_agent_tier_plan_is_executed_in_order():
+    plan = {'tier_plan': {'columns': [['app', 'web'], ['gw'], ['orders', 'users']],
+                          'bottom_row': ['cache', 'db']}}
+    scene = apply_architecture_design_system(manifest(), structure(), layout_specification=plan)
+    hosts = cards(scene)
+    assert hosts['app']['y'] < hosts['web']['y'] and hosts['app']['x'] == hosts['web']['x']
+    assert hosts['orders']['y'] < hosts['users']['y']
+    assert hosts['cache']['x'] < hosts['db']['x']
+    assert scene['_meta']['architecture_design_system']['tier_plan_source'] == 'layout_agent'
+
+
+def test_incomplete_tier_plan_falls_back_to_roles():
+    plan = {'tier_plan': {'columns': [['web'], ['gw']], 'bottom_row': ['db']}}
+    scene = apply_architecture_design_system(manifest(), structure(), layout_specification=plan)
+    assert scene['_meta']['architecture_design_system']['tier_plan_source'] == 'fallback'
+    hosts = cards(scene)
+    assert hosts['web']['x'] < hosts['gw']['x'] < hosts['users']['x']
+
+
+def test_card_colours_come_from_the_style_agent_family():
+    styling = {node['id']: {'backgroundColor': '#D8E6D1', 'strokeColor': '#56765A'} for node in NODES}
+    scene = apply_architecture_design_system(manifest(), structure(), layout_instantiation=styling)
+    host = cards(scene)['users']
+    assert host['backgroundColor'] == '#EDF4EA' and host['strokeColor'] == '#AABAAC'
+    icon = next(e for e in scene['elements'] if e['type'] == 'image' and e['groupIds'] == host['groupIds'])
+    svg = base64.b64decode(scene['files'][icon['fileId']]['dataURL'].split(',')[1]).decode()
+    assert '#56765A' in svg
+    arrows = [a for a in scene['elements'] if a['type'] == 'arrow' and a['meta']['source'] == 'users']
+    assert arrows and all(a['strokeColor'] == '#56765A' for a in arrows)
+    assert scene['_meta']['architecture_design_system']['colour_source'] == 'style_agent'
+
+
+def test_plan_read_as_rows_is_rejected():
+    plan = {'pattern_specific_layout_blueprint': {'tier_plan': {
+        'columns': [['web', 'gw', 'users'], ['app', 'orders']], 'bottom_row': ['db', 'cache']}}}
+    scene = apply_architecture_design_system(manifest(), structure(), layout_specification=plan)
+    assert scene['_meta']['architecture_design_system']['tier_plan_source'] == 'fallback'
+
+
+def test_plan_nested_in_layout_blueprint_is_accepted():
+    plan = {'pattern_specific_layout_blueprint': {'tier_plan': {
+        'columns': [['web', 'app'], ['gw'], ['users', 'orders']], 'bottom_row': ['db', 'cache']}}}
+    scene = apply_architecture_design_system(manifest(), structure(), layout_specification=plan)
+    assert scene['_meta']['architecture_design_system']['tier_plan_source'] == 'layout_agent'

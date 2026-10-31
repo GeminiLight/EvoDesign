@@ -1,19 +1,21 @@
-"""Deterministic design system for architecture diagrams.
+"""Architecture design-system tool: executes agent decisions deterministically.
 
-The LLM stages decide *what* the architecture contains (components, roles,
-short descriptions, dependencies). This pass decides *how it looks*, using
-one fixed visual grammar instead of per-diagram free choices:
+The agents keep their roles from the method: Structure decides components,
+roles, sublabels and icons; Style assigns a palette family to every node;
+Layout decides the tier plan (which node sits in which column, in which order,
+and what forms the bottom row). This tool turns those decisions into canvas
+geometry with one fixed visual treatment, the way the shape-size estimator
+turns text into exact node sizes:
 
-* Role-driven card: icon + title + muted sublabel, one width for all cards.
-* Role -> colour family table (light fill, mid stroke, dark ink for icon and
-  outgoing connectors).
-* Tier template: clients | gateways | services | side systems as columns,
-  data/infrastructure as a bottom row.
-* Orthogonal bus routing: fan-in/fan-out between tiers share trunks so many
-  dependencies read as one bundle instead of a tangle.
+* Card: icon + title + muted sublabel, one width for all cards.
+* Colour treatment: the style agent's family becomes a light fill, a mid
+  stroke and a dark ink for the icon and outgoing connectors.
+* Tier plan: columns left to right, data/infrastructure as a bottom row.
+* Orthogonal routing: edges across a column gap share one trunk and edges
+  into the bottom row share one bus.
 
-Scenes it cannot place confidently are returned unchanged, so the general
-pipeline remains the fallback.
+Missing or invalid agent decisions fall back to role-derived defaults; scenes
+it cannot place are returned unchanged.
 """
 
 from __future__ import annotations
@@ -61,7 +63,8 @@ _BUS_DROP = 48
 _SIDE_CORRIDOR = 24
 _ORIGIN = (80.0, 80.0)
 
-# (fill, stroke, ink). Ink colours the icon and every connector leaving the card.
+# Fallback (fill, stroke, ink) when the style agent assigned no usable colour.
+# Ink colours the icon and every connector leaving the card.
 _HUES = {
     "blue": ("#EAF2FD", "#9DC1EE", "#2F6BD0"),
     "violet": ("#F1EEFD", "#BDAEF2", "#6A4FD6"),
@@ -93,6 +96,9 @@ _ROLES = {
 
 # Name keywords are checked before the coarse ``role``/``class`` tokens, in this
 # order, because names like "MQTT 接入网关" or "Flink 流处理服务" carry the role.
+_ENTRY_ROLES = {"client", "gateway"}
+_BACKEND_ROLES = {"service", "worker", "database", "cache", "queue", "storage", "search", "observability"}
+
 _NAME_ROLES = [
     ("gateway", ("gateway", "网关", "nginx", "load balanc", "负载均衡", "ingress", "反向代理", "cdn")),
     ("database", ("mysql", "postgres", "mongo", "database", "数据库", "influx", "时序", "milvus",
@@ -177,6 +183,31 @@ def _canonical_role(node: Dict[str, Any]) -> str:
     return "service"
 
 
+def _hex(value: Any) -> Optional[Tuple[int, int, int]]:
+    text = str(value or "").strip()
+    if len(text) != 7 or not text.startswith("#"):
+        return None
+    try:
+        return tuple(int(text[i:i + 2], 16) for i in (1, 3, 5))  # type: ignore[return-value]
+    except ValueError:
+        return None
+
+
+def _mix(color: Tuple[int, int, int], weight: float) -> str:
+    """Blend ``color`` toward white by ``weight`` (0 keeps it, 1 is white)."""
+    return "#" + "".join(f"{round(c + (255 - c) * weight):02X}" for c in color)
+
+
+def _card_colors(card: "_Card", styling: Dict[str, Any]) -> Tuple[Tuple[str, str, str], str]:
+    """Map the style agent's family onto the card treatment, else the role fallback."""
+    fill, stroke = _hex(styling.get("backgroundColor")), _hex(styling.get("strokeColor"))
+    if fill and stroke:
+        luminance = (0.299 * stroke[0] + 0.587 * stroke[1] + 0.114 * stroke[2]) / 255
+        ink = stroke if luminance < 0.62 else tuple(round(c * 0.55) for c in stroke)
+        return (_mix(fill, 0.55), _mix(stroke, 0.5), _mix(ink, 0)), "style_agent"
+    return _HUES[card.hue], "fallback"
+
+
 def _text_width(text: str, size: float) -> float:
     width = 0.0
     for ch in text:
@@ -224,6 +255,7 @@ class _Card:
         self.title, self.sublabel = _label_parts(node)
         self.icon = _pick_icon(node, role)
         self.hue = _ROLES[role][1] or "green"
+        self.colors: Tuple[str, str, str] = _HUES[self.hue]
         self.x = self.y = 0.0
         self.w = self.h = 0.0
         self.col: Optional[int] = None
@@ -264,7 +296,40 @@ def _barycenter_order(group: List[_Card], neighbours: Dict[str, List[str]],
     return [card for _, card in sorted(enumerate(group), key=key)]
 
 
-def _layout(cards: List[_Card], edges: List[Tuple[str, str]]) -> None:
+def _plan_from_spec(layout_specification: Any, cards: List[_Card]
+                    ) -> Optional[Tuple[List[List[_Card]], List[_Card]]]:
+    """Read the layout agent's tier plan; ``None`` unless it is complete and coherent."""
+    plan = None
+    if isinstance(layout_specification, dict):
+        plan = layout_specification.get("tier_plan")
+        blueprint = layout_specification.get("pattern_specific_layout_blueprint")
+        if plan is None and isinstance(blueprint, dict):
+            plan = blueprint.get("tier_plan")
+    if not isinstance(plan, dict):
+        return None
+    by_id = {c.id: c for c in cards}
+    raw_columns = plan.get("columns")
+    raw_bottom = plan.get("bottom_row") or []
+    if not isinstance(raw_columns, list) or not isinstance(raw_bottom, list):
+        return None
+    columns = [[by_id.get(str(i)) for i in col] for col in raw_columns if isinstance(col, list) and col]
+    bottom = [by_id.get(str(i)) for i in raw_bottom]
+    placed = [c for col in columns for c in col] + bottom
+    if not columns or None in placed or len(placed) != len(cards) or len({id(c) for c in placed}) != len(cards):
+        return None
+    # A column is one vertical stack of a single tier. Entry-side cards
+    # (clients, gateways) stacked with back-end cards means the plan was read
+    # as rows; executing it would scramble the request flow.
+    for column in columns:
+        roles = {c.role for c in column}
+        if roles & _ENTRY_ROLES and roles & _BACKEND_ROLES:
+            logger.info("[ArchDesignSystem] tier plan mixes entry and back-end roles in one column; using roles")
+            return None
+    return columns, bottom
+
+
+def _layout(cards: List[_Card], edges: List[Tuple[str, str]],
+            plan: Optional[Tuple[List[List[_Card]], List[_Card]]] = None) -> None:
     by_id = {card.id: card for card in cards}
     width = max(_MIN_CARD_W, min(_MAX_CARD_W, max(
         _PAD_X * 2 + _ICON + _ICON_GAP
@@ -280,15 +345,18 @@ def _layout(cards: List[_Card], edges: List[Tuple[str, str]]) -> None:
         neighbours.setdefault(target, []).append(source)
     # People who only receive from back-end tiers (alert recipients, report
     # readers) join the side-system column instead of standing before clients.
-    for card in cards:
+    for card in cards if not plan else []:
         if card.role == "actor":
             near = [by_id[n].tier for n in neighbours.get(card.id, []) if n in by_id]
             if near and min(near) >= 2:
                 card.tier = 3
 
-    tiers = sorted({c.tier for c in cards if c.tier < 4})
-    columns = [[c for c in cards if c.tier == tier] for tier in tiers]
-    bottom = [c for c in cards if c.tier == 4]
+    if plan:
+        columns, bottom = [list(col) for col in plan[0]], list(plan[1])
+    else:
+        tiers = sorted({c.tier for c in cards if c.tier < 4})
+        columns = [[c for c in cards if c.tier == tier] for tier in tiers]
+        bottom = [c for c in cards if c.tier == 4]
 
     def place_columns() -> None:
         heights = [len(col) * height + (len(col) - 1) * _ROW_GAP for col in columns]
@@ -314,6 +382,8 @@ def _layout(cards: List[_Card], edges: List[Tuple[str, str]]) -> None:
 
     place_columns()
     place_bottom()
+    if plan:
+        return
     # One barycentre pass reduces crossings without fighting the tier template.
     columns[:] = [_barycenter_order(col, neighbours, by_id, "cy") for col in columns]
     bottom[:] = _barycenter_order(bottom, neighbours, by_id, "cx")
@@ -421,8 +491,11 @@ def _text_element(element_id: str, text: str, size: float, color: str, x: float,
 
 
 def apply_architecture_design_system(manifest: Dict[str, Any],
-                                     structure_instantiation: Any) -> Dict[str, Any]:
-    """Restyle, re-place and re-route an architecture manifest; unchanged on any doubt."""
+                                     structure_instantiation: Any,
+                                     layout_instantiation: Optional[Dict[str, Any]] = None,
+                                     layout_specification: Optional[Dict[str, Any]] = None,
+                                     ) -> Dict[str, Any]:
+    """Execute the agents' architecture decisions on the manifest; unchanged on any doubt."""
     if not is_enabled() or not isinstance(manifest, dict):
         return manifest
     structure = unwrap_structure_instantiation(structure_instantiation)
@@ -445,9 +518,15 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
         hosts[str(node["id"])] = host
 
     cards = [_Card(node, _canonical_role(node)) for node in nodes]
-    if len({c.tier for c in cards}) < 2:
+    plan = _plan_from_spec(layout_specification, cards)
+    if plan is None and len({c.tier for c in cards}) < 2:
         return manifest
     _assign_service_hues(cards)
+    colour_sources = []
+    for card in cards:
+        styling = (layout_instantiation or {}).get(card.id)
+        card.colors, source = _card_colors(card, styling if isinstance(styling, dict) else {})
+        colour_sources.append(source)
     card_by_id = {c.id: c for c in cards}
 
     edges: List[Dict[str, Any]] = []
@@ -455,7 +534,7 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
         if isinstance(edge, dict) and edge.get("source") in card_by_id and edge.get("target") in card_by_id \
                 and edge.get("source") != edge.get("target"):
             edges.append(edge)
-    _layout(cards, [(e["source"], e["target"]) for e in edges])
+    _layout(cards, [(e["source"], e["target"]) for e in edges], plan)
 
     removed: set = set()
     # Group frames are dropped: the tier template already carries the grouping.
@@ -483,10 +562,9 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
         index_counter += 1
         return sequential_index(index_counter)
 
-    owned_icon_ids = set()
     for card in cards:
         host = hosts[card.id]
-        fill, stroke, ink = _HUES[card.hue]
+        fill, stroke, ink = card.colors
         group_id = "card-" + _stable_id("group", card.id)
         texts = [e for e in elements if e.get("type") == "text" and e.get("containerId") == host["id"]]
         icon_eid = id_map.get(f"{card.id}:icon")
@@ -494,7 +572,6 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
             e.get("id") == icon_eid or ((e.get("customData") or {}).get(ICON_KEY) or {}).get("hostId") == host["id"])]
         for element in texts + icons:
             removed.add(element.get("id"))
-        owned_icon_ids.update(e.get("id") for e in icons)
 
         host.update({
             "type": "rectangle", "x": card.x, "y": card.y, "width": card.w, "height": card.h,
@@ -503,7 +580,7 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
             "fillStyle": "solid", "roughness": 0, "opacity": 100, "roundness": {"type": 3},
             "groupIds": [group_id], "boundElements": [], "angle": 0,
             "customData": {**(host.get("customData") or {}),
-                           CARD_KEY: {"role": card.role, "hue": card.hue}},
+                           CARD_KEY: {"role": card.role}},
             "version": int(host.get("version", 1)) + 1,
         })
         host["index"] = next_index()
@@ -569,7 +646,7 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
             "id": arrow_id, "type": "arrow", "x": ox, "y": oy,
             "width": max(xs) - min(xs), "height": max(ys) - min(ys),
             "points": [[x - ox, y - oy] for x, y in points],
-            "angle": 0, "strokeColor": _HUES[card_by_id[source].hue][2],
+            "angle": 0, "strokeColor": card_by_id[source].colors[2],
             "backgroundColor": "transparent", "fillStyle": "solid", "strokeWidth": 1.5,
             "strokeStyle": "dashed" if dashed else "solid", "roughness": 0, "opacity": 100,
             "groupIds": [], "frameId": None, "roundness": None, "index": "",
@@ -605,7 +682,10 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
     app_state = result.setdefault("appState", {})
     app_state["viewBackgroundColor"] = "#FFFFFF"
     meta["architecture_design_system"] = {
-        "cards": {c.id: {"role": c.role, "hue": c.hue, "icon": c.icon} for c in cards},
+        "tier_plan_source": "layout_agent" if plan else "fallback",
+        "colour_source": "style_agent" if all(s == "style_agent" for s in colour_sources) else (
+            "mixed" if "style_agent" in colour_sources else "fallback"),
+        "cards": {c.id: {"role": c.role, "icon": c.icon, "colors": list(c.colors)} for c in cards},
     }
     logger.info("[ArchDesignSystem] Applied to %d cards, %d connectors", len(cards), len(connector_elements))
     return result

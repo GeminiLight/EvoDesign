@@ -39,7 +39,7 @@ is best-effort: model extraction can still return no useful lesson.
 
 ## Design stores
 
-The bundled seed corpus contains 126 existing project strategies (`evo_diagram/design_memory/seeds/web_strategies.json`). Each account gets a separate store under a hashed user ID; guests can use seeded knowledge but do not write learned strategies. Store directories stay outside Git. Embedding model weights are shared in each server process while database contents remain separate. The first use can download/load the embedding model and index the seed; subsequent requests reuse the model and index.
+The bundled seed corpus contains 129 existing project strategies (`evo_diagram/design_memory/seeds/web_strategies.json`). Each account gets a separate store under a hashed user ID; guests can use seeded knowledge but do not write learned strategies. Store directories stay outside Git. Embedding model weights are shared in each server process while database contents remain separate. The first use can download/load the embedding model and index the seed; subsequent requests reuse the model and index.
 
 ## Configuration
 

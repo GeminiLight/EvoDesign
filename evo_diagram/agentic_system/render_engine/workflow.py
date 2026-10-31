@@ -268,6 +268,8 @@ class RenderWorkflow:
 		designed = apply_architecture_design_system(
 			state.diagram_manifest,
 			state.structure_instantiation,
+			layout_instantiation=state.layout_instantiation,
+			layout_specification=state.layout_specification,
 		)
 		if designed is not state.diagram_manifest:
 			state.update_stage(ARROW, {"manifest": designed})
