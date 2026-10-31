@@ -116,6 +116,15 @@ Independent services with API gateway:
       outline_container, outline_terminal, outline_code, outline_send,
       outline_split, outline_blocks, outline_boxes, outline_cable, outline_route,
       outline_webhook, outline_app_window.
+- **Visual priority.** Emit a top-level `title`: the diagram's subject in at
+  most 6 words (CJK: 12 characters), in the source language. Give each node an
+  optional `emphasis`:
+    - `"primary"` for the one or two components the diagram is about (the
+      core service, the engine, the agent loop), so the reader's eye lands
+      there first;
+    - `"muted"` for peripheral infrastructure the main flow does not depend on
+      (monitoring, logging, CI/CD, notification providers);
+    - omit it for everything else. Never mark more than two nodes primary.
 - **Language (strict).** `label` and `sublabel` use the language of the source
   content, even though these instructions and your specification are in
   English: a Chinese source gets Chinese labels ("用户服务", not "User
@@ -169,6 +178,10 @@ Independent services with API gateway:
   ["user_service", "order_service", "payment_service"]],
   "bottom_row": ["mysql", "redis", "kafka"]}`.
   Never put clients or gateways in the same column as services or stores.
+  Also emit `column_labels` (one short tier name per column, e.g. "接入层",
+  "服务层", or a pipeline stage such as "生成") and `bottom_label` (e.g.
+  "数据层"), in the source language; adjacent columns with the same label are
+  drawn as one zone.
 - Read the request flow left to right: people (if any), clients, entry points
   (gateway, load balancer), services and workers, then side systems such as
   models or third-party providers. Put data stores, caches, queues, search and

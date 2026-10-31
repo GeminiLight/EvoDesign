@@ -65,3 +65,14 @@ def test_area_types_keep_more_of_their_colour():
 def test_er_links_are_drawn_without_direction():
     elements = apply_design_theme(scene(), structure('er_diagram'), STYLE)['elements']
     assert all(e['endArrowhead'] is None and e['startArrowhead'] is None for e in elements if e['type'] == 'arrow')
+
+
+def test_flowchart_emphasis_and_no_title():
+    nodes = [dict(n) for n in NODES]
+    nodes[2]['emphasis'] = 'primary'
+    data = {**structure(), 'nodes': nodes, 'title': '退款流程'}
+    themed = apply_design_theme(scene(), data, STYLE)
+    elements = {e['id']: e for e in themed['elements']}
+    id_map = themed['_meta']['id_map']
+    assert elements[id_map['shipped']]['strokeWidth'] > elements[id_map['check']]['strokeWidth']
+    assert not any(e.get('text') == '退款流程' for e in themed['elements'])

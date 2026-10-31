@@ -20,6 +20,11 @@ from evo_diagram.agentic_system.common.spec_utils import unwrap_structure_instan
 
 from .architecture_design_system import (
     _ICON_KEYWORDS,
+    _MUTED,
+    _MUTED_TITLE_INK,
+    _PRIMARY_STROKE_WIDTH,
+    aesthetic_enabled,
+    emphasis_of,
     _SUBLABEL_INK,
     _TITLE_INK,
     _hex,
@@ -43,6 +48,9 @@ THEMED_TYPES = LINK_TYPES | AREA_TYPES
 # Chen-notation ER links carry no direction, whatever heads the agents drew.
 UNDIRECTED_TYPES = {"er_diagram"}
 _LINK_TINT = 0.55
+_LEAF_TINT = 0.75
+# Types whose hierarchy is the tree itself: the root leads and leaves recede.
+TREE_TYPES = {"mindmap", "tree", "orgchart"}
 _AREA_TINT = 0.3
 THEME_KEY = "evoDesignTheme"
 _STROKE_WIDTH = 1.5
@@ -73,6 +81,35 @@ def _head(value: Any) -> Any:
     return "triangle" if value == "arrow" else value
 
 
+def _tree_emphasis(nodes: list, edges: list, agent: Dict[str, str]) -> Dict[str, str]:
+    """Root reads as primary and leaves recede, unless the agent said otherwise."""
+    ids = {str(n["id"]) for n in nodes}
+    children: Dict[str, list] = {}
+    parent: Dict[str, str] = {}
+    for edge in edges:
+        if not isinstance(edge, dict):
+            continue
+        source, target = str(edge.get("source")), str(edge.get("target"))
+        if source in ids and target in ids and target not in parent:
+            parent[target] = source
+            children.setdefault(source, []).append(target)
+    for node in nodes:
+        pid = node.get("parent_id") or node.get("parent")
+        if pid and str(pid) in ids and str(node["id"]) not in parent:
+            parent[str(node["id"])] = str(pid)
+            children.setdefault(str(pid), []).append(str(node["id"]))
+    roots = [i for i in ids if i not in parent and i in children]
+    result = dict(agent)
+    for node_id in ids:
+        if result.get(node_id):
+            continue
+        if node_id in roots and len(roots) == 1:
+            result[node_id] = "primary"
+        elif node_id not in children and node_id in parent and parent[node_id] not in roots:
+            result[node_id] = "leaf"
+    return result
+
+
 def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
                        layout_instantiation: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Restyle a non-architecture scene in place of its old treatment; unchanged on any doubt."""
@@ -92,8 +129,14 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
     styling = layout_instantiation if isinstance(layout_instantiation, dict) else {}
     files = result.setdefault("files", {})
 
+    emphasis = {str(n["id"]): emphasis_of(n) for n in nodes}
+    if chart_type in TREE_TYPES:
+        emphasis = _tree_emphasis(nodes, structure.get("edges") or [], emphasis)
+    use_emphasis = aesthetic_enabled("EMPHASIS")
+
     host_ink: Dict[str, str] = {}
     node_ink: Dict[str, str] = {}
+    muted_hosts = set()
     for node in nodes:
         host = by_eid.get(id_map.get(str(node["id"]), ""))
         if not host or host.get("type") not in {"rectangle", "ellipse", "diamond"}:
@@ -105,8 +148,17 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
         if not fill or not stroke:
             continue
         ink = _ink(stroke)
+        level = emphasis.get(str(node["id"]), "") if use_emphasis else ""
+        background, width = _mix(fill, tint), _STROKE_WIDTH
+        if level == "primary":
+            background, width = _mix(_hex(ink), 0.82), _PRIMARY_STROKE_WIDTH
+        elif level == "leaf":
+            background, width = _mix(fill, _LEAF_TINT), 1
+        elif level == "muted":
+            background, ink, width = _MUTED[0], _MUTED[2], 1
+            muted_hosts.add(host["id"])
         host.update({
-            "backgroundColor": _mix(fill, tint), "strokeColor": ink, "strokeWidth": _STROKE_WIDTH,
+            "backgroundColor": background, "strokeColor": ink, "strokeWidth": width,
             "roughness": 0, "fillStyle": "solid",
             "customData": {**(host.get("customData") or {}), THEME_KEY: True},
             "version": int(host.get("version", 1)) + 1,
@@ -118,7 +170,8 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
     for element in elements:
         kind = element.get("type")
         if kind == "text" and element.get("containerId") in host_ink:
-            element.update({"strokeColor": _TITLE_INK, "fontFamily": 2, "roughness": 0})
+            ink = _MUTED_TITLE_INK if element.get("containerId") in muted_hosts else _TITLE_INK
+            element.update({"strokeColor": ink, "fontFamily": 2, "roughness": 0})
         elif kind == "image":
             data = (element.get("customData") or {}).get(ICON_KEY) or {}
             host_id = data.get("hostId")

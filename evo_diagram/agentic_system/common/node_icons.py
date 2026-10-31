@@ -20,6 +20,8 @@ ICON_KEY = "evoDesignIcon"
 CARD_KEY = "evoDesignCard"
 # Junction dots on shared connector trunks: decoration, never a node.
 JUNCTION_KEY = "evoDesignJunction"
+# Zone backgrounds, zone labels and diagram titles: decoration, never a node.
+DECORATION_KEY = "evoDesignDecoration"
 
 
 @lru_cache(maxsize=1)

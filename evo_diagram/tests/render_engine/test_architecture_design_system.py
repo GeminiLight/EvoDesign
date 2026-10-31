@@ -276,3 +276,43 @@ def test_junction_dots_are_not_reported_as_nodes_by_verification():
     scene = apply_architecture_design_system(manifest(), structure())
     assert any((e.get('customData') or {}).get('evoDesignJunction') for e in scene['elements'])
     assert check_edge_node_intersections(scene) == [] and check_node_overlap(scene) == []
+
+
+def _decorations(scene, kind):
+    return [e for e in scene['elements'] if (e.get('customData') or {}).get('evoDesignDecoration') == kind]
+
+
+def test_emphasis_marks_primary_and_mutes_side_nodes():
+    data = structure()
+    data['nodes'][3]['emphasis'] = 'primary'
+    data['nodes'][6]['emphasis'] = 'muted'
+    hosts = cards(apply_architecture_design_system(manifest(), data))
+    assert hosts['users']['strokeWidth'] > hosts['orders']['strokeWidth']
+    assert hosts['cache']['backgroundColor'] == '#F8FAFC'
+
+
+def test_zone_bands_hug_their_cards_and_never_repeat_a_name():
+    nodes = [{'id': 'c', 'label': 'App', 'sublabel': 'x', 'role': 'client'},
+             {'id': 'g', 'label': 'Gateway', 'sublabel': 'x', 'role': 'gateway'},
+             {'id': 's1', 'label': 'S1', 'sublabel': 'x', 'role': 'service'},
+             {'id': 's2', 'label': 'S2', 'sublabel': 'x', 'role': 'service'},
+             {'id': 's3', 'label': 'S3', 'sublabel': 'x', 'role': 'service'},
+             {'id': 'm', 'label': 'Model Gateway', 'sublabel': 'x', 'role': 'gateway'}]
+    scene = _scene(nodes, [('c', 'g'), ('g', 's1'), ('g', 's2'), ('g', 's3'), ('s1', 'm')],
+                   {'columns': [['c'], ['g'], ['s1', 's2', 's3'], ['m']], 'bottom_row': []})
+    labels = [t['text'] for t in _decorations(scene, 'zone_label')]
+    assert len(labels) == len(set(labels)) and 'External' in labels
+    bands = sorted(_decorations(scene, 'zone'), key=lambda e: e['x'])
+    assert bands[0]['height'] < bands[2]['height']
+
+
+def test_title_sits_above_the_diagram_and_is_ignored_by_verification():
+    from evo_diagram.agentic_system.verification_stage.checks.collision_detection import (
+        check_edge_node_intersections, check_node_overlap)
+    data = structure()
+    data['title'] = '电商系统架构'
+    scene = apply_architecture_design_system(manifest(), data)
+    [title] = _decorations(scene, 'title')
+    assert title['text'] == '电商系统架构'
+    assert title['y'] < min(h['y'] for h in cards(scene).values())
+    assert check_edge_node_intersections(scene) == [] and check_node_overlap(scene) == []

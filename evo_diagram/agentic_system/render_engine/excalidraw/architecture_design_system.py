@@ -29,6 +29,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from evo_diagram.agentic_system.common.node_icons import (
     CARD_KEY,
+    DECORATION_KEY,
     ICON_KEY,
     JUNCTION_KEY,
     bundled_icons,
@@ -70,6 +71,23 @@ _SIDE_CORRIDOR = 24
 _MAX_BOTTOM = 5
 _MAX_COLUMN = 5
 _JUNCTION = 7
+_DIAGRAM_TITLE_SIZE = 26
+_ZONE_FILL = "#F8FAFC"
+_ZONE_STROKE = "#E2E8F0"
+_ZONE_INK = "#64748B"
+_ZONE_LABEL_SIZE = 14
+_ZONE_PAD = 16
+_ZONE_HEAD = 40
+_MUTED = ("#F8FAFC", "#CBD5E1", "#64748B")
+_MUTED_TITLE_INK = "#475569"
+_PRIMARY_STROKE_WIDTH = 2.5
+_PRIMARY_TITLE_SIZE = 22
+# Default zone names by dominant role, used when the layout agent named none.
+_ZONE_NAMES = {
+    "actor": ("用户", "Users"), "client": ("客户端", "Clients"), "gateway": ("接入层", "Entry"),
+    "service": ("服务层", "Services"), "worker": ("服务层", "Services"), "model": ("外部能力", "External"),
+    "external": ("外部能力", "External"), "bottom": ("数据与基础设施", "Data & infrastructure"),
+}
 _ORIGIN = (80.0, 80.0)
 
 # Fallback (fill, stroke, ink) when the style agent assigned no usable colour.
@@ -182,6 +200,29 @@ def is_enabled() -> bool:
     return os.getenv("EVODESIGN_ARCH_DESIGN_SYSTEM", "1").strip().lower() not in {"0", "false", "no", "off"}
 
 
+def aesthetic_enabled(name: str) -> bool:
+    """Switch for one aesthetic treatment (EMPHASIS, ZONES, TITLE); kept for ablations."""
+    return os.getenv(f"EVODESIGN_AES_{name}", "1").strip().lower() not in {"0", "false", "no", "off"}
+
+
+def emphasis_of(node: Dict[str, Any]) -> str:
+    """The structure agent's emphasis decision: "primary", "muted" or ""."""
+    value = str(node.get("emphasis") or "").strip().lower()
+    return value if value in {"primary", "muted"} else ""
+
+
+def has_cjk(texts: List[str]) -> bool:
+    return any(unicodedata.east_asian_width(ch) in {"W", "F"} for text in texts for ch in text)
+
+
+def title_element(title: str, x: float, y: float) -> Dict[str, Any]:
+    """The diagram title the structure agent chose, placed above the content."""
+    element = _text_element(_stable_id("diagram-title", title), title, _DIAGRAM_TITLE_SIZE, _TITLE_INK,
+                            x, y, [], "")
+    element["customData"] = {DECORATION_KEY: "title"}
+    return element
+
+
 def _canonical_role(node: Dict[str, Any]) -> str:
     declared = str(node.get("role") or "").strip().lower().replace("-", "_").replace(" ", "_")
     if declared in _ROLES:
@@ -275,6 +316,8 @@ class _Card:
         self.w = self.h = 0.0
         self.col: Optional[int] = None
         self.row = 0
+        self.emphasis = emphasis_of(node)
+        self.zone = ""
 
     @property
     def cx(self) -> float:
@@ -340,6 +383,13 @@ def _plan_from_spec(layout_specification: Any, cards: List[_Card]
         if roles & _ENTRY_ROLES and roles & _BACKEND_ROLES:
             logger.info("[ArchDesignSystem] tier plan mixes entry and back-end roles in one column; using roles")
             return None
+    labels = plan.get("column_labels")
+    if isinstance(labels, list) and len(labels) == len(columns):
+        for column, label in zip(columns, labels):
+            for card in column:
+                card.zone = str(label or "").strip()[:24]
+    for card in bottom:
+        card.zone = str(plan.get("bottom_label") or "").strip()[:24]
     return columns, bottom
 
 
@@ -348,7 +398,8 @@ def _layout(cards: List[_Card], edges: List[Tuple[str, str]],
     by_id = {card.id: card for card in cards}
     width = max(_MIN_CARD_W, min(_MAX_CARD_W, max(
         _PAD_X * 2 + _ICON + _ICON_GAP
-        + max(_text_width(c.title, _TITLE_SIZE), _text_width(c.sublabel, _SUBLABEL_SIZE))
+        + max(_text_width(c.title, _PRIMARY_TITLE_SIZE if c.emphasis == "primary" else _TITLE_SIZE),
+              _text_width(c.sublabel, _SUBLABEL_SIZE))
         for c in cards)))
     height = _CARD_H if any(c.sublabel for c in cards) else _CARD_H_NO_SUB
     for card in cards:
@@ -580,6 +631,86 @@ class _Router:
         return list(reversed(compact)) if reverse else compact
 
 
+def _zone_rect(zone_id: str, x: float, y: float, w: float, h: float) -> Dict[str, Any]:
+    return {
+        "id": zone_id, "type": "rectangle", "x": x, "y": y, "width": w, "height": h, "angle": 0,
+        "strokeColor": _ZONE_STROKE, "backgroundColor": _ZONE_FILL, "fillStyle": "solid",
+        "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0, "opacity": 100, "groupIds": [],
+        "frameId": None, "roundness": {"type": 3}, "index": "", "seed": 1, "version": 1,
+        "versionNonce": 1, "isDeleted": False, "boundElements": [], "updated": 1, "link": None,
+        "locked": True, "zIndex": 100, "customData": {DECORATION_KEY: "zone"},
+    }
+
+
+def _zones(cards: List[_Card]) -> List[Dict[str, Any]]:
+    """Light background bands that name the tiers: one per run of columns, one for the bottom row.
+
+    Names come from the layout agent's ``column_labels``/``bottom_label``;
+    otherwise from the column's dominant role. Adjacent columns with the same
+    name share one band, so a pipeline of services is not split into repeats.
+    Each band hugs its own cards rather than the tallest column, and a name
+    never appears twice: a repeated default name falls back to the external
+    tier, else the band goes unlabelled.
+    """
+    cjk = has_cjk([c.title for c in cards])
+
+    def name(group: List[_Card], bottom: bool) -> str:
+        agent = [c.zone for c in group if c.zone]
+        if agent:
+            return max(set(agent), key=agent.count)
+        roles = ["bottom"] if bottom else [c.role for c in group]
+        role = max(set(roles), key=roles.count)
+        return _ZONE_NAMES.get(role, ("", ""))[0 if cjk else 1]
+
+    main = [c for c in cards if c.col is not None]
+    if not main:
+        return []
+    runs: List[Tuple[str, List[_Card]]] = []
+    for col in sorted({c.col for c in main}):
+        group = [c for c in main if c.col == col]
+        label = name(group, False)
+        if runs and runs[-1][0] == label:
+            runs[-1][1].extend(group)
+        else:
+            runs.append((label, group))
+
+    seen = set()
+    for i, (label, group) in enumerate(runs):
+        if label in seen and not any(c.zone for c in group):
+            label = _ZONE_NAMES["external"][0 if cjk else 1]
+        runs[i] = (label if label not in seen else "", group)
+        seen.add(label)
+
+    elements: List[Dict[str, Any]] = []
+    for label, group in runs:
+        x0 = min(c.x for c in group) - _ZONE_PAD
+        x1 = max(c.right for c in group) + _ZONE_PAD
+        top = min(c.y for c in group) - _ZONE_HEAD
+        bottom_edge = max(c.bottom for c in group) + _ZONE_PAD
+        zone_id = _stable_id("zone", label, f"{x0:.0f}")
+        elements.append(_zone_rect(zone_id, x0, top, x1 - x0, bottom_edge - top))
+        if label:
+            text = _text_element(_stable_id("zone-label", label, f"{x0:.0f}"), label, _ZONE_LABEL_SIZE,
+                                 _ZONE_INK, x0 + 14, top + 12, [], "")
+            text["customData"] = {DECORATION_KEY: "zone_label"}
+            elements.append(text)
+    row = [c for c in cards if c.col is None]
+    if row:
+        label = name(row, True)
+        label_w = _text_width(label, _ZONE_LABEL_SIZE) + 28 if label else 0
+        x0 = min(c.x for c in row) - _ZONE_PAD - label_w
+        x1 = max(c.right for c in row) + _ZONE_PAD
+        y0 = min(c.y for c in row) - _ZONE_PAD
+        y1 = max(c.bottom for c in row) + _ZONE_PAD
+        elements.append(_zone_rect(_stable_id("zone", "bottom"), x0, y0, x1 - x0, y1 - y0))
+        if label:
+            text = _text_element(_stable_id("zone-label", "bottom", label), label, _ZONE_LABEL_SIZE,
+                                 _ZONE_INK, x0 + 14, (y0 + y1) / 2 - _ZONE_LABEL_SIZE * _LINE_HEIGHT / 2, [], "")
+            text["customData"] = {DECORATION_KEY: "zone_label"}
+            elements.append(text)
+    return elements
+
+
 def _junctions(paths: List[Tuple[List[Point], str]]) -> List[Tuple[Point, str]]:
     """Points where connectors branch or merge: three or more directions meet.
 
@@ -664,6 +795,11 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
         styling = (layout_instantiation or {}).get(card.id)
         card.colors, source = _card_colors(card, styling if isinstance(styling, dict) else {})
         colour_sources.append(source)
+        if aesthetic_enabled("EMPHASIS") and card.emphasis == "muted":
+            card.colors = _MUTED
+        elif aesthetic_enabled("EMPHASIS") and card.emphasis == "primary":
+            ink = card.colors[2]
+            card.colors = (_mix(_hex(ink), 0.82), ink, ink)
     card_by_id = {c.id: c for c in cards}
 
     edges: List[Dict[str, Any]] = []
@@ -687,7 +823,8 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
     for arrow in arrows:
         removed.add(arrow.get("id"))
     for element in elements:
-        if (element.get("customData") or {}).get(JUNCTION_KEY):
+        custom = element.get("customData") or {}
+        if custom.get(JUNCTION_KEY) or custom.get(DECORATION_KEY):
             removed.add(element.get("id"))
     for element in elements:
         if element.get("containerId") in removed:
@@ -705,6 +842,9 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
     for card in cards:
         host = hosts[card.id]
         fill, stroke, ink = card.colors
+        emphasized = aesthetic_enabled("EMPHASIS") and card.emphasis == "primary"
+        title_size = _PRIMARY_TITLE_SIZE if emphasized else _TITLE_SIZE
+        title_ink = _MUTED_TITLE_INK if aesthetic_enabled("EMPHASIS") and card.emphasis == "muted" else _TITLE_INK
         group_id = "card-" + _stable_id("group", card.id)
         texts = [e for e in elements if e.get("type") == "text" and e.get("containerId") == host["id"]]
         icon_eid = id_map.get(f"{card.id}:icon")
@@ -715,7 +855,8 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
 
         host.update({
             "type": "rectangle", "x": card.x, "y": card.y, "width": card.w, "height": card.h,
-            "backgroundColor": fill, "strokeColor": stroke, "strokeWidth": 1.5,
+            "backgroundColor": fill, "strokeColor": stroke,
+            "strokeWidth": _PRIMARY_STROKE_WIDTH if emphasized else 1.5,
             "strokeStyle": "dashed" if card.role == "external" else "solid",
             "fillStyle": "solid", "roughness": 0, "opacity": 100, "roundness": {"type": 3},
             "groupIds": [group_id], "boundElements": [], "angle": 0,
@@ -743,12 +884,12 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
         id_map[f"{card.id}:icon"] = icon_id
 
         text_x = card.x + _PAD_X + _ICON + _ICON_GAP
-        title_h = _TITLE_SIZE * _LINE_HEIGHT
+        title_h = title_size * _LINE_HEIGHT
         sub_h = _SUBLABEL_SIZE * _LINE_HEIGHT if card.sublabel else 0.0
         gap = 6 if card.sublabel else 0
         top = card.cy - (title_h + gap + sub_h) / 2
         title_id = texts[0]["id"] if texts else _stable_id("title", card.id)
-        new_elements.append(_text_element(title_id, card.title, _TITLE_SIZE, _TITLE_INK,
+        new_elements.append(_text_element(title_id, card.title, title_size, title_ink,
                                           text_x, top, [group_id], next_index()))
         if card.sublabel:
             new_elements.append(_text_element(_stable_id("sublabel", card.id), card.sublabel,
@@ -821,6 +962,14 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
             "boundElements": [], "updated": 1, "link": None, "locked": True,
             "customData": {JUNCTION_KEY: True},
         })
+    decorations = _zones(cards) if aesthetic_enabled("ZONES") else []
+    title = str(structure.get("title") or "").strip()
+    if title and aesthetic_enabled("TITLE"):
+        boxes = [(c.x, c.y) for c in cards] + [(d["x"], d["y"]) for d in decorations]
+        decorations.append(title_element(title[:40], min(x for x, _ in boxes), min(y for _, y in boxes) - 64))
+    for decoration in decorations:
+        decoration["index"] = next_index()
+    ordered[:0] = decorations
     ordered.extend(new_elements)
     handled = {e["id"] for e in ordered} | removed | set(hosts[c.id]["id"] for c in cards)
     for element in elements:

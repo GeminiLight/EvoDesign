@@ -31,7 +31,7 @@ from evo_diagram.canvas_environment import (
     CANVAS_MAX_Y,
     detect_group_frame_ids,
 )
-from evo_diagram.agentic_system.common.node_icons import JUNCTION_KEY
+from evo_diagram.agentic_system.common.node_icons import DECORATION_KEY, JUNCTION_KEY
 from evo_diagram.agentic_system.common.semantic_ids import id_map_from_manifest
 from .finding import Finding, Severity
 
@@ -49,9 +49,9 @@ def _is_fully_transparent(elem: Dict[str, Any]) -> bool:
 
 
 def _is_decoration(elem: Dict[str, Any]) -> bool:
-    """Junction dots sit on connectors by design; they are not nodes."""
+    """Junction dots, zone backgrounds and titles are design decoration, not nodes."""
     custom = elem.get("customData")
-    return isinstance(custom, dict) and bool(custom.get(JUNCTION_KEY))
+    return isinstance(custom, dict) and bool(custom.get(JUNCTION_KEY) or custom.get(DECORATION_KEY))
 
 
 def _bbox(elem: Dict[str, Any]) -> Optional[Tuple[float, float, float, float]]:
