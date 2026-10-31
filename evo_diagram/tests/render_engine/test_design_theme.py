@@ -27,7 +27,7 @@ def structure(chart_type='flowchart'):
 def test_architecture_and_other_types_are_left_alone():
     base = scene()
     assert apply_design_theme(base, structure('architecture'), STYLE) is base
-    assert apply_design_theme(base, structure('sequence'), STYLE) is base
+    assert apply_design_theme(base, structure('venn'), STYLE) is base
 
 
 def test_flowchart_keeps_shapes_and_takes_the_shared_treatment():
@@ -42,3 +42,21 @@ def test_flowchart_keeps_shapes_and_takes_the_shared_treatment():
     assert labels and all(t['strokeColor'] == '#1F2937' for t in labels)
     arrow = elements['arrow-1']
     assert arrow['endArrowhead'] == 'triangle' and arrow['strokeColor'] == '#367E8A'
+
+
+def test_undirected_and_uml_heads_keep_their_meaning():
+    base = scene()
+    base['elements'][-1].update({'endArrowhead': None})
+    base['elements'].append({'id': 'arrow-2', 'type': 'arrow', 'x': 0, 'y': 0, 'points': [[0, 0], [0, 60]],
+                             'endArrowhead': 'triangle_outline', 'startArrowhead': 'diamond',
+                             'boundElements': [], 'meta': {'source': 'check', 'target': 'shipped'}})
+    elements = {e['id']: e for e in apply_design_theme(base, structure('er_diagram'), STYLE)['elements']}
+    assert elements['arrow-1']['endArrowhead'] is None
+    assert (elements['arrow-2']['endArrowhead'], elements['arrow-2']['startArrowhead']) == ('triangle_outline', 'diamond')
+
+
+def test_area_types_keep_more_of_their_colour():
+    link = apply_design_theme(scene(), structure('flowchart'), STYLE)
+    area = apply_design_theme(scene(), structure('funnel'), STYLE)
+    host = lambda s: next(e for e in s['elements'] if e['id'] == s['_meta']['id_map']['check'])
+    assert host(area)['backgroundColor'] < host(link)['backgroundColor']

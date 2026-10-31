@@ -14,6 +14,7 @@ import logging
 from copy import deepcopy
 from typing import Any, Dict, Optional
 
+from evo_diagram.agentic_system.common.diagram_types import normalize_diagram_type
 from evo_diagram.agentic_system.common.node_icons import ICON_KEY, bundled_icons, icon_file
 from evo_diagram.agentic_system.common.spec_utils import unwrap_structure_instantiation
 
@@ -28,7 +29,19 @@ from .architecture_design_system import (
 
 logger = logging.getLogger(__name__)
 
-THEMED_TYPES = {"flowchart", "flow_chart", "flow"}
+# Node-and-link types take the full treatment. Area types (blocks whose fill
+# is the content) keep more of their colour so neighbouring blocks stay
+# distinct. Venn diagrams are excluded: their overlaps are drawn by
+# translucent fills that a lighter tint washes out.
+LINK_TYPES = {
+    "flowchart", "swimlane", "data_flow_diagram", "state_diagram", "sequence_diagram",
+    "class_diagram", "er_diagram", "network_topology", "orgchart", "tree", "mindmap",
+    "concept_map", "fishbone",
+}
+AREA_TYPES = {"gantt", "timeline", "funnel", "pyramid", "swot", "matrix", "infographic"}
+THEMED_TYPES = LINK_TYPES | AREA_TYPES
+_LINK_TINT = 0.55
+_AREA_TINT = 0.3
 THEME_KEY = "evoDesignTheme"
 _STROKE_WIDTH = 1.5
 
@@ -40,14 +53,22 @@ def _ink(stroke: tuple) -> str:
 
 
 def _outline_icon(label: str, current: str) -> str:
+    """The outline twin of the agent's icon, else one matched on the label."""
     if current.startswith("outline_"):
         return current
+    outline = f"outline_{current}"
+    if outline in bundled_icons():
+        return outline
     haystack = label.lower()
     for needles, name in _ICON_KEYWORDS:
         if any(needle in haystack for needle in needles):
             return name
-    outline = f"outline_{current}"
-    return outline if outline in bundled_icons() else current
+    return current
+
+
+def _head(value: Any) -> Any:
+    """Plain heads become solid triangles; UML heads (hollow triangle, diamond) keep their meaning."""
+    return "triangle" if value == "arrow" else value
 
 
 def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
@@ -56,7 +77,7 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
     if not is_enabled() or not isinstance(manifest, dict):
         return manifest
     structure = unwrap_structure_instantiation(structure_instantiation)
-    chart_type = str(structure.get("chart_type") or "").strip().lower()
+    chart_type = normalize_diagram_type(str(structure.get("chart_type") or ""))
     if chart_type not in THEMED_TYPES:
         return manifest
 
@@ -77,12 +98,13 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
             continue
         style = styling.get(node["id"]) if isinstance(styling.get(node["id"]), dict) else {}
         fill = _hex(style.get("backgroundColor")) or _hex(host.get("backgroundColor"))
+        tint = _AREA_TINT if chart_type in AREA_TYPES else _LINK_TINT
         stroke = _hex(style.get("strokeColor")) or _hex(host.get("strokeColor"))
         if not fill or not stroke:
             continue
         ink = _ink(stroke)
         host.update({
-            "backgroundColor": _mix(fill, 0.55), "strokeColor": ink, "strokeWidth": _STROKE_WIDTH,
+            "backgroundColor": _mix(fill, tint), "strokeColor": ink, "strokeWidth": _STROKE_WIDTH,
             "roughness": 0, "fillStyle": "solid",
             "customData": {**(host.get("customData") or {}), THEME_KEY: True},
             "version": int(host.get("version", 1)) + 1,
@@ -120,8 +142,10 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
             source = next((n for n, eid in id_map.items() if eid == binding.get("elementId")), "")
         element.update({
             "strokeColor": node_ink.get(source, _SUBLABEL_INK), "strokeWidth": _STROKE_WIDTH,
-            "roughness": 0, "endArrowhead": "triangle",
-            "startArrowhead": "triangle" if element.get("startArrowhead") else None,
+            # Undirected links (ER, mind map) stay undirected.
+            "roughness": 0,
+            "endArrowhead": _head(element.get("endArrowhead")),
+            "startArrowhead": _head(element.get("startArrowhead")),
         })
         arrow_ids.add(element.get("id"))
     for element in elements:
