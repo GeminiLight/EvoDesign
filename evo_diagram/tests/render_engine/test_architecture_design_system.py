@@ -6,6 +6,7 @@ from evo_diagram.agentic_system.render_engine.excalidraw.architecture_design_sys
     apply_architecture_design_system,
 )
 from evo_diagram.agentic_system.render_engine.excalidraw.converter import InstantiationToExcalidrawConverter
+from evo_diagram.agentic_system.render_engine.shared.render_audit import audit_excalidraw_manifest
 
 
 NODES = [
@@ -116,6 +117,15 @@ def test_bidirectional_pair_becomes_one_double_headed_connector():
     arrows = [a for a in scene['elements'] if a['type'] == 'arrow']
     pair = [a for a in arrows if {a['meta']['source'], a['meta']['target']} == {'web', 'gw'}]
     assert len(pair) == 1 and pair[0]['startArrowhead'] and pair[0]['endArrowhead']
+
+
+def test_merged_duplicate_and_reverse_edges_still_count_as_rendered():
+    data = structure()
+    data['edges'] += [{'id': 'edge:gw2web', 'source': 'gw', 'target': 'web'},
+                      {'id': 'edge:web2gw_1', 'source': 'web', 'target': 'gw'}]
+    scene = apply_architecture_design_system(manifest(), data)
+    report = audit_excalidraw_manifest(scene, data)
+    assert not [w for w in report.warnings if 'Missing Structure edge ids' in w]
 
 
 def test_icon_sync_leaves_design_system_cards_alone():

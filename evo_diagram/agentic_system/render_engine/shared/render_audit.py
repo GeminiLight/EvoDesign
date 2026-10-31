@@ -77,6 +77,11 @@ def _looks_like_edge(element_data: Any) -> bool:
     return isinstance(start, dict) and isinstance(end, dict)
 
 
+def _merged_edge_ids(meta: Dict[str, Any]) -> List[str]:
+    merged = meta.get("merged_semantic_edge_ids")
+    return [i for i in merged if isinstance(i, str) and i] if isinstance(merged, list) else []
+
+
 def _edge_coverage(
     *,
     expected_edge_count: int,
@@ -231,6 +236,8 @@ def audit_excalidraw_manifest(
             meta = elem.get("meta")
             if isinstance(meta, dict) and isinstance(meta.get("semantic_edge_id"), str):
                 rendered_semantic_edge_ids.add(meta["semantic_edge_id"])
+                # One connector may stand for duplicate or reverse edges of the same pair.
+                rendered_semantic_edge_ids.update(_merged_edge_ids(meta))
             continue
         if etype == "text":
             if elem.get("containerId"):
@@ -367,6 +374,8 @@ def audit_tldraw_manifest(
             meta = entry.get("meta")
             if isinstance(meta, dict) and isinstance(meta.get("semantic_edge_id"), str):
                 rendered_semantic_edge_ids.add(meta["semantic_edge_id"])
+                # One connector may stand for duplicate or reverse edges of the same pair.
+                rendered_semantic_edge_ids.update(_merged_edge_ids(meta))
             continue
 
         text = props.get("text")

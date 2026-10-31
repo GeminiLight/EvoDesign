@@ -622,9 +622,12 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
         reverse_key = (edge["target"], edge["source"])
         if reverse_key in pair_heads:
             pair_heads[reverse_key]["bidirectional"] = True
+            pair_heads[reverse_key]["merged"].append(edge.get("id"))
             continue
-        if key not in pair_heads:
-            pair_heads[key] = {"edge": edge, "bidirectional": False}
+        if key in pair_heads:
+            pair_heads[key]["merged"].append(edge.get("id"))
+        else:
+            pair_heads[key] = {"edge": edge, "bidirectional": False, "merged": []}
 
     router = _Router(cards, list(pair_heads))
     arrow_by_edge = {(a.get("meta") or {}).get("semantic_edge_id"): a for a in arrows}
@@ -656,6 +659,7 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
             "startArrowhead": "triangle" if info["bidirectional"] else None,
             "endArrowhead": "triangle", "lastCommittedPoint": None, "elbowed": False,
             "meta": {**(original.get("meta") or {}), "semantic_edge_id": edge.get("id"),
+                     "merged_semantic_edge_ids": [i for i in info["merged"] if isinstance(i, str)],
                      "source": source, "target": target},
         })
 
