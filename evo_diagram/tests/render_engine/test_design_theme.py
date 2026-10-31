@@ -50,7 +50,7 @@ def test_undirected_and_uml_heads_keep_their_meaning():
     base['elements'].append({'id': 'arrow-2', 'type': 'arrow', 'x': 0, 'y': 0, 'points': [[0, 0], [0, 60]],
                              'endArrowhead': 'triangle_outline', 'startArrowhead': 'diamond',
                              'boundElements': [], 'meta': {'source': 'check', 'target': 'shipped'}})
-    elements = {e['id']: e for e in apply_design_theme(base, structure('er_diagram'), STYLE)['elements']}
+    elements = {e['id']: e for e in apply_design_theme(base, structure('class_diagram'), STYLE)['elements']}
     assert elements['arrow-1']['endArrowhead'] is None
     assert (elements['arrow-2']['endArrowhead'], elements['arrow-2']['startArrowhead']) == ('triangle_outline', 'diamond')
 
@@ -60,3 +60,8 @@ def test_area_types_keep_more_of_their_colour():
     area = apply_design_theme(scene(), structure('funnel'), STYLE)
     host = lambda s: next(e for e in s['elements'] if e['id'] == s['_meta']['id_map']['check'])
     assert host(area)['backgroundColor'] < host(link)['backgroundColor']
+
+
+def test_er_links_are_drawn_without_direction():
+    elements = apply_design_theme(scene(), structure('er_diagram'), STYLE)['elements']
+    assert all(e['endArrowhead'] is None and e['startArrowhead'] is None for e in elements if e['type'] == 'arrow')

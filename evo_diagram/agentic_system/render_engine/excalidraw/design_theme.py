@@ -40,6 +40,8 @@ LINK_TYPES = {
 }
 AREA_TYPES = {"gantt", "timeline", "funnel", "pyramid", "swot", "matrix", "infographic"}
 THEMED_TYPES = LINK_TYPES | AREA_TYPES
+# Chen-notation ER links carry no direction, whatever heads the agents drew.
+UNDIRECTED_TYPES = {"er_diagram"}
 _LINK_TINT = 0.55
 _AREA_TINT = 0.3
 THEME_KEY = "evoDesignTheme"
@@ -144,8 +146,8 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
             "strokeColor": node_ink.get(source, _SUBLABEL_INK), "strokeWidth": _STROKE_WIDTH,
             # Undirected links (ER, mind map) stay undirected.
             "roughness": 0,
-            "endArrowhead": _head(element.get("endArrowhead")),
-            "startArrowhead": _head(element.get("startArrowhead")),
+            "endArrowhead": None if chart_type in UNDIRECTED_TYPES else _head(element.get("endArrowhead")),
+            "startArrowhead": None if chart_type in UNDIRECTED_TYPES else _head(element.get("startArrowhead")),
         })
         arrow_ids.add(element.get("id"))
     for element in elements:
