@@ -239,3 +239,40 @@ def test_output_planned_before_its_sources_moves_to_the_end():
                                   ('orders', 'db'), ('orders', 'cache')]]
     hosts = cards(apply_architecture_design_system(manifest(), data, layout_specification=plan))
     assert hosts['users']['x'] > hosts['orders']['x'] > hosts['gw']['x'] > hosts['web']['x']
+
+
+def _scene(nodes, pairs, plan):
+    layout = {n['id']: {'shape': 'rectangle', 'label': {'text': n['label']}, 'x': 0, 'y': 0, 'w': 100, 'h': 50}
+              for n in nodes}
+    scene = InstantiationToExcalidrawConverter(layout).convert()
+    data = {'chart_type': 'architecture', 'nodes': nodes, 'groups': [],
+            'edges': [{'id': f'edge:{s}2{t}', 'source': s, 'target': t} for s, t in pairs]}
+    return apply_architecture_design_system(scene, data, layout_specification={'tier_plan': plan})
+
+
+def _trunk_xs(scene, sources):
+    xs = set()
+    for arrow in scene['elements']:
+        if arrow['type'] == 'arrow' and arrow['meta']['source'] in sources:
+            points = [(arrow['x'] + px, arrow['y'] + py) for px, py in arrow['points']]
+            xs |= {p[0] for p, q in zip(points, points[1:]) if p[0] == q[0]}
+    return xs
+
+
+def test_fan_out_keeps_one_trunk_with_a_junction_dot():
+    nodes = [{'id': i, 'label': i.upper(), 'sublabel': 'x', 'role': 'service'} for i in ('a', 'c', 'd', 'e')]
+    scene = _scene(nodes, [('a', 'c'), ('a', 'd'), ('a', 'e')], {'columns': [['a'], ['c', 'd', 'e']], 'bottom_row': []})
+    assert len(_trunk_xs(scene, {'a'})) == 1
+    dots = [e for e in scene['elements'] if (e.get('customData') or {}).get('evoDesignJunction')]
+    assert dots and all(e['width'] < 10 for e in dots)
+    again = apply_architecture_design_system(scene, {'chart_type': 'architecture', 'nodes': nodes, 'groups': [],
+        'edges': [{'id': f'edge:{s}2{t}', 'source': s, 'target': t} for s, t in [('a', 'c'), ('a', 'd'), ('a', 'e')]]})
+    assert len([e for e in again['elements'] if (e.get('customData') or {}).get('evoDesignJunction')]) == len(dots)
+
+
+def test_junction_dots_are_not_reported_as_nodes_by_verification():
+    from evo_diagram.agentic_system.verification_stage.checks.collision_detection import (
+        check_edge_node_intersections, check_node_overlap)
+    scene = apply_architecture_design_system(manifest(), structure())
+    assert any((e.get('customData') or {}).get('evoDesignJunction') for e in scene['elements'])
+    assert check_edge_node_intersections(scene) == [] and check_node_overlap(scene) == []

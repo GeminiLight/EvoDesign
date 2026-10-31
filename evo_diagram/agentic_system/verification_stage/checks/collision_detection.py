@@ -31,6 +31,7 @@ from evo_diagram.canvas_environment import (
     CANVAS_MAX_Y,
     detect_group_frame_ids,
 )
+from evo_diagram.agentic_system.common.node_icons import JUNCTION_KEY
 from evo_diagram.agentic_system.common.semantic_ids import id_map_from_manifest
 from .finding import Finding, Severity
 
@@ -45,6 +46,12 @@ def _is_fully_transparent(elem: Dict[str, Any]) -> bool:
         return float(elem.get("opacity", 100)) <= 0
     except (TypeError, ValueError):
         return False
+
+
+def _is_decoration(elem: Dict[str, Any]) -> bool:
+    """Junction dots sit on connectors by design; they are not nodes."""
+    custom = elem.get("customData")
+    return isinstance(custom, dict) and bool(custom.get(JUNCTION_KEY))
 
 
 def _bbox(elem: Dict[str, Any]) -> Optional[Tuple[float, float, float, float]]:
@@ -240,7 +247,7 @@ def check_edge_node_intersections(
     for elem in elements:
         if not isinstance(elem, dict) or elem.get("isDeleted"):
             continue
-        if elem.get("type") in {"arrow", "text", "image", "line", "freedraw"}:
+        if elem.get("type") in {"arrow", "text", "image", "line", "freedraw"} or _is_decoration(elem):
             continue
         element_id = elem.get("id")
         if not element_id or element_id in background_ids:
@@ -341,7 +348,7 @@ def check_node_overlap(manifest: Dict[str, Any]) -> List[Finding]:
     for elem in elements:
         if not isinstance(elem, dict):
             continue
-        if elem.get("isDeleted") or _is_fully_transparent(elem):
+        if elem.get("isDeleted") or _is_fully_transparent(elem) or _is_decoration(elem):
             continue
         etype = elem.get("type")
         if etype in ("arrow", "freedraw", "line", "image"):

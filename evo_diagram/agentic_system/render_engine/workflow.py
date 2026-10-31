@@ -263,7 +263,7 @@ class RenderWorkflow:
 		return state
 
 	def _run_excalidraw_arch_design_system(self, state: WorkflowState) -> WorkflowState:
-		"""Apply the deterministic architecture card/tier/bus design system."""
+		"""Apply the architecture design system, or the shared theme to other types."""
 		from .excalidraw.architecture_design_system import apply_architecture_design_system
 		designed = apply_architecture_design_system(
 			state.diagram_manifest,
@@ -271,6 +271,13 @@ class RenderWorkflow:
 			layout_instantiation=state.layout_instantiation,
 			layout_specification=state.layout_specification,
 		)
+		if designed is state.diagram_manifest:
+			from .excalidraw.design_theme import apply_design_theme
+			designed = apply_design_theme(
+				state.diagram_manifest,
+				state.structure_instantiation,
+				layout_instantiation=state.layout_instantiation,
+			)
 		if designed is not state.diagram_manifest:
 			state.update_stage(ARROW, {"manifest": designed})
 		return state

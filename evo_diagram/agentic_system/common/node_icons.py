@@ -18,6 +18,8 @@ ICON_GAP = 10
 ICON_KEY = "evoDesignIcon"
 # Architecture design-system cards lay out their own icon, title and sublabel.
 CARD_KEY = "evoDesignCard"
+# Junction dots on shared connector trunks: decoration, never a node.
+JUNCTION_KEY = "evoDesignJunction"
 
 
 @lru_cache(maxsize=1)

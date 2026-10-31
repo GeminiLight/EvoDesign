@@ -27,7 +27,13 @@ import unicodedata
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
-from evo_diagram.agentic_system.common.node_icons import CARD_KEY, ICON_KEY, bundled_icons, icon_file
+from evo_diagram.agentic_system.common.node_icons import (
+    CARD_KEY,
+    ICON_KEY,
+    JUNCTION_KEY,
+    bundled_icons,
+    icon_file,
+)
 from evo_diagram.agentic_system.common.semantic_ids import (
     BACKGROUND_SUFFIX,
     TITLE_SUFFIX,
@@ -63,6 +69,7 @@ _BUS_DROP = 48
 _SIDE_CORRIDOR = 24
 _MAX_BOTTOM = 5
 _MAX_COLUMN = 5
+_JUNCTION = 7
 _ORIGIN = (80.0, 80.0)
 
 # Fallback (fill, stroke, ink) when the style agent assigned no usable colour.
@@ -138,6 +145,11 @@ _ROLE_ALIASES = [
 
 # Keyword -> icon, matched against the label when the structure stage gave no icon.
 _ICON_KEYWORDS = [
+    (("仓库", "warehouse", "inventory", "库存"), "outline_package"),
+    (("退款", "refund", "reimburse"), "outline_wallet"),
+    (("物流", "快递", "退货", "shipping", "logistics", "deliver"), "outline_truck"),
+    (("审核", "验货", "review", "approv", "inspect"), "outline_clipboard_list"),
+    (("客服", "人工", "support agent", "customer service"), "outline_users"),
     (("web", "browser", "h5", "网页", "浏览器", "portal", "门户"), "outline_globe"),
     (("app", "mobile", "ios", "android", "手机", "小程序", "移动"), "outline_smartphone"),
     (("gateway", "网关", "nginx", "load balanc", "负载"), "outline_network"),
@@ -501,8 +513,10 @@ class _Router:
 
     Edges crossing the same column gap share one vertical trunk, and every
     edge into the bottom row shares one horizontal bus, as in hand-drawn
-    reference diagrams. Separate per-connection-set lanes were evaluated and
-    scored lower: the extra parallel strokes read as clutter.
+    reference diagrams. Separate lanes, per connection set and later only for
+    many-to-many corridors, were evaluated twice and rejected: parallel
+    strokes read as clutter. Junction dots mark where a shared stroke branches
+    instead.
     """
 
     def __init__(self, cards: List[_Card], pairs: List[Tuple[str, str]]):
@@ -564,6 +578,37 @@ class _Router:
                 continue
             compact.append(point)
         return list(reversed(compact)) if reverse else compact
+
+
+def _junctions(paths: List[Tuple[List[Point], str]]) -> List[Tuple[Point, str]]:
+    """Points where connectors branch or merge: three or more directions meet.
+
+    A dot there reads as "joined" and keeps a branch apart from a plain
+    crossing, which has no dot.
+    """
+    def heading(p: Point, q: Point) -> str:
+        if abs(p[0] - q[0]) < 0.5:
+            return "down" if q[1] > p[1] else "up"
+        return "right" if q[0] > p[0] else "left"
+
+    segments = [(p, q, color) for points, color in paths for p, q in zip(points, points[1:])]
+    candidates = {(round(x, 1), round(y, 1)): color for points, color in paths for x, y in points[1:-1]}
+    dots: List[Tuple[Point, str]] = []
+    for (x, y), color in candidates.items():
+        directions = set()
+        for p, q, _ in segments:
+            lo_x, hi_x, lo_y, hi_y = min(p[0], q[0]), max(p[0], q[0]), min(p[1], q[1]), max(p[1], q[1])
+            if not (lo_x - 0.5 <= x <= hi_x + 0.5 and lo_y - 0.5 <= y <= hi_y + 0.5):
+                continue
+            for end, other in ((p, q), (q, p)):
+                if abs(end[0] - x) < 0.5 and abs(end[1] - y) < 0.5:
+                    directions.add(heading(end, other))
+                    break
+            else:
+                directions.update({heading((x, y), p), heading((x, y), q)})
+        if len(directions) >= 3:
+            dots.append(((x, y), color))
+    return dots
 
 
 def _text_element(element_id: str, text: str, size: float, color: str, x: float, y: float,
@@ -641,6 +686,9 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
     arrows = [e for e in elements if e.get("type") == "arrow"]
     for arrow in arrows:
         removed.add(arrow.get("id"))
+    for element in elements:
+        if (element.get("customData") or {}).get(JUNCTION_KEY):
+            removed.add(element.get("id"))
     for element in elements:
         if element.get("containerId") in removed:
             removed.add(element.get("id"))
@@ -760,6 +808,19 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
     for connector in connector_elements:
         connector["index"] = next_index()
         ordered.append(connector)
+    paths = [([(c["x"] + px, c["y"] + py) for px, py in c["points"]], c["strokeColor"]) for c in connector_elements]
+    for (x, y), color in _junctions(paths):
+        dot_id = _stable_id("junction", f"{x:.1f}", f"{y:.1f}")
+        removed.discard(dot_id)
+        ordered.append({
+            "id": dot_id, "type": "ellipse", "x": x - _JUNCTION / 2, "y": y - _JUNCTION / 2,
+            "width": _JUNCTION, "height": _JUNCTION, "angle": 0, "strokeColor": color,
+            "backgroundColor": color, "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid",
+            "roughness": 0, "opacity": 100, "groupIds": [], "frameId": None, "roundness": None,
+            "index": next_index(), "seed": 1, "version": 1, "versionNonce": 1, "isDeleted": False,
+            "boundElements": [], "updated": 1, "link": None, "locked": True,
+            "customData": {JUNCTION_KEY: True},
+        })
     ordered.extend(new_elements)
     handled = {e["id"] for e in ordered} | removed | set(hosts[c.id]["id"] for c in cards)
     for element in elements:
