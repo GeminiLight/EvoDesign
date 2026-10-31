@@ -16,6 +16,8 @@ ICON_SIZE = 26
 ICON_PADDING = 16
 ICON_GAP = 10
 ICON_KEY = "evoDesignIcon"
+# Architecture design-system cards lay out their own icon, title and sublabel.
+CARD_KEY = "evoDesignCard"
 
 
 @lru_cache(maxsize=1)
@@ -129,6 +131,8 @@ def sync_node_icons(manifest: dict, host_id: str | None = None) -> None:
             continue
         host = icon_owner(icon, elements, id_map)
         if not host or (host_id and host.get("id") != host_id):
+            continue
+        if not host.get("isDeleted") and (host.get("customData") or {}).get(CARD_KEY):
             continue
         before_icon = dict(icon)
         if host.get("isDeleted"):

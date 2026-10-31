@@ -4,6 +4,8 @@ export const NODE_ICON_SIZE = 26;
 const PADDING = 16;
 const GAP = 10;
 const ICON_KEY = 'evoDesignIcon';
+// Architecture design-system cards lay out their own icon, title and sublabel.
+const CARD_KEY = 'evoDesignCard';
 export const nodeIconNames = Object.keys(iconCatalog);
 const catalog: Record<string, string> = iconCatalog;
 
@@ -89,6 +91,7 @@ export function reconcileNodeIcons(
     if (!data) continue;
     const host = getIconHost(icon, elements);
     if (!host) continue;
+    if (!icon.isDeleted && !host.isDeleted && host.customData?.[CARD_KEY]) continue;
     if (icon.isDeleted) {
       const anotherIcon = elements.some(e => !e.isDeleted && getNodeIcon(e) && getIconHost(e, elements)?.id === host.id);
       const label = elements.find(e => e.type === 'text' && e.containerId === host.id && !e.isDeleted);
