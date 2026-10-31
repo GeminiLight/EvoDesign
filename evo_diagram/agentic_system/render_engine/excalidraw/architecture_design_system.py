@@ -61,6 +61,8 @@ _ROW_GAP = 36
 _BOTTOM_GAP = 56
 _BUS_DROP = 48
 _SIDE_CORRIDOR = 24
+_MAX_BOTTOM = 5
+_MAX_COLUMN = 5
 _ORIGIN = (80.0, 80.0)
 
 # Fallback (fill, stroke, ink) when the style agent assigned no usable colour.
@@ -100,7 +102,8 @@ _ENTRY_ROLES = {"client", "gateway"}
 _BACKEND_ROLES = {"service", "worker", "database", "cache", "queue", "storage", "search", "observability"}
 
 _NAME_ROLES = [
-    ("gateway", ("gateway", "网关", "nginx", "load balanc", "负载均衡", "ingress", "反向代理", "cdn")),
+    ("gateway", ("gateway", "网关", "nginx", "load balanc", "负载均衡", "ingress", "反向代理", "cdn",
+                 "waf", "cloudflare", "akamai")),
     ("database", ("mysql", "postgres", "mongo", "database", "数据库", "influx", "时序", "milvus",
                   "vector", "向量", "clickhouse", "oracle", "sqlite", "hbase", "dynamo", "warehouse")),
     ("cache", ("redis", "cache", "缓存", "memcache")),
@@ -357,6 +360,10 @@ def _layout(cards: List[_Card], edges: List[Tuple[str, str]],
         tiers = sorted({c.tier for c in cards if c.tier < 4})
         columns = [[c for c in cards if c.tier == tier] for tier in tiers]
         bottom = [c for c in cards if c.tier == 4]
+    _orient_columns(columns, edges)
+    _move_backward_sinks(columns, edges)
+    _split_tall_columns(columns, edges)
+    _spill_bottom_chains(columns, bottom, edges)
 
     def place_columns() -> None:
         heights = [len(col) * height + (len(col) - 1) * _ROW_GAP for col in columns]
@@ -389,6 +396,91 @@ def _layout(cards: List[_Card], edges: List[Tuple[str, str]],
     bottom[:] = _barycenter_order(bottom, neighbours, by_id, "cx")
     place_columns()
     place_bottom()
+
+
+def _orient_columns(columns: List[List[_Card]], edges: List[Tuple[str, str]]) -> None:
+    """Mirror a plan whose flow runs right to left; the agent's grouping is kept."""
+    column_of = {c.id: index for index, col in enumerate(columns) for c in col}
+    forward = backward = 0
+    for source, target in edges:
+        if source in column_of and target in column_of:
+            step = column_of[target] - column_of[source]
+            forward += step > 0
+            backward += step < 0
+    if backward > forward:
+        logger.info("[ArchDesignSystem] tier plan flows right to left (%d vs %d); mirroring", backward, forward)
+        columns.reverse()
+
+
+def _move_backward_sinks(columns: List[List[_Card]], edges: List[Tuple[str, str]]) -> None:
+    """Move an output that only receives from columns to its right after its sources.
+
+    An "editable diagram", a report reader or an alert recipient is the end of
+    the flow; drawn before the clients it sends every arrow backwards.
+    """
+    column_of = {c.id: index for index, col in enumerate(columns) for c in col}
+    moved: List[_Card] = []
+    for index, col in enumerate(columns):
+        for card in list(col):
+            incoming = [column_of[s] for s, t in edges if t == card.id and s in column_of]
+            outgoing = [t for s, t in edges if s == card.id and t in column_of]
+            if incoming and not outgoing and min(incoming) > index and len(col) > 1:
+                col.remove(card)
+                moved.append(card)
+    if moved:
+        logger.info("[ArchDesignSystem] moving end-of-flow nodes %s to a last column", [c.id for c in moved])
+        columns.append(moved)
+
+
+def _split_tall_columns(columns: List[List[_Card]], edges: List[Tuple[str, str]]) -> None:
+    """Unstack a column taller than the budget, usually a whole pipeline in one stack.
+
+    Nodes are layered by their longest path over the column's own edges, so a
+    chain of stages reads left to right; without inner edges the column is
+    cut into even chunks in the planned order.
+    """
+    index = 0
+    while index < len(columns):
+        column = columns[index]
+        if len(column) <= _MAX_COLUMN:
+            index += 1
+            continue
+        ids = {c.id for c in column}
+        inner = [(s, t) for s, t in edges if s in ids and t in ids and s != t]
+        depth = {c.id: 0 for c in column}
+        for _ in column:
+            for source, target in inner:
+                depth[target] = max(depth[target], min(depth[source] + 1, len(column)))
+        layers = [[c for c in column if depth[c.id] == d] for d in sorted(set(depth.values()))]
+        if len(layers) < 2 or max(len(layer) for layer in layers) > _MAX_COLUMN:
+            parts = -(-len(column) // _MAX_COLUMN)
+            size = -(-len(column) // parts)
+            layers = [column[i:i + size] for i in range(0, len(column), size)]
+        logger.info("[ArchDesignSystem] column of %d split into %s", len(column), [len(l) for l in layers])
+        columns[index:index + 1] = layers
+        index += len(layers)
+
+
+def _spill_bottom_chains(columns: List[List[_Card]], bottom: List[_Card],
+                         edges: List[Tuple[str, str]]) -> None:
+    """Keep the bottom row readable by moving its downstream chains to a last column.
+
+    Nodes fed by another bottom-row node (a warehouse behind a queue, a batch
+    job behind the warehouse, an alert channel behind monitoring) are a flow,
+    not shared infrastructure; stretched along the bottom row they make the
+    canvas several times wider than tall.
+    """
+    if len(bottom) <= _MAX_BOTTOM:
+        return
+    ids = {c.id for c in bottom}
+    fed = {t for s, t in edges if s in ids and t in ids and s != t}
+    moved = [c for c in bottom if c.id in fed]
+    if not moved or len(moved) == len(bottom) or len(moved) > _MAX_BOTTOM:
+        return
+    logger.info("[ArchDesignSystem] bottom row has %d nodes; moving chain %s to a last column",
+                len(bottom), [c.id for c in moved])
+    columns.append(moved)
+    bottom[:] = [c for c in bottom if c.id not in fed]
 
 
 Point = Tuple[float, float]

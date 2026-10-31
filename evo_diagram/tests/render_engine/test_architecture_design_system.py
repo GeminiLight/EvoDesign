@@ -179,3 +179,63 @@ def test_plan_nested_in_layout_blueprint_is_accepted():
         'columns': [['web', 'app'], ['gw'], ['users', 'orders']], 'bottom_row': ['db', 'cache']}}}
     scene = apply_architecture_design_system(manifest(), structure(), layout_specification=plan)
     assert scene['_meta']['architecture_design_system']['tier_plan_source'] == 'layout_agent'
+
+
+def test_long_bottom_row_moves_downstream_chain_to_last_column():
+    nodes = [{'id': 'gw', 'label': 'Gateway', 'sublabel': 'entry', 'role': 'gateway'},
+             {'id': 'svc', 'label': 'Engine', 'sublabel': 'decide', 'role': 'service'},
+             {'id': 'db', 'label': 'MySQL', 'sublabel': 'rules', 'role': 'database'},
+             {'id': 'cache', 'label': 'Redis', 'sublabel': 'features', 'role': 'cache'},
+             {'id': 'mq', 'label': 'Kafka', 'sublabel': 'results', 'role': 'queue'},
+             {'id': 'dw', 'label': 'Hive', 'sublabel': 'warehouse', 'role': 'database'},
+             {'id': 'job', 'label': 'Spark', 'sublabel': 'reports', 'role': 'database'},
+             {'id': 'mon', 'label': 'Prometheus', 'sublabel': 'metrics', 'role': 'observability'}]
+    pairs = [('gw', 'svc'), ('svc', 'db'), ('svc', 'cache'), ('svc', 'mq'), ('mq', 'dw'),
+             ('dw', 'job'), ('svc', 'mon')]
+    layout = {n['id']: {'shape': 'rectangle', 'label': {'text': n['label']}, 'x': 0, 'y': 0, 'w': 100, 'h': 50}
+              for n in nodes}
+    scene = InstantiationToExcalidrawConverter(layout).convert()
+    data = {'chart_type': 'architecture', 'nodes': nodes, 'groups': [],
+            'edges': [{'id': f'edge:{s}2{t}', 'source': s, 'target': t} for s, t in pairs]}
+    scene = apply_architecture_design_system(scene, data)
+    elements = {e['id']: e for e in scene['elements']}
+    hosts = {n['id']: elements[scene['_meta']['id_map'][n['id']]] for n in nodes}
+    bottom_y = hosts['db']['y']
+    assert hosts['mq']['y'] == bottom_y and hosts['mon']['y'] == bottom_y
+    assert hosts['dw']['y'] < bottom_y and hosts['dw']['x'] == hosts['job']['x'] > hosts['svc']['x']
+    assert hosts['dw']['y'] < hosts['job']['y']
+
+
+def test_plan_flowing_right_to_left_is_mirrored():
+    plan = {'tier_plan': {'columns': [['users', 'orders'], ['gw'], ['web', 'app']],
+                          'bottom_row': ['db', 'cache']}}
+    hosts = cards(apply_architecture_design_system(manifest(), structure(), layout_specification=plan))
+    assert hosts['web']['x'] < hosts['gw']['x'] < hosts['users']['x']
+
+
+def test_pipeline_stacked_in_one_column_is_laid_out_left_to_right():
+    nodes = [{'id': f's{i}', 'label': f'Stage {i}', 'sublabel': 'step', 'role': 'service'} for i in range(6)]
+    nodes.insert(0, {'id': 'in', 'label': 'Input', 'sublabel': 'source', 'role': 'client'})
+    pairs = [('in', 's0')] + [(f's{i}', f's{i + 1}') for i in range(5)]
+    layout = {n['id']: {'shape': 'rectangle', 'label': {'text': n['label']}, 'x': 0, 'y': 0, 'w': 100, 'h': 50}
+              for n in nodes}
+    scene = InstantiationToExcalidrawConverter(layout).convert()
+    data = {'chart_type': 'architecture', 'nodes': nodes, 'groups': [],
+            'edges': [{'id': f'edge:{s}2{t}', 'source': s, 'target': t} for s, t in pairs]}
+    plan = {'tier_plan': {'columns': [['in'], [f's{i}' for i in range(6)]], 'bottom_row': []}}
+    scene = apply_architecture_design_system(scene, data, layout_specification=plan)
+    elements = {e['id']: e for e in scene['elements']}
+    xs = [elements[scene['_meta']['id_map'][f's{i}']]['x'] for i in range(6)]
+    assert xs == sorted(xs) and len(set(xs)) == 6
+
+
+def test_output_planned_before_its_sources_moves_to_the_end():
+    plan = {'tier_plan': {'columns': [['web', 'app', 'users'], ['gw'], ['orders']],
+                          'bottom_row': ['db', 'cache']}}
+    data = structure()
+    next(n for n in data['nodes'] if n['id'] == 'users')['role'] = 'client'  # e.g. a report viewer
+    data['edges'] = [{'id': f'edge:{s}2{t}', 'source': s, 'target': t}
+                     for s, t in [('web', 'gw'), ('app', 'gw'), ('gw', 'orders'), ('orders', 'users'),
+                                  ('orders', 'db'), ('orders', 'cache')]]
+    hosts = cards(apply_architecture_design_system(manifest(), data, layout_specification=plan))
+    assert hosts['users']['x'] > hosts['orders']['x'] > hosts['gw']['x'] > hosts['web']['x']
