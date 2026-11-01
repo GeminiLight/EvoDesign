@@ -147,6 +147,59 @@ def _main_path(nodes: list, edges: list) -> set:
     return set(max(paths, key=lambda r: (r[0], r[1]), default=(0, 0, ()))[2]) - {None}
 
 
+def _crosses(points: list, boxes: list) -> bool:
+    """Whether a polyline passes through any box (sampled; boxes shrunk by 2px)."""
+    for (x1, y1), (x2, y2) in zip(points, points[1:]):
+        steps = max(2, int(max(abs(x2 - x1), abs(y2 - y1)) / 8))
+        for i in range(steps + 1):
+            x, y = x1 + (x2 - x1) * i / steps, y1 + (y2 - y1) * i / steps
+            if any(b["x"] + 2 < x < b["x"] + b["width"] - 2 and b["y"] + 2 < y < b["y"] + b["height"] - 2
+                   for b in boxes):
+                return True
+    return False
+
+
+def _clear_branch(parent: Dict[str, Any], child: Dict[str, Any], boxes: list) -> list:
+    """The straight branch, else one bend around whatever node it would cross."""
+    straight = _branch_points(parent, child)
+    if not _crosses(straight, boxes):
+        return straight
+    px, py, pw, ph = (float(parent[k]) for k in ("x", "y", "width", "height"))
+    cx, cy, cw, ch = (float(child[k]) for k in ("x", "y", "width", "height"))
+    right, down = cx + cw / 2 > px + pw / 2, cy + ch / 2 > py + ph / 2
+    vertical_x = px + pw / 2
+    side_y = py + ph / 2
+    bends = [
+        # Leave through top or bottom, turn into the child's near side.
+        [(vertical_x, py + ph if down else py), (vertical_x, cy + ch / 2), (cx if right else cx + cw, cy + ch / 2)],
+        # Leave through the near side, turn into the child's top or bottom.
+        [(px + pw if right else px, side_y), (cx + cw / 2, side_y), (cx + cw / 2, cy if down else cy + ch)],
+    ]
+    return next((b for b in bends if not _crosses(b, boxes)), straight)
+
+
+def _branch_points(parent: Dict[str, Any], child: Dict[str, Any]) -> list:
+    """A mind-map branch: one straight stroke from the parent's facing side to the child's.
+
+    Smoothed or elbowed strokes were tried; Excalidraw's curve through the bend
+    points overshoots into loops, and elbows stack into ladders beside the parent.
+
+    The axis with the wider gap between the two boxes wins, so a child above
+    its parent is reached from the top edge instead of grazing the side.
+    """
+    px, py, pw, ph = (float(parent[k]) for k in ("x", "y", "width", "height"))
+    cx, cy, cw, ch = (float(child[k]) for k in ("x", "y", "width", "height"))
+    gap_x = max(cx - (px + pw), px - (cx + cw))
+    gap_y = max(cy - (py + ph), py - (cy + ch))
+    if gap_x >= gap_y:
+        right = cx + cw / 2 > px + pw / 2
+        start = (px + pw if right else px, py + ph / 2)
+        return [start, (cx if right else cx + cw, cy + ch / 2)]
+    down = cy + ch / 2 > py + ph / 2
+    start = (px + pw / 2, py + ph if down else py)
+    return [start, (cx + cw / 2, cy if down else cy + ch)]
+
+
 def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
                        layout_instantiation: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Restyle a non-architecture scene in place of its old treatment; unchanged on any doubt."""
@@ -246,6 +299,23 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
             "startArrowhead": None if chart_type in UNDIRECTED_TYPES else _head(element.get("startArrowhead")),
         })
         arrow_ids.add(element.get("id"))
+    # Mind-map links show belonging, not flow: no heads, side to side.
+    if chart_type == "mindmap" and aesthetic_enabled("MINDLINKS"):
+        for element in elements:
+            meta = element.get("meta") or {}
+            parent = by_eid.get(id_map.get(str(meta.get("source") or ""), ""))
+            child = by_eid.get(id_map.get(str(meta.get("target") or ""), ""))
+            if element.get("type") != "arrow" or not parent or not child:
+                continue
+            boxes = [by_eid[e] for e in host_ink if e not in (parent["id"], child["id"])]
+            points = _clear_branch(parent, child, boxes)
+            (ox, oy), xs, ys = points[0], [p[0] for p in points], [p[1] for p in points]
+            element.update({
+                "x": ox, "y": oy, "points": [[x - ox, y - oy] for x, y in points],
+                "width": max(xs) - min(xs), "height": max(ys) - min(ys),
+                "startArrowhead": None, "endArrowhead": None, "elbowed": False,
+                "roundness": None, "startBinding": None, "endBinding": None,
+            })
     for element in elements:
         if element.get("type") == "text" and element.get("containerId") in arrow_ids:
             element.update({"strokeColor": _SUBLABEL_INK, "fontFamily": 2, "roughness": 0})

@@ -97,3 +97,15 @@ def test_off_path_flowchart_links_step_back():
     themed = apply_design_theme(scene(), data, STYLE)
     arrow = {e['id']: e for e in themed['elements']}['arrow-1']
     assert arrow['strokeWidth'] > 1.5 and arrow['opacity'] == 100
+
+
+def test_mindmap_links_are_straight_and_headless_from_facing_sides():
+    from evo_diagram.agentic_system.render_engine.excalidraw.design_theme import _branch_points
+    parent = {'x': 0, 'y': 0, 'width': 100, 'height': 40}
+    assert _branch_points(parent, {'x': 200, 'y': 10, 'width': 80, 'height': 40}) == [(100, 20), (200, 30)]
+    # A child above its parent and barely beside it is reached from the top edge.
+    assert _branch_points(parent, {'x': -90, 'y': -120, 'width': 80, 'height': 40}) == [(50, 0), (-50, -80)]
+    data = {**structure('mindmap'), 'nodes': [dict(n) for n in NODES]}
+    themed = apply_design_theme(scene(), data, STYLE)
+    arrow = {e['id']: e for e in themed['elements']}['arrow-1']
+    assert arrow['endArrowhead'] is None and len(arrow['points']) == 2
