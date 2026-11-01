@@ -82,6 +82,9 @@ _MUTED = ("#F8FAFC", "#CBD5E1", "#64748B")
 _MUTED_TITLE_INK = "#475569"
 _PRIMARY_STROKE_WIDTH = 2.5
 _PRIMARY_TITLE_SIZE = 22
+# Connectors touching a primary card form the main path; the rest step back.
+_MAIN_PATH_WIDTH = 2.5
+_SIDE_PATH_OPACITY = 60
 # Default zone names by dominant role, used when the layout agent named none.
 _ZONE_NAMES = {
     "actor": ("用户", "Users"), "client": ("客户端", "Clients"), "gateway": ("接入层", "Entry"),
@@ -357,14 +360,16 @@ def _barycenter_order(group: List[_Card], neighbours: Dict[str, List[str]],
 def _plan_from_spec(layout_specification: Any, cards: List[_Card]
                     ) -> Optional[Tuple[List[List[_Card]], List[_Card]]]:
     """Read the layout agent's tier plan; ``None`` unless it is complete and coherent."""
-    plan = None
+    plan, holder = None, {}
     if isinstance(layout_specification, dict):
-        plan = layout_specification.get("tier_plan")
+        plan, holder = layout_specification.get("tier_plan"), layout_specification
         blueprint = layout_specification.get("pattern_specific_layout_blueprint")
         if plan is None and isinstance(blueprint, dict):
-            plan = blueprint.get("tier_plan")
+            plan, holder = blueprint.get("tier_plan"), blueprint
     if not isinstance(plan, dict):
         return None
+    # Zone names may sit inside the plan or beside it.
+    named = {k: plan[k] if k in plan else holder.get(k) for k in ("column_labels", "bottom_label")}
     by_id = {c.id: c for c in cards}
     raw_columns = plan.get("columns")
     raw_bottom = plan.get("bottom_row") or []
@@ -383,13 +388,13 @@ def _plan_from_spec(layout_specification: Any, cards: List[_Card]
         if roles & _ENTRY_ROLES and roles & _BACKEND_ROLES:
             logger.info("[ArchDesignSystem] tier plan mixes entry and back-end roles in one column; using roles")
             return None
-    labels = plan.get("column_labels")
+    labels = named["column_labels"]
     if isinstance(labels, list) and len(labels) == len(columns):
         for column, label in zip(columns, labels):
             for card in column:
                 card.zone = str(label or "").strip()[:24]
     for card in bottom:
-        card.zone = str(plan.get("bottom_label") or "").strip()[:24]
+        card.zone = str(named["bottom_label"] or "").strip()[:24]
     return columns, bottom
 
 
@@ -911,6 +916,7 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
             pair_heads[key] = {"edge": edge, "bidirectional": False, "merged": []}
 
     router = _Router(cards, list(pair_heads))
+    primary = {c.id for c in cards if c.emphasis == "primary"} if aesthetic_enabled("MAINPATH") else set()
     arrow_by_edge = {(a.get("meta") or {}).get("semantic_edge_id"): a for a in arrows}
 
     connector_elements: List[Dict[str, Any]] = []
@@ -926,13 +932,16 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
         arrow_id = original.get("id") or _stable_id("arrow", str(edge.get("id") or f"{source}->{target}"))
         removed.discard(arrow_id)
         dashed = str(edge.get("style") or edge.get("line_style") or "").lower() in {"dashed", "async"}
+        main = bool(primary) and (source in primary or target in primary)
         connector_elements.append({
             "id": arrow_id, "type": "arrow", "x": ox, "y": oy,
             "width": max(xs) - min(xs), "height": max(ys) - min(ys),
             "points": [[x - ox, y - oy] for x, y in points],
             "angle": 0, "strokeColor": card_by_id[source].colors[2],
-            "backgroundColor": "transparent", "fillStyle": "solid", "strokeWidth": 1.5,
-            "strokeStyle": "dashed" if dashed else "solid", "roughness": 0, "opacity": 100,
+            "backgroundColor": "transparent", "fillStyle": "solid",
+            "strokeWidth": _MAIN_PATH_WIDTH if main else 1.5,
+            "strokeStyle": "dashed" if dashed else "solid", "roughness": 0,
+            "opacity": 100 if main or not primary else _SIDE_PATH_OPACITY,
             "groupIds": [], "frameId": None, "roundness": None, "index": "",
             "seed": int(arrow_id[:8], 16) if all(ch in "0123456789abcdef" for ch in arrow_id[:8]) else 1,
             "version": int(original.get("version", 1)) + 1, "versionNonce": 1,
@@ -946,6 +955,8 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
 
     # Paint order: connectors behind cards, so shared trunks never cover text.
     ordered: List[Dict[str, Any]] = []
+    # Main-path strokes paint last so a shared trunk shows them on top.
+    connector_elements.sort(key=lambda c: c["strokeWidth"])
     for connector in connector_elements:
         connector["index"] = next_index()
         ordered.append(connector)

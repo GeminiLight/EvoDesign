@@ -316,3 +316,24 @@ def test_title_sits_above_the_diagram_and_is_ignored_by_verification():
     assert title['text'] == '电商系统架构'
     assert title['y'] < min(h['y'] for h in cards(scene).values())
     assert check_edge_node_intersections(scene) == [] and check_node_overlap(scene) == []
+
+
+def test_zone_names_beside_the_tier_plan_are_used():
+    spec = {'pattern_specific_layout_blueprint': {
+        'tier_plan': {'columns': [['app', 'web'], ['gw'], ['orders', 'users']], 'bottom_row': ['cache', 'db']},
+        'column_labels': ['接入端', '网关层', '业务服务'], 'bottom_label': '数据存储'}}
+    scene = apply_architecture_design_system(manifest(), structure(), layout_specification=spec)
+    labels = {t['text'] for t in _decorations(scene, 'zone_label')}
+    assert labels == {'接入端', '网关层', '业务服务', '数据存储'}
+
+
+def test_main_path_connectors_lead_and_side_ones_step_back():
+    data = structure()
+    data['nodes'][2]['emphasis'] = 'primary'
+    scene = apply_architecture_design_system(manifest(), data)
+    arrows = [e for e in scene['elements'] if e['type'] == 'arrow']
+    main = [a for a in arrows if 'gw' in (a['meta']['source'], a['meta']['target'])]
+    side = [a for a in arrows if a not in main]
+    assert main and all(a['strokeWidth'] > 1.5 and a['opacity'] == 100 for a in main)
+    assert side and all(a['opacity'] < 100 for a in side)
+
