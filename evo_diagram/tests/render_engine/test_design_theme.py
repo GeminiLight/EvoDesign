@@ -76,3 +76,24 @@ def test_flowchart_emphasis_and_no_title():
     id_map = themed['_meta']['id_map']
     assert elements[id_map['shipped']]['strokeWidth'] > elements[id_map['check']]['strokeWidth']
     assert not any(e.get('text') == '退款流程' for e in themed['elements'])
+
+
+def test_flowchart_main_path_follows_the_positive_branch():
+    from evo_diagram.agentic_system.render_engine.excalidraw.design_theme import _main_path
+    nodes = [{'id': i} for i in ('s', 'd', 'ok', 'no', 'end')]
+    nodes[0]['class'] = 'start'
+    edges = [{'id': 'a', 'source': 's', 'target': 'd'},
+             {'id': 'b', 'source': 'd', 'target': 'no', 'label': '否'},
+             {'id': 'c', 'source': 'd', 'target': 'ok', 'label': '是'},
+             {'id': 'e', 'source': 'ok', 'target': 'end'},
+             {'id': 'f', 'source': 'no', 'target': 'end'},
+             {'id': 'g', 'source': 'end', 'target': 's'}]
+    assert _main_path(nodes, edges) == {'a', 'c', 'e'}
+
+
+def test_off_path_flowchart_links_step_back():
+    data = {**structure(), 'edges': structure()['edges'] + [
+        {'id': 'edge:check2shipped', 'source': 'check', 'target': 'shipped'}]}
+    themed = apply_design_theme(scene(), data, STYLE)
+    arrow = {e['id']: e for e in themed['elements']}['arrow-1']
+    assert arrow['strokeWidth'] > 1.5 and arrow['opacity'] == 100

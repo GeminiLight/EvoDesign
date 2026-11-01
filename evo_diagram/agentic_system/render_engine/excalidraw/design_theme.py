@@ -110,6 +110,43 @@ def _tree_emphasis(nodes: list, edges: list, agent: Dict[str, str]) -> Dict[str,
     return result
 
 
+# Process types read along one happy path from start to end.
+MAIN_PATH_TYPES = {"flowchart", "swimlane"}
+_POSITIVE = ("yes", "是", "通过", "成功", "ok", "pass", "approve", "批准", "同意", "true")
+_SIDE_OPACITY = 60
+
+
+def _main_path(nodes: list, edges: list) -> set:
+    """Edges of the longest start-to-end run, preferring positive branches; back edges ignored."""
+    ids = [str(n["id"]) for n in nodes]
+    out: Dict[str, list] = {}
+    incoming = set()
+    for edge in edges:
+        if isinstance(edge, dict) and str(edge.get("source")) in ids and str(edge.get("target")) in ids:
+            out.setdefault(str(edge["source"]), []).append(edge)
+            incoming.add(str(edge["target"]))
+    starts = [str(n["id"]) for n in nodes if n.get("class") == "start"] or [i for i in ids if i not in incoming]
+    best: Dict[str, tuple] = {}
+
+    def walk(node: str, seen: frozenset) -> tuple:
+        if node in best:
+            return best[node]
+        result = (0, 0, ())
+        for edge in out.get(node, []):
+            target = str(edge["target"])
+            if target in seen:
+                continue
+            length, positive, path = walk(target, seen | {target})
+            label = str(edge.get("label") or "").lower()
+            candidate = (length + 1, positive + any(w in label for w in _POSITIVE), (edge.get("id"),) + path)
+            result = max(result, candidate, key=lambda r: (r[0], r[1]))
+        best[node] = result
+        return result
+
+    paths = [walk(s, frozenset({s})) for s in starts]
+    return set(max(paths, key=lambda r: (r[0], r[1]), default=(0, 0, ()))[2]) - {None}
+
+
 def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
                        layout_instantiation: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Restyle a non-architecture scene in place of its old treatment; unchanged on any doubt."""
@@ -187,6 +224,9 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
             element.update({"fileId": asset["id"], "customData": {
                 **(element.get("customData") or {}), ICON_KEY: {**data, "name": name}}})
 
+    main_edges = set()
+    if chart_type in MAIN_PATH_TYPES and aesthetic_enabled("MAINPATH"):
+        main_edges = _main_path(nodes, structure.get("edges") or [])
     arrow_ids = set()
     for element in elements:
         if element.get("type") != "arrow":
@@ -195,8 +235,11 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
         if not source:
             binding = element.get("startBinding") or {}
             source = next((n for n, eid in id_map.items() if eid == binding.get("elementId")), "")
+        on_main = (element.get("meta") or {}).get("semantic_edge_id") in main_edges
         element.update({
-            "strokeColor": node_ink.get(source, _SUBLABEL_INK), "strokeWidth": _STROKE_WIDTH,
+            "strokeColor": node_ink.get(source, _SUBLABEL_INK),
+            "strokeWidth": _PRIMARY_STROKE_WIDTH if on_main else _STROKE_WIDTH,
+            "opacity": 100 if on_main or not main_edges else _SIDE_OPACITY,
             # Undirected links (ER, mind map) stay undirected.
             "roughness": 0,
             "endArrowhead": None if chart_type in UNDIRECTED_TYPES else _head(element.get("endArrowhead")),
