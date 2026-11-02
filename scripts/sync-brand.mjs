@@ -16,10 +16,15 @@ const gradients = `<defs>
 </defs>`;
 const mark = (mono) => markPaths.map((d, i) => `<path d="${d}" fill="${mono || `url(#${i ? 'cyan' : 'violet'})`}"/>`).join('\n');
 const symbol = (mono) => `${mono ? '' : gradients}\n<g transform="translate(11 12)">${mark(mono)}</g>`;
-const wordmark = (ink) => `<g fill="${ink}">${wordmarkPaths.map(d => `<path d="${d}"/>`).join('')}</g>`;
+const wordmark = (ink, mono) => {
+  const dark = ink === colors.white;
+  const evo = dark ? colors.wordmarkEvoDark : colors.wordmarkEvo;
+  const design = dark ? colors.wordmarkDesignDark : colors.wordmarkDesign;
+  return `<g>${wordmarkPaths.map((d, i) => `<path d="${d}" fill="${mono || (i < 3 ? evo : design)}"/>`).join('')}</g>`;
+};
 const lockup = (ink, mono) => `${mono ? '' : gradients}
 <g transform="translate(0 1) scale(.165)">${mark(mono)}</g>
-<g transform="translate(3.1125 0) scale(1.25)">${wordmark(ink)}</g>`;
+<g transform="translate(3.1125 0) scale(1.25)">${wordmark(ink, mono)}</g>`;
 const icon = (dark) => `${gradients}
 <rect width="512" height="512" rx="112" fill="${dark ? '#121526' : '#f7f8fc'}"/>
 <g transform="translate(60 62) scale(1.04)">${mark()}</g>`;
@@ -39,6 +44,8 @@ const files = new Map([
   ['frontend/public/brand/evodesign-icon-dark.svg', svg('0 0 512 512', icon(true))],
   ['frontend/public/brand/evodesign-lockup.svg', svg('0 0 276 64', lockup(colors.ink))],
   ['frontend/public/brand/evodesign-lockup-dark.svg', svg('0 0 276 64', lockup(colors.white))],
+  ['frontend/public/brand/evodesign-wordmark.svg', svg('76 8 200 48', `<g transform="translate(3.1125 0) scale(1.25)">${wordmark(colors.ink)}</g>`)],
+  ['frontend/public/brand/evodesign-wordmark-dark.svg', svg('76 8 200 48', `<g transform="translate(3.1125 0) scale(1.25)">${wordmark(colors.white)}</g>`)],
   ['frontend/public/brand/evodesign-lockup-mono.svg', svg('0 0 276 64', lockup(colors.ink, colors.ink))],
   ['frontend/public/brand/evodesign-lockup-white.svg', svg('0 0 276 64', lockup(colors.white, colors.white))],
   ['frontend/public/brand/evodesign-social.svg', social],

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AuthPanel } from '../features/auth/AuthPanel';
+import { BrandWordmark } from '../components/BrandLockup';
 import { useBackendAuth } from '../features/auth/BackendAuthProvider';
 import { consumeAuthReturnTo, rememberAuthReturnTo, resolveAuthReturnTo } from '../features/auth/authRedirect';
 import { useLanguage } from '../i18n/LanguageProvider';
@@ -90,7 +91,7 @@ export const EmailAuthPage = () => {
                   <img src={logoSrc} alt="EvoDesign Logo" className="h-7 w-7" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">EvoDesign</p>
+                  <BrandWordmark />
                   <p className="text-xs text-slate-500 dark:text-slate-400">{t('auth.tagline')}</p>
                 </div>
               </div>

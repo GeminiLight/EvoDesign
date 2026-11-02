@@ -8,6 +8,7 @@ import { useBackendAuth } from '../features/auth/BackendAuthProvider';
 import { rememberAuthReturnTo } from '../features/auth/authRedirect';
 import { readLocalStorage, writeLocalStorage } from '../utils/safeLocalStorage';
 import { ChoiceSelect } from './ChoiceSelect';
+import { BrandWordmark } from './BrandLockup';
 import { useBrowserModelLabel } from '../hooks/useBrowserModelLabel';
 
 const navBaseClass = 'relative inline-flex min-h-10 min-w-11 items-center justify-center rounded-lg px-3 text-sm font-medium transition-colors';
@@ -309,7 +310,7 @@ export const Header = ({
               alt="EvoDesign Logo"
               className="header-logo h-8 w-8"
             />
-            <span className={`header-wordmark hidden font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:inline ${variant === 'landing' ? 'text-xl dark:text-white' : 'text-lg'}`}>Evo<span className="text-brand-600 dark:text-brand-400">Design</span></span>
+            <span className={`header-wordmark hidden font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:inline ${variant === 'landing' ? 'text-xl dark:text-white' : 'text-lg'}`}><BrandWordmark /></span>
           </button>
 
           {pageTitle && <h1 className="header-page-title" data-page={location.pathname.slice(1)}>{pageTitle}</h1>}

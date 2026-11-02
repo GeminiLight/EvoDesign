@@ -5,7 +5,7 @@
 .home-main { width: 100%; padding: 0 clamp(112px, 8vw, 144px) 24px; }
 .home-intro { width: min(100%, 1120px); margin: 0 auto; padding: 32px 0 46px; animation: home-arrive 440ms ease-out both; }
 .home-brand-lockup { display: flex; align-items: center; justify-content: center; gap: 13px; margin: 0 auto 20px; }
-.brand-lockup { display: block; width: 190px; height: auto; overflow: visible; }
+.brand-lockup { display: block; width: 226px; max-width: 100%; height: auto; overflow: visible; }
 .home-headline { margin: 0; text-align: center; font-size: clamp(32px, 3.15vw, 45px); font-weight: 650; line-height: 1.3; letter-spacing: -.045em; text-wrap: balance; }
 .home-headline > span { display: inline-block; margin-inline-start: .1em; color: #7360d9; }
 .dark .home-headline > span { color: #b4a3f2; }
@@ -145,7 +145,7 @@
   .home-intro { padding-top: 30px; padding-bottom: 28px; }
   .home-headline { font-size: clamp(28px, 5.5vw, 38px); line-height: 1.4; }
   .home-brand-lockup { gap: 10px; margin-bottom: 17px; }
-  .brand-lockup { width: 176px; }
+  .brand-lockup { width: 204px; }
   .home-intro-description { margin: 14px auto 25px; font-size: 12px; }
   .home-starters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin-top: 20px; }
   .home-shortcut { min-width: 0; justify-content: center; gap: 8px; padding-inline: 4px; font-size: 12px; text-align: left; }

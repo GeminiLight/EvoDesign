@@ -13,7 +13,7 @@ The earlier `../screenshots/studio-home.png` and dark `workspace-preview.png` re
 
 ## Studio identity
 
-`studio-logo.svg`, `favicon.svg`, `evodesign-lockup.svg` and the social preview use the selected **C / Thought takes shape** identity (2 November 2026). Their geometry and outlined Outfit glyphs are generated from `shared/brand.json` with `node scripts/sync-brand.mjs --raster`. The same source generates the app, README, renderer and home-screen icons. See `../../frontend/public/brand/README.md` for variants and the font license. Historical screenshots retain their original interface; refresh active README and hero captures from the actual app when the UI changes.
+`studio-logo.svg`, `favicon.svg`, `evodesign-lockup.svg` and the social preview use the selected **C / Thought takes shape** identity (2 November 2026). Their geometry and outlined Syne Bold glyphs are generated from `shared/brand.json` with `node scripts/sync-brand.mjs --raster`. The two-color wordmark uses blue-violet for Evo and teal for Design, with lighter versions for dark backgrounds. The same source generates the app, README, renderer and home-screen icons. See `../../frontend/public/brand/README.md` for variants and the font license. Historical screenshots retain their original interface; refresh active README and hero captures from the actual app when the UI changes.
 
 ## Website verification
 

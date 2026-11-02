@@ -1,9 +1,9 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="frontend/public/brand/evodesign-lockup-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="frontend/public/brand/evodesign-lockup.svg">
-  <img src="frontend/public/brand/evodesign-lockup.svg" alt="EvoDesign 标志" width="276" height="64">
+  <source media="(prefers-color-scheme: dark)" srcset="frontend/public/brand/evodesign-lockup-dark.svg?v=syne700-1">
+  <source media="(prefers-color-scheme: light)" srcset="frontend/public/brand/evodesign-lockup.svg?v=syne700-1">
+  <img src="frontend/public/brand/evodesign-lockup.svg?v=syne700-1" alt="EvoDesign 标志" width="276" height="64">
 </picture>
 
 # EvoDesign
