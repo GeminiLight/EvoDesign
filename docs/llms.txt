@@ -6,13 +6,13 @@ EvoDesign runs locally using the user's own vision-capable model endpoint. It in
 
 ## Start using it
 - [Source and quick start](https://github.com/GeminiLight/EvoDesign#run-locally)
-- [中文入门](https://github.com/GeminiLight/EvoDesign/blob/main/docs/quickstart-zh.md)
-- [Personal design memory](https://github.com/GeminiLight/EvoDesign/blob/main/docs/design-memory.md)
-- [Configuration](https://github.com/GeminiLight/EvoDesign/blob/main/docs/configuration.md)
+- [中文入门](https://github.com/GeminiLight/EvoDesign/blob/main/docs/guides/quickstart-zh.md)
+- [Personal design memory](https://github.com/GeminiLight/EvoDesign/blob/main/docs/guides/design-memory.md)
+- [Configuration](https://github.com/GeminiLight/EvoDesign/blob/main/docs/guides/configuration.md)
 
 ## Research
 - [Paper](https://arxiv.org/abs/2604.09568): EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution.
-- [Reproducibility notes](https://github.com/GeminiLight/EvoDesign/blob/main/docs/reproducibility.md)
+- [Reproducibility notes](https://github.com/GeminiLight/EvoDesign/blob/main/research/reproducibility.md)
 - [Citation](https://tianfu.wang/EvoDesign/citation.bib)
 
 The project website contains an interactive illustration, not a hosted model-generation service. Result tables are manuscript-reported results, not an independent reproduction of this maintained release. Training and test datasets are not included in the initial code release. The former internal name EvoDiagram persists in Python imports for compatibility; the project and algorithm are EvoDesign.

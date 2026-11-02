@@ -68,7 +68,7 @@ EvoDesign 是一个用 AI 创建可编辑图表的开源工作台。描述你要
 | **项目存储** | 当前浏览器；可导出副本备份 | 你运行的后端和数据库 |
 | **外部 Agent 协作** | 提供后端版配置指南 | 项目范围 CLI 连接、预览、安全提交和检查点恢复 |
 
-在线版适合直接体验可编辑生成；下文的方法图介绍完整的研究框架。两版的能力与数据处理方式详见[能力和隐私说明（英文）](docs/browser-edition.md)。
+在线版适合直接体验可编辑生成；下文的方法图介绍完整的研究框架。两版的能力与数据处理方式详见[能力和隐私说明（英文）](docs/guides/browser-edition.md)。
 
 ## 工作原理
 
@@ -104,7 +104,7 @@ python scripts/setup_local.py
 ./scripts/start_service.sh
 ```
 
-打开 **http://localhost:5175**。API 服务运行在 3010 端口，渲染服务运行在 3000 端口。使用 `./scripts/stop_service.sh` 停止服务。本地初始化会创建独立的密钥及匹配的访客配置，不会覆盖已有 `.env` 文件。服务商选择、可选功能和自行部署的边界见[配置说明（英文）](docs/configuration.md)。
+打开 **http://localhost:5175**。API 服务运行在 3010 端口，渲染服务运行在 3000 端口。使用 `./scripts/stop_service.sh` 停止服务。本地初始化会创建独立的密钥及匹配的访客配置，不会覆盖已有 `.env` 文件。服务商选择、可选功能和自行部署的边界见[配置说明（英文）](docs/guides/configuration.md)。
 
 渲染器导出图片需要 Playwright Chromium。若尚未安装，执行 `cd evo_diagram/agentic_system/tool_services && npx playwright install chromium`。Linux 可能还需要 `npx playwright install --with-deps chromium` 和 Canvas 原生依赖（`libcairo2-dev`、`libpango1.0-dev`、`libjpeg-dev`、`libgif-dev`、`librsvg2-dev`、`pkg-config`）。首次使用设计记忆时，可能会下载嵌入模型。
 
@@ -120,7 +120,7 @@ evodesign document get --profile paper --json
 
 在 Web 批准终端显示的配对码。将 [EvoDesign Skill](skills/evodesign/SKILL.md) 交给已有 Agent，它会准备语义操作并检查真实 PNG。你可以在 Web 接受候选，也可以授权连接提交。两端共享已保存的人工修改与 DNA；冲突保留候选，外部更新会保护未保存草稿。恢复检查点也会创建新版本。
 
-首版需要后端版，不连接浏览器本地项目，暂不提供 MCP 和 TLDraw 编辑。[Agent 协作指南](docs/agent-collaboration.zh-CN.md) 说明安装、完整命令、两端交接和冲突恢复。CLI 编辑使用你已有 Agent 的推理，不调用后端生成模型。
+首版需要后端版，不连接浏览器本地项目，暂不提供 MCP 和 TLDraw 编辑。[Agent 协作指南](docs/guides/agent-collaboration.zh-CN.md) 说明安装、完整命令、两端交接和冲突恢复。CLI 编辑使用你已有 Agent 的推理，不调用后端生成模型。
 
 ### 不启动网页，直接使用引擎
 
@@ -132,11 +132,11 @@ python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/di
 python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json --use-icons
 ```
 
-使用 `--help` 查看自定义输入、修复、消融实验和个人编辑学习等选项。[复现说明（英文）](docs/reproducibility.md) 介绍模型与评审模型的配置、实验记录，以及当前维护版本与论文报告结果之间的区别。
+使用 `--help` 查看自定义输入、修复、消融实验和个人编辑学习等选项。[复现说明（英文）](research/reproducibility.md) 介绍模型与评审模型的配置、实验记录，以及当前维护版本与论文报告结果之间的区别。
 
 ## 个人设计记忆
 
-仓库包含完整的记忆实现：偏好提取、存储、检索、带作用域的 DNA 规则和网页管理。可先阅读[设计记忆指南（英文）](docs/design-memory.md)，再用[蓝紫配色的八条示例规则](examples/design-memory/blue-violet.json) 尝试校验：
+仓库包含完整的记忆实现：偏好提取、存储、检索、带作用域的 DNA 规则和网页管理。可先阅读[设计记忆指南（英文）](docs/guides/design-memory.md)，再用[蓝紫配色的八条示例规则](examples/design-memory/blue-violet.json) 尝试校验：
 
 ```sh
 python scripts/design_memory.py validate examples/design-memory/blue-violet.json
@@ -148,7 +148,7 @@ python scripts/design_memory.py validate examples/design-memory/blue-violet.json
 
 [论文 **EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution**](https://arxiv.org/abs/2604.09568) 介绍了完整方法，并通过 CanvasBench 从内容、视觉和认知三个维度进行评估。
 
-仓库包含实现、评估工具和基线适配器。**训练和测试数据集将单独发布。** 仓库附带的单任务快速示例用于试用软件，不用于基准评估。项目网站展示的是论文报告的研究结果；当前维护版本不代表已重新复现完整实验。研究使用请参考[复现说明（英文）](docs/reproducibility.md)。
+仓库包含实现、评估工具和基线适配器。**训练和测试数据集将单独发布。** 仓库附带的单任务快速示例用于试用软件，不用于基准评估。项目网站展示的是论文报告的研究结果；当前维护版本不代表已重新复现完整实验。研究使用请参考[复现说明（英文）](research/reproducibility.md)。
 
 ## 目录结构
 
@@ -159,25 +159,24 @@ frontend/             React 工作台与可编辑画布适配器
 cli/                  独立 Agent CLI，无需安装图表引擎
 skills/evodesign/     Agent 可复用的协作流程与操作参考
 configs/              模型角色与应用设置
-dataset_construction/ 数据集准备工具
 evaluation/           评估与分析
 baselines/            对比方法及适配器
 examples/             快速示例与可迁移的个人记忆规则
 scripts/              初始化、服务、质量检查与实验脚本
-docs/                 论文项目网站与公开使用指南
-research/             论文元数据
+docs/                 项目网站、使用指南、开发文档与历史记录
+research/             数据集准备、研究提示词、论文元数据与复现实验说明
 ```
 
 ## 参与开发
 
-请先阅读[贡献指南](CONTRIBUTING.md)、[质量检查流程](sop/engineering-quality.md) 和[后端 API 说明](sop/backend-api-surface.md)。欢迎使用中文或英文参与贡献。
+请先阅读[贡献指南](CONTRIBUTING.md)、[质量检查流程](docs/development/engineering-quality.md) 和[后端 API 说明](docs/development/backend-api-surface.md)。欢迎使用中文或英文参与贡献。
 
 ```sh
 python -m pip install -e ".[dev]"
 ./scripts/check_quality.sh all
 ```
 
-更多信息见[贡献指南](CONTRIBUTING.md)、[配置说明](docs/configuration.md) 和[第三方声明](THIRD_PARTY_NOTICES.md)。报告问题时，请附最小输入、模型标识、所用版本的提交号，以及隐去敏感信息的日志。不要附上 API Key、账户数据库或私人提示词。
+更多信息见[贡献指南](CONTRIBUTING.md)、[配置说明](docs/guides/configuration.md) 和[第三方声明](licenses/README.md)。报告问题时，请附最小输入、模型标识、所用版本的提交号，以及隐去敏感信息的日志。不要附上 API Key、账户数据库或私人提示词。
 
 ## 贡献者
 
@@ -224,4 +223,4 @@ python -m pip install -e ".[dev]"
 
 ## 许可
 
-EvoDesign 原创软件代码采用 [MIT 许可](LICENSE)。依赖、内置字体和图标，以及引入的第三方材料保留各自条款，详见[第三方声明](THIRD_PARTY_NOTICES.md)。可选的 TLDraw SDK 遵循其上游许可。软件许可不改变论文或第三方数据集来源材料的许可。
+EvoDesign 原创软件代码采用 [MIT 许可](LICENSE)。依赖、内置字体和图标，以及引入的第三方材料保留各自条款，详见[第三方声明](licenses/README.md)。可选的 TLDraw SDK 遵循其上游许可。软件许可不改变论文或第三方数据集来源材料的许可。

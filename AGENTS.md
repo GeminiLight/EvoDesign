@@ -7,6 +7,8 @@
 
 `frontend/src/` is the Vite + React client. Keep route-level views in `pages/`, reusable UI in `components/`, API adapters in `services/`, hooks in `hooks/`, and shared types in `types/`. `evo_diagram/agentic_system/tool_services/` is a separate Next.js renderer and measurement service.
 
+Documentation has one entry at `docs/README.md`: `guides/` for product use, `development/` for current contracts and contributor workflows, `archive/` for dated records, and `reference/` for upstream reference material. Dataset preparation lives in `research/dataset_construction/`; research reproduction notes are in `research/reproducibility.md`. Bundled license notices are indexed by `licenses/README.md`.
+
 ## Build, Test, and Development Commands
 Use `./scripts/start_service.sh` from the repo root to launch the full stack: backend on `:3010`, renderer on `:3000`, and frontend on `:5175`.
 

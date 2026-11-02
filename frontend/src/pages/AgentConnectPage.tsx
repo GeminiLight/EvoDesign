@@ -67,7 +67,7 @@ export function AgentConnectPage() {
     } catch (reason) { setError(agentErrorMessage(reason, t)); }
     finally { setBusy(false); }
   };
-  const guideUrl = `https://github.com/GeminiLight/EvoDesign/blob/main/docs/agent-collaboration${language === 'zh' ? '.zh-CN' : ''}.md`;
+  const guideUrl = `https://github.com/GeminiLight/EvoDesign/blob/main/docs/guides/agent-collaboration${language === 'zh' ? '.zh-CN' : ''}.md`;
   const isApproved = approved || ['approved', 'active'].includes(connection?.status ?? '');
   const expired = connection && !isApproved && (connection.status !== 'pending' || connection.expires_at * 1000 <= Date.now());
   return <div className="studio-shell min-h-screen">

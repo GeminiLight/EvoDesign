@@ -5,6 +5,17 @@ from typing import Any
 ICONS_DISABLED_CONSTRAINT = "Node icons are disabled. Do not add or recommend them."
 
 
+def preserve_explicit_design(manifest: dict, constraints: str) -> bool:
+    """Saved locks and explicit DNA take priority over an automatic theme."""
+    if any(element.get("locked") for element in manifest.get("elements", [])):
+        return True
+    try:
+        policy = json.loads(constraints or "{}")
+        return bool(policy.get("user_design_preferences") or policy.get("locked_element_ids"))
+    except (ValueError, TypeError, AttributeError):
+        return bool(constraints)
+
+
 def icons_disabled(constraints: str) -> bool:
     """Honor the explicit web toggle without guessing intent from free text."""
     try:

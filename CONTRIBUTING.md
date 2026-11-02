@@ -6,11 +6,11 @@ research tools. Bug reports and discussions in English or Chinese are welcome.
 
 | I want to… | Start here |
 | --- | --- |
-| Run the product | [Repository README](README.md) and [configuration](docs/configuration.md) |
+| Run the product | [Repository README](README.md) and [configuration](docs/guides/configuration.md) |
 | Make a first change | Environment and contribution workflow below |
-| Choose the right checks | [Engineering quality guide](sop/engineering-quality.md) |
-| Change or consume an API | [Backend API guide](sop/backend-api-surface.md) |
-| Understand the system | [Architecture](wiki/02-system-architecture.md) and [web quality loop](wiki/web-quality-loop.md) |
+| Choose the right checks | [Engineering quality guide](docs/development/engineering-quality.md) |
+| Change or consume an API | [Backend API guide](docs/development/backend-api-surface.md) |
+| Understand the system | [Agent collaboration architecture](docs/development/specs/spec-agent-cli-v1.md) and [web quality loop](docs/development/web-quality-loop.md) |
 
 ## Prepare a development environment
 
@@ -28,7 +28,7 @@ npm ci --prefix evo_diagram/agentic_system/tool_services
 
 These shell examples use Bash or Zsh; Windows users can use WSL. Installing
 dependencies needs network access. If native `canvas` installation fails on
-Linux, see the renderer prerequisites in the [quality guide](sop/engineering-quality.md#troubleshooting).
+Linux, see the renderer prerequisites in the [quality guide](docs/development/engineering-quality.md#troubleshooting).
 
 Follow this checkout's README and `.env.example` for runtime configuration.
 Local model credentials are needed for generation, not for the standard test
@@ -73,7 +73,7 @@ to break saved diagrams or downstream imports. Historical Supabase SQL under
 
 ## Verify the result
 
-The [quality guide](sop/engineering-quality.md) maps changes to test commands.
+The [quality guide](docs/development/engineering-quality.md) maps changes to test commands.
 Start with the affected areas. Use `./scripts/check_quality.sh all` for changes
 spanning the stack or release preparation. Documentation-only changes need link,
 command and factual checks; they do not require a paid generation run.
@@ -113,7 +113,7 @@ to their evidence.
 
 ## Keep contributor documentation aligned
 
-Maintainers keep `CONTRIBUTING.md`, the three guides under `sop/`, and
+Maintainers keep `CONTRIBUTING.md`, the three guides under `docs/development/`, and
 `.github/PULL_REQUEST_TEMPLATE.md` identical across the public and development
 repositories. Apply documentation updates to both, validate links and commands
 in each checkout, and compare the final files before merging. Repository READMEs

@@ -68,7 +68,7 @@ The browser edition offers editable generation, optional icons, content review, 
 | **Project storage** | This browser; export copies for backup | Your backend and database |
 | **External Agent collaboration** | Guide to setting up the backend edition | Project-scoped CLI connections, previews, safe commits and checkpoint restoration |
 
-The online edition is a lightweight path for trying editable generation; the method below describes the full research framework. See the [capability and privacy guide](docs/browser-edition.md) for details.
+The online edition is a lightweight path for trying editable generation; the method below describes the full research framework. See the [capability and privacy guide](docs/guides/browser-edition.md) for details.
 
 ## How EvoDesign works
 
@@ -104,7 +104,7 @@ Fill **`LLM_MODEL_NAME`**, **`LLM_ENDPOINT_URL`** and **`LLM_API_KEY`** in the g
 ./scripts/start_service.sh
 ```
 
-Open **http://localhost:5175**. The API is on port 3010 and rendering service on 3000. Stop with `./scripts/stop_service.sh`. The local setup creates unique secrets and matching guest configuration. Existing `.env` files are never overwritten. See [configuration](docs/configuration.md) for provider selection, optional features and hosted deployment boundaries.
+Open **http://localhost:5175**. The API is on port 3010 and rendering service on 3000. Stop with `./scripts/stop_service.sh`. The local setup creates unique secrets and matching guest configuration. Existing `.env` files are never overwritten. See [configuration](docs/guides/configuration.md) for provider selection, optional features and hosted deployment boundaries.
 
 The renderer needs Playwright Chromium for image export. On a machine without it, run `cd evo_diagram/agentic_system/tool_services && npx playwright install chromium`. Linux may need `npx playwright install --with-deps chromium` and native Canvas libraries (`libcairo2-dev`, `libpango1.0-dev`, `libjpeg-dev`, `libgif-dev`, `librsvg2-dev`, `pkg-config`). The first design-memory run may download its embedding model.
 
@@ -120,7 +120,7 @@ evodesign document get --profile paper --json
 
 Approve the printed code in Web. Give your Agent [the EvoDesign skill](skills/evodesign/SKILL.md) to prepare semantic edits and inspect the real PNG. You can accept candidates in Web or allow the connection to commit. Saved manual edits and DNA are shared; conflicts retain candidates, and incoming versions preserve unsaved Web drafts. Restoring a checkpoint creates a new version.
 
-This v1 uses the backend edition; browser-local projects, MCP and TLDraw editing are outside its scope. See the **[Agent collaboration guide](docs/agent-collaboration.md)** for installation, commands, handoffs and recovery. CLI edits use your Agent's reasoning and do not invoke the backend generation model.
+This v1 uses the backend edition; browser-local projects, MCP and TLDraw editing are outside its scope. See the **[Agent collaboration guide](docs/guides/agent-collaboration.md)** for installation, commands, handoffs and recovery. CLI edits use your Agent's reasoning and do not invoke the backend generation model.
 
 ### Use the engine without the web UI
 
@@ -132,11 +132,11 @@ python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/di
 python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json --use-icons
 ```
 
-Use `--help` for custom input, refinement, ablations and personal edit-learning options. [Reproducibility notes](docs/reproducibility.md) explain model/judge configuration, experiment records and the distinction between this maintained release and the manuscript's reported scores.
+Use `--help` for custom input, refinement, ablations and personal edit-learning options. [Reproducibility notes](research/reproducibility.md) explain model/judge configuration, experiment records and the distinction between this maintained release and the manuscript's reported scores.
 
 ## Personal design memory
 
-The complete memory implementation is included: preference extraction, storage, retrieval, scoped DNA rules and web management. Start with the [design-memory guide](docs/design-memory.md) and the [eight-rule blue-violet example](examples/design-memory/blue-violet.json):
+The complete memory implementation is included: preference extraction, storage, retrieval, scoped DNA rules and web management. Start with the [design-memory guide](docs/guides/design-memory.md) and the [eight-rule blue-violet example](examples/design-memory/blue-violet.json):
 
 ```sh
 python scripts/design_memory.py validate examples/design-memory/blue-violet.json
@@ -148,7 +148,7 @@ Signed-in users can export and additively import rules through the same utility.
 
 The [paper, **EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution**](https://arxiv.org/abs/2604.09568), describes the method and evaluates it with CanvasBench across content, visual and cognitive dimensions.
 
-The repository includes the implementation, evaluation tools and baseline adapters. **Training and test datasets will be released separately.** The one-task quick-start example is for trying the software, not benchmarking it. The website's research scores are manuscript-reported results; this maintained code release does not claim a fresh reproduction of the full experiment. See [reproducibility notes](docs/reproducibility.md) for research use.
+The repository includes the implementation, evaluation tools and baseline adapters. **Training and test datasets will be released separately.** The one-task quick-start example is for trying the software, not benchmarking it. The website's research scores are manuscript-reported results; this maintained code release does not claim a fresh reproduction of the full experiment. See [reproducibility notes](research/reproducibility.md) for research use.
 
 ## Repository map
 
@@ -159,25 +159,24 @@ frontend/             React workspace and editable canvas adapters
 cli/                  Standalone Agent CLI (no engine installation required)
 skills/evodesign/     Portable workflow and operation references for Agents
 configs/              Model roles and application settings
-dataset_construction/ Dataset preparation utilities
 evaluation/           Evaluation and analysis
 baselines/            Comparison methods and adapters
 examples/             Quick-start task and portable personal-memory example
 scripts/              Setup, services, quality checks and experiments
-docs/                 Paper website and public guides
-research/             Authoritative paper metadata
+docs/                 Website, user guides, development reference and historical records
+research/             Dataset preparation, research prompts, paper metadata and reproduction notes
 ```
 
 ## Development
 
-Start with the [contribution guide](CONTRIBUTING.md), [quality checks](sop/engineering-quality.md) and [backend API reference](sop/backend-api-surface.md). Contributions in English or Chinese are welcome.
+Start with the [contribution guide](CONTRIBUTING.md), [quality checks](docs/development/engineering-quality.md) and [backend API reference](docs/development/backend-api-surface.md). Contributions in English or Chinese are welcome.
 
 ```sh
 python -m pip install -e ".[dev]"
 ./scripts/check_quality.sh all
 ```
 
-See [contributing](CONTRIBUTING.md), [configuration](docs/configuration.md) and [third-party notices](THIRD_PARTY_NOTICES.md). Please include a minimal input, model identifier, release commit and relevant redacted logs when reporting a bug. Do not attach API keys, account databases or private prompts.
+See [contributing](CONTRIBUTING.md), [configuration](docs/guides/configuration.md) and [third-party notices](licenses/README.md). Please include a minimal input, model identifier, release commit and relevant redacted logs when reporting a bug. Do not attach API keys, account databases or private prompts.
 
 ## Contributors
 
@@ -224,4 +223,4 @@ If you use EvoDesign or CanvasBench, please cite the paper. GitHub's **Cite this
 
 ## License
 
-Original EvoDesign software contributions are released under [MIT](LICENSE). Dependencies, bundled fonts/icons and incorporated third-party material retain their own terms; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). In particular, the optional TLDraw SDK uses its upstream license. The software license does not relicense the paper or third-party dataset source material.
+Original EvoDesign software contributions are released under [MIT](LICENSE). Dependencies, bundled fonts/icons and incorporated third-party material retain their own terms; see [third-party notices](licenses/README.md). In particular, the optional TLDraw SDK uses its upstream license. The software license does not relicense the paper or third-party dataset source material.

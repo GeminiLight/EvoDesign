@@ -1,4 +1,4 @@
-> **EvoDesign public release:** use the [root README](../../README.md) and [configuration guide](../../docs/configuration.md) for current setup. Legacy module names below remain for compatibility.
+> **EvoDesign public release:** use the [root README](../../README.md) and [configuration guide](../../docs/guides/configuration.md) for current setup. Legacy module names below remain for compatibility.
 
 # Text2Diagram Agentic System 文档
 
@@ -20,14 +20,14 @@
 
 | 模块 | 说明 |
 |------|------|
-| [概览](wiki/overview.md) | 系统总览、数据流、快速开始 |
-| [common/](wiki/common.md) | 共享基础设施：BaseAgent、skill_loader、task_prompts |
-| [generation_stage/](wiki/generation_stage.md) | 核心流水线：Structure、Styling、Layout、Oneshot |
-| [verification_stage/](wiki/verification_stage.md) | 质量验证：客观检查 + VLM 主观评判 |
-| [refinement_stage/](wiki/refinement_stage.md) | 迭代优化：确定性修复器 + LLM EditOps |
-| [render_engine/](wiki/render_engine.md) | 渲染引擎：Excalidraw + TLDraw 管道 |
-| [tool_services/](wiki/tool_services.md) | Node.js 工具服务：Playwright 渲染、图标服务、布局实验接口 |
-| [system_prompt/](wiki/system_prompt.md) | 提示词知识库：设计模式、最佳实践、领域知识 |
+| [概览](docs/development/overview.md) | 系统总览、数据流、快速开始 |
+| [common/](docs/development/common.md) | 共享基础设施：BaseAgent、skill_loader、task_prompts |
+| [generation_stage/](docs/development/generation_stage.md) | 核心流水线：Structure、Styling、Layout、Oneshot |
+| [verification_stage/](docs/development/verification_stage.md) | 质量验证：客观检查 + VLM 主观评判 |
+| [refinement_stage/](docs/development/refinement_stage.md) | 迭代优化：确定性修复器 + LLM EditOps |
+| [render_engine/](docs/development/render_engine.md) | 渲染引擎：Excalidraw + TLDraw 管道 |
+| [tool_services/](docs/development/tool_services.md) | Node.js 工具服务：Playwright 渲染、图标服务、布局实验接口 |
+| [system_prompt/](docs/development/system_prompt.md) | 提示词知识库：设计模式、最佳实践、领域知识 |
 
 ---
 
@@ -783,7 +783,7 @@ PROXY_B_API_KEY=your_key
 
 6. **配置 YAML**（推荐）
 
-编辑仓库根目录 `configs/models.yaml` 配置 provider/model，编辑 `configs/settings.yaml` 配置 roles。`api_key` 支持 `env:VAR_NAME` 语法从环境变量加载。完整说明见 `../../docs/configuration.md`。
+编辑仓库根目录 `configs/models.yaml` 配置 provider/model，编辑 `configs/settings.yaml` 配置 roles。`api_key` 支持 `env:VAR_NAME` 语法从环境变量加载。完整说明见 `../../docs/guides/configuration.md`。
 
 6. **初始化设计记忆系统**
 

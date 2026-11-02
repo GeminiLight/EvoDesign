@@ -53,7 +53,7 @@ fi
 # Select only the actual outputs you generated, including batch-capable baselines.
 # This avoids silently evaluating another model's old result directories.
 if [ -z "$METHODS_CSV" ]; then
-  echo "[ERROR] Set METHODS to the generated method/model directories (see docs/reproducibility.md)." >&2
+  echo "[ERROR] Set METHODS to the generated method/model directories (see research/reproducibility.md)." >&2
   exit 2
 fi
 IFS="," read -r -a METHODS <<< "$METHODS_CSV"
