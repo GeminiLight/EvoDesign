@@ -1,4 +1,40 @@
-# First-load performance — 30 October 2026
+# Website performance
+
+## Brand typography — 2 November 2026
+
+The website now uses Syne 600 for display headings, with the same violet
+(`#6255d6`) and teal (`#187b93`) accents as the outlined wordmark. Paragraphs and
+controls retain DM Sans. The heading face is a static Latin subset; the body face
+retains its variable 400–700 range, including intermediate weights. Neither font
+requires an external stylesheet or origin. Source hashes, modifications and OFL
+notices are in `docs/assets/fonts/README.md`.
+
+| Font payload | Before (`999b73c`) | Current |
+| --- | ---: | ---: |
+| Body | DM Sans: 36,980 bytes | DM Sans: 23,264 bytes |
+| Display | Manrope: 24,436 bytes | Syne: 12,296 bytes |
+| **Total** | **61,416 bytes** | **35,560 bytes** |
+
+This reduces the font payload by **25,856 bytes (42.1%)** while retaining two
+font requests. The logo and wordmark are SVG outlines and need no font download.
+The existing inline CSS, responsive WebP previews, deferred scripts and lazy paper
+figures remain in place. The font budget is now 40,000 bytes, down from 70,000;
+the guard also verifies that preloads match the two CSS faces and use anonymous
+cross-origin mode to match font fetches.
+
+Chrome checks covered the desktop layout, narrow-screen wrapping, section links,
+the workflow controls and the paper-figure dialog. The local server recorded HTTP
+200 for both new WOFF2 requests. Resource sizes are measured from the actual
+published files; this update does **not** claim a measured reduction in load time,
+LCP or CLS. No DevTools trace or production field measurements were available.
+
+Current native-browser captures: [desktop](../screenshots/website-desktop.jpg) ·
+[mobile](../screenshots/website-mobile.jpg).
+
+## First-load update — 30 October 2026 (historical)
+
+The measurements below describe that release's original font pair and controlled
+experiment. The current files and payload are listed above.
 
 ## Changes
 

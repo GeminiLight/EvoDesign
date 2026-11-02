@@ -24,6 +24,9 @@ class Page(HTMLParser):
         if tag == "link":
             assert attributes.get("rel") != "stylesheet", "Keep render styles in the generated inline bundle"
             if attributes.get("as") == "font":
+                assert attributes.get("rel") == "preload"
+                assert attributes.get("type") == "font/woff2"
+                assert "crossorigin" in attributes, "Match the anonymous font fetch to avoid a second download"
                 self.fonts.append(attributes["href"])
         if tag == "img" and attributes.get("src"):
             self.images.append(attributes)
@@ -57,13 +60,17 @@ def main() -> None:
     page.feed(html.decode())
     css = "".join(page.styles)
     assert css and len(css.encode()) < 90_000, "Inline CSS budget exceeded"
-    assert len(gzip.compress(html)) < 40_000, "Compressed document budget exceeded"
+    document_bytes = len(gzip.compress(html))
+    assert document_bytes < 40_000, "Compressed document budget exceeded"
     assert "@import" not in css, "CSS imports add another render dependency"
-    for url in re.findall(r"url\(\s*['\"]?([^)'\"\s]+)", css):
+    css_urls = re.findall(r"url\(\s*['\"]?([^)'\"\s]+)", css)
+    for url in css_urls:
         if not url.startswith("data:"):
             asset(url)
-    assert len(page.fonts) == 2
-    assert sum(asset(url).stat().st_size for url in page.fonts) < 70_000
+    assert len(page.fonts) == 2, "Use one body face and one display face"
+    assert sorted(page.fonts) == sorted(url for url in css_urls if url.endswith(".woff2")), "Font preloads must match the CSS faces"
+    font_bytes = sum(asset(url).stat().st_size for url in page.fonts)
+    assert font_bytes < 40_000, "Font transfer budget exceeded"
     assert sum(asset(url).stat().st_size for url in page.scripts) < 50_000
     eager_bytes = 0
     for image in page.images:
@@ -80,6 +87,7 @@ def main() -> None:
             assert max(path.stat().st_size for path in paths) < 350_000
     assert eager_bytes < 50_000, "Initial image transfer budget exceeded"
     print("Verified same-origin rendering resources, inline CSS, responsive previews and first-load byte budgets.")
+    print(f"Font payload: {font_bytes:,} bytes across {len(page.fonts)} WOFF2 files; gzip HTML: {document_bytes:,} bytes.")
 
 
 if __name__ == "__main__":
