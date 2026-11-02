@@ -36,6 +36,9 @@ def run(*args, cwd, env):
 def main():
     if not os.environ.get('MODELSCOPE_API_KEY'):
         raise SystemExit('Set MODELSCOPE_API_KEY in the environment.')
+    remote = subprocess.check_output(['git', 'remote', 'get-url', 'origin'], cwd=ROOT, text=True).strip().lower().removesuffix('.git')
+    if not (remote.endswith('github.com/geminilight/evodesign') or remote.endswith('github.com:geminilight/evodesign')):
+        raise SystemExit('Publish from the public GeminiLight/EvoDesign checkout, not a private development repository.')
     if not (ROOT / 'frontend/dist/index.html').is_file():
         raise SystemExit('Run npm --prefix frontend run build:browser first.')
     revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()

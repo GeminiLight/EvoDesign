@@ -1,5 +1,4 @@
 {
-  "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "evodesign-entry",
   "main": "worker.mjs",
   "account_id": "b25c73f01c3d961852e64a59f38ac553",
