@@ -43,6 +43,7 @@ Continuous spine with decision diamonds:
 - Arrows connect nodes in a directional sequence and should stay anchored to elements.
 - Decision nodes should branch into multiple conditional paths, and branch edges can carry labels such as Yes/No.
 - Avoid orphan nodes without incoming or outgoing flow context.
+- Give nodes an optional `emphasis`: `"primary"` for at most two nodes the reader must see first (the key decision or the final outcome), `"muted"` for side steps that are not part of the main outcome.
 - When the source uses abstract governance language such as validation, evaluation, control, monitoring, or access enforcement, do not automatically materialize each verb as a separate visible helper node; prefer the explicitly named user-facing steps, outcomes, and decisions unless the text clearly separates an additional step.
 - Do not insert a generic error router, generic account-status gateway, or second-order helper check when the source already names the concrete outcomes that matter to the reader.
 - Do not invent feedback loops from a successful end state back to login, start, or reset unless the source explicitly describes a logout, restart, or cyclical session reset path.

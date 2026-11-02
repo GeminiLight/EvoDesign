@@ -189,3 +189,9 @@ def test_tldraw_icon_conversion_fails_for_missing_svg_asset(monkeypatch, tmp_pat
             },
             element_id="node:svc:icon",
         )
+
+
+def test_every_bundled_icon_parses_and_tints():
+    from evo_diagram.agentic_system.common.node_icons import bundled_icons, icon_svg
+    for name in bundled_icons():
+        assert '#123456' in icon_svg(name, '#123456'), name

@@ -81,6 +81,7 @@ import {
   buildCreateHandoff,
   getInitialPreflightGeneration,
   getInitialStartupGenerationDraft,
+  clearConsumedProjectHandoff,
   isWorkspaceDiagramType,
 } from '../services/workspaceRouteHandoff';
 
@@ -1501,15 +1502,17 @@ export function WorkspacePage() {
         if (owner === activeAuthIdentityRef.current) setError(t('workspace.resumeProjectFailed'));
       });
     // Use React Router navigate so useLocation() sees the cleared state.
-    if (pendingLoadProject) navigate(location.pathname, { replace: true, state: {} });
-  }, [authLoading, initialResumeProjectId, location.state, handleLoadDiagram, navigate, location.pathname, t]);
+    if (pendingLoadProject) navigate({ pathname: location.pathname, search: location.search }, { replace: true, state: {} });
+  }, [authLoading, initialResumeProjectId, location.state, handleLoadDiagram, navigate, location.pathname, location.search, t]);
 
   useEffect(() => {
     if (!preview?.projectId || isHistorySwitching || authLoading || canvasOwnerIdentity !== authIdentity) return;
     const search = new URLSearchParams(location.search);
-    if (search.get('project') === preview.projectId) return;
+    const consumedHandoff = pendingLoadHandledRef.current && Boolean(location.state?.pendingLoadProject);
+    if (search.get('project') === preview.projectId && !consumedHandoff) return;
     search.set('project', preview.projectId);
-    navigate({ pathname: location.pathname, search: search.toString() }, { replace: true, state: location.state });
+    navigate({ pathname: location.pathname, search: search.toString() }, { replace: true,
+      state: consumedHandoff ? clearConsumedProjectHandoff(location.state) : location.state });
   }, [authIdentity, canvasOwnerIdentity, authLoading, isHistorySwitching, location.pathname, location.search, location.state, navigate, preview?.projectId]);
 
   // Handle explicit preflight handoffs from Insights/DNA without auto-generating.

@@ -4,7 +4,7 @@ EvoDesign includes both reusable design expertise and personal preferences. They
 
 | Component | Contents | Location / entry point |
 | --- | --- | --- |
-| Shared expertise | 126 bundled seed strategies; retrieved and optionally updated during refinement | `evo_diagram/design_memory/`, `backend/app/services/design_memory_service.py` |
+| Shared expertise | 129 bundled seed strategies; retrieved and optionally updated during refinement | `evo_diagram/design_memory/`, `backend/app/services/design_memory_service.py` |
 | Personal DNA | Structure, style and layout rules; enable/disable, pin, edit, global and project scope | Web **Your DNA**, `backend/app/services/dna_rule_service.py` |
 | Learning from edits | Before/after canvas comparison, preference extraction and vector storage | `evo_diagram/user_memory/`, its `data_example/`, CLI `--learn-from-edit` / `--enable-user-memory` |
 

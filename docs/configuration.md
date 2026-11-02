@@ -9,7 +9,8 @@ The default temperature is 1 in both `.env.example` (web) and `configs/models.ya
 ## Runtime features
 
 - Excalidraw is the default canvas. The optional TLDraw adapter is an advanced setting and carries its own upstream license; see [third-party notices](../THIRD_PARTY_NOTICES.md).
-- Icons are opt-in. The 74-icon curated Excalidraw catalog is bundled and needs no remote icon service. For the broader legacy TLDraw icon assets, run `python evo_diagram/scripts/setup_icons.py --version 0.14.15`.
+- Icons are opt-in. The curated Excalidraw catalog (74 filled Material icons plus 59 `outline_*` Lucide icons) is bundled and needs no remote icon service. For the broader legacy TLDraw icon assets, run `python evo_diagram/scripts/setup_icons.py --version 0.14.15`.
+- Small Excalidraw architecture diagrams without named groups, labeled relations or self-loops can use uniform title/sublabel cards and shared-trunk routing. The tool executes the layout agent's `tier_plan`, preserves supplied palette colors and intentional partial icon coverage, and keeps native text/connector bindings for editing. Icons remain opt-in. Unsupported graphs and junctions that would imply extra dependencies retain their complete free-form layout. Explicit DNA and locked elements bypass automatic visual treatments. `EVODESIGN_ARCH_DESIGN_SYSTEM=0` disables architecture cards. TLDraw scenes are not affected. These Python render treatments do not run in the static browser edition.
 - Web refinement and design memory are enabled by default. Their settings are documented in `.env.example` and `backend/.env.example`.
 - The initial embedding download is separate from steady-state generation time.
 - Root `configs/` overrides packaged defaults. Both are shipped with matching public defaults.

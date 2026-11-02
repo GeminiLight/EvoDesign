@@ -5,6 +5,7 @@ The root MIT license covers original EvoDesign software contributions, not indep
 | Material | Source / terms |
 | --- | --- |
 | Curated Material Design icon catalog | Google Material Design icons via `@material-design-icons/svg` 0.14.15; Apache 2.0. Full notice: `evo_diagram/agentic_system/common/assets/MATERIAL_ICONS_LICENSE.txt` |
+| Outline icons (`outline_*` entries in the icon catalog) | Lucide icons via `lucide-react` 0.575.0; ISC (portions MIT from Feather). Full notice: `evo_diagram/agentic_system/common/assets/LUCIDE_ICONS_LICENSE.txt` |
 | IBM Plex fonts | IBM; SIL Open Font License 1.1. `licenses/IBM-Plex-OFL.txt` |
 | Shantell Sans fonts | Shantell Sans Project Authors; SIL Open Font License 1.1. `licenses/Shantell-Sans-OFL.txt` |
 | Website DM Sans and Manrope fonts | Unmodified Google Fonts Latin variable binaries; SIL Open Font License 1.1. Sources and notices: `docs/assets/fonts/README.md`, `OFL-DM-Sans.txt` and `OFL-Manrope.txt` in that directory |

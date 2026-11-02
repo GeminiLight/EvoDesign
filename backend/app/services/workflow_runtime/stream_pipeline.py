@@ -27,6 +27,7 @@ class _StreamingArtifacts:
     styling_specification: Any = None
     layout_instantiation: Any = None
     layout_specification: Any = None
+    design_constraints: str = ""
     render_result: Any = None
     diagram_manifest: dict[str, Any] | None = None
     refined_diagram_manifest: dict[str, Any] | None = None
@@ -97,6 +98,7 @@ async def _run_generation_stage(
         save_dir=save_dir,
     )
     _sync_generation_artifacts(artifacts, pipeline_run)
+    artifacts.design_constraints = getattr(workflow, "design_constraints", "")
 
 
 async def _run_render_stage(
@@ -111,6 +113,8 @@ async def _run_render_stage(
         render_manifest,
         layout_instantiation=artifacts.layout_instantiation,
         structure_instantiation=artifacts.structure_instantiation,
+        layout_specification=artifacts.layout_specification,
+        design_constraints=artifacts.design_constraints,
         canvas_library=request.canvas_library,
         output_dir=_render_output_dir(save_dir),
     )

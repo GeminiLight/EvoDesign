@@ -31,6 +31,7 @@ from evo_diagram.canvas_environment import (
     CANVAS_MAX_Y,
     detect_group_frame_ids,
 )
+from evo_diagram.agentic_system.common.node_icons import DECORATION_KEY, JUNCTION_KEY
 from evo_diagram.agentic_system.common.semantic_ids import id_map_from_manifest
 from .finding import Finding, Severity
 
@@ -45,6 +46,12 @@ def _is_fully_transparent(elem: Dict[str, Any]) -> bool:
         return float(elem.get("opacity", 100)) <= 0
     except (TypeError, ValueError):
         return False
+
+
+def _is_decoration(elem: Dict[str, Any]) -> bool:
+    """Junction dots, zone backgrounds and titles are design decoration, not nodes."""
+    custom = elem.get("customData")
+    return isinstance(custom, dict) and bool(custom.get(JUNCTION_KEY) or custom.get(DECORATION_KEY))
 
 
 def _bbox(elem: Dict[str, Any]) -> Optional[Tuple[float, float, float, float]]:
@@ -240,7 +247,7 @@ def check_edge_node_intersections(
     for elem in elements:
         if not isinstance(elem, dict) or elem.get("isDeleted"):
             continue
-        if elem.get("type") in {"arrow", "text", "image", "line", "freedraw"}:
+        if elem.get("type") in {"arrow", "text", "image", "line", "freedraw"} or _is_decoration(elem):
             continue
         element_id = elem.get("id")
         if not element_id or element_id in background_ids:
@@ -341,7 +348,7 @@ def check_node_overlap(manifest: Dict[str, Any]) -> List[Finding]:
     for elem in elements:
         if not isinstance(elem, dict):
             continue
-        if elem.get("isDeleted") or _is_fully_transparent(elem):
+        if elem.get("isDeleted") or _is_fully_transparent(elem) or _is_decoration(elem):
             continue
         etype = elem.get("type")
         if etype in ("arrow", "freedraw", "line", "image"):
@@ -365,6 +372,22 @@ def check_node_overlap(manifest: Dict[str, Any]) -> List[Finding]:
             eid_b, bbox_b, elem_b = candidates[j]
 
             if not _bboxes_overlap(bbox_a, bbox_b):
+                continue
+            # A card's registered subtitle is content, not a second node.
+            # Keep reporting a subtitle that escapes its card or overlaps others.
+            contained_part = False
+            for part, host, part_box, host_box in (
+                (elem_a, elem_b, bbox_a, bbox_b), (elem_b, elem_a, bbox_b, bbox_a)
+            ):
+                owner = (part.get("customData") or {}).get("evoDesignCardPart") or {}
+                card = (host.get("customData") or {}).get("evoDesignCard") or {}
+                if (isinstance(owner, dict) and isinstance(card, dict)
+                        and owner.get("hostId") == host.get("id")
+                        and card.get("sublabelId") == part.get("id")):
+                    px, py, pw, ph = part_box
+                    hx, hy, hw, hh = host_box
+                    contained_part = hx <= px and hy <= py and px+pw <= hx+hw and py+ph <= hy+hh
+            if contained_part:
                 continue
 
             # Same-group children of a banded layout (swimlane) can legitimately

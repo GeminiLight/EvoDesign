@@ -16,6 +16,12 @@ ICON_SIZE = 26
 ICON_PADDING = 16
 ICON_GAP = 10
 ICON_KEY = "evoDesignIcon"
+# Architecture design-system cards lay out their own icon, title and sublabel.
+CARD_KEY = "evoDesignCard"
+# Junction dots on shared connector trunks: decoration, never a node.
+JUNCTION_KEY = "evoDesignJunction"
+# Zone backgrounds, zone labels and diagram titles: decoration, never a node.
+DECORATION_KEY = "evoDesignDecoration"
 
 
 @lru_cache(maxsize=1)
@@ -112,6 +118,47 @@ def set_node_icon(manifest: dict, host_id: str, name: str) -> bool:
     return True
 
 
+def _sync_design_cards(elements: list[dict], host_id: str | None) -> None:
+    by_id = {e.get("id"): e for e in elements}
+    for host in elements:
+        card = (host.get("customData") or {}).get(CARD_KEY)
+        if not isinstance(card, dict) or host.get("locked") or (host_id and host.get("id") != host_id):
+            continue
+        def part(key: str) -> dict | None:
+            eid = card.get(key)
+            return by_id.get(eid) if isinstance(eid, str) else None
+
+        title = part("titleId")
+        if not title or title.get("containerId") != host.get("id") or title.get("isDeleted"):
+            continue
+        icon = part("iconId")
+        if icon and (((icon.get("customData") or {}).get(ICON_KEY) or {}).get("hostId") != host["id"] or icon.get("isDeleted")):
+            icon = None
+        subtitle = part("sublabelId")
+        if subtitle and (((subtitle.get("customData") or {}).get("evoDesignCardPart") or {}).get("hostId") != host["id"] or subtitle.get("isDeleted")):
+            subtitle = None
+        left = 22 + (52 if icon else 0)
+        top = host["y"] + (host["height"] - title["height"] - (subtitle["height"] + 6 if subtitle else 0)) / 2
+
+        def place(part: dict, x: float, y: float, width: float, height: float) -> None:
+            angle = host.get("angle", 0)
+            dx, dy = x + width/2 - host["x"] - host["width"]/2, y + height/2 - host["y"] - host["height"]/2
+            patch = {"x": host["x"] + host["width"]/2 + dx*math.cos(angle) - dy*math.sin(angle) - width/2,
+                     "y": host["y"] + host["height"]/2 + dx*math.sin(angle) + dy*math.cos(angle) - height/2,
+                     "width": width, "height": height, "angle": angle}
+            if host.get("isDeleted"):
+                patch["isDeleted"] = True
+            if any(part.get(key) != value for key, value in patch.items()):
+                part.update(patch)
+                part["version"] = int(part.get("version", 1)) + 1
+
+        place(title, host["x"]+left, top, max(1, host["width"]-left-22), title["height"])
+        if subtitle:
+            place(subtitle, host["x"]+left, top+title["height"]+6, subtitle["width"], subtitle["height"])
+        if icon:
+            place(icon, host["x"]+22, host["y"]+(host["height"]-36)/2, 36, 36)
+
+
 def sync_node_icons(manifest: dict, host_id: str | None = None) -> None:
     """Keep generated icons and labels attached after geometry/style edits.
 
@@ -119,6 +166,7 @@ def sync_node_icons(manifest: dict, host_id: str | None = None) -> None:
     or a canonical semantic companion ID is required; geometry is not ownership.
     """
     elements = manifest.get("elements") or []
+    _sync_design_cards(elements, host_id)
     id_map = (manifest.get("_meta") or {}).get("id_map") or {}
     legacy_ids = {v for k, v in id_map.items() if k.endswith(":icon")}
     for icon in elements:
@@ -129,6 +177,8 @@ def sync_node_icons(manifest: dict, host_id: str | None = None) -> None:
             continue
         host = icon_owner(icon, elements, id_map)
         if not host or (host_id and host.get("id") != host_id):
+            continue
+        if not host.get("isDeleted") and (host.get("customData") or {}).get(CARD_KEY):
             continue
         before_icon = dict(icon)
         if host.get("isDeleted"):

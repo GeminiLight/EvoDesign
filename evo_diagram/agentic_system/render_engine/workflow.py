@@ -161,7 +161,9 @@ class RenderWorkflow:
 		workflow.add_edge("excalidraw_size_fit", "excalidraw_fit_groups")
 		workflow.add_edge("excalidraw_fit_groups", "excalidraw_align_groups")
 		workflow.add_edge("excalidraw_align_groups", "excalidraw_arrows")
-		workflow.add_edge("excalidraw_arrows", "excalidraw_zorder_repair")
+		workflow.add_node("excalidraw_arch_design_system", self._run_excalidraw_arch_design_system)
+		workflow.add_edge("excalidraw_arrows", "excalidraw_arch_design_system")
+		workflow.add_edge("excalidraw_arch_design_system", "excalidraw_zorder_repair")
 		workflow.add_edge("excalidraw_zorder_repair", "excalidraw_validate")
 		workflow.add_edge("excalidraw_validate", END)
 		return workflow.compile()
@@ -258,6 +260,28 @@ class RenderWorkflow:
 		)
 		state.update_stage(ALIGN_GROUPS, {"manifest": aligned_manifest})
 		logger.info("[RenderWorkflow/Excalidraw] Group alignment intent preserved")
+		return state
+
+	def _run_excalidraw_arch_design_system(self, state: WorkflowState) -> WorkflowState:
+		"""Apply the architecture design system, or the shared theme to other types."""
+		from .excalidraw.architecture_design_system import apply_architecture_design_system
+		designed = apply_architecture_design_system(
+			state.diagram_manifest,
+			state.structure_instantiation,
+			layout_instantiation=state.layout_instantiation,
+			layout_specification=state.layout_specification,
+			design_constraints=state.design_constraints,
+		)
+		if designed is state.diagram_manifest:
+			from .excalidraw.design_theme import apply_design_theme
+			designed = apply_design_theme(
+				state.diagram_manifest,
+				state.structure_instantiation,
+				layout_instantiation=state.layout_instantiation,
+				design_constraints=state.design_constraints,
+			)
+		if designed is not state.diagram_manifest:
+			state.update_stage(ARROW, {"manifest": designed})
 		return state
 
 	def _run_excalidraw_zorder_repair(self, state: WorkflowState) -> WorkflowState:

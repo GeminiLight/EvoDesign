@@ -22,12 +22,21 @@ const { normalizeBackendTimestamp, snapshotSourceKey, generatedProjectTitle } = 
 const { homeProjectKey, sortHomeProjects } = await load('src/utils/homeProjects.ts');
 const { workspaceDocumentKey, openWorkspaceDocument, closeWorkspaceDocument, parseWorkspaceDocuments } = await load('src/utils/workspaceDocuments.ts');
 const { getGenerationReviewState, hasCurrentVisualScores } = await load('src/utils/generationReport.ts');
-const { getInitialStartupGenerationDraft, getInitialPreflightGeneration } = await load('src/services/workspaceRouteHandoff.ts');
+const { clearConsumedProjectHandoff, getInitialStartupGenerationDraft, getInitialPreflightGeneration } = await load('src/services/workspaceRouteHandoff.ts');
 const { saveStartupGenerationDraft, loadStartupGenerationDraft, clearStartupGenerationDraft } = await load('src/services/startupGenerationDraft.ts');
 const { guestSaveDiagram, guestExportProjects, guestSyncProjectSchema, guestFetchRecentDiagrams, guestFetchProjectSnapshots, guestLoadDnaRules, guestSaveDnaRules } = await load('src/services/guestStorage.ts');
 const { fetchRecentDiagrams, fetchProjectDiagram, fetchProjectSnapshots, syncProjectSchema, saveDnaRules, loadDnaRules, createBlankCanvasProject } = await load('src/services/backendApi.ts');
 const { createBlankExcalidrawScene } = await load('src/utils/blankCanvas.ts');
 const { requestCanvasFullscreen } = await load('src/hooks/useCanvasFullscreen.ts');
+
+test('project URL updates do not restore a consumed snapshot handoff on refresh', () => {
+  const handoff = { pendingLoadProject: { project_id: 'p1', project_version: 2 }, returnTo: '/projects' };
+  const resumeState = clearConsumedProjectHandoff(handoff);
+  assert.deepEqual(resumeState, { returnTo: '/projects' });
+  assert.equal(resumeState.pendingLoadProject, undefined);
+  assert.equal(handoff.pendingLoadProject.project_version, 2);
+  assert.equal(clearConsumedProjectHandoff(null), null);
+});
 const { generationActivityStages, activityCanAutoClose } = await load('src/utils/generationActivity.ts');
 const { clampFloatingAnchor, defaultFloatingAnchor, floatingPanelPosition, isAnchorDrag } = await load('src/utils/floatingAnchor.ts');
 const { notifyAuthInvalidated } = await load('src/features/auth/authEvents.ts');

@@ -28,6 +28,7 @@ Central node at visual center; branches radiate outward evenly:
 - Use a central topic node with radiating main branches and secondary branch nodes.
 - Main branches define the first semantic split of the topic, and deeper nodes express hierarchy beneath each branch.
 - Main branches can be partial rather than exhaustive, with the center node outside branches. Do NOT emit groups for mindmaps.
+- The central topic is emphasised automatically; mark a branch `emphasis: "primary"` only when the source singles it out.
 - [Budget] parent + children; 0 groups (emits []); n−1 parent→child edges only, NO lateral links
 - [Edge Rules] Expected count: exactly n−1 (parent→child only). NO labels on edges. NO lateral/sibling links.
 

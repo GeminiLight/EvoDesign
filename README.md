@@ -49,7 +49,7 @@ Try the [browser edition](https://evodesign.vercel.app/) with the shared GLM-5.3
 | **Web workspace** | Generate, edit, save, reopen and export diagrams; turn icons on or off |
 | **Agent CLI + skill** | Use your existing terminal Agent to prepare candidates, inspect previews and continue from saved Web edits |
 | **Personal design memory** | Manage structure, style and layout preferences; learn from edits; import and export portable rules |
-| **Design expertise** | Retrieve reusable strategies from 126 bundled seed entries and evolve knowledge through feedback |
+| **Design expertise** | Retrieve reusable strategies from 129 bundled seed entries and evolve knowledge through feedback |
 | **Research tooling** | Run baseline adapters, ablations and evaluation with your own data |
 
 Excalidraw is the default canvas. TLDraw remains an optional adapter. Icons are optional and the default curated catalog is bundled. The Python import path `evo_diagram` is retained for compatibility; the project and algorithm are **EvoDesign**.

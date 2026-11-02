@@ -29,6 +29,11 @@ class WorkflowState(WorkflowStateBase):
 
 	structure_instantiation: Dict[str, Any] = Field(description="Semantic Topology used for arrow generation.")
 	layout_instantiation: Dict[str, Any] = Field(description="Positioned styling JSON emitted by the layout workflow.")
+	layout_specification: Optional[Dict[str, Any]] = Field(
+		default=None,
+		description="Layout strategy emitted by the layout agent (e.g. an architecture tier plan).",
+	)
+	design_constraints: str = ""
 
 	validation_report: Optional[Dict[str, Any]] = None
 

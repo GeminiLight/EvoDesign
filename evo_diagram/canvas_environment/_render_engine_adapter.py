@@ -72,6 +72,8 @@ def render_manifest(
     output_dir: Optional[str],
     viewport_width: int,
     viewport_height: int,
+    layout_specification: Optional[Dict[str, Any]] = None,
+    design_constraints: str = "",
 ) -> Any:
     from evo_diagram.agentic_system.render_engine import service
 
@@ -82,6 +84,8 @@ def render_manifest(
         output_dir=output_dir,
         viewport_width=viewport_width,
         viewport_height=viewport_height,
+        layout_specification=layout_specification,
+        design_constraints=design_constraints,
     )
 
 

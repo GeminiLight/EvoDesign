@@ -4,6 +4,8 @@ export const NODE_ICON_SIZE = 26;
 const PADDING = 16;
 const GAP = 10;
 const ICON_KEY = 'evoDesignIcon';
+// Architecture design-system cards lay out their own icon, title and sublabel.
+const CARD_KEY = 'evoDesignCard';
 export const nodeIconNames = Object.keys(iconCatalog);
 const catalog: Record<string, string> = iconCatalog;
 
@@ -84,11 +86,44 @@ export function reconcileNodeIcons(
     });
     changed = true;
   };
+  // Keep the native bound title editable while reserving its icon/subtitle space.
+  for (const host of elements) {
+    const value = host.customData?.[CARD_KEY];
+    if (!value || typeof value !== 'object' || host.locked) continue;
+    const card = value as { titleId?: string; iconId?: string; sublabelId?: string };
+    const title = elements.find(e => e.id === card.titleId && e.containerId === host.id && !e.isDeleted);
+    if (!title) continue;
+    const icon = elements.find(e => e.id === card.iconId && getNodeIcon(e)?.hostId === host.id && !e.isDeleted);
+    const subtitle = elements.find(e => e.id === card.sublabelId
+      && (e.customData?.evoDesignCardPart as { hostId?: string } | undefined)?.hostId === host.id
+      && !e.isDeleted);
+    if (host.isDeleted) {
+      for (const part of [title, icon, subtitle]) if (part) update(part, { isDeleted: true });
+      continue;
+    }
+    const left = 22 + (icon ? 52 : 0);
+    const textWidth = Math.max(1, host.width - left - 22);
+    const top = host.y + (host.height - title.height - (subtitle ? subtitle.height + 6 : 0)) / 2;
+    const place = (part: IconSceneElement, x: number, y: number, width: number, height: number) => {
+      const angle = host.angle ?? 0;
+      const dx = x + width / 2 - host.x - host.width / 2;
+      const dy = y + height / 2 - host.y - host.height / 2;
+      update(part, {
+        x: host.x + host.width / 2 + dx * Math.cos(angle) - dy * Math.sin(angle) - width / 2,
+        y: host.y + host.height / 2 + dx * Math.sin(angle) + dy * Math.cos(angle) - height / 2,
+        width, height, angle,
+      });
+    };
+    place(title, host.x + left, top, textWidth, title.height);
+    if (subtitle) place(subtitle, host.x + left, top + title.height + 6, subtitle.width, subtitle.height);
+    if (icon) place(icon, host.x + 22, host.y + (host.height - 36) / 2, 36, 36);
+  }
   for (const icon of elements) {
     const data = getNodeIcon(icon);
     if (!data) continue;
     const host = getIconHost(icon, elements);
     if (!host) continue;
+    if (!icon.isDeleted && !host.isDeleted && host.customData?.[CARD_KEY]) continue;
     if (icon.isDeleted) {
       const anotherIcon = elements.some(e => !e.isDeleted && getNodeIcon(e) && getIconHost(e, elements)?.id === host.id);
       const label = elements.find(e => e.type === 'text' && e.containerId === host.id && !e.isDeleted);
