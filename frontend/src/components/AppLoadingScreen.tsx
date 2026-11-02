@@ -17,13 +17,13 @@ export function AppLoadingScreen({ subtitle }: AppLoadingScreenProps) {
     <div className="bg-soft-mesh dark:bg-soft-mesh-dark flex min-h-screen items-center justify-center bg-slate-50 px-6 dark:bg-slate-950">
       <div className="flex flex-col items-center text-center">
         <img
-          src="/evodiagram.svg"
+          src="/brand/evodesign-icon.svg"
           alt=""
           aria-hidden="true"
           className="h-11 w-11 dark:hidden"
         />
         <img
-          src="/evodiagram-dark.svg"
+          src="/brand/evodesign-icon-dark.svg"
           alt=""
           aria-hidden="true"
           className="hidden h-11 w-11 dark:block"

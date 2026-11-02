@@ -7,13 +7,13 @@ The two repository READMEs use matching-language screenshots:
 - `README.md` (English): `../screenshots/studio-home-en.jpg`.
 - `README.zh-CN.md` (Simplified Chinese): `../screenshots/studio-home-zh-CN.jpg`.
 
-Both were refreshed on 2026-10-29 from the current frontend code (commit `05f418f04619652ae3c393950774db7fad4af4e1`, including the homepage centering fix) running locally in browser mode, using the user's existing Google Chrome. The app's Preferences control selects Light and the corresponding language; labels are rendered by the application, not painted into the image. Both captures use the same 1880 × 873 region, excluding the browser-extension control at the far right edge. They show an empty browser workspace with Your model / 你的模型 selected; no model request or private project data is used. The website hero uses responsive WebP previews generated from the English capture.
+Both were refreshed on 2026-11-02 from the approved C identity running locally in browser mode, using the user's existing Google Chrome. The app's Preferences control selects Light and the corresponding language; labels are rendered by the application, not painted into the image. Both captures use Chrome's normal 1512 × 683 viewport and an empty workspace on a separate local origin, with no model request or private project data. The website hero uses responsive WebP previews generated from the English capture.
 
 The earlier `../screenshots/studio-home.png` and dark `workspace-preview.png` remain available for existing links. Keep the two language versions on the same UI release and update their captures together.
 
 ## Studio identity
 
-`studio-logo.svg` is copied directly from `frontend/public/evodiagram.svg`. The website navigation and favicon use this same product mark. When the product identity changes, refresh this copy from the application source.
+`studio-logo.svg`, `favicon.svg`, `evodesign-lockup.svg` and the social preview use the selected **C / Thought takes shape** identity (2 November 2026). Their geometry and outlined Outfit glyphs are generated from `shared/brand.json` with `node scripts/sync-brand.mjs --raster`. The same source generates the app, README, renderer and home-screen icons. See `../../frontend/public/brand/README.md` for variants and the font license. Historical screenshots retain their original interface; refresh active README and hero captures from the actual app when the UI changes.
 
 ## Website verification
 

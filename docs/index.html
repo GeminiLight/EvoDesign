@@ -291,7 +291,8 @@
 }
 </script>
 <!-- RESEARCH-METADATA:END -->
-  <link rel="icon" type="image/svg+xml" href="assets/studio-logo.svg">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preload" href="assets/fonts/manrope-v23-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/dm-sans-v17-latin.woff2" as="font" type="font/woff2" crossorigin>
   <!-- SITE-STYLES:START -->
@@ -1037,13 +1038,22 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after { animat
 <!-- SITE-STYLES:END -->
   <script src="app.js?v=8717afafe5" defer></script>
   <script src="motion.js?v=2734ce6a21" defer></script>
+<style>
+/* Approved C identity: one consistent symbol and outlined wordmark. */
+.wordmark img.brand-signature { width: 156px; height: auto; margin: 0; border-radius: 0; box-shadow: none; }
+.footer .wordmark img.brand-signature { width: 138px; }
+.hero-brand-name { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.hero-brand-signature { display: block; width: min(496px, 72vw); height: auto; }
+@media(max-width:720px) { .nav .wordmark img.brand-signature { width: 126px; height: auto; margin: 0; } }
+@media(max-width:380px) { .nav .wordmark img.brand-signature { width: 110px; } }
+</style>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header">
     <div class="reading-progress" aria-hidden="true"></div>
     <nav class="nav wrap" aria-label="Main navigation">
-      <a class="wordmark" href="#" aria-label="EvoDesign home"><img src="assets/studio-logo.svg" width="27" height="27" alt=""><span class="wordmark-name">Evo<span>Design</span></span></a>
+      <a class="wordmark" href="#" aria-label="EvoDesign home"><img class="brand-signature" src="assets/evodesign-lockup.svg" width="156" height="36" alt="EvoDesign"></a>
       <div class="nav-links"><a href="#features">Features</a><a href="#playground">Workflow</a><a href="#get-started">Get started</a><a href="#overview">Research</a></div>
       <div class="nav-actions"><a class="nav-cite" href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer">Open Studio <span aria-hidden="true">↗</span></a><details class="mobile-contents"><summary aria-label="Page contents">Menu <span aria-hidden="true">⌄</span></summary><div class="contents-panel"><a href="#features">Features <span>01</span></a><a href="#playground">Workflow <span>02</span></a><a href="#get-started">Get started <span>03</span></a><a href="#overview">Research <span>04</span></a><a href="#research-details">Method &amp; results <span>05</span></a><a href="#questions">Questions <span>06</span></a><a href="#citation">Citation <span>07</span></a></div></details><a class="nav-github nav-paper" href="https://arxiv.org/abs/2604.09568" target="_blank" rel="noopener noreferrer">Paper <span aria-hidden="true">↗</span></a><a class="nav-github" href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></div>
     </nav>
@@ -1052,7 +1062,7 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after { animat
     <section class="hero hero-product wrap" aria-labelledby="hero-title">
       <div class="hero-copy">
       <div class="eyebrow hero-eyebrow"><span class="status-dot"></span> OPEN-SOURCE AI DIAGRAM WORKSPACE</div>
-      <h1 id="hero-title">Evo<span>Design</span><span class="title-spark" aria-hidden="true">✳</span></h1>
+      <h1 id="hero-title"><img class="hero-brand-signature" src="assets/evodesign-lockup.svg" width="496" height="115" alt="" aria-hidden="true"><span class="hero-brand-name">EvoDesign</span></h1>
       <p class="paper-title product-promise">A personalized diagram workspace,<br><span>together with your Agent.</span></p>
       <p class="product-lead">Describe what you want to explain. Edit every element on the canvas, bring in your Agent, and keep your design preferences for the next diagram.</p>
       <div class="hero-actions"><a class="button primary" href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer">Open Studio <span aria-hidden="true">↗</span></a><a class="button secondary" href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a><a class="button secondary" href="https://arxiv.org/abs/2604.09568" target="_blank" rel="noopener noreferrer">Paper <span aria-hidden="true">↗</span></a></div>
@@ -1178,6 +1188,6 @@ html.page-hidden *,html.page-hidden *::before,html.page-hidden *::after { animat
     <section id="resources" class="resources wrap"><div><p class="eyebrow">CONTINUE EXPLORING</p><h2>Built to be <em>built upon.</em></h2><p>Explore the workspace, diagram engine <br>and your personal design memory.</p></div><div class="resource-links"><a class="resource-studio" href="https://evodesign.vercel.app/" target="_blank" rel="noopener noreferrer"><span><strong>Open EvoDesign Studio</strong><small>Try the shared demo · No installation</small></span><span aria-hidden="true">↗</span></a><a href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer"><span><strong>Project repository</strong><small>Source code available</small></span><span aria-hidden="true">↗</span></a><a href="https://arxiv.org/abs/2604.09568" target="_blank" rel="noopener noreferrer"><span><strong>Research paper</strong><small>arXiv:2604.09568</small></span><span aria-hidden="true">↗</span></a><a href="https://github.com/GeminiLight/EvoDesign/blob/main/docs/guides/design-memory.md" target="_blank" rel="noopener noreferrer"><span><strong>Personal design memory</strong><small>Preferences, examples &amp; portability</small></span><span aria-hidden="true">↗</span></a></div></section>
   </main>
   <dialog id="figure-dialog" class="figure-dialog" aria-labelledby="figure-title"><div class="dialog-heading"><div><span class="eyebrow" id="figure-eyebrow">PAPER FIGURE</span><h2 id="figure-title">Initial solution</h2></div><button id="close-figure" type="button" aria-label="Close diagram">×</button></div><div class="dialog-image"><img id="figure-image" alt=""></div><div class="figure-dialog-footer"><p id="figure-caption">Software development lifecycle with change control · Manuscript Figure 9</p><a id="figure-original" href="assets/refinement-before.webp" target="_blank" rel="noopener noreferrer">Open full resolution <span aria-hidden="true">↗</span></a></div></dialog>
-  <footer class="footer wrap"><a class="wordmark" href="#">Evo<span>Design</span></a><p>Editable diagrams. Evolving expertise.<span class="page-updated">Page updated <time datetime="2026-10-30">30 October 2026</time></span></p><a href="mailto:xionghui@ust.hk">Contact <span aria-hidden="true">↗</span></a><a href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></footer>
+  <footer class="footer wrap"><a class="wordmark" href="#" aria-label="EvoDesign home"><img class="brand-signature" src="assets/evodesign-lockup.svg" width="138" height="32" alt="EvoDesign"></a><p>Editable diagrams. Evolving expertise.<span class="page-updated">Page updated <time datetime="2026-10-30">30 October 2026</time></span></p><a href="mailto:xionghui@ust.hk">Contact <span aria-hidden="true">↗</span></a><a href="https://github.com/GeminiLight/EvoDesign" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a></footer>
 </body>
 </html>
