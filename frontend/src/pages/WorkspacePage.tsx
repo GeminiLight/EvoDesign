@@ -58,7 +58,7 @@ import {
 } from '../utils/app';
 import { guestHasProjectDna } from '../services/guestStorage';
 import { removeLocalStorage } from '../utils/safeLocalStorage';
-import { loadProjectName, saveProjectName } from '../services/projectPreferences';
+import { loadProjectName, saveProjectName, loadNodeIconPreference, saveNodeIconPreference } from '../services/projectPreferences';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   clearStartupGenerationDraft,
@@ -266,7 +266,11 @@ export function WorkspacePage() {
     createPills, createMorePills, createModelOptions, createCanvasOptions,
     selectedCreateDiagramType,
   } = useCreateDialog(request, canvasMode, t);
-  const [createUseIcons, setCreateUseIcons] = useState(false);
+  const [createUseIcons, setCreateUseIcons] = useState(loadNodeIconPreference);
+  const handleUseIconsChange = useCallback((enabled: boolean) => {
+    setCreateUseIcons(enabled);
+    saveNodeIconPreference(enabled);
+  }, []);
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<Array<{ id: string; role: 'user' | 'agent'; content: string }>>([
     { id: 'agent-init', role: 'agent', content: t('workspace.agentReady') },
@@ -644,7 +648,10 @@ export function WorkspacePage() {
       canvasLibrary: selectedCanvasMode,
       // After reopening/switching projects, preserve this scene's icon choice
       // instead of borrowing the previous request's setting.
-      useIcons: String(schemaForGeneration ? savedIconsEnabled : request.useIcons ?? false),
+      useIcons: String(selectedCanvasMode === 'excalidraw' && (
+        Array.isArray(savedElements) && savedElements.some(element => element && !element.isDeleted)
+          ? savedIconsEnabled : request.useIcons ?? loadNodeIconPreference()
+      )),
       ...(preview?.projectId ? { projectId: preview.projectId } : {}),
       ...(preview?.projectId ? { projectVersion: String(projectVersionRef.current ?? preview.projectVersion ?? '') } : {}),
       ...(schemaForGeneration ? { currentSchema: JSON.stringify(schemaForGeneration) } : {}),
@@ -2613,7 +2620,7 @@ export function WorkspacePage() {
                     modelOptions: createModelOptions, modelIndex: createModelIndex, onModelChange: setCreateModelIndex,
                     canvasOptions: createCanvasOptions, canvasIndex: createCanvasIndex, onCanvasChange: setCreateCanvasIndex }}
                   onGeneratePrompt={prompt => { void handleGenerateFromDialog(prompt); }} disabled={workspaceInteractionBlocked}
-                  useIcons={createUseIcons} onUseIconsChange={setCreateUseIcons}
+                  useIcons={createUseIcons} onUseIconsChange={value => { handleUseIconsChange(value); persistCreatePreflightDraft({ useIcons: value }); }}
                   onClose={() => { if (preview) { setOnboardingDismissed(true); setShowCreateDialog(false); clearActiveCreatePreflight(); }
                     else void handleCreateBlankDocument(false); }}
                 />
@@ -2691,7 +2698,7 @@ export function WorkspacePage() {
       <CreateDiagramDialog
         useIcons={createUseIcons}
         onUseIconsChange={(value) => {
-          setCreateUseIcons(value);
+          handleUseIconsChange(value);
           persistCreatePreflightDraft({ useIcons: value });
         }}
         open={showCreateDialog && !createInCanvas}

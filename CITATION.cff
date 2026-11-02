@@ -36,7 +36,7 @@ authors:
 url: "https://tianfu.wang/EvoDesign/"
 repository-code: "https://github.com/GeminiLight/EvoDesign"
 preferred-citation:
-  type: article
+  type: conference-paper
   title: "EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution"
   authors:
     - family-names: "Wang"
@@ -70,7 +70,6 @@ preferred-citation:
     - family-names: "Xiong"
       given-names: "Hui"
   year: 2026
-  journal: "arXiv"
-  doi: "10.48550/arXiv.2604.09568"
+  collection-title: "Advances in Neural Information Processing Systems (NeurIPS)"
   url: "https://arxiv.org/abs/2604.09568"
-  notes: "arXiv:2604.09568; source code available in the project repository."
+  notes: "NeurIPS 2026; preprint available at arXiv:2604.09568."

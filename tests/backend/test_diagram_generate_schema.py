@@ -41,10 +41,21 @@ def test_generate_request_normalizes_canvas_library():
 
 
 def test_icons_are_optional_and_accept_only_explicit_booleans():
-    assert DiagramGenerateRequest(context="A to B", canvas_library="excalidraw").use_icons is False
+    assert DiagramGenerateRequest(context="A to B", canvas_library="excalidraw").use_icons is True
     assert DiagramGenerateRequest(context="A to B", canvas_library="excalidraw", use_icons=True).use_icons is True
+    assert DiagramGenerateRequest(context="A to B", canvas_library="excalidraw", use_icons=False).use_icons is False
+    assert DiagramGenerateRequest(context="A to B", canvas_library="tldraw").use_icons is False
     with pytest.raises(ValidationError):
         DiagramGenerateRequest(context="A to B", canvas_library="excalidraw", use_icons="false")
+
+
+def test_icon_default_preserves_existing_scenes_and_enables_new_blank_canvases():
+    scene = {"elements": [{"id": "node", "type": "rectangle"}]}
+    assert DiagramGenerateRequest(context="Edit", canvas_library="excalidraw", current_schema=scene).use_icons is False
+    scene["elements"].append({"id": "icon", "type": "image", "customData": {"evoDesignIcon": {"hostId": "node"}}})
+    assert DiagramGenerateRequest(context="Edit", canvas_library="excalidraw", current_schema=scene).use_icons is True
+    assert DiagramGenerateRequest(context="Edit", canvas_library="excalidraw", current_schema=scene, use_icons=False).use_icons is False
+    assert DiagramGenerateRequest(context="Create", canvas_library="excalidraw", current_schema={"elements": []}).use_icons is True
 
 
 def test_generate_request_rejects_unknown_canvas_library():

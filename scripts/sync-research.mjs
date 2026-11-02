@@ -14,18 +14,15 @@ const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', 
 const productTitle = 'EvoDesign — Turn ideas into editable diagrams';
 const productDescription = 'Create editable diagrams in your browser with the shared demo or your own model. Explore the open-source research pipeline and personal design memory.';
 const fullName = author => `${author.given} ${author.family}`;
-const bibtex = `@misc{wang2026evodesign,
+const bibtex = `@inproceedings{wang2026evodesign,
   title = {${paper.title.replace('EvoDesign', '{EvoDesign}')}},
   author = {${paper.authors.map(a => `${a.family}, ${a.given}`).join(' and\n            ')}},
+  booktitle = {${paper.venue}},
   year = {${paper.year}},
-  eprint = {${paper.arxiv}},
-  archivePrefix = {arXiv},
-  primaryClass = {${paper.primaryClass}},
-  doi = {${paper.doi}},
   url = {${paper.paperUrl}}
 }`;
 write('docs/citation.bib', bibtex + '\n');
-write('docs/citation.ris', ['TY  - UNPB', `TI  - ${paper.title}`, ...paper.authors.map(a => `AU  - ${a.family}, ${a.given}`), `PY  - ${paper.year}`, `DO  - ${paper.doi}`, `UR  - ${paper.paperUrl}`, `N1  - arXiv:${paper.arxiv}`, 'ER  - ', ''].join('\n'));
+write('docs/citation.ris', ['TY  - CPAPER', `TI  - ${paper.title}`, ...paper.authors.map(a => `AU  - ${a.family}, ${a.given}`), `T2  - ${paper.venue}`, `PY  - ${paper.year}`, `UR  - ${paper.paperUrl}`, `N1  - arXiv:${paper.arxiv} (preprint)`, 'ER  - ', ''].join('\n'));
 
 const cffAuthors = indent => paper.authors.map(a => `${indent}- family-names: "${a.family}"\n${indent}  given-names: "${a.given}"`).join('\n');
 write('CITATION.cff', `cff-version: 1.2.0
@@ -37,21 +34,21 @@ ${cffAuthors('  ')}
 url: "${paper.url}"
 repository-code: "${paper.repository}"
 preferred-citation:
-  type: article
+  type: conference-paper
   title: "${paper.title}"
   authors:
 ${cffAuthors('    ')}
   year: ${paper.year}
-  journal: "arXiv"
-  doi: "${paper.doi}"
+  collection-title: "${paper.venue}"
   url: "${paper.paperUrl}"
-  notes: "arXiv:${paper.arxiv}; source code available in the project repository."
+  notes: "NeurIPS ${paper.year}; preprint available at arXiv:${paper.arxiv}."
 `);
 
 const article = {
   '@type': 'ScholarlyArticle', '@id': `${paper.url}#paper`,
   headline: paper.title, name: paper.title, description: paper.description,
   abstract: paper.abstract, inLanguage: 'en', url: paper.paperUrl,
+  isPartOf: { '@type': 'CreativeWorkSeries', name: paper.venue },
   sameAs: [`https://doi.org/${paper.doi}`],
   identifier: [{ '@type': 'PropertyValue', propertyID: 'arXiv', value: paper.arxiv }, { '@type': 'PropertyValue', propertyID: 'DOI', value: paper.doi }],
   author: paper.authors.map(a => ({ '@type': 'Person', name: fullName(a), affiliation: a.affiliations.map(n => ({ '@type': 'Organization', name: paper.affiliations[n - 1] })) })),
@@ -77,6 +74,7 @@ const tags = [
   meta('twitter:image:alt', 'EvoDesign — editable diagrams, evolving design expertise.'),
   meta('citation_title', paper.title), ...paper.authors.map(a => meta('citation_author', fullName(a))),
   meta('citation_publication_date', String(paper.year)), meta('citation_doi', paper.doi),
+  meta('citation_conference_title', paper.venue),
   meta('citation_arxiv_id', paper.arxiv), meta('citation_abstract_html_url', paper.url),
   // Scholar requires a same-directory PDF for citation_pdf_url. The author will
   // supply the renamed camera-ready PDF later; do not publish the anonymous draft.

@@ -836,8 +836,8 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
     nodes = [n for n in structure.get("nodes") or [] if isinstance(n, dict) and n.get("id")]
     if chart_type not in _ARCHITECTURE_TYPES or not 2 <= len(nodes) <= _MAX_NODES:
         return manifest
-    from ..shared.design_policy import preserve_design
-    if preserve_design(manifest, design_constraints):
+    from ...common.design_constraints import preserve_explicit_design
+    if preserve_explicit_design(manifest, design_constraints):
         return manifest
     # This template has no faithful representation for named boundaries,
     # labeled relations or self-loops. Keep the native renderer's complete scene.

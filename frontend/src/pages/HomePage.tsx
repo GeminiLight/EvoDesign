@@ -19,7 +19,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { useBackendAuth } from '../features/auth/BackendAuthProvider';
 import { useLanguage } from '../i18n/LanguageProvider';
 import { deleteProject, fetchRecentDiagrams } from '../services/backendApi';
-import { loadFavoriteProjectIds, saveFavoriteProjectIds } from '../services/projectPreferences';
+import { loadFavoriteProjectIds, saveFavoriteProjectIds, loadNodeIconPreference, saveNodeIconPreference } from '../services/projectPreferences';
 import { GUEST_IMPORT_COMPLETED_EVENT } from '../services/guestImportService';
 import type { DiagramType } from '../types/api';
 import type { RecentDiagram } from '../types/app';
@@ -78,7 +78,7 @@ export const HomePage = () => {
   const loadRequestRef = useRef(0);
   const lastAutoLoadAuthIdentityRef = useRef<string | null | undefined>(undefined);
   const [prompt, setPrompt] = useState('');
-  const [useIcons, setUseIcons] = useState(false);
+  const [useIcons, setUseIcons] = useState(loadNodeIconPreference);
   const launchRequestedRef = useRef(false);
   const [reference, setReference] = useState<HomeReference | null>(null);
   const [referenceLoading, setReferenceLoading] = useState(false);
@@ -370,7 +370,9 @@ export const HomePage = () => {
                 <div className="home-composer-tools">
                   <button type="button" role="switch" aria-checked={useIcons && canvasOptions[canvasIndex].id === 'excalidraw'}
                     aria-label={t('home.nodeIcons')} title={t('home.nodeIconsHint')} className="home-icons-toggle"
-                    disabled={referenceLoading || canvasOptions[canvasIndex].id !== 'excalidraw'} onClick={() => setUseIcons(value => !value)}>
+                    disabled={referenceLoading || canvasOptions[canvasIndex].id !== 'excalidraw'} onClick={() => {
+                      const next = !useIcons; setUseIcons(next); saveNodeIconPreference(next);
+                    }}>
                     <Shapes size={16} strokeWidth={1.6} aria-hidden="true" /><span>{t('home.iconsShort')}</span><i aria-hidden="true" />
                   </button>
                 </div>

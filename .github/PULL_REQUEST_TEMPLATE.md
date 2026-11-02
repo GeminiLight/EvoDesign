@@ -23,5 +23,5 @@ limitations. Write "None" when there are no changes in this area. -->
 - [ ] No secrets, private preferences, runtime databases or unrelated outputs are included.
 
 <!-- Maintainers: when changing contributor guides, synchronize CONTRIBUTING.md,
-sop/README.md, sop/engineering-quality.md, sop/backend-api-surface.md and this
+docs/README.md, docs/development/engineering-quality.md, docs/development/backend-api-surface.md and this
 template across the public and development repositories. -->

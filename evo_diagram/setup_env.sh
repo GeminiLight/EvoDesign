@@ -94,4 +94,4 @@ echo "  2. Run a test from the repository root: python -m evo_diagram.agentic_sy
 echo ""
 echo "For more information, see:"
 echo "  - README.md (English)"
-echo "  - wiki/setup_zh.md (Chinese)"
+echo "  - docs/development/setup_zh.md (Chinese)"

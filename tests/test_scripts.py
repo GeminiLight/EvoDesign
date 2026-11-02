@@ -13,6 +13,30 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_dataset_tools_keep_repo_data_paths_and_plan_without_writing(tmp_path):
+    tools = REPO_ROOT / "research" / "dataset_construction"
+    probe = """
+import json, runpy, sys
+from pathlib import Path
+root = Path(sys.argv[1])
+result = {}
+for name, key in [('fetch_candidates', 'LEDGER_PATH'), ('filter_and_describe', 'FILTERED_JSON'), ('assemble_dataset', 'FINAL_JSON')]:
+    result[key] = str(runpy.run_path(str(root / (name+'.py')))[key])
+print(json.dumps(result))
+"""
+    resolved = subprocess.run([sys.executable, "-c", probe, str(tools)], cwd=tmp_path,
+                              check=True, capture_output=True, text=True)
+    assert json.loads(resolved.stdout) == {
+        "LEDGER_PATH": str(REPO_ROOT / "dataset" / "candidates.json"),
+        "FILTERED_JSON": str(REPO_ROOT / "dataset" / "filtered.json"),
+        "FINAL_JSON": str(REPO_ROOT / "dataset" / "final.json"),
+    }
+    planned = subprocess.run([sys.executable, str(tools / "main.py"), "plan", "--limit", "1"],
+                             cwd=tmp_path, check=True, capture_output=True, text=True)
+    assert "组合数: 1" in planned.stdout and "query 样例" in planned.stdout
+    assert list(tmp_path.iterdir()) == []
+
+
 def _install_fake_python(tmp_path: Path) -> tuple[Path, Path]:
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()

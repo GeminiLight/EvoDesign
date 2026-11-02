@@ -1,4 +1,5 @@
 import { BROWSER_MODE } from './browser/runtime';
+import { resolveNodeIcons } from './projectPreferences';
 import { readAgentDocument } from './agentApi';
 import { loadDnaRules } from './backendApi';
 import { flushDnaDraft } from '../utils/dnaSyncDraft';
@@ -164,7 +165,7 @@ async function buildGenerateDiagramPayload(
   const payload: BackendDiagramGenerateRequest = {
     context: request.prompt,
     diagram_type: request.diagramType === 'automated' ? null : request.diagramType,
-    use_icons: request.useIcons ?? request.metadata?.useIcons === 'true',
+    use_icons: resolveNodeIcons(request, canvasLibrary),
     requirements: buildDiagramRequirements(request),
     locked_nodes: request.lockedNodes ?? [],
     project_id: request.metadata?.projectId ?? null,

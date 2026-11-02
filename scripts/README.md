@@ -25,4 +25,4 @@ METHODS=evodiagram/configured-model,baselines/code_mermaid/provider-model ./scri
 
 Method names and decoding parameters must match the actual outputs. `BASELINE_TEMPERATURE` defaults to 1 to match the public generator setting; update both together if your provider needs another value. The default baseline list is `mermaid,direct_llm`. `ALGORITHMS=tlkz` needs a local LaTeX installation; `ALGORITHMS=pixel` needs a suitable image model and its provider credentials. Other upstream baseline adapters have their own documented requirements.
 
-For ablations, `ABLATION=wo_refiner`, `wo_multiagent`, `wo_icons` and `custom` select named presets. Use explicit sample ranges for pilot runs before spending model credits on a batch. See [reproducibility](../docs/reproducibility.md) and [memory portability](../docs/design-memory.md).
+For ablations, `ABLATION=wo_refiner`, `wo_multiagent`, `wo_icons` and `custom` select named presets. Use explicit sample ranges for pilot runs before spending model credits on a batch. See [reproducibility](../research/reproducibility.md) and [memory portability](../docs/guides/design-memory.md).

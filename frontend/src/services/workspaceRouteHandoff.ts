@@ -1,4 +1,5 @@
 import type { CanvasMode } from '../components/DiagramCanvas/CanvasModeSelector';
+import { loadNodeIconPreference } from './projectPreferences';
 import type { CreateDiagramDialogHandoff } from '../components/Workspace/CreateDiagramDialog';
 import { defaultConfigs, diagramTypeToPillId, getDiagramTypeLabel, initialRequest } from '../constants/app';
 import type { DiagramType } from '../types/api';
@@ -121,6 +122,8 @@ const getRoutePreflightGeneration = (state: unknown): WorkspacePreflightGenerati
     diagramType,
     llmConfigId,
     canvasMode,
+    useIcons: canvasMode === 'excalidraw' && (typeof routeState.initialUseIcons === 'boolean'
+      ? routeState.initialUseIcons : loadNodeIconPreference()),
     source: getRoutePreflightSource(routeState.initialSource),
     sourceName: typeof routeState.preflightSourceName === 'string'
       ? routeState.preflightSourceName.trim()

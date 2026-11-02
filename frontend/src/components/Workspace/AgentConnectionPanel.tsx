@@ -144,7 +144,7 @@ export function AgentConnectionPanel(props: Props) {
     return candidate.status;
   };
   const command = `evodesign connect --server ${API_BASE_URL}`;
-  const guideUrl = `https://github.com/GeminiLight/EvoDesign/blob/main/docs/agent-collaboration${language === 'zh' ? '.zh-CN' : ''}.md`;
+  const guideUrl = `https://github.com/GeminiLight/EvoDesign/blob/main/docs/guides/agent-collaboration${language === 'zh' ? '.zh-CN' : ''}.md`;
   const liveConnections = connections.filter(conn => conn.status === 'active' && conn.expires_at * 1000 > Date.now());
   const toReview = proposals.filter(candidate => ['ready', 'queued', 'checking', 'failed'].includes(candidateStatus(candidate)));
   const visibleProposals = showAll ? proposals : toReview;

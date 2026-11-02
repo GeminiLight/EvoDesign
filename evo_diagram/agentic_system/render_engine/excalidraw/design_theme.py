@@ -206,8 +206,8 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
     """Restyle a non-architecture scene in place of its old treatment; unchanged on any doubt."""
     if not is_enabled() or not isinstance(manifest, dict):
         return manifest
-    from ..shared.design_policy import preserve_design
-    if preserve_design(manifest, design_constraints):
+    from ...common.design_constraints import preserve_explicit_design
+    if preserve_explicit_design(manifest, design_constraints):
         return manifest
     structure = unwrap_structure_instantiation(structure_instantiation)
     chart_type = normalize_diagram_type(str(structure.get("chart_type") or ""))

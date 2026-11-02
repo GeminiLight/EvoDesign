@@ -6,7 +6,7 @@ import { generateDiagramStream } from '../services/apiDiagramService';
 import { fetchRecentDiagrams, isApiError, saveDiagram } from '../services/backendApi';
 import { isGuest } from '../services/guestStorage';
 import { BROWSER_MODE } from '../services/browser/runtime';
-import { saveProjectName } from '../services/projectPreferences';
+import { saveProjectName, resolveNodeIcons } from '../services/projectPreferences';
 import { generatedProjectTitle } from '../utils/projectHistory';
 import { createId } from '../constants/app';
 import { getSnapshotDocSignature, parseJsonObject } from '../utils/app';
@@ -165,7 +165,8 @@ export function useGenerateDiagram(deps: GenerateDiagramDeps) {
       ...request,
       id: createId('request'),
       prompt: promptText,
-      useIcons: metadata?.useIcons !== undefined ? metadata.useIcons === 'true' : request.useIcons ?? false,
+      useIcons: metadata?.useIcons !== undefined ? metadata.useIcons === 'true'
+        : resolveNodeIcons({ ...request, metadata: { ...request.metadata, ...metadata } }),
       diagramType,
       llmConfigId,
       metadata: {

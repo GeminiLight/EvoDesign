@@ -23,6 +23,7 @@ const { homeProjectKey, sortHomeProjects } = await load('src/utils/homeProjects.
 const { workspaceDocumentKey, openWorkspaceDocument, closeWorkspaceDocument, parseWorkspaceDocuments } = await load('src/utils/workspaceDocuments.ts');
 const { getGenerationReviewState, hasCurrentVisualScores } = await load('src/utils/generationReport.ts');
 const { clearConsumedProjectHandoff, getInitialStartupGenerationDraft, getInitialPreflightGeneration } = await load('src/services/workspaceRouteHandoff.ts');
+const { loadNodeIconPreference, saveNodeIconPreference, resolveNodeIcons } = await load('src/services/projectPreferences.ts');
 const { saveStartupGenerationDraft, loadStartupGenerationDraft, clearStartupGenerationDraft } = await load('src/services/startupGenerationDraft.ts');
 const { guestSaveDiagram, guestExportProjects, guestSyncProjectSchema, guestFetchRecentDiagrams, guestFetchProjectSnapshots, guestLoadDnaRules, guestSaveDnaRules } = await load('src/services/guestStorage.ts');
 const { fetchRecentDiagrams, fetchProjectDiagram, fetchProjectSnapshots, syncProjectSchema, saveDnaRules, loadDnaRules, createBlankCanvasProject } = await load('src/services/backendApi.ts');
@@ -36,6 +37,37 @@ test('project URL updates do not restore a consumed snapshot handoff on refresh'
   assert.equal(resumeState.pendingLoadProject, undefined);
   assert.equal(handoff.pendingLoadProject.project_version, 2);
   assert.equal(clearConsumedProjectHandoff(null), null);
+});
+
+test('new diagrams default to icons while explicit choices, scenes and legacy drafts keep their settings', () => {
+  const previousWindow = globalThis.window;
+  const storage = new Map();
+  globalThis.window = { ...previousWindow, localStorage: {
+    getItem: key => storage.get(key) ?? null,
+    setItem: (key, value) => storage.set(key, value),
+  } };
+  try {
+    assert.equal(loadNodeIconPreference(), true);
+    assert.equal(resolveNodeIcons({}), true);
+    assert.equal(resolveNodeIcons({ useIcons: false }), false);
+    assert.equal(resolveNodeIcons({ metadata: { useIcons: 'false' } }), false);
+    assert.equal(resolveNodeIcons({ useIcons: true }, 'tldraw'), false);
+    const scene = { elements: [{ id: 'node', type: 'rectangle' }] };
+    assert.equal(resolveNodeIcons({ metadata: { currentSchema: JSON.stringify(scene) } }), false);
+    scene.elements.push({ id: 'icon', type: 'image', customData: { evoDesignIcon: { hostId: 'node' } } });
+    assert.equal(resolveNodeIcons({ metadata: { currentSchema: JSON.stringify(scene) } }), true);
+    assert.equal(resolveNodeIcons({ metadata: { currentSchema: '{"elements":[]}' } }), true);
+    saveNodeIconPreference(false);
+    assert.equal(loadNodeIconPreference(), false);
+    assert.equal(resolveNodeIcons({}), false);
+    assert.equal(resolveNodeIcons({ useIcons: true }), true);
+    saveNodeIconPreference(true);
+    const fresh = getInitialPreflightGeneration({ preflightGeneration: true, initialPrompt: 'Architecture', initialCanvasMode: 'excalidraw' });
+    assert.equal(fresh.useIcons, true);
+    assert.equal(getInitialPreflightGeneration({ preflightGeneration: true, initialPrompt: 'Architecture', initialCanvasMode: 'excalidraw', initialUseIcons: false }).useIcons, false);
+    globalThis.window.localStorage = { getItem: () => { throw new Error('Storage unavailable'); } };
+    assert.equal(loadNodeIconPreference(), true);
+  } finally { globalThis.window = previousWindow; }
 });
 const { generationActivityStages, activityCanAutoClose } = await load('src/utils/generationActivity.ts');
 const { clampFloatingAnchor, defaultFloatingAnchor, floatingPanelPosition, isAnchorDrag } = await load('src/utils/floatingAnchor.ts');
