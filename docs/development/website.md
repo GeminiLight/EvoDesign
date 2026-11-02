@@ -21,7 +21,7 @@ GitHub Pages serves `main` → `/docs`. Pushing changes to `docs/` triggers GitH
 
 Public URL: https://tianfu.wang/EvoDesign/
 
-The primary product destination is https://evodesign.vercel.app/. The navigation, hero, clickable Studio preview, browser getting-started section, questions and resources all link directly there. Keep the online entry visible on small screens. The shared demo needs no installation, API key or EvoDesign account; custom models remain optional. The local setup link is a separate route for the full research pipeline, visual verification and expertise evolution. Keep this distinction when editing feature copy.
+The primary product destination is https://evodesign.aurax.live/. The navigation, hero, clickable Studio preview, browser getting-started section, questions and resources all link directly there. Keep the online entry visible on small screens. The shared demo needs no installation, API key or EvoDesign account; custom models remain optional. The local setup link is a separate route for the full research pipeline, visual verification and expertise evolution. Keep this distinction when editing feature copy.
 
 The hero uses responsive WebP versions of a real English Studio screenshot. Update both language captures together after interface changes and record their source in `docs/assets/README.md`. No additional application requests or model calls are made by the project website.
 

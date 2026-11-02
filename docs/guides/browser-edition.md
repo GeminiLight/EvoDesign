@@ -1,10 +1,17 @@
 # EvoDesign in your browser
 
-[Open the online workspace](https://evodesign.vercel.app/) · [Project website](https://tianfu.wang/EvoDesign/) · [Paper](https://arxiv.org/abs/2604.09568)
+[Open the online workspace](https://evodesign.aurax.live/) · [Project website](https://tianfu.wang/EvoDesign/) · [Paper](https://arxiv.org/abs/2604.09568)
 
 Start directly with the shared **GLM-5.3-Flash** demo; no API key or EvoDesign account is required. To use your own model, open **Model settings → Your own model**, enter an **OpenAI-compatible Chat Completions endpoint**, model identifier and API key, read the model catalog with **Check connection**, then save. The model ID field supports searching the returned catalog and manual entry. The check uses only a metadata GET request: it sends no prompt and never falls back to a generation call. Directory access does not prove generation permissions, balance or Chat Completions compatibility. Providers without a catalog can still be configured manually. Previously configured custom models stay selected until you choose the shared demo.
 
 Describe a diagram, choose optional icons, and generate. Select an object before asking for a local edit. Projects and snapshots stay on this browser and origin; export an editable `.excalidraw` copy as a backup, or PNG/SVG for sharing. In **DNA**, add a preference in your own words and enable the rules you want included in subsequent requests.
+
+The official workspace address is **https://evodesign.aurax.live/**. The previous
+[Vercel address](https://evodesign.vercel.app/) remains available for existing
+projects. Browser storage is separate for each address: projects, DNA preferences
+and model settings do not move automatically. Open the previous address to keep
+working with older projects or export an editable backup. The domain change does
+not clear either address's stored data.
 
 ## Choose the edition that fits
 
@@ -79,9 +86,13 @@ For a static host, custom-model mode works without server secrets; shared-demo d
 
 ## 中文简要说明
 
-打开[在线工作区](https://evodesign.vercel.app/)，可以直接使用 GLM-5.3-Flash 默认体验，无需填写密钥。图表内容经 Vercel 转发给智谱通用 API，共享密钥仅留在服务端，并设有共享额度与并发上限。也可在“模型设置 → 自己的模型”中填写 API 地址、模型 ID 和 key。自定义接口须允许浏览器跨域请求；密钥默认保存在当前标签页，可主动选择在本机记住，也可以随时清除。已有的自定义模型不会被自动替换。
+打开[在线工作区](https://evodesign.aurax.live/)，可以直接使用 GLM-5.3-Flash 默认体验，无需填写密钥。图表内容经 Vercel 转发给智谱通用 API，共享密钥仅留在服务端，并设有共享额度与并发上限。也可在“模型设置 → 自己的模型”中填写 API 地址、模型 ID 和 key。自定义接口须允许浏览器跨域请求；密钥默认保存在当前标签页，可主动选择在本机记住，也可以随时清除。已有的自定义模型不会被自动替换。
 
 在线版支持生成、可选图标、内容评审、选中对象的局部修改、本机项目保存、重新打开和 PNG / SVG / 可编辑文件导出。设计偏好可以手动添加、编辑和启停。项目保存在当前浏览器，不跨设备同步，清理网站数据会删除本机项目，请及时导出备份。
+
+正式工作台地址为 **https://evodesign.aurax.live/**。[旧地址](https://evodesign.vercel.app/)
+继续保留。两个域名的浏览器存储相互独立，原有项目、DNA 偏好和模型配置不会自动搬到新域名；
+需要继续编辑旧作品或导出可编辑备份时，请打开旧地址。换域名不会清除任一地址的数据。
 
 在线版使用模型生成结构、浏览器完成布局，是轻量体验路径。论文中的多智能体算法、视觉评审、自动经验学习和评测工具仍包含在完整本地版中。
 

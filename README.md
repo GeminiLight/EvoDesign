@@ -13,7 +13,7 @@
 <!-- PROJECT-LINKS:START -->
 <div align="center">
 
-[![Try online with GLM-5.3-Flash](https://img.shields.io/badge/Try_online-Live-575BC7?style=for-the-badge&labelColor=22233D)](https://evodesign.vercel.app/)
+[![Try online with GLM-5.3-Flash](https://img.shields.io/badge/Try_online-Live-575BC7?style=for-the-badge&labelColor=22233D)](https://evodesign.aurax.live/)
 [![Explore the project website](https://img.shields.io/badge/Website-Explore-386F85?style=for-the-badge&labelColor=22233D)](https://tianfu.wang/EvoDesign/)
 [![Read the paper on arXiv](https://img.shields.io/badge/Paper-arXiv-7950A4?style=for-the-badge&labelColor=22233D)](https://arxiv.org/abs/2604.09568)
 
@@ -28,7 +28,7 @@
 
 EvoDesign is an open-source diagram workspace that you share with your Agent. Generate an architecture, sequence or process diagram, edit every element on the canvas, and let your Agent continue the work through the EvoDesign CLI. Your structure, style and layout preferences come with you to the next diagram.
 
-Try the [browser edition](https://evodesign.vercel.app/) with the shared GLM-5.3-Flash demo or your own model, or run the full edition locally with your own model endpoint. EvoDesign is built on our NeurIPS 2026 paper, [**EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution**](https://arxiv.org/abs/2604.09568), which explains the method and evaluation.
+Try the [browser edition](https://evodesign.aurax.live/) with the shared GLM-5.3-Flash demo or your own model, or run the full edition locally with your own model endpoint. EvoDesign is built on our NeurIPS 2026 paper, [**EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution**](https://arxiv.org/abs/2604.09568), which explains the method and evaluation.
 
 [Why EvoDesign](#why-evodesign) · [Try it online](#try-it-online) · [Run locally](#run-locally) · [How it works](#how-evodesign-works) · [Repository map](#repository-map)
 
@@ -57,7 +57,7 @@ Excalidraw is the default canvas. TLDraw remains an optional adapter. Icons are 
 
 ## Try it online
 
-Open **[EvoDesign Studio](https://evodesign.vercel.app/)** and start with the shared **GLM-5.3-Flash** demo; no API key is required. In **Model settings**, you can switch to your own API URL, model ID and key. Custom providers must allow browser requests (CORS). Projects stay in your browser; export a copy as a backup.
+Open **[EvoDesign Studio](https://evodesign.aurax.live/)** and start with the shared **GLM-5.3-Flash** demo; no API key is required. In **Model settings**, you can switch to your own API URL, model ID and key. Custom providers must allow browser requests (CORS). Projects stay in your browser; export a copy as a backup.
 
 The browser edition offers editable generation, optional icons, content review, local edits, saving and export without running the Python backend. Shared demo requests pass through a small Vercel function to BigModel; its key stays server-side and shared usage is capped. Custom model requests go directly to your provider.
 

@@ -3,8 +3,8 @@ import { test } from 'node:test';
 import { createModelHandler } from '../../api/model.mjs';
 
 const env = { DEMO_GLM_API_KEY: 'server-only-secret', DEMO_REDIS_URL: 'https://budget.example', DEMO_REDIS_TOKEN: 'budget-secret' };
-const req = (body, options = {}) => new Request('https://evodesign.vercel.app/api/model', {
-  method: 'POST', headers: { 'Content-Type': 'application/json', Origin: 'https://evodesign.vercel.app', ...options.headers }, body: JSON.stringify(body),
+const req = (body, options = {}) => new Request('https://evodesign.aurax.live/api/model', {
+  method: 'POST', headers: { 'Content-Type': 'application/json', Origin: 'https://evodesign.aurax.live', ...options.headers }, body: JSON.stringify(body),
 });
 const input = { task: 'diagram', prompt: 'Draw a three-step approval flow.', maxTokens: 8192 };
 function mock(reservation = 1, upstream) {
@@ -19,7 +19,7 @@ function mock(reservation = 1, upstream) {
 
 test('discovery never returns credentials and static deployments degrade to BYOK', async () => {
   const handler = createModelHandler({});
-  const response = await handler(new Request('https://evodesign.vercel.app/api/model'));
+  const response = await handler(new Request('https://evodesign.aurax.live/api/model'));
   assert.deepEqual(await response.json(), { available: false, model: 'glm-5.3-flash' });
   assert.equal((await handler(req(input))).status, 503);
 });
