@@ -23,8 +23,8 @@ export function completionUrl(baseUrl: string): string {
   if ((url.protocol !== 'https:' && !(local && url.protocol === 'http:')) || url.username || url.password || url.search || url.hash) {
     throw new Error('Use an HTTPS API base URL without credentials, query parameters or fragments.');
   }
-  url.pathname = url.pathname.replace(/\/+$/, '');
-  if (!url.pathname.endsWith('/chat/completions')) url.pathname += '/chat/completions';
+  const path = url.pathname.replace(/\/+$/, '');
+  url.pathname = path.endsWith('/chat/completions') ? path : `${path}/chat/completions`;
   return url.href;
 }
 
