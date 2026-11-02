@@ -11,7 +11,7 @@ import webbrowser
 
 from . import __version__
 from .client import Client, CliError, server_origin
-from .config import load_profile, remove_profile, save_profile
+from .config import check_profile_storage, load_profile, remove_profile, save_profile
 
 
 class Parser(argparse.ArgumentParser):
@@ -64,6 +64,8 @@ def parser() -> Parser:
 
 def pair(args, profile: str) -> dict:
     server = server_origin(args.server)
+    # A pairing can be claimed only once; check that its token can be saved first.
+    check_profile_storage()
     client = Client(server)
     try:
         start = client.request('POST', '/agent/connections', body={'name': args.name})
