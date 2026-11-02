@@ -22,11 +22,16 @@ def read(name: str) -> dict:
     return value
 
 
-def write(name: str, value: dict) -> None:
+def private_dir() -> Path:
     directory = config_dir()
     directory.mkdir(parents=True, exist_ok=True, mode=0o700)
     if directory.stat().st_mode & 0o077 or directory.stat().st_uid != os.getuid():
         raise ValueError('Use a private configuration directory owned by the current user')
+    return directory
+
+
+def write(name: str, value: dict) -> None:
+    directory = private_dir()
     with tempfile.NamedTemporaryFile(mode='w', dir=directory, delete=False, encoding='utf-8') as output:
         temporary = Path(output.name)
         try:
@@ -45,6 +50,15 @@ def load_profile(profile: str) -> tuple[dict, str]:
     if not isinstance(config, dict) or not isinstance(token, str):
         raise ValueError('Not connected. Run evodesign connect first.')
     return config, token
+
+
+def check_profile_storage() -> None:
+    """Fail before pairing if save_profile could not store the result."""
+    directory = private_dir()
+    if not os.access(directory, os.W_OK | os.X_OK):
+        raise ValueError(f'Configuration directory is not writable: {directory}')
+    read('config.json')
+    read('credentials.json')
 
 
 def save_profile(profile: str, config: dict, token: str) -> None:

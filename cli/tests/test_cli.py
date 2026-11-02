@@ -88,3 +88,52 @@ def test_uncertain_create_returns_the_operation_id_for_an_exact_retry(private_co
     payload=json.loads(capsys.readouterr().out)
     assert result.value.code==8 and payload['error']['operation_id']
     assert 'private-token' not in json.dumps(payload)
+
+
+def pairing_server(monkeypatch):
+    """Stand-in server that starts a pairing and hands out its token on the first claim."""
+    from evodesign_cli import main as cli_main
+    requests = []
+    class PairingServer:
+        def __init__(self, *_args): pass
+        def request(self, method, path, **_kwargs):
+            requests.append(path)
+            if path == '/agent/connections':
+                return {'connection_id': 'c', 'device_secret': 's', 'user_code': 'CODE', 'interval': 1,
+                        'verification_url': 'https://example.org/agent/connect?id=c', 'web_origin': 'https://example.org'}
+            return {'status': 'active', 'access_token': 'private-token', 'project_id': 'p',
+                    'connection_id': 'c', 'expires_at': 1, 'can_commit': False}
+        def close(self): pass
+    monkeypatch.setattr(cli_main, 'Client', PairingServer)
+    return requests
+
+
+def test_connect_saves_the_profile_in_a_new_private_directory(private_config, monkeypatch, capsys):
+    pairing_server(monkeypatch)
+    main(['connect', '--server', 'https://example.org', '--no-browser', '--json'])
+    assert json.loads(capsys.readouterr().out)['ok']
+    assert stat.S_IMODE(private_config.stat().st_mode) == 0o700
+    assert load_profile('default')[1] == 'private-token'
+
+
+@pytest.mark.parametrize('problem', ['shared_directory', 'read_only_directory', 'corrupt_profile'])
+def test_connect_checks_profile_storage_before_claiming_a_pairing(private_config, monkeypatch, capsys, problem):
+    if problem == 'read_only_directory' and os.geteuid() == 0:
+        pytest.skip('root can write to any directory')
+    private_config.mkdir(mode=0o700)
+    if problem == 'shared_directory':
+        private_config.chmod(0o755)
+    elif problem == 'read_only_directory':
+        private_config.chmod(0o500)
+    else:
+        (private_config / 'credentials.json').write_text('{')
+        (private_config / 'credentials.json').chmod(0o600)
+    requests = pairing_server(monkeypatch)
+    try:
+        with pytest.raises(SystemExit) as result:
+            main(['connect', '--server', 'https://example.org', '--no-browser', '--json'])
+    finally:
+        private_config.chmod(0o700)
+    payload = json.loads(capsys.readouterr().out)
+    assert result.value.code == 2 and payload['error']['code'] == 'invalid_input'
+    assert requests == []
