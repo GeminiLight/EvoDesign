@@ -33,7 +33,7 @@ const social = svg('0 0 1200 630', `${gradients}
 <path d="M80 90H1120M80 540H1120" stroke="#e1e4f0"/>
 <g transform="translate(172 202) scale(3.1)">${lockup(colors.ink).replace(gradients, '')}</g>
 <text x="600" y="465" text-anchor="middle" font-family="Arial,sans-serif" font-size="29" fill="#65718b">Editable diagrams. Evolving expertise.</text>
-<text x="80" y="585" font-family="Arial,sans-serif" font-size="17" fill="#68758d">evodesign.vercel.app</text>
+<text x="80" y="585" font-family="Arial,sans-serif" font-size="17" fill="#68758d">evodesign.aurax.live</text>
 <text x="1120" y="585" text-anchor="end" font-family="Arial,sans-serif" font-size="17" fill="#68758d">github.com/GeminiLight/EvoDesign</text>`, 'width="1200" height="630"');
 
 const files = new Map([

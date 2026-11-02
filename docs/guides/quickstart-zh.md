@@ -4,7 +4,7 @@
 
 ## 在线体验
 
-打开 **[EvoDesign Studio](https://evodesign.vercel.app/)**，可以直接使用 GLM-5.3-Flash 默认体验，无需填写密钥。也可在“模型设置 → 自己的模型”里配置自己的 API 地址、模型 ID 和 key；自定义接口需要支持浏览器跨域访问（CORS）。默认体验通过 Vercel 转发给智谱，密钥仅留在服务端。项目和设计偏好保存在当前浏览器，建议导出备份。
+打开 **[EvoDesign Studio](https://evodesign.aurax.live/)**，可以直接使用 GLM-5.3-Flash 默认体验，无需填写密钥。也可在“模型设置 → 自己的模型”里配置自己的 API 地址、模型 ID 和 key；自定义接口需要支持浏览器跨域访问（CORS）。默认体验通过 Vercel 转发给智谱，密钥仅留在服务端。项目和设计偏好保存在当前浏览器，建议导出备份。
 
 首页可从架构、流程或时序示例开始，也可添加 TXT、Markdown、JSON 或 CSV 文字参考（UTF-8，最大 24 KB）。参考不会覆盖输入内容；生成前可以检查和调整合并后的要求。PDF 和图片暂不支持。
 

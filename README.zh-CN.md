@@ -13,7 +13,7 @@
 <!-- PROJECT-LINKS:START -->
 <div align="center">
 
-[![在线体验 GLM-5.3-Flash](https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E4%BD%93%E9%AA%8C-Live-575BC7?style=for-the-badge&labelColor=22233D)](https://evodesign.vercel.app/)
+[![在线体验 GLM-5.3-Flash](https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E4%BD%93%E9%AA%8C-Live-575BC7?style=for-the-badge&labelColor=22233D)](https://evodesign.aurax.live/)
 [![项目网站](https://img.shields.io/badge/%E9%A1%B9%E7%9B%AE%E7%BD%91%E7%AB%99-Explore-386F85?style=for-the-badge&labelColor=22233D)](https://tianfu.wang/EvoDesign/)
 [![阅读论文](https://img.shields.io/badge/%E9%98%85%E8%AF%BB%E8%AE%BA%E6%96%87-arXiv-7950A4?style=for-the-badge&labelColor=22233D)](https://arxiv.org/abs/2604.09568)
 
@@ -28,7 +28,7 @@
 
 EvoDesign 是一个和你的 Agent 共用的开源图表工作台。生成架构图、时序图或流程图后，你可以在画布上修改每一个元素，也可以让 Agent 通过 EvoDesign CLI 接着改。你的结构、风格和布局偏好会带到下一张图里。
 
-可以直接[在线体验](https://evodesign.vercel.app/)共享的 GLM-5.3-Flash 演示服务或接入自己的模型，也可以在本地运行完整版。EvoDesign 基于我们的 NeurIPS 2026 论文 [**EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution**](https://arxiv.org/abs/2604.09568)，方法和评估见论文。
+可以直接[在线体验](https://evodesign.aurax.live/)共享的 GLM-5.3-Flash 演示服务或接入自己的模型，也可以在本地运行完整版。EvoDesign 基于我们的 NeurIPS 2026 论文 [**EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution**](https://arxiv.org/abs/2604.09568)，方法和评估见论文。
 
 [核心亮点](#核心亮点) · [在线体验](#在线体验) · [本地运行](#本地运行) · [工作原理](#工作原理) · [目录结构](#目录结构)
 
@@ -57,7 +57,7 @@ EvoDesign 是一个和你的 Agent 共用的开源图表工作台。生成架构
 
 ## 在线体验
 
-打开 **[EvoDesign Studio](https://evodesign.vercel.app/)** 即可使用共享的 **GLM-5.3-Flash** 演示服务，无需 API Key。在**模型设置**中，也可以填写自己的 API 地址、模型 ID 和密钥。自定义服务商需要允许浏览器跨域请求（CORS）。项目保存在当前浏览器中，建议导出副本作为备份。
+打开 **[EvoDesign Studio](https://evodesign.aurax.live/)** 即可使用共享的 **GLM-5.3-Flash** 演示服务，无需 API Key。在**模型设置**中，也可以填写自己的 API 地址、模型 ID 和密钥。自定义服务商需要允许浏览器跨域请求（CORS）。项目保存在当前浏览器中，建议导出副本作为备份。
 
 浏览器版无需运行 Python 后端，即可生成可编辑图表、选择图标、检查内容、局部编辑、保存和导出。共享演示请求由 Vercel 函数转发到智谱 BigModel，服务密钥保留在服务端，共享用量设有上限。使用自己的模型时，请求直接发送到你配置的服务商。
 
