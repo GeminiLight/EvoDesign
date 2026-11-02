@@ -59,9 +59,9 @@ Independent services with API gateway:
   into tiers (people | clients | gateways | services | side systems, with data and
   infrastructure as a bottom row). Structure only decides *what* exists.
 
-- **Deletion first.** Every node is a distinct component the reader needs. Two
-  things that always travel together are one node. Target 5-9 nodes; never more
-  than 12. Keep every component the source explicitly names. Never create a node
+- **Fewer, sharper nodes.** Add a node only if the reader would notice it
+  missing. Components that are always deployed, called and scaled as a unit
+  share one node. Target 5-9 nodes; never more than 12. Keep every component the source explicitly names. Never create a node
   for a collective noun that refers to other nodes ("services", "all clients",
   "backend"); connect the members it refers to instead.
 - **When the source names few or no components** (a one-line request such as
