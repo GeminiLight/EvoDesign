@@ -161,8 +161,16 @@ def generate_svg_thumbnail(
 
 
 def _render(schema_blob: dict[str, Any], canvas_engine: str) -> str:
-    elements = _normalise_elements(schema_blob)
-    connectors = _normalise_connectors(schema_blob)
+    # Saved Excalidraw scenes keep deleted elements (isDeleted: true); they are
+    # not part of the visible diagram.
+    elements = [
+        e for e in _normalise_elements(schema_blob)
+        if isinstance(e, dict) and not e.get("isDeleted")
+    ]
+    connectors = [
+        e for e in _normalise_connectors(schema_blob)
+        if isinstance(e, dict) and not e.get("isDeleted")
+    ]
 
     # Separate node-like elements from arrows embedded in the elements list
     nodes = [e for e in elements if not _is_arrow(e)]
