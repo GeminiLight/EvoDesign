@@ -15,19 +15,23 @@ export interface GenerationReport {
 export type GenerationReviewState = 'edited' | 'needs_attention' | 'unverified' | 'reviewed' | 'refined'
   | 'not_reviewed' | 'not_needed' | 'disabled' | 'unsupported' | 'kept_original';
 
+export function reviewKeptOriginal(report: GenerationReport): boolean {
+  const { status } = report.refinement;
+  return status === 'failed' || status === 'unresolved' || (report.browserEdition === true && status === 'reverted');
+}
+
 /** A stored review never describes later canvas edits. Browser checks cover content only. */
 export function getGenerationReviewState(report: GenerationReport): GenerationReviewState {
   if (report.qualityStatus === 'edited') return 'edited';
   if (report.qualityStatus === 'needs_attention') return 'needs_attention';
+  if (!report.browserEdition && report.qualityStatus === 'unverified') return 'unverified';
+  if (reviewKeptOriginal(report)) return 'kept_original';
   const status = report.refinement.status;
   if (report.browserEdition) {
     if (status === 'completed') return 'reviewed';
-    if (status === 'failed' || status === 'unresolved') return 'kept_original';
     return status === 'skipped' || status === 'disabled' ? 'not_reviewed' : 'unverified';
   }
-  if (report.qualityStatus === 'unverified') return 'unverified';
   if (status === 'completed') return 'refined';
-  if (status === 'failed' || status === 'unresolved') return 'kept_original';
   if (status === 'skipped') return 'not_needed';
   if (status === 'disabled' || status === 'unsupported') return status;
   return 'unverified';

@@ -1,7 +1,7 @@
 import { Activity, AlertTriangle, Check, ChevronDown, Clock3, PencilLine, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { apiV1Url, getStoredAuthToken } from '../services/httpClient';
-import { formatGenerationDuration, getGenerationReviewState, hasCurrentVisualScores, type GenerationReport as Report } from '../utils/generationReport';
+import { formatGenerationDuration, getGenerationReviewState, hasCurrentVisualScores, reviewKeptOriginal, type GenerationReport as Report } from '../utils/generationReport';
 
 const stageKeys: Record<string, string> = {
   memory: 'workflowMemory', structure: 'workflowExtract', styling: 'workflowIntent',
@@ -98,7 +98,7 @@ export function GenerationReport({ report, t, compact = false, compactLabel, hid
   const refinement = refined ? (report.browserEdition
     ? t(edited ? 'workspace.reportReviewedOriginal' : 'workspace.reportCompleted')
     : label('reportFixCount', report.refinement.fixesApplied))
-    : t(`workspace.reportState_${['failed', 'unresolved'].includes(report.refinement.status) ? 'kept_original'
+    : t(`workspace.reportState_${reviewKeptOriginal(report) ? 'kept_original'
       : report.browserEdition ? 'not_reviewed' : report.refinement.status === 'unsupported' ? 'unsupported'
         : report.refinement.status === 'disabled' ? 'disabled' : report.refinement.status === 'skipped' ? 'not_needed' : 'unverified'}`);
   const showLearning = !report.browserEdition && ['saved', 'queued', 'running', 'unavailable'].includes(learningState.status);
