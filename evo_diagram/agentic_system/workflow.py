@@ -11,7 +11,6 @@ import os
 import logging
 import shutil
 import tempfile
-import threading
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -46,6 +45,7 @@ from evo_diagram.agentic_system.generation_stage.styling.schemas import (
 )
 from evo_diagram.agentic_system.verification_stage.workflow import VerifierWorkflow
 from evo_diagram.agentic_system.iterative_workflow import IterativeRefinerWorkflow
+from evo_diagram.agentic_system.refinement_stage.state import VerifierRefinerState
 
 from evo_diagram.utils.env_loader import ensure_env_loaded
 from evo_diagram.utils.path_manager import EXPERIMENTS_DIR
@@ -67,60 +67,65 @@ DESIGN_MEMORY_SECTION_FOOTER = "=== END RETRIEVED DESIGN KNOWLEDGE ==="
 DEFAULT_DESIGN_MEMORY_TOP_K = 5
 DEFAULT_DESIGN_MEMORY_SCORE_THRESHOLD = 0.0
 
-# Process-wide cache of design-memory retrievers, keyed by the two inputs that
-# decide which store is opened.
-_DESIGN_MEMORY_CACHE: Dict[Tuple[Optional[str], Optional[str]], Tuple[Any, Optional[str]]] = {}
-_DESIGN_MEMORY_CACHE_LOCK = threading.Lock()
-
-
 def reset_design_memory_cache() -> None:
     """Drop the shared design-memory retrievers (tests, or after a rebuild)."""
-    with _DESIGN_MEMORY_CACHE_LOCK:
-        _DESIGN_MEMORY_CACHE.clear()
+    try:
+        from evo_diagram.design_memory.shared_retriever import reset_shared_retriever_cache
+    except ImportError:
+        return
+    reset_shared_retriever_cache()
 
 
 def _load_design_memory_retriever(
     vector_db_path: Optional[str],
     embedding_model_name: Optional[str],
 ) -> Tuple[Any, Optional[str]]:
-    """Return ``(retriever, error_message)`` for the shared design-memory store.
+    """Backward-compatible alias of ``design_memory.shared_retriever.load_shared_retriever``.
 
-    Constructing ``DiagramDesignMemory`` loads a sentence-transformer model and
-    opens the Chroma collection, so it must happen once per process rather than
-    once per generation. Caching on the workflow instance is not enough:
-    ``agentic_system/main.py`` builds one ``Text2DiagramWorkflow`` per dataset
-    item, which would pay the load cost for every example. Failures are cached
-    too, so a missing optional dependency is diagnosed once instead of once per
-    item.
+    Kept under this private name because ``backend/app/services`` imports it.
     """
-    key = (vector_db_path, embedding_model_name)
-    with _DESIGN_MEMORY_CACHE_LOCK:
-        cached = _DESIGN_MEMORY_CACHE.get(key)
-        if cached is not None:
-            return cached
-        try:
-            from evo_diagram.design_memory import (
-                DiagramDesignMemory,
-                DiagramDesignRetriever,
-            )
+    try:
+        from evo_diagram.design_memory.shared_retriever import load_shared_retriever
+    except ImportError as exc:
+        return None, f"design memory dependencies unavailable: {exc}"
+    return load_shared_retriever(vector_db_path, embedding_model_name)
 
-            memory = DiagramDesignMemory(
-                vector_db_path=vector_db_path,
-                embedding_model_name=embedding_model_name,
-            )
-            result: Tuple[Any, Optional[str]] = (
-                DiagramDesignRetriever(design_memory=memory),
-                None,
-            )
-        except ImportError as exc:
-            # chromadb / sentence-transformers are optional extras.
-            result = (None, f"design memory dependencies unavailable: {exc}")
-        except Exception as exc:  # noqa: BLE001 - includes the embedding-model /
-            # distance-space consistency check, which raises RuntimeError on a
-            # store built with a different metric or model.
-            result = (None, f"design memory initialization failed: {exc}")
-        _DESIGN_MEMORY_CACHE[key] = result
-        return result
+
+def _locked_nodes_from_runtime_directives(runtime_directives: str) -> List[str]:
+    """Recover ``locked_nodes`` from a runtime-directives string (legacy path).
+
+    Accepts the backend format (a header line followed by a JSON object) and
+    bare JSON. Unparsable directives are logged instead of silently dropping
+    the user's locks.
+    """
+    import json
+
+    text = (runtime_directives or "").strip()
+    if not text:
+        return []
+    candidates = [text]
+    if "\n" in text:
+        candidates.append(text.split("\n", 1)[1].strip())
+    for candidate in candidates:
+        try:
+            data = json.loads(candidate)
+        except ValueError:
+            continue
+        if not isinstance(data, dict):
+            continue
+        nodes = data.get("locked_nodes", [])
+        if isinstance(nodes, list):
+            return [str(node) for node in nodes]
+        logger.warning(
+            "runtime_directives.locked_nodes is not a list (%s); no nodes locked",
+            type(nodes).__name__,
+        )
+        return []
+    logger.warning(
+        "Could not parse runtime_directives as JSON; locked nodes (if any) "
+        "are not enforced. Pass locked_nodes= explicitly instead."
+    )
+    return []
 
 
 def _save_json(filepath: str, data: Any) -> None:
@@ -144,9 +149,7 @@ def _optional_int(value: Any) -> Optional[int]:
     return value if isinstance(value, int) and not isinstance(value, bool) else None
 
 
-def _refinement_regression_reason(
-    initial: Any, candidate: Any, *, compare_visual_scores: bool = True,
-) -> Optional[str]:
+def _refinement_regression_reason(initial: Any, candidate: Any) -> Optional[str]:
     from .quality_policy import refinement_rejection
     return refinement_rejection(initial, candidate)
 
@@ -1123,6 +1126,7 @@ class Text2DiagramWorkflow:
         diagram_type: Optional[str],
         content_area: Optional[str],
         save_dir: str,
+        locked_nodes: Optional[List[str]] = None,
     ) -> _GenerationArtifacts:
         """Run the selected generator and normalize its output contract."""
         # ``retrieval_query`` stays empty here: the Router that produces one
@@ -1136,15 +1140,12 @@ class Text2DiagramWorkflow:
         )
 
         from .common.design_constraints import build_design_constraints
-        runtime = {}
-        try:
-            runtime = json.loads(runtime_directives.split("\n", 1)[1]) if runtime_directives else {}
-        except (ValueError, IndexError):
-            pass
+        if locked_nodes is None:
+            locked_nodes = _locked_nodes_from_runtime_directives(runtime_directives)
         self.design_constraints = build_design_constraints(
             source_text=str(text_content or ""), requirements=str(user_query or ""),
             design_expertise=design_expertise, diagram_type=diagram_type,
-            use_icons=getattr(self, "use_icons", False), locked_nodes=runtime.get("locked_nodes", []),
+            use_icons=getattr(self, "use_icons", False), locked_nodes=list(locked_nodes),
         )
         gen_outputs = self.generator.run(
             text_content=text_content,
@@ -1358,13 +1359,12 @@ class Text2DiagramWorkflow:
         refiner_dir = os.path.join(save_dir, "7_refiner")
         os.makedirs(refiner_dir, exist_ok=True)
 
-        refiner = IterativeRefinerWorkflow()
         verifier_report_path = (
             getattr(verification.state, "report_path", None)
             if verification.state
             else None
         )
-        refiner_state = refiner.run(
+        refiner_kwargs = dict(
             manifest_path=render_result.manifest_path,
             image_path=render_result.png_path,
             structure_path=generation.artifact_paths.get("structure_instantiation_path"),
@@ -1377,6 +1377,17 @@ class Text2DiagramWorkflow:
             skip_checks=["layout_audit"] if self.mode == "oneshot" else None,
             emit_markdown=True,
         )
+        try:
+            refiner_state = IterativeRefinerWorkflow().run(**refiner_kwargs)
+        except Exception as exc:  # noqa: BLE001 - refinement is optional
+            # Same contract as a refiner that reports status=failed below: an
+            # unexpected exception must not discard the verified render.
+            logger.exception("[Phase 4] Refiner raised")
+            refiner_state = VerifierRefinerState.model_construct(
+                **{**refiner_kwargs, "skip_checks": refiner_kwargs["skip_checks"] or []},
+                status="failed",
+                errors=[f"refiner raised {type(exc).__name__}: {exc}"],
+            )
         refiner_converged = getattr(refiner_state, "converged", None)
         logger.info(
             "[Phase 4] Refinement complete: status=%s, iterations=%s, converged=%s",
@@ -1641,8 +1652,44 @@ class Text2DiagramWorkflow:
         design_expertise: Optional[str] = None,
         diagram_type: Optional[str] = None,
         content_area: Optional[str] = None,
+        locked_nodes: Optional[List[str]] = None,
     ) -> WorkflowState:
-        """Run the full Text2Diagram pipeline."""
+        """Run the full Text2Diagram pipeline.
+
+        ``locked_nodes`` is the structured list of node ids the user locked.
+        When omitted it is recovered from ``runtime_directives`` (legacy).
+
+        Optional per-run LLM caps come from ``EVO_LLM_RUN_MAX_CALLS`` and
+        ``EVO_LLM_RUN_DEADLINE_SECONDS`` (unset by default).
+        """
+        from evo_diagram.core.base_agent import llm_run_budget_from_env
+
+        with llm_run_budget_from_env():
+            return self._run_pipeline(
+                text_content=text_content,
+                user_query=user_query,
+                runtime_directives=runtime_directives,
+                save_dir=save_dir,
+                final_dir=final_dir,
+                design_expertise=design_expertise,
+                diagram_type=diagram_type,
+                content_area=content_area,
+                locked_nodes=locked_nodes,
+            )
+
+    def _run_pipeline(
+        self,
+        *,
+        text_content: Any,
+        user_query: Any,
+        runtime_directives: Optional[str],
+        save_dir: Any,
+        final_dir: Optional[str],
+        design_expertise: Optional[str],
+        diagram_type: Optional[str],
+        content_area: Optional[str],
+        locked_nodes: Optional[List[str]],
+    ) -> WorkflowState:
         directories = self._resolve_run_directories(save_dir, final_dir)
         state: Optional[WorkflowState] = None
         try:
@@ -1654,6 +1701,7 @@ class Text2DiagramWorkflow:
                 diagram_type=diagram_type,
                 content_area=content_area,
                 save_dir=directories.save_dir,
+                locked_nodes=locked_nodes,
             )
             render_result = self._render_generation_output(
                 generation,
@@ -1699,7 +1747,6 @@ class Text2DiagramWorkflow:
             )
             rejection = _refinement_regression_reason(
                 verification.state, final_verification.state,
-                compare_visual_scores=not self.enable_critic,
             )
             if rejection and refinement.manifest is not None:
                 logger.warning("[Phase 5] Rejecting refined candidate: %s", rejection)

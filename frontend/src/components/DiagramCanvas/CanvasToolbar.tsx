@@ -1,7 +1,7 @@
 import { ChevronDown, Download, Loader2, Maximize2 } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { getSnapshot, type Editor } from '@tldraw/tldraw';
+import type { Editor } from '@tldraw/tldraw';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import { useLanguage } from '../../i18n/LanguageProvider';
 import { useToast } from '../toastContext';
@@ -57,6 +57,8 @@ export function CanvasToolbar({ projectNavigation, saveIndicator, api, tldrawEdi
       if (!api && tldrawEditor) {
         const shapes = tldrawEditor.getCurrentPageShapeIds();
         if (format === 'excalidraw') {
+          // Loaded on demand so the Excalidraw path never pulls in tldraw.
+          const { getSnapshot } = await import('@tldraw/tldraw');
           blob = new Blob([JSON.stringify(getSnapshot(tldrawEditor.store), null, 2)], { type: 'application/json' });
         } else if (format === 'svg') {
           const exported = await tldrawEditor.getSvgString([...shapes], { background: true });

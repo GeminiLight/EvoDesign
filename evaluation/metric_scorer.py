@@ -6,7 +6,7 @@ Inherits from BaseAgent and manages metric-based evaluation.
 """
 
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
 
 from evo_diagram.core.base_agent import BaseAgent
@@ -44,6 +44,27 @@ AVERAGE_SCORE_WEIGHTS = {
     "visual_dimension": 0.35,
     "cognitive_dimension": 0.40,
 }
+
+def compute_weighted_average(
+    scores: Dict[str, Any],
+) -> Tuple[Optional[float], List[str]]:
+    """Return ``(weighted average, missing weighted dimensions)``.
+
+    The average is ``None`` unless every dimension in
+    :data:`AVERAGE_SCORE_WEIGHTS` has a valid rubric score; failed,
+    not-applicable and unrequested dimensions are reported as missing.
+    """
+    missing = [
+        name for name in AVERAGE_SCORE_WEIGHTS if not is_valid_score(scores.get(name))
+    ]
+    if missing:
+        return None, missing
+    total_weight = sum(AVERAGE_SCORE_WEIGHTS.values())
+    weighted_sum = sum(
+        scores[name] * weight for name, weight in AVERAGE_SCORE_WEIGHTS.items()
+    )
+    return weighted_sum / total_weight, []
+
 
 # Legacy mapping for backward compatibility
 LEGACY_TO_DIMENSION = {
@@ -376,27 +397,13 @@ class MetricScorer(BaseAgent):
 
         # Calculate a human-utility weighted score. This prevents content
         # coverage from masking poor visual design or high cognitive load.
-        # Only in-rubric scores participate; failed and not-applicable metrics
-        # are excluded rather than folded in as a 0.
-        weighted_sum = 0.0
-        total_weight = 0.0
-        fallback_scores = []
-        for metric_name, score in results["scores"].items():
-            if not is_valid_score(score):
-                continue
-            fallback_scores.append(score)
-            weight = AVERAGE_SCORE_WEIGHTS.get(metric_name)
-            if weight is None:
-                continue
-            weighted_sum += score * weight
-            total_weight += weight
-
-        if total_weight:
-            results["average_score"] = weighted_sum / total_weight
-        elif fallback_scores:
-            results["average_score"] = sum(fallback_scores) / len(fallback_scores)
-        else:
-            results["average_score"] = None
+        # The composite is only defined when every weighted dimension has an
+        # in-rubric score: renormalising over the dimensions that happened to
+        # succeed would silently change what the number measures.
+        average, missing = compute_weighted_average(results["scores"])
+        results["average_score"] = average
+        results["average_complete"] = not missing
+        results["average_missing_dimensions"] = missing
 
         return results
 
@@ -516,30 +523,45 @@ class MetricScorer(BaseAgent):
         summary = {
             "total_images": len(image_results),
             "best_image": None,
-            "best_score": 0,
+            "best_score": None,
             "worst_image": None,
-            "worst_score": 5,
+            "worst_score": None,
             "average_scores": {},
+            "complete_average_count": 0,
+            "incomplete_average_count": 0,
+            "incomplete_average_images": [],
             "metric_averages": {},
         }
 
         collected: Dict[str, List[float]] = {}
         skipped: Dict[str, List[str]] = {}
 
-        # Calculate average score per image
+        # Calculate average score per image. Best/worst only consider images
+        # whose composite covers every weighted dimension; the rest are
+        # counted as incomplete instead of being ranked on a partial average.
         for image_name, results in image_results.items():
             if "error" in results:
                 continue
 
             avg_score = results.get("average_score")
+            complete = results.get("average_complete")
+            if complete is None:
+                # Results written before average_complete existed may carry a
+                # renormalised partial average; judge them by their scores.
+                complete = not compute_weighted_average(results.get("scores", {}))[1]
+            if not complete:
+                avg_score = None
             summary["average_scores"][image_name] = avg_score
 
-            if isinstance(avg_score, (int, float)):
-                if avg_score > summary["best_score"]:
+            if avg_score is None:
+                summary["incomplete_average_count"] += 1
+                summary["incomplete_average_images"].append(image_name)
+            else:
+                summary["complete_average_count"] += 1
+                if summary["best_score"] is None or avg_score > summary["best_score"]:
                     summary["best_score"] = avg_score
                     summary["best_image"] = image_name
-
-                if avg_score < summary["worst_score"] and avg_score > 0:
+                if summary["worst_score"] is None or avg_score < summary["worst_score"]:
                     summary["worst_score"] = avg_score
                     summary["worst_image"] = image_name
 
@@ -579,11 +601,19 @@ if __name__ == "__main__":
     # Load environment variables from project root
     ensure_env_loaded()
 
+    # Fail closed: never send judge prompts to a built-in third-party endpoint.
+    base_url = (os.getenv("LLM_ENDPOINT_URL") or "").strip()
+    if not base_url:
+        raise SystemExit(
+            "No LLM endpoint configured. Set LLM_ENDPOINT_URL (e.g. in the "
+            "repository .env) to your OpenAI-compatible base URL."
+        )
+
     # Create model
     model = LLMFactory.create(
         model=os.getenv("LLM_MODEL_NAME", "qwen3-vl-plus"),
         model_provider=os.getenv("LLM_MODEL_PROVIDER", "openai"),
-        base_url=os.getenv("LLM_ENDPOINT_URL", "https://apis.iflow.cn/v1"),
+        base_url=base_url,
         api_key=os.getenv("LLM_API_KEY"),
         temperature=0,
         max_tokens=8000

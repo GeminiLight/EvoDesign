@@ -7,12 +7,17 @@ from fastapi.responses import StreamingResponse
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user_or_guest
+from app.api.deps import (
+    get_current_user_or_guest,
+    get_rate_limited_user_or_guest,
+    release_db_connection,
+)
+from app.config import Settings, get_settings
 from app.api.errors import ApiErrorMapping, ApiErrorPolicy
 from app.core.exceptions import ProjectNotFoundException
 from app.db.session import get_db
 from app.models.user import User
-from app.core.rate_limit import limiter
+from app.core.rate_limit import client_ip, limiter
 from app.core.sse import with_sse_keepalive
 from app.schemas.diagram_generate import (
     DiagramGenerateRequest,
@@ -25,6 +30,12 @@ from app.services.diagram_persistence_service import (
     build_diagram_persistence_input,
 )
 from app.services.diagram_generation_contract import GenerationInputValidationError
+from app.services.document_commit_service import CanvasEngineChangeError
+from app.services.guest_quota_service import (
+    DEFAULT_GUEST_DAILY_GENERATION_LIMIT,
+    GuestQuota,
+    GuestQuotaExceededError,
+)
 from app.services.diagram_stream_service import DiagramStreamService
 from app.services.llm_client import BackendLLMConfigurationError
 from app.services.local_edit_service import (
@@ -60,6 +71,7 @@ DIAGRAM_GENERATION_ERROR_POLICY = ApiErrorPolicy(
 DIAGRAM_PERSISTENCE_ERROR_POLICY = ApiErrorPolicy(
     mappings=(
         ApiErrorMapping(ProjectNotFoundException, status.HTTP_404_NOT_FOUND),
+        ApiErrorMapping(CanvasEngineChangeError, status.HTTP_422_UNPROCESSABLE_CONTENT),
     ),
     fallback_status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
     fallback_detail=GENERIC_GENERATION_ERROR,
@@ -99,6 +111,11 @@ DIAGRAM_GENERATION_ERROR_LOGS = (
 DIAGRAM_PERSISTENCE_ERROR_LOGS = (
     _ApiErrorLogMapping(
         ProjectNotFoundException,
+        "Diagram generation persistence rejected: {}",
+        "warning",
+    ),
+    _ApiErrorLogMapping(
+        CanvasEngineChangeError,
         "Diagram generation persistence rejected: {}",
         "warning",
     ),
@@ -143,6 +160,10 @@ def get_local_edit_service() -> LocalEditService:
     return LocalEditService()
 
 
+def get_guest_quota() -> GuestQuota:
+    return GuestQuota()
+
+
 def get_diagram_persistence_service(
     db: AsyncSession = Depends(get_db),
 ) -> DiagramPersistenceService:
@@ -183,6 +204,38 @@ def _raise_diagram_api_error(
     raise policy.to_http_exception(exc) from exc
 
 
+async def _admit_generation(
+    request: Request,
+    *,
+    current_user: User | None,
+    db: AsyncSession,
+    settings: Settings,
+    guest_quota: GuestQuota,
+) -> None:
+    """Charge the guest daily quota, then release the DB connection before the LLM run.
+
+    Called from the handler body (not a dependency) so requests rejected by
+    body validation never consume a guest's allowance.
+    """
+    if current_user is None:
+        limit = getattr(settings, "guest_daily_generation_limit", DEFAULT_GUEST_DAILY_GENERATION_LIMIT)
+        try:
+            await guest_quota.consume(
+                db,
+                client_ip=client_ip(request),
+                limit=limit,
+                secret=getattr(settings, "session_secret", None) or "",
+            )
+        except GuestQuotaExceededError as exc:
+            await db.rollback()
+            logger.info("Guest daily generation quota exhausted")
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=exc.public_detail,
+            ) from exc
+    await release_db_connection(db)
+
+
 async def _stream_client_disconnected(request: Request) -> bool:
     """Return whether the streaming client has disconnected.
 
@@ -200,12 +253,18 @@ async def _stream_client_disconnected(request: Request) -> bool:
 async def generate_diagram(
     request: Request,
     body: DiagramGenerateRequest,
-    current_user: User | None = Depends(get_current_user_or_guest),
+    current_user: User | None = Depends(get_rate_limited_user_or_guest),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    guest_quota: GuestQuota = Depends(get_guest_quota),
     workflow_service: WorkflowGenerateService = Depends(get_workflow_generate_service),
     persistence_service: DiagramPersistenceService = Depends(
         get_diagram_persistence_service
     ),
 ):
+    await _admit_generation(
+        request, current_user=current_user, db=db, settings=settings, guest_quota=guest_quota
+    )
     user_id = current_user.user_id if current_user else None
     user_tier = _get_user_tier(current_user)
 
@@ -277,10 +336,18 @@ async def generate_diagram(
 async def generate_diagram_stream(
     request: Request,
     body: DiagramGenerateRequest,
-    current_user: User | None = Depends(get_current_user_or_guest),
+    current_user: User | None = Depends(get_rate_limited_user_or_guest),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    guest_quota: GuestQuota = Depends(get_guest_quota),
     workflow_service: WorkflowGenerateService = Depends(get_workflow_generate_service),
     stream_service: DiagramStreamService = Depends(get_diagram_stream_service),
-):  # No db dependency here; the streaming generator manages its own session.
+):
+    # The request session is only used for auth and quota admission and is
+    # released here; the stream persists results through its own session.
+    await _admit_generation(
+        request, current_user=current_user, db=db, settings=settings, guest_quota=guest_quota
+    )
     user_id = current_user.user_id if current_user else None
     user_tier = _get_user_tier(current_user)
 
@@ -352,7 +419,10 @@ async def generate_diagram_stream(
 async def edit_diagram_local(
     request: Request,
     body: DiagramLocalEditRequest,
-    current_user: User | None = Depends(get_current_user_or_guest),
+    current_user: User | None = Depends(get_rate_limited_user_or_guest),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    guest_quota: GuestQuota = Depends(get_guest_quota),
     service: LocalEditService = Depends(get_local_edit_service),
 ):
     """
@@ -365,6 +435,9 @@ async def edit_diagram_local(
     - Uses a single LLM call for selected-node edits
     - Suitable for iterative chat-based editing
     """
+    await _admit_generation(
+        request, current_user=current_user, db=db, settings=settings, guest_quota=guest_quota
+    )
     try:
         result = await service.edit_local(
             current_schema=body.current_schema,

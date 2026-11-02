@@ -5,10 +5,11 @@ Provides the base abstract class for all evaluation metrics.
 """
 
 import json
+import math
 import re
 import logging
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage
@@ -140,7 +141,8 @@ class BaseMetric(ABC):
             # Call LLM
             logger.info(f"Evaluating metric: {self.metric_name}")
             response = self.llm.invoke([message])
-            raw_response = response.content
+            # Chat models may return a list of content blocks; score the text.
+            raw_response = response_content_to_text(response.content)
 
             # Debug: Log response details
             logger.debug(f"LLM response type: {type(raw_response)}")
@@ -192,6 +194,7 @@ class BaseMetric(ABC):
 
         Attempt to extract JSON-formatted evaluation results from the response
         """
+        response = response_content_to_text(response)
         try:
             # Try to extract JSON block
             json_match = re.search(r'```json\s*(.*?)\s*```', response, re.DOTALL)
@@ -247,14 +250,27 @@ class BaseMetric(ABC):
 
     @staticmethod
     def _coerce_score(raw: Any) -> Optional[int]:
-        """Return *raw* as an in-rubric integer score, or ``None`` if invalid."""
+        """Return *raw* as an in-rubric integer score, or ``None`` if invalid.
+
+        Ints, floats and numeric strings are treated alike: the value must lie
+        inside the 1-5 rubric *before* rounding, then is rounded half-up to the
+        nearest integer (``4.5`` -> 5, ``4.4`` -> 4). Booleans, non-finite
+        numbers and non-numeric text are rejected.
+        """
         if isinstance(raw, bool) or raw is None:
             return None
-        try:
-            score = int(raw)
-        except (TypeError, ValueError):
+        if isinstance(raw, str):
+            text = raw.strip()
+            if not re.fullmatch(r"[+-]?\d+(?:\.\d+)?", text):
+                return None
+            value = float(text)
+        elif isinstance(raw, (int, float)):
+            value = float(raw)
+        else:
             return None
-        return score if is_valid_score(score) else None
+        if not math.isfinite(value) or not (SCORE_MIN <= value <= SCORE_MAX):
+            return None
+        return int(math.floor(value + 0.5))
 
     def _fallback_parse(self, response: str) -> MetricResult:
         """
@@ -264,39 +280,87 @@ class BaseMetric(ABC):
         extract anything returns an explicit error result: silently emitting a
         score of 0 would inject a value below the 1-5 rubric into the averages
         while still reporting ``status: success``.
+
+        Labelled overall scores win over generic ``score`` labels, which win
+        over bare ``N/5`` fractions. Bare fractions are only used when they all
+        agree; otherwise the first one may be a sub-score, so it is an error.
         """
-        # Try to match patterns like "score": 5
-        score_patterns = [
-            r'"score"\s*:\s*(\d+)',
-            r'Score[：:]\s*(\d+)',
-            r'(\d+)\s*[/]\s*5',
-        ]
+        response = response_content_to_text(response)
+        preview = response[:200]
 
-        preview = str(response)[:200]
-
-        for pattern in score_patterns:
+        extracted: Optional[str] = None
+        for pattern in _LABELLED_SCORE_PATTERNS:
             match = re.search(pattern, response, re.IGNORECASE)
             if match:
-                score = self._coerce_score(match.group(1))
-                if score is None:
-                    return MetricResult.error_result(
-                        self.metric_name,
-                        f"Fallback parse extracted out-of-rubric score "
-                        f"{match.group(1)!r} (expected {SCORE_MIN}-{SCORE_MAX}). "
-                        f"Response preview: {preview}",
-                    )
-                return MetricResult(
-                    metric_name=self.metric_name,
-                    score=score,
-                    reason=f"(Parsed from text) {preview}...",
-                    details={"parsed_by": "fallback_regex"},
-                )
+                extracted = match.group(1)
+                break
 
-        return MetricResult.error_result(
-            self.metric_name,
-            "Response was neither valid JSON nor did it contain a recognizable "
-            f"score. Response preview: {preview}",
+        if extracted is None:
+            fractions = re.findall(_FRACTION_SCORE_PATTERN, response)
+            if len(set(fractions)) > 1:
+                return MetricResult.error_result(
+                    self.metric_name,
+                    f"Fallback parse found conflicting unlabelled scores "
+                    f"{sorted(set(fractions))}. Response preview: {preview}",
+                )
+            if fractions:
+                extracted = fractions[0]
+
+        if extracted is None:
+            return MetricResult.error_result(
+                self.metric_name,
+                "Response was neither valid JSON nor did it contain a recognizable "
+                f"score. Response preview: {preview}",
+            )
+
+        score = self._coerce_score(extracted)
+        if score is None:
+            return MetricResult.error_result(
+                self.metric_name,
+                f"Fallback parse extracted out-of-rubric score "
+                f"{extracted!r} (expected {SCORE_MIN}-{SCORE_MAX}). "
+                f"Response preview: {preview}",
+            )
+        return MetricResult(
+            metric_name=self.metric_name,
+            score=score,
+            reason=f"(Parsed from text) {preview}...",
+            details={"parsed_by": "fallback_regex"},
         )
+
+
+_SCORE_NUMBER = r"(\d+(?:\.\d+)?)"
+
+# Ordered from most to least specific.
+_LABELLED_SCORE_PATTERNS: List[str] = [
+    rf'"(?:overall_score|final_score|overall|total_score)"\s*:\s*"?{_SCORE_NUMBER}',
+    rf"\b(?:overall|final|total)(?:[ _]score)?\s*[：:=]\s*\**\s*{_SCORE_NUMBER}",
+    rf'"score"\s*:\s*"?{_SCORE_NUMBER}',
+    rf"\bscore\s*[：:=]\s*\**\s*{_SCORE_NUMBER}",
+]
+_FRACTION_SCORE_PATTERN = rf"{_SCORE_NUMBER}\s*/\s*5\b"
+
+
+def response_content_to_text(content: Any) -> str:
+    """Flatten a chat-model ``content`` (str or list of blocks) into text."""
+    if content is None:
+        return ""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts: List[str] = []
+        for block in content:
+            if isinstance(block, str):
+                parts.append(block)
+            elif isinstance(block, dict):
+                if block.get("type", "text") == "text" and isinstance(block.get("text"), str):
+                    parts.append(block["text"])
+            else:
+                text = getattr(block, "text", None)
+                if isinstance(text, str):
+                    parts.append(text)
+        return "".join(parts)
+    return str(content)
 
 
 class ContentMetricBase(BaseMetric):

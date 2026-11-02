@@ -111,7 +111,7 @@ def test_all_retrieval_layers_reuse_vectors_but_still_query_each_store():
 
 def test_seed_is_idempotent_and_normalizes_retrieval_tags(tmp_path, monkeypatch):
     memory = Memory()
-    monkeypatch.setattr("evo_diagram.agentic_system.workflow._load_design_memory_retriever",
+    monkeypatch.setattr("evo_diagram.design_memory.shared_retriever.load_shared_retriever",
                         lambda *_: (SimpleNamespace(design_memory=memory), None))
     seed = tmp_path / "seed.json"
     seed.write_text(json.dumps([{"id": "one", "content": "Use hierarchy", "diagram_type": "concept"}]))

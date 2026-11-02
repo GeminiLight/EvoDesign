@@ -1,12 +1,17 @@
 import json
+import os
 import re
+import threading
+import time
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from contextlib import contextmanager
+from contextvars import ContextVar
+from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, Iterator, Optional
 import logging
 
 from langchain.agents import create_agent
 from langchain_core.language_models import BaseChatModel
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception
 
 from evo_diagram.utils.llm_output import preprocess_response, get_text_from_response
 
@@ -16,6 +21,13 @@ logger = logging.getLogger(__name__)
 class LLMResponseError(Exception):
     """Custom exception for malformed LLM responses."""
     pass
+
+
+class LLMBudgetExceeded(RuntimeError):
+    """An LLM call or workflow run exhausted its wall-clock or call budget.
+
+    Deliberately not retryable: every retry layer must stop on it.
+    """
 
 
 # Exceptions that are safe to retry — transient network / API issues.
@@ -145,8 +157,28 @@ def _is_provider_quota_exhausted(exc: BaseException) -> bool:
                for key in ("code", "type"))
 
 
+def _is_permanent_http_error(exc: BaseException) -> bool:
+    """True for provider HTTP errors that outer retries cannot fix."""
+    if _is_provider_quota_exhausted(exc):
+        return True
+    status_code = _status_code_from_exception(exc)
+    if status_code is not None:
+        return not _is_transient_status_code(status_code)
+
+    cls_name = type(exc).__name__
+    return cls_name in {
+        "AuthenticationError",
+        "BadRequestError",
+        "NotFoundError",
+        "PermissionDeniedError",
+        "UnprocessableEntityError",
+    }
+
+
 def _is_retryable_exception(exc: BaseException) -> bool:
     """Retry only transient transport/provider failures."""
+    if isinstance(exc, LLMBudgetExceeded):
+        return False
     if _is_provider_quota_exhausted(exc):
         return False
     if _is_stream_transport_error(exc):
@@ -158,6 +190,202 @@ def _is_retryable_exception(exc: BaseException) -> bool:
         message = str(exc).lower()
         return any(marker in message for marker in _TRANSIENT_API_ERROR_MARKERS)
     return isinstance(exc, _RETRYABLE_EXCEPTIONS)
+
+
+# ── Retry budget ────────────────────────────────────────────────────────
+#
+# BaseAgent owns the only transport-level retry layer: ``LLMFactory`` builds
+# provider clients with ``max_retries=0`` by default so SDK retries never
+# multiply with these. A logical call (``invoke`` / ``invoke_with_history``,
+# including its JSON-repair turns) shares one retry allowance and one
+# wall-clock deadline. A deadline is checked before every request and every
+# backoff sleep; an in-flight request is bounded by the client ``timeout``.
+
+DEFAULT_TRANSPORT_ATTEMPTS = 5
+DEFAULT_CALL_DEADLINE_SECONDS = 1800.0
+CALL_DEADLINE_ENV = "EVO_LLM_CALL_DEADLINE_SECONDS"
+_BACKOFF_MIN_SECONDS = 4.0
+_BACKOFF_MAX_SECONDS = 30.0
+
+
+def _sleep(seconds: float) -> None:
+    time.sleep(seconds)
+
+
+def _backoff_seconds(retry_index: int) -> float:
+    """Exponential backoff: 4s, 4s, 8s, 16s, 30s (cap)."""
+    return min(_BACKOFF_MAX_SECONDS, max(_BACKOFF_MIN_SECONDS, 2.0 * (2 ** retry_index)))
+
+
+def resolve_call_deadline_seconds(value: Any = None) -> Optional[float]:
+    """Return the per-call deadline; ``<= 0`` disables it.
+
+    Precedence: explicit *value*, then ``EVO_LLM_CALL_DEADLINE_SECONDS``, then
+    ``DEFAULT_CALL_DEADLINE_SECONDS``.
+    """
+    if value is None:
+        raw = os.environ.get(CALL_DEADLINE_ENV, "").strip()
+        if raw:
+            try:
+                value = float(raw)
+            except ValueError:
+                logger.warning("Ignoring invalid %s=%r", CALL_DEADLINE_ENV, raw)
+                value = None
+    if value is None:
+        value = DEFAULT_CALL_DEADLINE_SECONDS
+    value = float(value)
+    return value if value > 0 else None
+
+
+@dataclass
+class LLMRunBudget:
+    """Optional cap on LLM requests and wall-clock time for one workflow run."""
+
+    max_calls: Optional[int] = None
+    deadline_seconds: Optional[float] = None
+    started_at: float = field(default_factory=time.monotonic)
+    calls: int = 0
+    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
+
+    def remaining_seconds(self) -> Optional[float]:
+        if self.deadline_seconds is None:
+            return None
+        return self.deadline_seconds - (time.monotonic() - self.started_at)
+
+    def check(self) -> None:
+        remaining = self.remaining_seconds()
+        if remaining is not None and remaining <= 0:
+            raise LLMBudgetExceeded(
+                f"LLM run deadline of {self.deadline_seconds:.0f}s exceeded "
+                f"after {self.calls} request(s)"
+            )
+        if self.max_calls is not None and self.calls >= self.max_calls:
+            raise LLMBudgetExceeded(
+                f"LLM run budget of {self.max_calls} request(s) exhausted"
+            )
+
+    def charge(self) -> None:
+        with self._lock:
+            self.check()
+            self.calls += 1
+
+
+_RUN_BUDGET: ContextVar[Optional[LLMRunBudget]] = ContextVar("evo_llm_run_budget", default=None)
+
+
+@contextmanager
+def llm_run_budget(
+    *, max_calls: Optional[int] = None, deadline_seconds: Optional[float] = None,
+) -> Iterator[LLMRunBudget]:
+    """Cap every BaseAgent request made inside this context (and threads that
+    copy it, see ``common/self_consistency.py``)."""
+    budget = LLMRunBudget(
+        max_calls=max_calls if max_calls and max_calls > 0 else None,
+        deadline_seconds=deadline_seconds if deadline_seconds and deadline_seconds > 0 else None,
+    )
+    token = _RUN_BUDGET.set(budget)
+    try:
+        yield budget
+    finally:
+        _RUN_BUDGET.reset(token)
+
+
+RUN_MAX_CALLS_ENV = "EVO_LLM_RUN_MAX_CALLS"
+RUN_DEADLINE_ENV = "EVO_LLM_RUN_DEADLINE_SECONDS"
+
+
+def _env_number(name: str) -> Optional[float]:
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return None
+    try:
+        value = float(raw)
+    except ValueError:
+        logger.warning("Ignoring invalid %s=%r", name, raw)
+        return None
+    return value if value > 0 else None
+
+
+@contextmanager
+def llm_run_budget_from_env() -> Iterator[LLMRunBudget]:
+    """``llm_run_budget`` configured by ``EVO_LLM_RUN_MAX_CALLS`` and
+    ``EVO_LLM_RUN_DEADLINE_SECONDS`` (both unset → unlimited, the default)."""
+    max_calls = _env_number(RUN_MAX_CALLS_ENV)
+    with llm_run_budget(
+        max_calls=int(max_calls) if max_calls is not None else None,
+        deadline_seconds=_env_number(RUN_DEADLINE_ENV),
+    ) as budget:
+        yield budget
+
+
+def charge_llm_run_budget() -> None:
+    """Count one provider request against the active run budget, if any.
+
+    For callers that invoke a chat model directly instead of via BaseAgent.
+    Raises ``LLMBudgetExceeded`` once the run budget is spent.
+    """
+    budget = _RUN_BUDGET.get()
+    if budget is not None:
+        budget.charge()
+
+
+@dataclass
+class _CallBudget:
+    deadline_seconds: Optional[float]
+    retries_left: int
+    started_at: float = field(default_factory=time.monotonic)
+    retries_used: int = 0
+
+    @classmethod
+    def start(cls, agent: "BaseAgent") -> "_CallBudget":
+        attempts = max(1, int(getattr(agent, "transport_attempts", DEFAULT_TRANSPORT_ATTEMPTS)))
+        return cls(
+            deadline_seconds=resolve_call_deadline_seconds(
+                getattr(agent, "call_deadline_seconds", None)
+            ),
+            retries_left=attempts - 1,
+        )
+
+    @classmethod
+    @contextmanager
+    def scope(cls, agent: "BaseAgent") -> Iterator["_CallBudget"]:
+        budget = cls.start(agent)
+        token = _CALL_BUDGET.set(budget)
+        try:
+            yield budget
+        finally:
+            _CALL_BUDGET.reset(token)
+
+    def elapsed_seconds(self) -> float:
+        return time.monotonic() - self.started_at
+
+    def remaining_seconds(self) -> Optional[float]:
+        candidates = []
+        if self.deadline_seconds is not None:
+            candidates.append(self.deadline_seconds - self.elapsed_seconds())
+        run_budget = _RUN_BUDGET.get()
+        if run_budget is not None:
+            run_remaining = run_budget.remaining_seconds()
+            if run_remaining is not None:
+                candidates.append(run_remaining)
+        return min(candidates) if candidates else None
+
+    def check(self, *, charge: bool = False) -> None:
+        """Fail fast once either deadline is spent; *charge* counts a request."""
+        if self.deadline_seconds is not None and self.elapsed_seconds() >= self.deadline_seconds:
+            raise LLMBudgetExceeded(
+                f"LLM call deadline of {self.deadline_seconds:.0f}s exceeded "
+                f"(set {CALL_DEADLINE_ENV} or call_deadline_seconds to change it)"
+            )
+        run_budget = _RUN_BUDGET.get()
+        if run_budget is not None:
+            if charge:
+                run_budget.charge()
+            else:
+                run_budget.check()
+
+
+_CALL_BUDGET: ContextVar[Optional[_CallBudget]] = ContextVar("evo_llm_call_budget", default=None)
 
 
 valid_agent_arg_list = [
@@ -195,6 +423,11 @@ def _render_template(template: str, variables: Dict[str, Any]) -> str:
 
 class BaseAgent(ABC):
 
+    # Class-level defaults so partially constructed agents (tests use
+    # ``object.__new__``) still get the standard retry budget.
+    transport_attempts: int = DEFAULT_TRANSPORT_ATTEMPTS
+    call_deadline_seconds: Optional[float] = None  # None → env/default
+
     def __init__(
             self,
             model: BaseChatModel,
@@ -220,6 +453,12 @@ class BaseAgent(ABC):
         # LLMs can occasionally return non-JSON text even when prompted for JSON.
         # Retry a few times before failing the whole workflow.
         self.json_retry_attempts = max(1, int(kwargs.get("json_retry_attempts", 5)))
+        # Transport retries and the wall-clock deadline are shared by all
+        # requests of one logical call, including the JSON-repair turns above.
+        self.transport_attempts = max(
+            1, int(kwargs.get("transport_attempts", DEFAULT_TRANSPORT_ATTEMPTS))
+        )
+        self.call_deadline_seconds = kwargs.get("call_deadline_seconds")
         # Last raw LLM response (before JSON parsing) — useful for debugging.
         self._last_raw_output: Optional[Any] = None
 
@@ -248,54 +487,86 @@ class BaseAgent(ABC):
             }
         return prompt
 
-    @retry(
-        stop=stop_after_attempt(5),
-        wait=wait_exponential(multiplier=2, min=4, max=30),
-        retry=retry_if_exception(_is_retryable_exception),
-        reraise=True
-    )
-    def _invoke_with_retry(self, input_prompt: dict) -> Any:
-        """Internal method to invoke agent with retry logic.
-
-        Only retries on transient failures (network timeouts, API errors,
-        malformed responses).  Programming errors propagate immediately.
-        """
+    def _call_model_once(self, call: Callable[[], Any]) -> Any:
+        """Run one provider request and normalize malformed responses."""
         try:
-            result = self._agent.invoke(input_prompt)
-            if result is None:
-                raise LLMResponseError("LLM returned None response")
-            if isinstance(result, dict) and "error" in result:
-                raise LLMResponseError(f"LLM returned error: {result['error']}")
-            return result
+            result = call()
         except TypeError as e:
             # "NoneType object is not iterable" — API returned malformed response
             error_msg = str(e)
             if "NoneType" in error_msg and "not iterable" in error_msg:
-                logger.warning(f"API returned malformed response (choices=None), retrying... Error: {e}")
+                logger.warning("API returned malformed response (choices=None): %s", e)
                 raise LLMResponseError(f"API returned malformed response: {e}") from e
             raise
-        except _RETRYABLE_EXCEPTIONS:
-            raise
-        except Exception as e:
-            disposition = "transient; retrying" if _is_retryable_exception(e) else "non-retryable"
-            logger.warning(
-                "LLM invocation failed (%s): %s: %s",
-                disposition,
-                type(e).__name__,
-                e,
-            )
-            raise
+        if result is None:
+            raise LLMResponseError("LLM returned None response")
+        if isinstance(result, dict) and "error" in result:
+            raise LLMResponseError(f"LLM returned error: {result['error']}")
+        return result
+
+    def _transport_call(self, call: Callable[[], Any]) -> Any:
+        """The single transport-level retry layer for this agent.
+
+        Transient failures (timeouts, connection errors, 408/409/429/5xx,
+        broken stream events, malformed responses) are retried with
+        exponential backoff. Permanent failures (auth, bad request, exhausted
+        quota) and programming errors propagate immediately. The retry count
+        is shared across every request made for one logical ``invoke`` /
+        ``invoke_with_history`` call, so JSON-repair turns cannot multiply
+        transport retries, and no attempt starts after the call deadline.
+        """
+        budget = _CALL_BUDGET.get() or _CallBudget.start(self)
+        while True:
+            budget.check(charge=True)
+            try:
+                return self._call_model_once(call)
+            except Exception as exc:
+                if not _is_retryable_exception(exc):
+                    if not isinstance(exc, LLMBudgetExceeded):
+                        logger.warning(
+                            "LLM invocation failed (non-retryable): %s: %s",
+                            type(exc).__name__, exc,
+                        )
+                    raise
+                if budget.retries_left <= 0:
+                    raise
+                delay = _backoff_seconds(budget.retries_used)
+                remaining = budget.remaining_seconds()
+                if remaining is not None and remaining <= delay:
+                    raise LLMBudgetExceeded(
+                        f"LLM call deadline reached after {budget.elapsed_seconds():.0f}s "
+                        f"while retrying {type(exc).__name__}: {exc}"
+                    ) from exc
+                budget.retries_left -= 1
+                budget.retries_used += 1
+                logger.warning(
+                    "LLM invocation failed (transient; retry %s/%s in %.0fs): %s: %s",
+                    budget.retries_used, budget.retries_used + budget.retries_left,
+                    delay, type(exc).__name__, exc,
+                )
+                _sleep(delay)
+
+    def _invoke_with_retry(self, input_prompt: dict) -> Any:
+        """Invoke the agent through the shared transport retry layer."""
+        return self._transport_call(lambda: self._agent.invoke(input_prompt))
 
     def invoke(self, input_dict: dict) -> Any:
         """Invoke the agent with the given input text."""
+        with _CallBudget.scope(self):
+            return self._invoke_parsed(input_dict)
+
+    def _invoke_parsed(self, input_dict: dict) -> Any:
         input_prompt = self._build_prompt(input_dict)
         parse_attempts = self.json_retry_attempts if self.jsonalize_output else 1
         last_error: Optional[json.JSONDecodeError] = None
         strict = getattr(self, "strict_json_output", False)
         attempt_prompt = input_prompt
+        budget = _CALL_BUDGET.get()
 
         for attempt in range(1, parse_attempts + 1):
             is_last_attempt = attempt == parse_attempts
+            if budget is not None:
+                budget.check()
             raw_output = self._invoke_with_retry(attempt_prompt)
             self._last_raw_output = raw_output
             try:
@@ -343,12 +614,6 @@ class BaseAgent(ABC):
             raise last_error
         raise LLMResponseError("Unexpected invoke state: no output and no parse error.")
 
-    @retry(
-        stop=stop_after_attempt(5),
-        wait=wait_exponential(multiplier=2, min=4, max=30),
-        retry=retry_if_exception(_is_retryable_exception),
-        reraise=True,
-    )
     def invoke_with_history(
         self,
         messages: list,
@@ -361,6 +626,9 @@ class BaseAgent(ABC):
         including the system message.  This is used by the pipeline conversation
         mode where a single system message is shared across multiple turns.
 
+        Transport retries and the call deadline are shared with the JSON-repair
+        loop (see ``_transport_call``); the parse loop itself is not retried.
+
         Args:
             messages: List of dicts with ``role`` and ``content`` keys.
                 Roles: ``system``, ``user``, ``assistant``.
@@ -369,6 +637,10 @@ class BaseAgent(ABC):
         Returns:
             Preprocessed model output (same format as ``invoke``).
         """
+        with _CallBudget.scope(self):
+            return self._invoke_with_history_parsed(messages, tools)
+
+    def _invoke_with_history_parsed(self, messages: list, tools: Optional[list]) -> Any:
         from langchain_core.messages import (
             SystemMessage, HumanMessage, AIMessage,
         )
@@ -396,15 +668,9 @@ class BaseAgent(ABC):
 
         for attempt in range(1, parse_attempts + 1):
             is_last_attempt = attempt == parse_attempts
-            try:
-                raw_output = model.invoke(attempt_messages)
-                self._last_raw_output = raw_output
-                if raw_output is None:
-                    raise LLMResponseError("LLM returned None response")
-            except TypeError as e:
-                if "NoneType" in str(e) and "not iterable" in str(e):
-                    raise LLMResponseError(f"Malformed response: {e}") from e
-                raise
+            request = attempt_messages
+            raw_output = self._transport_call(lambda: model.invoke(request))
+            self._last_raw_output = raw_output
 
             try:
                 return preprocess_response(

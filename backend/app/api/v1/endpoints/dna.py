@@ -1,10 +1,10 @@
 import asyncio
 
-from fastapi import APIRouter, Depends, File, Query, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user_id
+from app.api.deps import get_current_user_id, get_rate_limited_user_id, release_db_connection
 from app.api.errors import ApiErrorMapping, ApiErrorPolicy, raise_api_error
 from app.core.rate_limit import limiter
 from app.db.session import get_db
@@ -17,7 +17,7 @@ from app.services.dna_analysis_service import (
     DnaImageUnsupportedTypeError,
     DnaImageValidationError,
 )
-from app.services.dna_rule_service import DnaRuleService
+from app.services.dna_rule_service import DnaRuleConflictError, DnaRuleService
 
 
 router = APIRouter(prefix="/dna", tags=["DNA"])
@@ -64,10 +64,13 @@ async def _read_dna_upload(file: UploadFile) -> tuple[bytes, str]:
 async def analyze_dna_image(
     request: Request,
     file: UploadFile = File(...),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_rate_limited_user_id),
+    db: AsyncSession = Depends(get_db),
     dna_service: DnaAnalysisService = Depends(get_dna_analysis_service),
 ):
     """Upload a design/diagram image and extract DNA rule candidates via VLM."""
+    # Auth is resolved; do not hold a pooled connection through the VLM call.
+    await release_db_connection(db)
     try:
         image_bytes, mime_type = await _read_dna_upload(file)
         # analyze_image is a blocking VLM round trip; keep it off the event loop.
@@ -116,4 +119,7 @@ async def save_dna_rules(
     db: AsyncSession = Depends(get_db),
 ):
     """Replace all DNA rules for the given scope (global or project-specific)."""
-    return await DnaRuleService(db).replace_rules(user_id=user_id, payload=payload)
+    try:
+        return await DnaRuleService(db).replace_rules(user_id=user_id, payload=payload)
+    except DnaRuleConflictError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=exc.public_detail) from exc

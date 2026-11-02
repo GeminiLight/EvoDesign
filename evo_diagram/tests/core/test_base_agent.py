@@ -231,3 +231,122 @@ def test_empty_provider_stream_retries_without_swallowing_application_value_erro
         generate_from_stream(iter([]))
     assert _is_retryable_exception(stream_error.value) is True
     assert _is_retryable_exception(ValueError("No generations found in stream.")) is False
+
+
+# ── Retry budget: one transport layer, shared across repair turns ─────────
+
+import evo_diagram.core.base_agent as base_agent_module
+from evo_diagram.core.base_agent import LLMBudgetExceeded, llm_run_budget
+
+
+class _FlakyModel:
+    """Raises the scripted exceptions in order, then returns *final*."""
+
+    def __init__(self, errors: list[BaseException], final: Any = '{"ok": true}') -> None:
+        self.errors = list(errors)
+        self.final = final
+        self.calls = 0
+
+    def invoke(self, messages):
+        self.calls += 1
+        if self.errors:
+            raise self.errors.pop(0)
+        return self.final
+
+
+@pytest.fixture
+def no_sleep(monkeypatch):
+    sleeps: list[float] = []
+    monkeypatch.setattr(base_agent_module, "_sleep", sleeps.append)
+    return sleeps
+
+
+def test_transient_errors_are_retried_once_per_call_not_per_layer(no_sleep):
+    model = _FlakyModel([TimeoutError("t")] * 10)
+    agent = _history_agent(model, attempts=5)
+    agent.transport_attempts = 3
+
+    with pytest.raises(TimeoutError):
+        agent.invoke_with_history([{"role": "user", "content": "x"}])
+
+    # 3 transport attempts in total — not 3 × JSON attempts × outer retries.
+    assert model.calls == 3
+    assert len(no_sleep) == 2
+
+
+def test_json_repair_turns_share_the_transport_retry_allowance(no_sleep):
+    outputs = iter(["not json", "still not json", '{"ok": true}'])
+
+    class Model:
+        calls = 0
+
+        def invoke(self, messages):
+            Model.calls += 1
+            if Model.calls == 2:
+                raise TimeoutError("blip")
+            return next(outputs)
+
+    agent = _history_agent(Model(), attempts=5)
+    agent.transport_attempts = 2
+    # attempt 1: non-JSON; attempt 2: timeout (uses the only retry) then
+    # non-JSON; attempt 3: valid.
+    assert agent.invoke_with_history([{"role": "user", "content": "x"}]) == {"ok": True}
+    assert len(no_sleep) == 1
+
+
+def test_permanent_http_errors_are_not_retried(no_sleep):
+    model = _FlakyModel([_http_status_error(401)])
+    agent = _history_agent(model)
+
+    with pytest.raises(httpx.HTTPStatusError):
+        agent.invoke_with_history([{"role": "user", "content": "x"}])
+    assert model.calls == 1
+    assert no_sleep == []
+
+
+def test_call_deadline_fails_fast_instead_of_sleeping_past_it(no_sleep):
+    model = _FlakyModel([TimeoutError("t")] * 10)
+    agent = _history_agent(model)
+    agent.call_deadline_seconds = 1  # shorter than the first 4s backoff
+
+    with pytest.raises(LLMBudgetExceeded, match="deadline"):
+        agent.invoke_with_history([{"role": "user", "content": "x"}])
+    assert model.calls == 1
+    assert no_sleep == []
+
+
+def test_call_deadline_env_override(monkeypatch):
+    monkeypatch.setenv(base_agent_module.CALL_DEADLINE_ENV, "42")
+    assert base_agent_module.resolve_call_deadline_seconds() == 42.0
+    monkeypatch.setenv(base_agent_module.CALL_DEADLINE_ENV, "0")
+    assert base_agent_module.resolve_call_deadline_seconds() is None
+    assert base_agent_module.resolve_call_deadline_seconds(5) == 5.0
+
+
+def test_run_budget_caps_requests_across_calls(no_sleep):
+    model = _FlakyModel([])
+    agent = _history_agent(model)
+
+    with llm_run_budget(max_calls=2):
+        agent.invoke_with_history([{"role": "user", "content": "x"}])
+        agent.invoke_with_history([{"role": "user", "content": "x"}])
+        with pytest.raises(LLMBudgetExceeded, match="2 request"):
+            agent.invoke_with_history([{"role": "user", "content": "x"}])
+    assert model.calls == 2
+    # Outside the context there is no cap.
+    agent.invoke_with_history([{"role": "user", "content": "x"}])
+
+
+def test_run_budget_reaches_self_consistency_worker_threads():
+    from evo_diagram.agentic_system.common.self_consistency import sample_and_vote
+
+    def invoke_fn(_input):
+        base_agent_module.charge_llm_run_budget()
+        return {"instantiation": {"k": 1}}
+
+    with llm_run_budget(max_calls=2) as budget:
+        sample_and_vote(
+            invoke_fn, {}, n_samples=3, vote_key="k",
+            unwrap_fn=lambda raw: ({}, raw["instantiation"]),
+        )
+    assert budget.calls == 2

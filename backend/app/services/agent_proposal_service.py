@@ -33,6 +33,32 @@ def _consume_render_result(task: asyncio.Task) -> None:
         task.exception()  # A timed-out HTTP caller can leave a bounded render running.
 
 
+def _discard(output: Path) -> None:
+    try:
+        output.unlink(missing_ok=True)
+    except OSError:
+        pass  # Best effort; prune_old_previews collects anything left behind.
+
+
+async def render_bounded(schema: dict, output: Path, *, timeout: float = 45) -> dict:
+    """Render under the shared render slots and never leave a partial PNG behind.
+
+    A render that times out keeps running in its worker thread (threads cannot
+    be cancelled), so its output is removed again once that thread finishes.
+    """
+    started = asyncio.Event()
+    task = asyncio.create_task(_render_guarded(schema, output, started))
+    task.add_done_callback(_consume_render_result)
+    try:
+        return await asyncio.wait_for(asyncio.shield(task), timeout=timeout)
+    except BaseException:
+        if not started.is_set():
+            task.cancel()
+        _discard(output)
+        task.add_done_callback(lambda _task: _discard(output))
+        raise
+
+
 def artifact_root() -> Path:
     # Outside the checkout's public frontend tree; never served without auth.
     return Path(__file__).resolve().parents[3] / 'data' / 'agent-previews'
@@ -47,6 +73,19 @@ async def get_proposal(db: AsyncSession, actor: AgentActor, project_id: str, pro
     ).execution_options(populate_existing=True))).scalar_one_or_none()
     if proposal is None:
         raise AgentError('proposal_missing', 'Proposal not found', 404)
+    return proposal
+
+
+async def reject_proposal(db: AsyncSession, actor: AgentActor, project_id: str, proposal_id: str) -> AgentProposal:
+    """Reject a candidate; preview-only connections may only withdraw their own."""
+    proposal = await get_proposal(db, actor, project_id, proposal_id)
+    connection = actor.connection
+    if connection and not connection.can_commit and proposal.connection_id != connection.connection_id:
+        raise AgentError('reject_forbidden', 'This connection is preview-only and cannot reject other proposals', 403)
+    if proposal.status == 'committed':
+        raise AgentError('proposal_committed', 'A committed proposal cannot be rejected')
+    proposal.status = 'rejected'
+    await db.flush()
     return proposal
 
 
@@ -157,18 +196,13 @@ async def prepare_preview(db: AsyncSession, proposal: AgentProposal) -> AgentPro
     directory = artifact_root() / proposal_id
     directory.mkdir(parents=True, exist_ok=True, mode=0o700)
     output = directory / (lease + '.png')
-    started = asyncio.Event()
-    task = asyncio.create_task(_render_guarded(schema, output, started))
-    task.add_done_callback(_consume_render_result)
     try:
-        report = await asyncio.wait_for(asyncio.shield(task), timeout=45)
+        report = await render_bounded(schema, output)
         status = 'ready'
     except (AgentError, ValueError, OSError, RuntimeError, asyncio.TimeoutError) as exc:
         report = {'code': 'render_failed', 'message': 'Preview failed; the saved document is unchanged',
                   'failure_type': type(exc).__name__, 'visual_review': 'unverified'}
         status = 'failed'
-        if not started.is_set():
-            task.cancel()
     await db.execute(update(AgentProposal).where(AgentProposal.proposal_id == proposal_id,
         AgentProposal.lease_id == lease, AgentProposal.status == 'checking').values(
             status=status, report=report, preview_path=str(output) if status == 'ready' else None,
@@ -263,6 +297,15 @@ async def restore_proposal(db: AsyncSession, actor: AgentActor, project_id: str,
         constraints_hash=constraints['constraints_hash'], expires_at=time.time()+7*86400,
         changed_ids=sorted(eid for eid in set(old_elements) | set(new_elements)
                            if old_elements.get(eid) != new_elements.get(eid)))
-    db.add(proposal)
-    await db.flush()
+    try:
+        async with db.begin_nested():
+            db.add(proposal)
+            await db.flush()
+    except IntegrityError:
+        # A concurrent retry with the same operation_id inserted first.
+        existing = (await db.execute(select(AgentProposal).where(AgentProposal.project_id == project_id,
+                                     AgentProposal.operation_id == operation_id))).scalar_one_or_none()
+        if existing and existing.request_hash == request_hash and existing.connection_id == proposal.connection_id:
+            return existing
+        raise AgentError('operation_id_reused', 'Operation ID already used') from None
     return proposal

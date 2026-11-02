@@ -1,7 +1,8 @@
 """Single optimistic-write boundary shared by editors, generation and agents."""
 
+import asyncio
 import copy
-from typing import Any
+from typing import Any, Callable
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +11,16 @@ from app.db.base import utc_now
 from app.models.project import Project
 from app.models.snapshot import Snapshot
 from app.core.exceptions import PublicErrorMixin
+from app.services.diagram_schema_inspection import (
+    CONNECTOR_COLLECTION_KEYS,
+    NODE_COLLECTION_KEYS,
+    first_schema_collection,
+)
+from app.services.thumbnail_service import ThumbnailGenerationError, generate_svg_thumbnail
+
+ThumbnailGenerator = Callable[[dict[str, Any], str], str | None]
+# Small scenes render in well under a millisecond; larger ones go to a thread.
+THUMBNAIL_INLINE_MAX_ITEMS = 200
 
 
 class VersionConflictError(PublicErrorMixin, Exception):
@@ -20,14 +31,51 @@ class MissingVersionError(PublicErrorMixin, ValueError):
     default_public_detail = 'Expected project version is required'
 
 
+class CanvasEngineChangeError(PublicErrorMixin, ValueError):
+    default_public_detail = 'Cannot change the engine of a nonempty project'
+
+
+def _live_items(schema: Any) -> list[Any]:
+    return [
+        item
+        for keys in (NODE_COLLECTION_KEYS, CONNECTOR_COLLECTION_KEYS)
+        for item in first_schema_collection(schema, keys)
+        if not (isinstance(item, dict) and item.get('isDeleted'))
+    ]
+
+
+def has_live_content(schema: Any) -> bool:
+    """Return whether a saved scene still shows any node or connector."""
+    return bool(_live_items(schema))
+
+
+async def _render_thumbnail(schema: dict[str, Any], engine: str,
+                            generator: ThumbnailGenerator) -> str | None:
+    try:
+        if len(_live_items(schema)) > THUMBNAIL_INLINE_MAX_ITEMS:
+            return await asyncio.to_thread(generator, schema, engine)
+        return generator(schema, engine)
+    except ThumbnailGenerationError:
+        return None
+
+
 async def commit_document(
     db: AsyncSession, project: Project, schema: dict[str, Any], *,
     expected_version: int | None, source: str, checkpoint: bool = False,
     base_snapshot: Snapshot | None = None, metrics: dict[str, Any] | None = None,
     thought_trace: str | None = None, canvas_library: str | None = None,
+    thumbnail_generator: ThumbnailGenerator = generate_svg_thumbnail,
 ) -> Snapshot:
     if expected_version is None:
         raise MissingVersionError()
+    # Same rule as ProjectService.update_project: the engine of a scene with
+    # content is fixed, whichever write path (sync, generation, agent) tries.
+    # A stale writer still gets the version conflict from the fenced UPDATE.
+    if (canvas_library and canvas_library != project.canvas_engine
+            and project.version == expected_version and has_live_content(project.latest_schema)):
+        raise CanvasEngineChangeError(
+            f'cannot change canvas engine {project.canvas_engine!r} -> {canvas_library!r} of a nonempty project'
+        )
     previous = copy.deepcopy(project.latest_schema or {})
     if source in {'AI_GEN', 'AGENT'} and (canvas_library or project.canvas_engine) == 'excalidraw':
         from evo_diagram.canvas_environment import assert_preserves_locks
@@ -67,10 +115,6 @@ async def commit_document(
     await db.flush()
     await db.refresh(project)
     project.current_snapshot_id = target.snapshot_id
-    from app.services.thumbnail_service import generate_svg_thumbnail, ThumbnailGenerationError
-    try:
-        project.thumbnail_url = generate_svg_thumbnail(schema, project.canvas_engine)
-    except ThumbnailGenerationError:
-        project.thumbnail_url = None
+    project.thumbnail_url = await _render_thumbnail(schema, project.canvas_engine, thumbnail_generator)
     await db.flush()
     return target

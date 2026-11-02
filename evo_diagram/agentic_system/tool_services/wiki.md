@@ -239,6 +239,14 @@ Snapshot API 不接受请求体级别的 `url` 覆盖。渲染页地址只能在
 - Excalidraw: `EXCALIDRAW_RENDER_URL`，默认 `http://localhost:3000/renderers/excalidraw`
 - TLDraw: `TLDRAW_RENDER_URL`，默认 `http://localhost:3000/renderers/tldraw`
 
+服务防护（Snapshot API 与 `/api/v1/tools/*` 共用）：
+
+- 服务默认只监听 `127.0.0.1`，可用 `RENDERER_HOST` 覆盖 `npm run dev` / `npm run start` 的监听地址。
+- 请求必须带 `Content-Type: application/json`，否则返回 415；请求体超过上限返回 413（Snapshot 默认 25 MB，可用 `TOOL_SERVICE_MAX_BODY_BYTES` 调整；tools 接口固定 1 MB）。
+- 所有 Snapshot 请求共用一个 Chromium，每个请求独立 context 并在结束后关闭。并发上限 `RENDERER_MAX_CONCURRENCY`（默认 2），排队上限 `RENDERER_MAX_QUEUE`（默认 8），超出时返回 503 并带 `Retry-After`。
+- 视口像素受 `width * height * deviceScaleFactor^2 <= 64M` 约束：默认 4000x4000 仍以 2 倍渲染，更大的视口会自动降低 deviceScaleFactor。Excalidraw 导出画布同样限制在 64M 像素且单边不超过 16384。
+- Headless 页面只能访问渲染服务自身、`data:`/`blob:`，以及 `RENDERER_ALLOWED_ASSET_ORIGINS`（默认 `https://cdn.tldraw.com,https://esm.sh`，仅 GET，用于画板默认字体）；其余请求一律拦截，快照中的外链资源不会被抓取。
+
 出于安全边界考虑，配置的 URL 必须指向本地 renderer host，并且 path 必须匹配对应的 renderer 页面。
 
 Snapshot API 的 `viewport` 只接受 `width` 与 `height`。裁剪边距由 CLI renderer 的 `--margin` 参数负责，HTTP Snapshot API 不接受 `viewport.margin`。

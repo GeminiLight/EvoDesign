@@ -621,7 +621,7 @@ class WorkflowEngineAdapter:
                     and getattr(workflow, "design_memory_retriever", None) is not None):
                 try:
                     from app.services.design_learning_jobs import enqueue_learning
-                    learning_report = enqueue_learning(
+                    learning_report = await enqueue_learning(
                         memory_path=request.design_memory_path,
                         embedding_model=request.design_memory_model,
                         report_path=f"{save_dir}/7_refiner/refiner_report.json",
@@ -695,6 +695,7 @@ class WorkflowEngineAdapter:
             text_content=request.context,
             user_query=run_context.user_query,
             runtime_directives=run_context.runtime_directives,
+            locked_nodes=list(request.locked_nodes),
             save_dir=None,
             design_expertise=request.design_expertise,
             **({"diagram_type": request.diagram_type} if request.diagram_type else {}),

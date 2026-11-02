@@ -76,6 +76,7 @@ from evo_diagram.agentic_system.refinement_stage.state import (
     PreparedIteration,
     SUPPORTED_REFINER_CANVAS_LIBRARIES,
     VerifierRefinerState,
+    refiner_recursion_limit,
 )
 from evo_diagram.canvas_environment import (
     rebuild_excalidraw_arrows,
@@ -899,10 +900,11 @@ def _node_finalize(
     if failed_before_finalize:
         state.add_log("skipping refined manifest/render because refiner failed before finalize")
     else:
-        # ``state.manifest`` is already the historical best: every round that
-        # scored worse than the manifest it started from was rolled back in
-        # _run_one_iteration, so each round boundary holds the best result
-        # seen so far rather than the last one attempted.
+        # ``state.manifest`` is the last round that did not regress: a round
+        # whose *objective severity rank* got worse was rolled back in
+        # _run_one_iteration. It is not necessarily the best-scoring manifest
+        # (diagnostic score and visual quality are not compared here), so the
+        # outer workflow's final verification still decides promotion.
         should_promote_refined = state.converged is True
         manifest_name = "refined_manifest.json" if should_promote_refined else "candidate_manifest.json"
         image_name = "refined_diagram.png" if should_promote_refined else "candidate_diagram.png"
@@ -1038,7 +1040,8 @@ class IterativeRefinerWorkflow:
             from evo_diagram.config.model_loader import ModelConfig
             params = ModelConfig.get_default().get_model_config("refiner")
             vlm_model_name = params.get("model", "unknown")
-        except (KeyError, FileNotFoundError):
+        except (KeyError, FileNotFoundError, ValueError):
+            # Report metadata only; an unconfigured model must not break the graph.
             pass
 
         graph = StateGraph(VerifierRefinerState)
@@ -1071,7 +1074,16 @@ class IterativeRefinerWorkflow:
     def _iteration_node(
         self, state: VerifierRefinerState
     ) -> VerifierRefinerState:
-        return _run_one_iteration(state, llm_agent=self._ensure_llm())
+        try:
+            return _run_one_iteration(state, llm_agent=self._ensure_llm())
+        except Exception as exc:  # noqa: BLE001 - geometry helpers must not crash the run
+            # A half-applied round must never ship: mark the run failed so
+            # finalize skips the refined/candidate artifacts and the caller
+            # keeps the already-verified render.
+            logger.exception("Refiner iteration raised")
+            state.add_error(f"refiner iteration raised {type(exc).__name__}: {exc}")
+            state.status = "failed"
+            return state
 
     def _after_iteration(self, state: VerifierRefinerState) -> str:
         if state.status == "failed":
@@ -1110,7 +1122,9 @@ class IterativeRefinerWorkflow:
         state.initial_report = _load_json(verifier_report_path)
         if state.initial_report is None:
             raise ValueError("Completed verifier report is unavailable")
-        result = self.graph.invoke(state)
+        result = self.graph.invoke(
+            state, config={"recursion_limit": refiner_recursion_limit(state.max_iterations)},
+        )
         return result if isinstance(result, VerifierRefinerState) else VerifierRefinerState.model_validate(result)
 
     def run(
@@ -1144,7 +1158,9 @@ class IterativeRefinerWorkflow:
             skip_checks=skip_checks or [],
             emit_markdown=emit_markdown,
         )
-        result = self.graph.invoke(initial)
+        result = self.graph.invoke(
+            initial, config={"recursion_limit": refiner_recursion_limit(initial.max_iterations)},
+        )
         if isinstance(result, VerifierRefinerState):
             return result
         if isinstance(result, dict):

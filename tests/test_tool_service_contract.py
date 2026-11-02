@@ -132,8 +132,11 @@ def test_tool_services_dev_server_pins_renderer_port_3000():
     )
     start_script = (REPO_ROOT / "scripts/start_service.sh").read_text(encoding="utf-8")
 
-    assert package_json["scripts"]["dev"] == "next dev --port 3000"
-    assert package_json["scripts"]["start"] == "next start --port 3000"
+    for script in ("dev", "start"):
+        command = package_json["scripts"][script]
+        assert command.startswith(f"next {script} --port 3000")
+        # Bind loopback by default; RENDERER_HOST may override it explicitly.
+        assert "--hostname ${RENDERER_HOST:-127.0.0.1}" in command
     assert "Starting on port 3000" in start_script
     assert "exec npm run dev" in start_script
 
@@ -359,3 +362,43 @@ def test_layout_route_and_cli_share_layout_module():
     assert "import * as d3" not in route
     assert "import dagre" not in cli
     assert "import * as d3" not in cli
+
+
+def test_renderer_routes_bound_requests_and_browser_resources():
+    json_request = (TOOL_SERVICES / "src/lib/jsonRequest.ts").read_text(encoding="utf-8")
+    request_helper = (
+        TOOL_SERVICES / "src/app/api/v1/renderers/_shared/rendererRequest.ts"
+    ).read_text(encoding="utf-8")
+    snapshot_helper = SNAPSHOT_RENDERER.read_text(encoding="utf-8")
+    defaults = (TOOL_SERVICES / "src/lib/renderDefaults.ts").read_text(encoding="utf-8")
+    excalidraw_page = (
+        TOOL_SERVICES / "src/app/renderers/excalidraw/page.tsx"
+    ).read_text(encoding="utf-8")
+
+    assert "Content-Type must be application/json" in json_request
+    assert "415" in json_request and "413" in json_request
+    assert "readJsonRequest(request)" in request_helper
+    assert "request.json()" not in request_helper
+    for route in ("layout", "text-width"):
+        source = (
+            TOOL_SERVICES / f"src/app/api/v1/tools/{route}/route.ts"
+        ).read_text(encoding="utf-8")
+        assert "readJsonRequest(request, DEFAULT_MAX_TOOL_BODY_BYTES)" in source
+        assert "request.json()" not in source
+
+    # One shared browser, a context per request, a bounded queue, 503 on overflow.
+    assert snapshot_helper.count("chromium.launch(") == 1
+    assert "getSharedBrowser()" in snapshot_helper
+    assert "browser.close()" not in snapshot_helper
+    assert "context.close()" in snapshot_helper
+    assert "RENDERER_MAX_CONCURRENCY" in snapshot_helper
+    assert "RENDERER_MAX_QUEUE" in snapshot_helper
+    assert "status: 503" in snapshot_helper
+    assert "deviceScaleFactor: clampDeviceScaleFactor(width, height)" in snapshot_helper
+    assert "MAX_RENDER_DEVICE_PIXELS = 4000 * 4000 * 4" in defaults
+    assert "clampExcalidrawExportScale(width, height, exportScale)" in excalidraw_page
+
+    # Headless pages may not fetch arbitrary URLs named in snapshot payloads.
+    assert "context.route('**/*'" in snapshot_helper
+    assert "route.abort(" in snapshot_helper
+    assert "RENDERER_ALLOWED_ASSET_ORIGINS" in snapshot_helper

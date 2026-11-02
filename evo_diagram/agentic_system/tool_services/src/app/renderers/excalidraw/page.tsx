@@ -5,6 +5,8 @@ import dynamic from 'next/dynamic';
 import {
     DEFAULT_EXCALIDRAW_EXPORT_SCALE,
     DEFAULT_RENDER_MARGIN,
+    MAX_EXCALIDRAW_EXPORT_SCALE,
+    clampExcalidrawExportScale,
 } from '@/lib/renderDefaults';
 
 const Excalidraw = dynamic(
@@ -72,7 +74,10 @@ export default function ExcalidrawRendererPage() {
                 // updateScene. Export the submitted scene directly so the
                 // first snapshot cannot silently become an empty canvas.
                 const exportElements = restoreElements(normalized.elements || [], null);
-                const exportScale = Number(window.__exportScale ?? DEFAULT_EXCALIDRAW_EXPORT_SCALE);
+                const requestedScale = Number(window.__exportScale ?? DEFAULT_EXCALIDRAW_EXPORT_SCALE);
+                const exportScale = Number.isFinite(requestedScale) && requestedScale > 0
+                    ? Math.min(requestedScale, MAX_EXCALIDRAW_EXPORT_SCALE)
+                    : DEFAULT_EXCALIDRAW_EXPORT_SCALE;
                 const exportMargin = Number(window.__exportMargin ?? DEFAULT_RENDER_MARGIN);
                 const blob = await exportToBlob({
                     elements: exportElements,
@@ -85,11 +90,17 @@ export default function ExcalidrawRendererPage() {
                     files: normalized.files || {},
                     mimeType: 'image/png',
                     exportPadding: exportMargin,
-                    getDimensions: (width: number, height: number) => ({
-                        width: width * exportScale,
-                        height: height * exportScale,
-                        scale: exportScale,
-                    }),
+                    // Clamp the export canvas: its size follows the scene
+                    // extent, so far-flung elements could otherwise request
+                    // a canvas of arbitrary size.
+                    getDimensions: (width: number, height: number) => {
+                        const scale = clampExcalidrawExportScale(width, height, exportScale);
+                        return {
+                            width: Math.max(1, Math.floor(width * scale)),
+                            height: Math.max(1, Math.floor(height * scale)),
+                            scale,
+                        };
+                    },
                 });
 
                 window.__exportedImageData = await new Promise<string>((resolve, reject) => {

@@ -59,7 +59,7 @@ import {
 import { guestHasProjectDna } from '../services/guestStorage';
 import { removeLocalStorage } from '../utils/safeLocalStorage';
 import { loadProjectName, saveProjectName, loadNodeIconPreference, saveNodeIconPreference } from '../services/projectPreferences';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useBlocker, useLocation, useNavigate, type BlockerFunction } from 'react-router-dom';
 import {
   clearStartupGenerationDraft,
   markStartupGenerationDraftFailed,
@@ -310,6 +310,10 @@ export function WorkspacePage() {
   const [isHistorySwitching, setIsHistorySwitching] = useState(false);
   const [showWorkspaceRecoveryNotice, setShowWorkspaceRecoveryNotice] = useState(false);
   const [showReauthConfirm, setShowReauthConfirm] = useState(false);
+  const [showLeaveUnsavedConfirm, setShowLeaveUnsavedConfirm] = useState(false);
+  // Set right before a navigation that already went through the save guard
+  // (Header links, re-authentication) so the route blocker lets it pass.
+  const allowWorkspaceExitRef = useRef(false);
   const [activeGenerationSummary, setActiveGenerationSummary] = useState<ActiveGenerationSummary | null>(null);
   const [failedGenerationDraft, setFailedGenerationDraft] = useState<FailedGenerationDraft | null>(() => (
     initialStartupDraft?.status === 'failed'
@@ -730,6 +734,7 @@ export function WorkspacePage() {
     removeLocalStorage('auth_token');
     removeLocalStorage(AUTH_USER_ID_STORAGE_KEY);
     window.dispatchEvent(new Event(AUTH_INVALIDATED_EVENT));
+    allowWorkspaceExitRef.current = true;
     navigate('/auth/email', { state: { returnTo } });
   }, [location.hash, location.pathname, location.search, navigate]);
 
@@ -1043,30 +1048,69 @@ export function WorkspacePage() {
     return 'ready';
   }, [clearSelection, persistCurrentChangesBeforeGeneration, showToast, t]);
 
-  const handleBeforeWorkspaceNavigate = useCallback(async () => {
+  const prepareWorkspaceExit = useCallback(async (): Promise<'ready' | 'busy' | 'saveFailed'> => {
     if (workspaceInteractionBlocked) {
       handleWorkspaceInteractionBlocked();
-      return false;
+      return 'busy';
     }
 
-    if (expiredAuthIdentityRef.current) return saveWorkspaceRecoveryState();
+    if (expiredAuthIdentityRef.current) return saveWorkspaceRecoveryState() ? 'ready' : 'saveFailed';
     const didPersist = await persistCurrentChangesBeforeSwitch();
-    if (!didPersist) {
-      showToast(t('workspace.saveBeforeNavigationFailed'), 'error');
-      return false;
-    }
+    if (!didPersist) return 'saveFailed';
 
     const draft = loadWorkspaceRecoveryDraft();
     if (draft?.sourceAuthIdentity === activeAuthIdentityRef.current) clearWorkspaceRecoveryDraft();
-    return true;
+    return 'ready';
   }, [
     handleWorkspaceInteractionBlocked,
     saveWorkspaceRecoveryState,
     persistCurrentChangesBeforeSwitch,
-    showToast,
-    t,
     workspaceInteractionBlocked,
   ]);
+
+  const handleBeforeWorkspaceNavigate = useCallback(async () => {
+    const result = await prepareWorkspaceExit();
+    if (result === 'saveFailed') {
+      showToast(t('workspace.saveBeforeNavigationFailed'), 'error');
+    }
+    if (result !== 'ready') return false;
+    // The Header navigates right after this resolves; let that one through the
+    // route blocker below instead of running the save guard twice.
+    allowWorkspaceExitRef.current = true;
+    window.setTimeout(() => { allowWorkspaceExitRef.current = false; }, 0);
+    return true;
+  }, [prepareWorkspaceExit, showToast, t]);
+
+  // Browser Back/Forward and links outside the Header bypass its save guard.
+  // Block those while edits are unsaved, try to save first, and only ask the
+  // user when saving is impossible (conflict, missing project, failed save).
+  const shouldBlockWorkspaceExit = useCallback<BlockerFunction>(({ currentLocation, nextLocation }) => (
+    !allowWorkspaceExitRef.current
+    && currentLocation.pathname !== nextLocation.pathname
+    && hasUnsavedChanges
+    && Boolean(preview?.projectId)
+  ), [hasUnsavedChanges, preview?.projectId]);
+  const workspaceExitBlocker = useBlocker(shouldBlockWorkspaceExit);
+  const workspaceExitBlockerRef = useRef(workspaceExitBlocker);
+  const prepareWorkspaceExitRef = useRef(prepareWorkspaceExit);
+  useEffect(() => {
+    workspaceExitBlockerRef.current = workspaceExitBlocker;
+    prepareWorkspaceExitRef.current = prepareWorkspaceExit;
+  });
+  useEffect(() => {
+    if (workspaceExitBlocker.state !== 'blocked') return undefined;
+    let cancelled = false;
+    void (async () => {
+      const result = await prepareWorkspaceExitRef.current();
+      if (cancelled) return;
+      const blocker = workspaceExitBlockerRef.current;
+      if (blocker.state !== 'blocked') return;
+      if (result === 'ready') blocker.proceed();
+      else if (result === 'busy') blocker.reset();
+      else setShowLeaveUnsavedConfirm(true);
+    })();
+    return () => { cancelled = true; };
+  }, [workspaceExitBlocker.state]);
 
   const runSavedHistorySwitch = useCallback(async (
     applySwitch: () => void | boolean | Promise<void | boolean>,
@@ -1983,17 +2027,19 @@ export function WorkspacePage() {
           || currentSignature !== targetSignature
         ) {
           clearSelection();
-          // Capture the expected snapshotId from the closure so the functional
-          // updater can guard against a concurrent selection change (race condition:
-          // the initial-load fetch may resolve after the user clicks a different
+          // Side effects stay outside the state updater: React may run updaters
+          // more than once (StrictMode) or later than this callback. The identity
+          // check above already confirmed the committed preview still matches.
+          beginHistorySwitch(targetSignature, data.project_version ?? null);
+          latestSnapshotRef.current = (targetSnapshot.schema_blob ?? null) as Record<string, unknown> | null;
+          activeEditingSnapshotIdRef.current = targetSnapshot.snapshot_id;
+          // The updater keeps its guard against a concurrent selection change
+          // (the initial-load fetch may resolve after the user clicks a different
           // snapshot, but before React has run this effect's cleanup).
           setPreview((prev) => {
             if (!prev) return prev;
             if (activeAuthIdentityRef.current !== requestAuthIdentity) return prev;
             if (prev.projectId !== requestProjectId || prev.snapshotId !== requestSnapshotId) return prev;
-            beginHistorySwitch(targetSignature, data.project_version ?? null);
-            latestSnapshotRef.current = (targetSnapshot.schema_blob ?? null) as Record<string, unknown> | null;
-            activeEditingSnapshotIdRef.current = targetSnapshot.snapshot_id;
             return {
               ...prev,
               projectId: targetSnapshot.project_id,
@@ -2759,6 +2805,23 @@ export function WorkspacePage() {
         workspaceLockedReason={workspaceInteractionBlockedReason}
         progress={progress}
         handoff={activeCreateHandoff}
+      />
+
+      <ConfirmDialog
+        open={showLeaveUnsavedConfirm}
+        title={t('workspace.leaveUnsavedConfirmTitle')}
+        description={t('workspace.leaveUnsavedConfirm')}
+        confirmLabel={t('workspace.leaveUnsavedConfirmAction')}
+        cancelLabel={t('workspace.leaveUnsavedStayAction')}
+        tone="danger"
+        onCancel={() => {
+          setShowLeaveUnsavedConfirm(false);
+          if (workspaceExitBlocker.state === 'blocked') workspaceExitBlocker.reset();
+        }}
+        onConfirm={() => {
+          setShowLeaveUnsavedConfirm(false);
+          if (workspaceExitBlocker.state === 'blocked') workspaceExitBlocker.proceed();
+        }}
       />
 
       <ConfirmDialog

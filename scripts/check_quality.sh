@@ -22,9 +22,34 @@ choose_python() {
 PY="$(choose_python)"
 TARGET="${1:-architecture}"
 
+# Base commit for the whitespace check. CI passes HYGIENE_BASE (PR base or
+# push "before" SHA); locally the merge-base with origin/main is used.
+resolve_hygiene_base() {
+    local candidate
+    for candidate in "${HYGIENE_BASE:-}" origin/main; do
+        if [[ -z "$candidate" || "$candidate" =~ ^0+$ ]]; then
+            continue
+        fi
+        if git rev-parse --verify --quiet "${candidate}^{commit}" >/dev/null; then
+            if git merge-base "$candidate" HEAD 2>/dev/null; then
+                return 0
+            fi
+        fi
+    done
+    return 1
+}
+
 run_hygiene() {
     cd "$PROJECT_ROOT"
-    git diff --check
+    local base
+    if base="$(resolve_hygiene_base)"; then
+        # Covers every commit since the base plus uncommitted changes.
+        echo "[hygiene] git diff --check ${base:0:12} (committed range and working tree)"
+        git diff --check "$base" --
+    else
+        echo "[hygiene] No base commit available; checking uncommitted changes only"
+        git diff --check HEAD --
+    fi
 }
 
 run_architecture() {
@@ -89,6 +114,7 @@ run_renderer() {
     "$PY" -m pytest tests/test_tool_service_contract.py
     cd "$PROJECT_ROOT/evo_diagram/agentic_system/tool_services"
     npm run typecheck --if-present
+    npm run lint
     npm run build
 }
 
@@ -105,8 +131,11 @@ Targets:
   baselines     Baseline entrypoint and output-layout contract checks.
   user-memory   User preference memory extraction/storage contract checks.
   frontend      React lint and production build.
-  renderer      Next.js renderer typecheck if present and production build.
+  renderer      Next.js renderer typecheck if present, lint, and production build.
   all           Run every target plus git diff whitespace checks.
+
+The whitespace check diffs against HYGIENE_BASE (CI) or the merge-base with
+origin/main, falling back to uncommitted changes when neither resolves.
 
 Set PYTHON_BIN=/path/to/python to override the Python interpreter.
 EOF

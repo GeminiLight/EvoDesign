@@ -13,11 +13,11 @@ _LOCK = threading.RLock()
 
 def prepare_web_memory(path: str, embedding_model: str, seed_path: str) -> None:
     # Use the same process cache as generation; do not load the embedder twice.
-    from evo_diagram.agentic_system.workflow import _load_design_memory_retriever
+    from evo_diagram.design_memory.shared_retriever import load_shared_retriever
 
     with _LOCK:
         Path(path).mkdir(parents=True, exist_ok=True)
-        retriever, error = _load_design_memory_retriever(path, embedding_model)
+        retriever, error = load_shared_retriever(path, embedding_model)
         if retriever is None:
             raise RuntimeError(error or "Design memory could not be initialized")
         marker = Path(path) / "seed.json"

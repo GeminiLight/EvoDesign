@@ -4,9 +4,9 @@
   "description": "Tool services for EvoDiagram - layout, text-width measurement, and rendering",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev --port 3000",
+    "dev": "next dev --port 3000 --hostname ${RENDERER_HOST:-127.0.0.1}",
     "build": "next build",
-    "start": "next start --port 3000",
+    "start": "next start --port 3000 --hostname ${RENDERER_HOST:-127.0.0.1}",
     "export": "NEXT_EXPORT=1 next build",
     "lint": "next lint",
     "layout": "npx tsx scripts/layout-cli.ts",

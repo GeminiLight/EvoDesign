@@ -117,7 +117,8 @@ async function requestCompletion(
   try {
     const hosted = config.source === 'hosted';
     const send = () => fetch(hosted ? '/api/model' : completionUrl(config.baseUrl), {
-      method: 'POST', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer',
+      // The hosted endpoint requires a real Origin; 'no-referrer' would send "Origin: null".
+      method: 'POST', credentials: 'omit', redirect: 'error', referrerPolicy: hosted ? 'same-origin' : 'no-referrer',
       headers: { 'Content-Type': 'application/json', ...(!hosted && config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {}) },
       body: JSON.stringify(hosted ? { task, prompt: user, maxTokens } : { model: config.model, messages: [{ role: 'system', content: system }, { role: 'user', content: user }], max_tokens: maxTokens, stream: false,
         ...(config.reasoningEffort ? { reasoning_effort: config.reasoningEffort } : {}) }),

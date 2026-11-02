@@ -27,7 +27,7 @@ async def test_delivery_does_not_wait_and_cleanup_cannot_remove_learning_inputs(
         return {"status": "saved", "saved_count": 1}
     args = inputs(tmp_path)
     try:
-        result = jobs.enqueue_learning(**args, learner=learn)
+        result = await jobs.enqueue_learning(**args, learner=learn)
         assert result["status"] == "queued"
         assert await asyncio.to_thread(entered.wait, 5)
         (tmp_path / "original.json").unlink()
@@ -42,7 +42,7 @@ async def test_delivery_does_not_wait_and_cleanup_cannot_remove_learning_inputs(
 async def test_no_verified_gain_does_not_schedule_or_call_a_model(tmp_path):
     args = inputs(tmp_path)
     args["before"] = args["after"]
-    result = jobs.enqueue_learning(**args, learner=lambda **k: pytest.fail("No gain"))
+    result = await jobs.enqueue_learning(**args, learner=lambda **k: pytest.fail("No gain"))
     assert result["status"] == "skipped"
     assert not (tmp_path / "memory").exists()
 
@@ -52,7 +52,7 @@ async def test_failed_learning_is_reported_without_affecting_the_diagram(tmp_pat
     def fail(**kwargs):
         raise RuntimeError("provider unavailable")
     args = inputs(tmp_path)
-    jobs.enqueue_learning(**args, learner=fail)
+    await jobs.enqueue_learning(**args, learner=fail)
     await jobs.wait_for_learning()
     result = jobs.read_status(args["memory_path"], "req_test")
     assert result["status"] == "unavailable"

@@ -39,9 +39,16 @@ jobs:
   python:
     name: Python Architecture And Backend
     runs-on: ubuntu-latest
+    env:
+      # check_quality.sh runs `git diff --check` against this commit so the
+      # whitespace gate covers the pushed/PR commit range, not just the
+      # (always clean) CI working tree.
+      HYGIENE_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6

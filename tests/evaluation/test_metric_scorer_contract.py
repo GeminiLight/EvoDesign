@@ -1,3 +1,5 @@
+import pytest
+
 from evaluation.metric_scorer import MetricScorer
 from evaluation.metrics.base_metric import MetricResult
 from evaluation.utils import METRIC_STATUS_ERROR, METRIC_STATUS_NOT_APPLICABLE
@@ -73,8 +75,14 @@ def test_out_of_rubric_score_is_converted_into_a_metric_error(tmp_path):
     assert visual["error"]
     assert visual["status"] == METRIC_STATUS_ERROR
     assert results["metric_status"]["visual_dimension"] == METRIC_STATUS_ERROR
-    # Only the in-rubric score contributes to the aggregate.
-    assert results["average_score"] == 4
+    # A failed weighted dimension leaves the composite undefined rather than
+    # renormalising over the dimensions that happened to succeed.
+    assert results["average_score"] is None
+    assert results["average_complete"] is False
+    assert results["average_missing_dimensions"] == [
+        "visual_dimension",
+        "cognitive_dimension",
+    ]
 
 
 def test_not_applicable_metric_is_excluded_from_the_average(tmp_path):
@@ -95,7 +103,8 @@ def test_not_applicable_metric_is_excluded_from_the_average(tmp_path):
     assert judge["status"] == METRIC_STATUS_NOT_APPLICABLE
     assert judge["error"] is None
     assert results["scores"]["judge_preference"] is None
-    assert results["average_score"] == 4
+    assert results["average_score"] is None
+    assert results["average_complete"] is False
 
 
 def test_summary_counts_only_valid_scores():
@@ -119,3 +128,76 @@ def test_summary_counts_only_valid_scores():
         "judge_preference": 1,
     }
     assert summary["metrics_without_scores"] == {"judge_preference": ["a.png"]}
+
+
+def test_average_uses_fixed_weights_when_every_dimension_is_scored(tmp_path):
+    scorer = _scorer_with(
+        {
+            "content_dimension": MetricResult(metric_name="content_dimension", score=5),
+            "visual_dimension": MetricResult(metric_name="visual_dimension", score=3),
+            "cognitive_dimension": MetricResult(metric_name="cognitive_dimension", score=2),
+            # Non-weighted metrics never enter the composite.
+            "judge_preference": MetricResult.not_applicable(
+                "judge_preference", "reference_image_missing"
+            ),
+        }
+    )
+
+    results = _evaluate(scorer, tmp_path)
+
+    assert results["average_complete"] is True
+    assert results["average_missing_dimensions"] == []
+    assert results["average_score"] == pytest.approx(0.25 * 5 + 0.35 * 3 + 0.40 * 2)
+
+
+def test_failed_weighted_dimension_does_not_renormalise(tmp_path):
+    scorer = _scorer_with(
+        {
+            "content_dimension": MetricResult(metric_name="content_dimension", score=5),
+            "visual_dimension": MetricResult.error_result("visual_dimension", "timeout"),
+            "cognitive_dimension": MetricResult(metric_name="cognitive_dimension", score=5),
+        }
+    )
+
+    results = _evaluate(scorer, tmp_path)
+
+    assert results["average_score"] is None
+    assert results["average_complete"] is False
+    assert results["average_missing_dimensions"] == ["visual_dimension"]
+
+
+def test_summary_ranks_only_complete_averages():
+    full = {"content_dimension": 4, "visual_dimension": 4, "cognitive_dimension": 4}
+    summary = MetricScorer.generate_summary(
+        {
+            "complete_high.png": {
+                "average_score": 4.0,
+                "average_complete": True,
+                "scores": full,
+            },
+            "complete_low.png": {
+                "average_score": 2.0,
+                "average_complete": True,
+                "scores": {name: 2 for name in full},
+            },
+            "incomplete.png": {
+                "average_score": None,
+                "average_complete": False,
+                "scores": {"content_dimension": 5, "visual_dimension": None},
+            },
+            # Legacy result: renormalised partial average, no completeness flag.
+            "legacy_partial.png": {
+                "average_score": 5.0,
+                "scores": {"content_dimension": 5},
+            },
+        }
+    )
+
+    assert summary["best_image"] == "complete_high.png"
+    assert summary["best_score"] == 4.0
+    assert summary["worst_image"] == "complete_low.png"
+    assert summary["worst_score"] == 2.0
+    assert summary["complete_average_count"] == 2
+    assert summary["incomplete_average_count"] == 2
+    assert summary["incomplete_average_images"] == ["incomplete.png", "legacy_partial.png"]
+    assert summary["average_scores"]["legacy_partial.png"] is None

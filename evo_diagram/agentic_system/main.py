@@ -76,7 +76,7 @@ def parse_arguments():
     )
     parser.add_argument(
         "--refiner-iterations", type=int, default=3,
-        help="Maximum refinement iterations (default: 3)"
+        help="Maximum refinement iterations, 1-20 (default: 3)"
     )
 
     # Verification
@@ -223,6 +223,14 @@ def validate_config(config: AgenticSystemConfig, args):
             raise ValueError(f"--learn-from-edit requires: {', '.join(missing)}")
         return
 
+    from evo_diagram.agentic_system.refinement_stage.state import MAX_REFINER_ITERATIONS
+
+    refiner_iterations = getattr(config, "refiner_iterations", None)
+    if refiner_iterations is not None and not 1 <= refiner_iterations <= MAX_REFINER_ITERATIONS:
+        raise ValueError(
+            f"--refiner-iterations must be between 1 and {MAX_REFINER_ITERATIONS}"
+        )
+
     mode_count = sum([
         args.example is not None,
         args.start is not None or args.end is not None,
@@ -295,7 +303,7 @@ def initialize_model(config: AgenticSystemConfig):
     """
     from evo_diagram.config.model_loader import ModelConfig
 
-    overrides = {"max_tokens": 16384, "max_retries": 6}
+    overrides = {"max_tokens": 16384}
 
     model_config = ModelConfig.get_default()
     if config.model_override:

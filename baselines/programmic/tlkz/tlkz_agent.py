@@ -68,6 +68,7 @@ if __name__ == "__main__":
     from evo_diagram.utils.env_loader import ensure_env_loaded
     from dotenv import load_dotenv
     from evo_diagram.core.llm_factory import LLMFactory
+    from baselines.llm_endpoint import require_llm_endpoint
     from pathlib import Path
 
     # Load environment variables from project root
@@ -79,7 +80,7 @@ if __name__ == "__main__":
     model = LLMFactory.create(
         model=os.getenv("LLM_MODEL_NAME", "qwen3-vl-plus"),
         model_provider=os.getenv("LLM_MODEL_PROVIDER", "openai"),
-        base_url=os.getenv("LLM_ENDPOINT_URL", "https://apis.iflow.cn/v1"),
+        base_url=require_llm_endpoint(),
         api_key=os.getenv("LLM_API_KEY"),
         temperature=0,
         max_tokens=16384,

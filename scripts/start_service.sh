@@ -63,7 +63,12 @@ start_backend() {
         # "ModuleNotFoundError: No module named 'evo_diagram'" unless the repo
         # root is on the path. Prepend it, keeping any existing PYTHONPATH.
         export PYTHONPATH="$PROJECT_ROOT${PYTHONPATH:+:$PYTHONPATH}"
-        exec "$python_bin" -m uvicorn app.main:app --host "${HOST:-127.0.0.1}" --port 3010 --reload
+        # The Vite dev proxy connects from loopback; trust X-Forwarded-For only
+        # from those peers so rate limits and guest quotas see the real client.
+        # The backend's own key function reads the same FORWARDED_ALLOW_IPS.
+        export FORWARDED_ALLOW_IPS="${FORWARDED_ALLOW_IPS:-127.0.0.1,::1}"
+        exec "$python_bin" -m uvicorn app.main:app --host "${HOST:-127.0.0.1}" --port 3010 --reload \
+            --proxy-headers --forwarded-allow-ips "$FORWARDED_ALLOW_IPS"
     ) > "$LOG_DIR/backend.log" 2>&1 &
     echo $! > "$PID_DIR/backend.pid"
     echo -e "${GREEN}[Backend API]${NC} Started (PID: $!)"

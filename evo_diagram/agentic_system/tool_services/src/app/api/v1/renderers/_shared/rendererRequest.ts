@@ -1,6 +1,11 @@
 import { MAX_RENDERER_VIEWPORT } from '@/lib/renderDefaults';
+import { JsonRequestError, readJsonRequest } from '@/lib/jsonRequest';
 
-export class RendererInputError extends Error {}
+export class RendererInputError extends Error {
+    constructor(message: string, readonly status: number = 400) {
+        super(message);
+    }
+}
 
 type JsonObject = Record<string, unknown>;
 
@@ -62,14 +67,17 @@ export function parseRendererRequestBody(value: unknown): JsonObject {
 }
 
 export async function parseRendererJsonRequest(request: Request): Promise<JsonObject> {
+    let body: unknown;
     try {
-        return parseRendererRequestBody(await request.json());
+        // Requires application/json and caps the body before JSON.parse.
+        body = await readJsonRequest(request);
     } catch (error) {
-        if (error instanceof RendererInputError) {
-            throw error;
+        if (error instanceof JsonRequestError) {
+            throw new RendererInputError(error.message, error.status);
         }
         throw new RendererInputError('Request body must be valid JSON');
     }
+    return parseRendererRequestBody(body);
 }
 
 export function readRequiredField(

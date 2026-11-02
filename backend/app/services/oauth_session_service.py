@@ -55,6 +55,10 @@ OAUTH_STATE_REDIRECT_ERROR = "invalid_state"
 # list of pending states (newest first) instead of a single value; starting a
 # login in a second tab must not invalidate the first tab's callback.
 OAUTH_STATE_COOKIE_MAX_ENTRIES = 3
+# The callback hands the browser that completed the login an httpOnly cookie
+# bound to its exchange code; /auth/exchange requires it, so a ?code= link
+# planted in another browser (login CSRF) cannot sign that browser in.
+OAUTH_EXCHANGE_COOKIE_NAME = "evodiagram_oauth_exchange"
 
 
 class OAuthClient(Protocol):
@@ -158,6 +162,14 @@ class OAuthStateConsumption:
 
     remaining_state_cookie: str | None
     state_cookie_secure: bool
+
+
+@dataclass(frozen=True)
+class OAuthCallbackSuccess:
+    """Frontend redirect plus the exchange code it carries, for browser binding."""
+
+    redirect_url: str
+    exchange_code: str
 
 
 @dataclass(frozen=True)
@@ -466,12 +478,33 @@ class OAuthSessionService:
         await db.flush()
         return code
 
+    def exchange_binding(self, exchange_code: str) -> str:
+        """Return the browser-binding cookie value for one exchange code."""
+        return hmac.new(
+            self.settings.session_secret.encode("utf-8"),
+            b"oauth-exchange:" + exchange_code.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+    def exchange_cookie_secure(self, provider: str) -> bool:
+        """Mark the binding cookie Secure when this provider's callback uses HTTPS."""
+        return self.provider_config(provider).callback_url.lower().startswith("https://")
+
+    def verify_exchange_binding(self, exchange_code: str, browser_binding: str | None) -> None:
+        """Reject an exchange from a browser that did not complete this login."""
+        # compare_digest rejects non-ASCII str, and both values are client supplied.
+        if not browser_binding or not hmac.compare_digest(
+            browser_binding.encode("utf-8"),
+            self.exchange_binding(exchange_code).encode("utf-8"),
+        ):
+            raise InvalidOAuthCodeError("OAuth exchange is not bound to this browser")
+
     async def complete_provider_callback(
         self,
         provider: str,
         code: str,
-    ) -> str:
-        """Complete provider login and return the frontend success redirect URL."""
+    ) -> OAuthCallbackSuccess:
+        """Complete provider login and return the frontend redirect and exchange code."""
         config = self.provider_config(provider)
         provider = config.name
         db = self._require_db()
@@ -514,7 +547,10 @@ class OAuthSessionService:
         token = auth_service.generate_user_token(user)
         oauth_code = await self.create_oauth_code(token)
         logger.info("User logged in via {}: {}", config.display_name, profile.email)
-        return self.success_redirect_url(oauth_code)
+        return OAuthCallbackSuccess(
+            redirect_url=self.success_redirect_url(oauth_code),
+            exchange_code=oauth_code,
+        )
 
     async def _exchange_access_token(
         self,
@@ -569,8 +605,18 @@ class OAuthSessionService:
                 f"{config.display_name} {OAUTH_PROFILE_FETCH_FAILED_MESSAGE}"
             ) from exc
 
-    async def exchange_code(self, code: str) -> OAuthCodeExchangeResult:
-        """Consume a frontend OAuth exchange code and resolve the authenticated user."""
+    async def exchange_code(
+        self,
+        code: str,
+        *,
+        browser_binding: str | None,
+    ) -> OAuthCodeExchangeResult:
+        """Consume a frontend OAuth exchange code and resolve the authenticated user.
+
+        The binding is checked before the code is touched, so a foreign
+        browser can neither use nor burn someone else's code.
+        """
+        self.verify_exchange_binding(code, browser_binding)
         token = await self.consume_oauth_code(code)
         user = await self.resolve_user_from_token(token)
 
@@ -581,6 +627,9 @@ class OAuthSessionService:
         db = self._require_db()
         now = self.clock()
 
+        # Purge expired codes first (including this one if it has expired), so
+        # abandoned logins never pile up and an expired code cannot linger.
+        await db.execute(sa_delete(OAuthCode).where(OAuthCode.expires_at < now))
         result = await db.execute(
             sa_delete(OAuthCode)
             .where(
@@ -592,12 +641,9 @@ class OAuthSessionService:
         token = result.scalar_one_or_none()
         # Committing here keeps the code single-use: a later failure in the same
         # request rolls the session back, but must not resurrect the used code.
-        if token is None:
-            await db.execute(sa_delete(OAuthCode).where(OAuthCode.code == code))
-            await db.commit()
-            raise InvalidOAuthCodeError("Invalid or expired code")
-
         await db.commit()
+        if token is None:
+            raise InvalidOAuthCodeError("Invalid or expired code")
         return token
 
     async def resolve_user_from_token(self, token: str) -> User:

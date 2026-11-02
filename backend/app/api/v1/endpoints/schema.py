@@ -11,6 +11,7 @@ from app.api.errors import (
 from app.core.exceptions import ProjectNotFoundException
 from app.db.session import get_db
 from app.schemas.schema import SchemaSyncRequest, SchemaSyncResponse
+from app.services.document_commit_service import CanvasEngineChangeError
 from app.services.schema_service import (
     SchemaService,
     SchemaSyncError,
@@ -24,6 +25,7 @@ SCHEMA_SYNC_ERROR_POLICY = ApiErrorPolicy(
     mappings=(
         ApiErrorMapping(VersionConflictError, status.HTTP_409_CONFLICT),
         ApiErrorMapping(ProjectNotFoundException, status.HTTP_404_NOT_FOUND),
+        ApiErrorMapping(CanvasEngineChangeError, status.HTTP_422_UNPROCESSABLE_CONTENT),
         ApiErrorMapping(SchemaSyncError, status.HTTP_400_BAD_REQUEST),
     ),
     fallback_status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

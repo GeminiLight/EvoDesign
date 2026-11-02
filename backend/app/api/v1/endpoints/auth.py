@@ -9,6 +9,8 @@ from app.schemas.auth import LoginRequest, RegisterRequest, AuthResponse, CodeEx
 from app.schemas.user import UserResponse
 from app.services.auth_service import AuthService
 from app.services.oauth_session_service import (
+    OAUTH_CODE_TTL_SECONDS,
+    OAUTH_EXCHANGE_COOKIE_NAME,
     OAUTH_STATE_COOKIE_NAME,
     OAUTH_STATE_COOKIE_PATH,
     OAUTH_STATE_TTL_SECONDS,
@@ -90,7 +92,7 @@ async def _complete_oauth_callback(
         )
 
     try:
-        redirect_url = await oauth_service.complete_provider_callback(provider, code)
+        success = await oauth_service.complete_provider_callback(provider, code)
     except OAuthProviderNotConfiguredError as exc:
         raise _oauth_provider_unavailable(provider, exc) from exc
     except OAuthCallbackError as exc:
@@ -101,8 +103,17 @@ async def _complete_oauth_callback(
         _apply_oauth_state_cookie(response, consumption)
         return response
 
-    response = RedirectResponse(url=redirect_url)
+    response = RedirectResponse(url=success.redirect_url)
     _apply_oauth_state_cookie(response, consumption)
+    response.set_cookie(
+        OAUTH_EXCHANGE_COOKIE_NAME,
+        oauth_service.exchange_binding(success.exchange_code),
+        max_age=OAUTH_CODE_TTL_SECONDS,
+        path=OAUTH_STATE_COOKIE_PATH,
+        httponly=True,
+        samesite="lax",
+        secure=oauth_service.exchange_cookie_secure(provider),
+    )
     return response
 
 
@@ -249,13 +260,22 @@ async def github_callback(
 @router.post("/exchange", response_model=AuthResponse)
 async def exchange_oauth_code(
     body: CodeExchangeRequest,
+    response: Response,
+    exchange_cookie: str | None = Cookie(default=None, alias=OAUTH_EXCHANGE_COOKIE_NAME),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
-    """Exchange a single-use OAuth code for a JWT token."""
+    """Exchange a single-use OAuth code for a JWT token.
+
+    Only the browser that completed the provider callback holds the httpOnly
+    binding cookie, so the frontend must send this request with credentials.
+    """
     oauth_service = OAuthSessionService(db, settings=settings)
     try:
-        exchange_result = await oauth_service.exchange_code(body.code)
+        exchange_result = await oauth_service.exchange_code(
+            body.code,
+            browser_binding=exchange_cookie,
+        )
     except InvalidOAuthCodeError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -267,6 +287,7 @@ async def exchange_oauth_code(
             detail=exc.public_detail,
         ) from exc
 
+    response.delete_cookie(OAUTH_EXCHANGE_COOKIE_NAME, path=OAUTH_STATE_COOKIE_PATH)
     return AuthResponse(
         token=exchange_result.token,
         user=UserResponse.model_validate(exchange_result.user),

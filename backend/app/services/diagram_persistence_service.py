@@ -6,7 +6,6 @@ import json
 from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Protocol
 
-from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from evo_diagram.canvas_environment import EditError
@@ -23,7 +22,7 @@ import time
 from uuid import uuid4
 from app.models.project import Project
 from app.models.snapshot import Snapshot
-from app.services.thumbnail_service import ThumbnailGenerationError, generate_svg_thumbnail
+from app.services.thumbnail_service import generate_svg_thumbnail
 
 
 @dataclass(frozen=True)
@@ -109,6 +108,8 @@ class DiagramPersistenceService:
                 source="AI_GEN", checkpoint=True,
                 metrics=payload.workflow_result.get("metrics_scores"), canvas_library=payload.canvas_library,
                 thought_trace=json.dumps(payload.workflow_result.get("thought_trace") or {}, ensure_ascii=False),
+                # commit_document renders the one thumbnail for this write.
+                thumbnail_generator=self.thumbnail_generator,
             )
         except (VersionConflictError, EditError):
             constraints = await effective_constraints(self.db, project)
@@ -125,7 +126,6 @@ class DiagramPersistenceService:
             await self.db.refresh(project)
             return PersistedDiagramResult(project.project_id, None, project.thumbnail_url,
                                           project.version, proposal.proposal_id)
-        self._update_thumbnail(project, schema_blob, payload.canvas_library)
 
         return PersistedDiagramResult(
             project_id=project.project_id,
@@ -170,19 +170,3 @@ class DiagramPersistenceService:
             .limit(1)
         )
         return result.scalar_one_or_none()
-
-    def _update_thumbnail(
-        self,
-        project: Project,
-        schema_blob: dict[str, Any],
-        canvas_library: str,
-    ) -> None:
-        try:
-            thumbnail = self.thumbnail_generator(schema_blob, canvas_library)
-        except ThumbnailGenerationError as exc:
-            project.thumbnail_url = None
-            logger.warning("Thumbnail generation failed: {}", exc)
-            return
-
-        if thumbnail:
-            project.thumbnail_url = thumbnail

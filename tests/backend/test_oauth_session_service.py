@@ -10,6 +10,7 @@ from types import SimpleNamespace
 
 import httpx
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.db.base import Base
@@ -680,9 +681,10 @@ async def test_complete_provider_callback_upserts_user_and_returns_frontend_code
         clock=lambda: 100.0,
     )
 
-    redirect_url = await service.complete_provider_callback("google", "provider-code")
+    success = await service.complete_provider_callback("google", "provider-code")
 
-    assert redirect_url == "http://frontend.test/?code=exchange%20code"
+    assert success.redirect_url == "http://frontend.test/?code=exchange%20code"
+    assert success.exchange_code == "exchange code"
     assert client.access_token_calls == [
         ("provider-code", "http://api.test/auth/google/callback")
     ]
@@ -715,9 +717,9 @@ async def test_complete_provider_callback_supports_github_profile_flow():
         clock=lambda: 100.0,
     )
 
-    redirect_url = await service.complete_provider_callback("github", "provider-code")
+    success = await service.complete_provider_callback("github", "provider-code")
 
-    assert redirect_url == "http://frontend.test/?code=exchange-code"
+    assert success.redirect_url == "http://frontend.test/?code=exchange-code"
     assert client.access_token_calls == [
         ("provider-code", "http://api.test/auth/github/callback")
     ]
@@ -1010,7 +1012,7 @@ async def test_complete_provider_callback_does_not_wrap_auth_service_failures():
 @pytest.mark.asyncio
 async def test_exchange_code_consumes_code_and_returns_user():
     user = _user()
-    db = _FakeDb(results=["jwt-token", user])
+    db = _FakeDb(results=[None, "jwt-token", user])
     service = OAuthSessionService(
         db,
         settings=_settings(),
@@ -1018,13 +1020,16 @@ async def test_exchange_code_consumes_code_and_returns_user():
         clock=lambda: 100.0,
     )
 
-    result = await service.exchange_code("exchange-code")
+    result = await service.exchange_code(
+        "exchange-code", browser_binding=service.exchange_binding("exchange-code"),
+    )
 
     assert result.token == "jwt-token"
     assert result.user is user
     assert db.deleted == []
     assert db.commit_count == 1
-    assert len(db.executed) == 2
+    # Expired-code purge, atomic consume, user lookup.
+    assert len(db.executed) == 3
 
 
 @pytest.mark.asyncio
@@ -1060,7 +1065,7 @@ async def test_consume_oauth_code_is_single_use_with_sqlite_session():
 
 @pytest.mark.asyncio
 async def test_exchange_code_deletes_expired_code_before_rejecting():
-    db = _FakeDb(results=[None])
+    db = _FakeDb(results=[None, None])
     service = OAuthSessionService(
         db,
         settings=_settings(),
@@ -1068,7 +1073,9 @@ async def test_exchange_code_deletes_expired_code_before_rejecting():
     )
 
     with pytest.raises(InvalidOAuthCodeError, match="Invalid or expired code"):
-        await service.exchange_code("exchange-code")
+        await service.exchange_code(
+            "exchange-code", browser_binding=service.exchange_binding("exchange-code"),
+        )
 
     assert db.deleted == []
     assert db.commit_count == 1
@@ -1077,7 +1084,7 @@ async def test_exchange_code_deletes_expired_code_before_rejecting():
 
 @pytest.mark.asyncio
 async def test_exchange_code_rejects_tokens_that_do_not_resolve_to_users():
-    db = _FakeDb(results=["jwt-token"])
+    db = _FakeDb(results=[None, "jwt-token"])
     service = OAuthSessionService(
         db,
         settings=_settings(),
@@ -1086,7 +1093,9 @@ async def test_exchange_code_rejects_tokens_that_do_not_resolve_to_users():
     )
 
     with pytest.raises(OAuthTokenValidationError, match="Token validation failed"):
-        await service.exchange_code("exchange-code")
+        await service.exchange_code(
+            "exchange-code", browser_binding=service.exchange_binding("exchange-code"),
+        )
 
     assert db.deleted == []
     assert db.commit_count == 1
@@ -1094,7 +1103,7 @@ async def test_exchange_code_rejects_tokens_that_do_not_resolve_to_users():
 
 @pytest.mark.asyncio
 async def test_exchange_code_hides_missing_user_token_details():
-    db = _FakeDb(results=["jwt-token", None])
+    db = _FakeDb(results=[None, "jwt-token", None])
     service = OAuthSessionService(
         db,
         settings=_settings(),
@@ -1103,10 +1112,60 @@ async def test_exchange_code_hides_missing_user_token_details():
     )
 
     with pytest.raises(OAuthTokenValidationError) as exc_info:
-        await service.exchange_code("exchange-code")
+        await service.exchange_code(
+            "exchange-code", browser_binding=service.exchange_binding("exchange-code"),
+        )
 
     assert str(exc_info.value) == "Token validation failed"
     assert "secret-user-id" not in str(exc_info.value)
     assert "User not found" not in str(exc_info.value)
     assert db.deleted == []
     assert db.commit_count == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("binding", [None, "", "not-the-binding", "ü-non-ascii"])
+async def test_exchange_code_rejects_foreign_browser_without_touching_the_code(binding):
+    """Login CSRF: a ?code= planted in another browser lacks the binding cookie."""
+    db = _FakeDb(results=["jwt-token"])
+    service = OAuthSessionService(db, settings=_settings(), clock=lambda: 100.0)
+
+    with pytest.raises(InvalidOAuthCodeError):
+        await service.exchange_code("exchange-code", browser_binding=binding)
+
+    # The victim's attempt neither consumes nor burns the code.
+    assert db.executed == []
+    assert db.commit_count == 0
+
+
+def test_exchange_binding_is_code_specific_and_keyed_by_session_secret():
+    service = OAuthSessionService(settings=_settings())
+    other_secret = OAuthSessionService(settings=_settings(session_secret="another-session-secret"))
+
+    binding = service.exchange_binding("code-a")
+    assert binding != service.exchange_binding("code-b")
+    assert binding != other_secret.exchange_binding("code-a")
+    service.verify_exchange_binding("code-a", binding)
+    with pytest.raises(InvalidOAuthCodeError):
+        service.verify_exchange_binding("code-b", binding)
+
+
+@pytest.mark.asyncio
+async def test_exchange_purges_other_expired_codes_with_sqlite_session():
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    try:
+        async with session_factory() as db:
+            db.add_all([
+                OAuthCode(code="live", token="jwt-token", expires_at=200.0),
+                OAuthCode(code="abandoned", token="old-token", expires_at=50.0),
+            ])
+            await db.commit()
+            service = OAuthSessionService(db, settings=_settings(), clock=lambda: 100.0)
+
+            assert await service.consume_oauth_code("live") == "jwt-token"
+            assert (await db.execute(select(OAuthCode.code))).scalars().all() == []
+    finally:
+        await engine.dispose()

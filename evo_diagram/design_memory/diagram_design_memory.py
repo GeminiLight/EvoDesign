@@ -21,6 +21,14 @@ __all__ = [
 
 logger = logging.getLogger(__name__)
 
+
+class DesignMemoryConsistencyError(RuntimeError):
+    """The vector store was built with a different metric or embedding model.
+
+    This is a permanent condition (the store must be rebuilt), unlike transient
+    I/O failures, so callers may cache it.
+    """
+
 Chroma: Any = None
 HuggingFaceEmbeddings: Any = None
 Document: Any = None
@@ -285,7 +293,7 @@ class DiagramDesignMemory:
                     item_count = collection.count()
                 except Exception:  # pragma: no cover - diagnostics only
                     item_count = "unknown"
-                raise RuntimeError(
+                raise DesignMemoryConsistencyError(
                     f"Design memory collection {layer_name!r} uses distance "
                     f"metric {space!r}, but cosine is required for relevance "
                     f"scores to be comparable ({item_count} items). ChromaDB "
@@ -307,7 +315,7 @@ class DiagramDesignMemory:
                 if stored_model is None:
                     item_count = collection.count()
                     if item_count:
-                        raise RuntimeError(
+                        raise DesignMemoryConsistencyError(
                             f"Embedding model metadata is missing on non-empty "
                             f"{layer_name!r} collection ({item_count} items). "
                             "Rebuild the vector DB before retrieval."
@@ -332,7 +340,7 @@ class DiagramDesignMemory:
                         self.embedding_model_name, layer_name,
                     )
                 elif stored_model != self.embedding_model_name:
-                    raise RuntimeError(
+                    raise DesignMemoryConsistencyError(
                         f"Embedding model mismatch on {layer_name!r} collection: "
                         f"stored vectors were created with {stored_model!r}, "
                         f"but current model is {self.embedding_model_name!r}. "

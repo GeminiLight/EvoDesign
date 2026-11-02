@@ -97,6 +97,16 @@ class PreparedIteration(BaseModel):
     image_note: Optional[str] = None
 
 
+# Each iteration is a full VLM call plus a re-render; beyond this the loop is a
+# runaway, not refinement. Also bounds the LangGraph recursion limit.
+MAX_REFINER_ITERATIONS = 20
+
+
+def refiner_recursion_limit(max_iterations: int) -> int:
+    """LangGraph super-steps for load_inputs + N iterations + finalize, with slack."""
+    return max(25, 2 * int(max_iterations) + 10)
+
+
 class VerifierRefinerState(BaseModel):
     """Workflow-wide state, passed through every LangGraph node."""
 
@@ -111,7 +121,7 @@ class VerifierRefinerState(BaseModel):
     canvas_library: str = "excalidraw"
 
     # ---- Controls ----
-    max_iterations: int = Field(default=3, ge=1)
+    max_iterations: int = Field(default=3, ge=1, le=MAX_REFINER_ITERATIONS)
     skip_rerender_between_iterations: bool = False
     skip_checks: List[str] = Field(default_factory=list)
     emit_markdown: bool = False

@@ -41,14 +41,21 @@ const reply = (data, status = 200, extra = {}) => Response.json(data, {
   status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', ...extra },
 });
 const error = (code, message, status, extra) => reply({ error: { code, message } }, status, extra);
+function requestOrigin(request) {
+  const origin = request.headers.get('origin');
+  if (origin) return origin;
+  try { return new URL(request.headers.get('referer') || '').origin; } catch { return null; }
+}
 
 export function createModelHandler(env = process.env, fetcher = fetch, options = {}) {
   return async function handle(request) {
     const configured = Boolean(env.DEMO_GLM_API_KEY && (options.budget || (env.DEMO_REDIS_URL && env.DEMO_REDIS_TOKEN)));
     if (request.method === 'GET') return reply({ available: configured, model: MODEL });
     if (request.method !== 'POST') return error('method', 'Use POST.', 405, { Allow: 'GET, POST' });
-    const origin = request.headers.get('origin');
-    if (origin && origin !== new URL(request.url).origin) return error('origin', 'Use the EvoDesign workspace.', 403);
+    // Browsers send Origin on every POST; fall back to Referer for older
+    // clients. A request carrying neither (curl, scripts) is not from the
+    // workspace and must not spend the shared budget.
+    if (requestOrigin(request) !== new URL(request.url).origin) return error('origin', 'Use the EvoDesign workspace.', 403);
     if (!configured) return error('setup', 'The shared model is unavailable. Connect your own model in Model settings.', 503);
     if (!request.headers.get('content-type')?.startsWith('application/json')) return error('input', 'Send diagram JSON.', 415);
     let input;

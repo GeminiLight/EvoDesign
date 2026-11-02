@@ -42,3 +42,17 @@ def test_stepfun_placeholder_key_does_not_populate_legacy_defaults(monkeypatch):
 
     assert "LLM_API_KEY" not in os.environ
     assert "LLM_MODEL_NAME" not in os.environ
+
+
+def test_stepfun_key_is_not_sent_to_a_user_configured_endpoint(monkeypatch):
+    monkeypatch.setattr(env_loader, "_loaded", True)
+    monkeypatch.setenv("STEPFUN_API_KEY", "sk-stepfun-test")
+    for name in ("LLM_MODEL_PROVIDER", "LLM_MODEL_NAME", "LLM_API_KEY"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("LLM_ENDPOINT_URL", "https://custom.example/v1")
+
+    env_loader.ensure_env_loaded()
+
+    assert "LLM_API_KEY" not in os.environ
+    assert "LLM_MODEL_NAME" not in os.environ
+    assert os.environ["LLM_ENDPOINT_URL"] == "https://custom.example/v1"

@@ -9,7 +9,16 @@ import httpx
 class CliError(Exception):
     def __init__(self, code: str, message: str, exit_code: int = 8, **extra):
         self.code, self.exit_code, self.extra = code, exit_code, extra
+        self.http_status: int | None = None
         super().__init__(message)
+
+    @property
+    def transient(self) -> bool:
+        """Connection failures and 5xx responses may succeed when repeated."""
+        return self.code == 'network_error' or (self.http_status is not None and self.http_status >= 500)
+
+
+LOOPBACK_HOSTS = {'localhost', '127.0.0.1', '::1'}
 
 
 def server_origin(value: str) -> str:
@@ -19,7 +28,7 @@ def server_origin(value: str) -> str:
             raise ValueError('Invalid port')
     except ValueError as exc:
         raise CliError('invalid_server', 'Use a valid server origin and port', 2) from exc
-    local = parsed.hostname in {'localhost', '127.0.0.1', '::1'}
+    local = parsed.hostname in LOOPBACK_HOSTS
     if parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path not in {'', '/'}:
         raise CliError('invalid_server', 'Use a server origin without credentials, path or query', 2)
     if parsed.scheme != 'https' and not (local and parsed.scheme == 'http'):
@@ -66,8 +75,10 @@ class Client:
             code = error.get('code', 'http_error')
             status = response.status_code
             exit_code = 3 if status == 401 else 4 if status in {403, 404} else 5 if status == 409 else 6 if status == 422 else 8
-            raise CliError(code, error.get('message', 'Request failed'), exit_code,
-                           **{k: v for k, v in error.items() if k not in {'code', 'message'}})
+            failure = CliError(code, error.get('message', 'Request failed'), exit_code,
+                               **{k: v for k, v in error.items() if k not in {'code', 'message'}})
+            failure.http_status = status
+            raise failure
         if binary:
             if not response.headers.get('content-type', '').startswith('image/png'):
                 raise CliError('invalid_preview', 'Server did not return a PNG preview', 7)

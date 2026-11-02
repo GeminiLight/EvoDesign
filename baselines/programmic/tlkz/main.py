@@ -376,6 +376,7 @@ def main():
     # Load environment variables
     from dotenv import load_dotenv
     from evo_diagram.utils.env_loader import ensure_env_loaded
+    from baselines.llm_endpoint import require_llm_endpoint
 
     ensure_env_loaded()
     load_dotenv(Path(__file__).parent / ".env", override=True)
@@ -383,7 +384,7 @@ def main():
     # Create model using LLMFactory
     model_name = os.getenv("LLM_MODEL_NAME", "qwen3-vl-plus")
     model_provider = os.getenv("LLM_MODEL_PROVIDER", "openai")
-    base_url = os.getenv("LLM_ENDPOINT_URL", "https://apis.iflow.cn/v1")
+    base_url = require_llm_endpoint()
     api_key = os.getenv("LLM_API_KEY")
     # Decoding/robustness defaults mirror the EvoDiagram generator and the
     # mermaid baseline (max_tokens=16384, max_retries=6, timeout=300) so both

@@ -8,8 +8,10 @@ const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
 // Set VITE_API_BASE_URL=/ to use one origin for the local UI and API.
 // This avoids cross-origin preflights without relaxing backend CORS rules.
+// xfwd adds X-Forwarded-For so backend rate limits key on the real client IP
+// instead of the proxy's loopback address.
 const apiProxy = {
-  '/api': { target: 'http://127.0.0.1:3010', changeOrigin: true },
+  '/api': { target: 'http://127.0.0.1:3010', changeOrigin: true, xfwd: true },
 }
 
 // https://vite.dev/config/

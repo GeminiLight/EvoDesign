@@ -88,6 +88,9 @@ class Settings(BaseSettings):
 
     # Guest token (guest mode, skips JWT auth and DB storage)
     guest_token: str | None = None
+    # Diagram generations (generate, stream, local edit) one guest client IP may
+    # run per UTC day. 0 disables guest generation entirely.
+    guest_daily_generation_limit: int = Field(default=10, ge=0)
 
     # Session configuration - no default; must be set in .env
     session_secret: str
@@ -153,6 +156,16 @@ class Settings(BaseSettings):
         if info.field_name in {"jwt_secret", "session_secret"} and not value.strip():
             raise ValueError(f"{info.field_name} must not be empty.")
         return value
+
+    @model_validator(mode="after")
+    def require_signup_verification_code(self) -> "Settings":
+        # An empty code would otherwise accept an empty verification_code and
+        # silently disable the gate the operator asked for.
+        if self.enable_signup_verification and not self.signup_verification_code.strip():
+            raise ValueError(
+                "SIGNUP_VERIFICATION_CODE is required when ENABLE_SIGNUP_VERIFICATION=true"
+            )
+        return self
 
     @model_validator(mode="after")
     def require_postgres_password(self) -> "Settings":

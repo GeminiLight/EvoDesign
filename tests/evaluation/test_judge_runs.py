@@ -113,7 +113,9 @@ def test_single_judge_run_behaves_as_before(tmp_path):
     assert entry["status"] == "scored"
     assert "judge_runs" not in entry, "k=1 output must stay byte-compatible"
     assert results["scores"][METRIC] == 4
-    assert results["average_score"] == 4
+    # One weighted dimension alone does not define the composite average.
+    assert results["average_score"] is None
+    assert results["average_complete"] is False
     assert scorer.metrics[METRIC].calls == 1
 
 

@@ -8,6 +8,7 @@ from loguru import logger
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.exceptions import ProjectNotFoundException
+from app.services.document_commit_service import CanvasEngineChangeError
 from app.core.sse import format_sse_event, parse_sse_event
 from app.db.session import create_db_session
 from app.schemas.diagram_generate import DiagramGenerateRequest
@@ -65,7 +66,7 @@ class DiagramStreamService:
                     result_data["proposal_id"] = persisted.proposal_id
                     result_data["persist_error"] = True
                     result_data["persist_error_message"] = "Document changed. Generated result preserved as a candidate."
-            except ProjectNotFoundException as exc:
+            except (ProjectNotFoundException, CanvasEngineChangeError) as exc:
                 await persist_db.rollback()
                 logger.warning("Persist rejected (HTTP 404): {}", exc)
                 result_data["persist_error"] = True

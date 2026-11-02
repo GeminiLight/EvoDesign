@@ -28,6 +28,7 @@ EXPECTED_APP_TABLES = {
     "subscriptions",
     "oauth_codes",
     "dna_rules",
+    "guest_generation_usage",
 }
 
 

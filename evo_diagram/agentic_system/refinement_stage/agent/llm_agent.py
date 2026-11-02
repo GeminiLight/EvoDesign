@@ -29,9 +29,9 @@ from .prompts import (
     build_refiner_user_prompt,
 )
 from evo_diagram.core.base_agent import (
-    _is_provider_quota_exhausted,
-    _is_transient_status_code,
-    _status_code_from_exception,
+    LLMBudgetExceeded,
+    _is_permanent_http_error,
+    charge_llm_run_budget,
 )
 from evo_diagram.core.llm_factory import LLMFactory
 from evo_diagram.utils.io_utils import image_to_data_url
@@ -174,24 +174,6 @@ def build_manifest_summary(
     return (pinned + regular)[:cap]
 
 
-def _is_permanent_http_error(exc: BaseException) -> bool:
-    """True for provider HTTP errors that outer retries cannot fix."""
-    if _is_provider_quota_exhausted(exc):
-        return True
-    status_code = _status_code_from_exception(exc)
-    if status_code is not None:
-        return not _is_transient_status_code(status_code)
-
-    cls_name = type(exc).__name__
-    return cls_name in {
-        "AuthenticationError",
-        "BadRequestError",
-        "NotFoundError",
-        "PermissionDeniedError",
-        "UnprocessableEntityError",
-    }
-
-
 class RefinerLLMAgent:
     """Single-shot VLM call wrapper that emits validated EditOps."""
 
@@ -264,6 +246,11 @@ class RefinerLLMAgent:
         delay = self.retry_delay_seconds
         last_exc: Optional[Exception] = None
         for attempt in range(1, self.max_retries + 1):
+            try:
+                charge_llm_run_budget()
+            except LLMBudgetExceeded as exc:
+                last_exc = exc
+                break
             try:
                 response = self.model.invoke(messages)
                 if response is None or not getattr(response, "content", None):

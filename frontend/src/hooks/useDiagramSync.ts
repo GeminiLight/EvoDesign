@@ -803,13 +803,40 @@ export function useDiagramSync(
     }
   }, [applySaveFailure, flushPendingAutoSync, manualSaveStatus, persistLatestSnapshot, preview?.projectId, setError, setSaveStatus, t]);
 
+  // Unmount (browser Back, in-app links outside the Header guard) must not drop
+  // an edit that is still waiting for its debounce. These refs give the cleanup
+  // below the latest context without re-running it on every render.
+  const unmountFlushContextRef = useRef({ preview, canvasMode, runAutoOverwriteSync });
+  useEffect(() => {
+    unmountFlushContextRef.current = { preview, canvasMode, runAutoOverwriteSync };
+  }, [canvasMode, preview, runAutoOverwriteSync]);
+
   useEffect(() => () => {
+    const hadPendingAutoSync = autoSyncTimerRef.current !== null || snapshotChangeThrottleTimerRef.current !== null;
     clearAutoSyncTimer();
     clearSaveStatusTimer();
-    // Not flushed on purpose: the deferred body can only touch state and refs
-    // that die with this hook, and its only lasting effect would be arming the
-    // auto-sync timer that clearAutoSyncTimer() above tears down again.
     clearSnapshotChangeThrottle();
+    if (!hadPendingAutoSync || autoSyncPausedUntilManualSaveRef.current || manualSaveInFlightRef.current) return;
+
+    // Fire-and-forget save of the newest content. It is skipped while auto-sync
+    // is paused (conflict, expired session, missing project) because those need
+    // the user's decision; the workspace navigation guard handles that case.
+    const { preview: currentPreview, canvasMode: currentCanvasMode, runAutoOverwriteSync: runSync } = unmountFlushContextRef.current;
+    const projectId = currentPreview?.projectId;
+    const snapshotPayload = latestSnapshotRef.current;
+    const signature = getSnapshotDocSignature(snapshotPayload);
+    const baseSnapshotId = activeEditingSnapshotIdRef.current ?? currentPreview?.snapshotId ?? null;
+    if (!projectId || !snapshotPayload || !signature || !baseSnapshotId) return;
+    if (signature === lastSyncedDocSignatureRef.current || Date.now() < suppressSyncUntilRef.current) return;
+
+    const editor: CanvasLibrary = currentCanvasMode === 'excalidraw' ? 'excalidraw' : 'tldraw';
+    const syncVersion = syncContextVersionRef.current;
+    if (syncInFlightRef.current) {
+      // The in-flight request picks this up from its finally block.
+      pendingAutoSyncRef.current = { snapshotPayload, signature, editor, projectId, baseSnapshotId, syncVersion };
+      return;
+    }
+    runSync(snapshotPayload, signature, editor, projectId, baseSnapshotId, syncVersion);
   }, [clearAutoSyncTimer, clearSaveStatusTimer, clearSnapshotChangeThrottle]);
 
   const isDocumentSaving = useCallback(() => syncInFlightRef.current || manualSaveInFlightRef.current, []);

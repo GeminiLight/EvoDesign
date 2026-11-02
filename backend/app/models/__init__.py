@@ -5,5 +5,7 @@ from app.models.snapshot import Snapshot
 from app.models.oauth_code import OAuthCode
 from app.models.dna_rule import DnaRule
 from app.models.agent import AgentConnection, AgentProposal
+from app.models.guest_usage import GuestGenerationUsage
 
-__all__ = ["User", "Subscription", "Project", "Snapshot", "OAuthCode", "DnaRule", "AgentConnection", "AgentProposal"]
+__all__ = ["User", "Subscription", "Project", "Snapshot", "OAuthCode", "DnaRule", "AgentConnection", "AgentProposal",
+           "GuestGenerationUsage"]
