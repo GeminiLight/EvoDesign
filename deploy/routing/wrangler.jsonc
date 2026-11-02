@@ -2,7 +2,8 @@
   "name": "evodesign-entry",
   "main": "worker.mjs",
   "account_id": "b25c73f01c3d961852e64a59f38ac553",
-  "compatibility_date": "2026-11-03",
+  // Cloudflare validates this date in UTC.
+  "compatibility_date": "2026-11-02",
   "workers_dev": false,
   "preview_urls": false,
   "routes": [{ "pattern": "evodesign.aurax.live/*", "zone_name": "aurax.live" }],

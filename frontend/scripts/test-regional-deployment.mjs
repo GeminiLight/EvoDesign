@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, copyFile, symlink, rm } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
+import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import vm from 'node:vm';
@@ -92,4 +95,42 @@ test('Studio serves SPA routes and real assets; bounded API preserves origin rej
     assert.equal((await fetch(base + '/api/model', { method: 'POST', headers: { Origin: 'https://geminilight-evodesign.ms.show', 'Content-Type': 'application/json' }, body: '{}' })).status, 503);
     assert.equal((await fetch(base + '/api/model', { method: 'POST', body: 'x'.repeat(100001) })).status, 413);
   } finally { await new Promise(resolve => server.close(resolve)); await rm(root, { recursive: true, force: true }); }
+});
+
+test('Studio starts through a symlink from an unrelated working directory', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'evodesign-studio-start-'));
+  const app = join(root, 'release');
+  const repository = fileURLToPath(new URL('../../', import.meta.url));
+  for (const path of ['deploy/modelscope/server.mjs', 'api/model.mjs', 'shared/diagram-prompts.mjs', 'shared/edge-identity.mjs']) {
+    const destination = join(app, path);
+    await mkdir(join(destination, '..'), { recursive: true });
+    await copyFile(join(repository, path), destination);
+  }
+  await mkdir(join(app, 'static'));
+  await writeFile(join(app, 'static/index.html'), '<html>EvoDesign cwd fixture</html>');
+  const entry = join(root, 'entry.mjs');
+  await symlink(join(app, 'deploy/modelscope/server.mjs'), entry);
+  const child = spawn(process.execPath, [entry], {
+    cwd: root, env: { ...process.env, PORT: '0', STUDIO_PUBLIC_ORIGIN: 'https://geminilight-evodesign.ms.show' },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  let diagnostics = '';
+  child.stderr.on('data', chunk => { diagnostics = (diagnostics + String(chunk)).slice(-1500); });
+  try {
+    const port = await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('Studio startup timed out.')), 5000);
+      child.once('exit', () => { clearTimeout(timer); reject(new Error(`Studio exited before listening: ${diagnostics}`)); });
+      child.stdout.on('data', chunk => {
+        const match = String(chunk).match(/listening on port (\d+)/);
+        if (match) { clearTimeout(timer); resolve(Number(match[1])); }
+      });
+      child.once('error', error => { clearTimeout(timer); reject(error); });
+    });
+    const response = await fetch(`http://127.0.0.1:${port}/home`);
+    assert.equal(response.status, 200);
+    assert.match(await response.text(), /cwd fixture/);
+  } finally {
+    if (child.exitCode === null) { const exit = once(child, 'exit'); child.kill(); await exit; }
+    await rm(root, { recursive: true, force: true });
+  }
 });

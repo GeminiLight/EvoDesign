@@ -1,6 +1,6 @@
 import { createServer } from 'node:http';
 import { createReadStream } from 'node:fs';
-import { stat, readFile } from 'node:fs/promises';
+import { stat, readFile, realpath } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createModelHandler } from '../../api/model.mjs';
@@ -8,9 +8,10 @@ import { createModelHandler } from '../../api/model.mjs';
 const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon',
   '.woff': 'font/woff', '.woff2': 'font/woff2', '.ttf': 'font/ttf', '.wasm': 'application/wasm' };
+const staticRoot = fileURLToPath(new URL('../../static/', import.meta.url));
 
 /** Production adapter for the same browser build and bounded model handler. */
-export function createStudioServer({ env = process.env, root = resolve('static'), handle = createModelHandler(env) } = {}) {
+export function createStudioServer({ env = process.env, root = staticRoot, handle = createModelHandler(env) } = {}) {
   const origin = new URL(env.STUDIO_PUBLIC_ORIGIN || 'http://127.0.0.1:7860').origin;
   const base = resolve(root);
   return createServer(async (req, res) => {
@@ -79,8 +80,9 @@ export function createStudioServer({ env = process.env, root = resolve('static')
   });
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (process.argv[1] && await realpath(process.argv[1]) === fileURLToPath(import.meta.url)) {
   // Fail before accepting traffic if the static release is incomplete.
-  await readFile(resolve('static/index.html'));
-  createStudioServer().listen(Number(process.env.PORT || 7860), '0.0.0.0', () => console.log('EvoDesign listening on port 7860'));
+  await readFile(resolve(staticRoot, 'index.html'));
+  const server = createStudioServer();
+  server.listen(Number(process.env.PORT || 7860), '0.0.0.0', () => console.log(`EvoDesign listening on port ${server.address().port}`));
 }

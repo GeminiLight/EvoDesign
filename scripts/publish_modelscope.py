@@ -109,7 +109,7 @@ def main():
                         return
                 except (OSError, ValueError):
                     pass
-            if status in {'BuildError', 'RuntimeError', 'Failed', 'Error'}:
+            if status in {'BuildError', 'BuildFailed', 'DeployFailed', 'RuntimeError', 'Failed', 'Error'}:
                 raise SystemExit('Studio failed; inspect the build/run logs before routing traffic.')
             time.sleep(5)
         raise SystemExit('Studio did not become ready; automatic routing must remain disabled.')
