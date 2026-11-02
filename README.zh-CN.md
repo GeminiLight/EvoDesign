@@ -188,12 +188,12 @@ python -m pip install -e ".[dev]"
 
 ## 引用
 
-如果使用了 EvoDesign 或 CanvasBench，请引用论文。GitHub 的 **Cite this repository** 功能读取仓库中的 `CITATION.cff`。
+如果使用了 EvoDesign 或 CanvasBench，请引用我们的 **NeurIPS 2026** 论文。GitHub 的 **Cite this repository** 功能读取仓库中的 `CITATION.cff`。
 
 <!-- CITATION:START -->
 
 ```bibtex
-@misc{wang2026evodesign,
+@inproceedings{wang2026evodesign,
   title = {{EvoDesign}: Agentic Editable Diagram Creation via Design Expertise Evolution},
   author = {Wang, Tianfu and
             Ding, Leilei and
@@ -210,11 +210,8 @@ python -m pip install -e ".[dev]"
             Yuan, Nicholas Jing and
             Zhang, Yanyong and
             Xiong, Hui},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
   year = {2026},
-  eprint = {2604.09568},
-  archivePrefix = {arXiv},
-  primaryClass = {cs.HC},
-  doi = {10.48550/arXiv.2604.09568},
   url = {https://arxiv.org/abs/2604.09568}
 }
 ```

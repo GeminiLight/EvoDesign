@@ -188,12 +188,12 @@ See [contributing](CONTRIBUTING.md), [configuration](docs/guides/configuration.m
 
 ## Citation
 
-If you use EvoDesign or CanvasBench, please cite the paper. GitHub's **Cite this repository** action is backed by `CITATION.cff`.
+If you use EvoDesign or CanvasBench, please cite our **NeurIPS 2026** paper. GitHub's **Cite this repository** action is backed by `CITATION.cff`.
 
 <!-- CITATION:START -->
 
 ```bibtex
-@misc{wang2026evodesign,
+@inproceedings{wang2026evodesign,
   title = {{EvoDesign}: Agentic Editable Diagram Creation via Design Expertise Evolution},
   author = {Wang, Tianfu and
             Ding, Leilei and
@@ -210,11 +210,8 @@ If you use EvoDesign or CanvasBench, please cite the paper. GitHub's **Cite this
             Yuan, Nicholas Jing and
             Zhang, Yanyong and
             Xiong, Hui},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
   year = {2026},
-  eprint = {2604.09568},
-  archivePrefix = {arXiv},
-  primaryClass = {cs.HC},
-  doi = {10.48550/arXiv.2604.09568},
   url = {https://arxiv.org/abs/2604.09568}
 }
 ```

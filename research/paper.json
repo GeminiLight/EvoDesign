@@ -2,13 +2,14 @@
   "title": "EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution",
   "description": "EvoDesign is an agentic framework for editable diagram generation that coordinates structure, style, and layout agents and evolves reusable design expertise.",
   "year": 2026,
+  "venue": "Advances in Neural Information Processing Systems (NeurIPS)",
   "arxiv": "2604.09568",
   "doi": "10.48550/arXiv.2604.09568",
   "primaryClass": "cs.HC",
   "url": "https://tianfu.wang/EvoDesign/",
   "paperUrl": "https://arxiv.org/abs/2604.09568",
   "repository": "https://github.com/GeminiLight/EvoDesign",
-  "pageModified": "2026-10-30",
+  "pageModified": "2026-11-02",
   "authors": [
     {
       "given": "Tianfu",

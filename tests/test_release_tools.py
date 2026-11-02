@@ -1,9 +1,31 @@
 import importlib.util
+import json
 from pathlib import Path
+import re
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_neurips_citation_is_consistent_across_readmes_and_downloads():
+    import yaml
+
+    paper = json.loads((ROOT / "research/paper.json").read_text())
+    bibtex = (ROOT / "docs/citation.bib").read_text().strip()
+    assert bibtex.startswith("@inproceedings{wang2026evodesign,")
+    assert f"booktitle = {{{paper['venue']}}}" in bibtex
+    assert f"year = {{{paper['year']}}}" in bibtex
+    assert "NeurIPS" in paper["venue"] and paper["year"] == 2026
+    for name in ("README.md", "README.zh-CN.md"):
+        block = re.search(r"<!-- CITATION:START -->\s*```bibtex\n(.*?)\n```", (ROOT / name).read_text(), re.DOTALL)
+        assert block and block[1].strip() == bibtex
+    citation = yaml.safe_load((ROOT / "CITATION.cff").read_text())["preferred-citation"]
+    assert citation["type"] == "conference-paper"
+    assert citation["collection-title"] == paper["venue"]
+    assert len(citation["authors"]) == len(paper["authors"])
+    ris = (ROOT / "docs/citation.ris").read_text()
+    assert ris.startswith("TY  - CPAPER") and f"T2  - {paper['venue']}" in ris
 
 
 def load(name):
