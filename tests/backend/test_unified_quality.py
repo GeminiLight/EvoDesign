@@ -47,7 +47,10 @@ def test_low_score_no_op_is_not_reported_as_resolved():
 
 
 def test_constraint_violations_survive_parsing_and_block_adoption():
+    # A complete critic response (all scored dimensions are required); the
+    # high scores must not hide the explicit constraint violation.
     critique = _coerce_critique({"overall_score": 9,
+        "structure": {"score": 9}, "styling": {"score": 9}, "layout": {"score": 9},
         "constraint_violations": ["Publish has an icon although the user explicitly excluded it"]}, None)
     candidate = state(9)
     candidate.critique = critique

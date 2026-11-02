@@ -4,7 +4,7 @@ from datetime import datetime
 from types import SimpleNamespace
 
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, Response
 
 from app.api.deps import AuthContext
 from app.api.v1.endpoints import auth
@@ -22,7 +22,9 @@ from app.services.oauth_session_service import (
     OAUTH_STATE_COOKIE_PATH,
     OAUTH_STATE_TTL_SECONDS,
     InvalidOAuthCodeError,
+    OAUTH_EXCHANGE_COOKIE_NAME,
     OAuthAuthorizationRedirect,
+    OAuthCallbackSuccess,
     OAuthCallbackError,
     OAuthProviderNotConfiguredError,
     OAuthStateConsumption,
@@ -98,13 +100,32 @@ async def test_google_callback_redirects_to_service_success_url(monkeypatch):
         async def complete_provider_callback(self, provider: str, code: str):
             assert provider == "google"
             assert code == "provider-code"
-            return "http://frontend.test/?code=exchange-code"
+            return OAuthCallbackSuccess(
+                redirect_url="http://frontend.test/?code=exchange-code",
+                exchange_code="exchange-code",
+            )
+
+        def exchange_binding(self, exchange_code: str) -> str:
+            return f"binding-for-{exchange_code}"
+
+        def exchange_cookie_secure(self, provider: str) -> bool:
+            return False
 
     monkeypatch.setattr(auth, "OAuthSessionService", FakeOAuthSessionService)
 
     response = await _call_oauth_callback(google_callback)
 
     assert response.headers["location"] == "http://frontend.test/?code=exchange-code"
+    binding_cookie = next(
+        value
+        for value in _set_cookie_headers(response)
+        if value.startswith(f"{OAUTH_EXCHANGE_COOKIE_NAME}=")
+    )
+    # Only the browser that completed the callback can redeem the code.
+    assert binding_cookie.startswith(f"{OAUTH_EXCHANGE_COOKIE_NAME}=binding-for-exchange-code;")
+    assert "HttpOnly" in binding_cookie
+    assert "SameSite=lax" in binding_cookie
+    assert f"Path={OAUTH_STATE_COOKIE_PATH}" in binding_cookie
 
 
 @pytest.mark.asyncio
@@ -386,7 +407,16 @@ async def test_oauth_callback_clears_the_state_cookie_after_success(monkeypatch)
             self.settings = settings
 
         async def complete_provider_callback(self, provider: str, code: str):
-            return "http://frontend.test/?code=exchange-code"
+            return OAuthCallbackSuccess(
+                redirect_url="http://frontend.test/?code=exchange-code",
+                exchange_code="exchange-code",
+            )
+
+        def exchange_binding(self, exchange_code: str) -> str:
+            return f"binding-for-{exchange_code}"
+
+        def exchange_cookie_secure(self, provider: str) -> bool:
+            return False
 
     monkeypatch.setattr(auth, "OAuthSessionService", FakeOAuthSessionService)
 
@@ -419,7 +449,16 @@ async def test_oauth_callback_writes_back_remaining_pending_states(monkeypatch):
             )
 
         async def complete_provider_callback(self, provider: str, code: str):
-            return "http://frontend.test/?code=exchange-code"
+            return OAuthCallbackSuccess(
+                redirect_url="http://frontend.test/?code=exchange-code",
+                exchange_code="exchange-code",
+            )
+
+        def exchange_binding(self, exchange_code: str) -> str:
+            return f"binding-for-{exchange_code}"
+
+        def exchange_cookie_secure(self, provider: str) -> bool:
+            return False
 
     monkeypatch.setattr(auth, "OAuthSessionService", FakeOAuthSessionService)
 
@@ -446,7 +485,7 @@ async def test_exchange_oauth_code_maps_invalid_code_error(monkeypatch):
             self.db = db
             self.settings = settings
 
-        async def exchange_code(self, code: str):
+        async def exchange_code(self, code: str, *, browser_binding):
             assert code == "expired-code"
             raise InvalidOAuthCodeError("expired row id=secret-oauth-code")
 
@@ -455,6 +494,8 @@ async def test_exchange_oauth_code_maps_invalid_code_error(monkeypatch):
     with pytest.raises(HTTPException) as exc_info:
         await exchange_oauth_code(
             body=CodeExchangeRequest(code="expired-code"),
+            response=Response(),
+            exchange_cookie="binding",
             db=object(),
             settings=object(),
         )
@@ -472,7 +513,7 @@ async def test_exchange_oauth_code_uses_invalid_code_public_detail(monkeypatch):
             self.db = db
             self.settings = settings
 
-        async def exchange_code(self, code: str):
+        async def exchange_code(self, code: str, *, browser_binding):
             raise InvalidOAuthCodeError(
                 "expired row id=secret-oauth-code",
                 public_detail="OAuth exchange code is no longer valid.",
@@ -483,6 +524,8 @@ async def test_exchange_oauth_code_uses_invalid_code_public_detail(monkeypatch):
     with pytest.raises(HTTPException) as exc_info:
         await exchange_oauth_code(
             body=CodeExchangeRequest(code="expired-code"),
+            response=Response(),
+            exchange_cookie="binding",
             db=object(),
             settings=object(),
         )
@@ -499,7 +542,7 @@ async def test_exchange_oauth_code_maps_token_validation_error(monkeypatch):
             self.db = db
             self.settings = settings
 
-        async def exchange_code(self, code: str):
+        async def exchange_code(self, code: str, *, browser_binding):
             assert code == "exchange-code"
             raise OAuthTokenValidationError("User not found: secret-user-id")
 
@@ -508,6 +551,8 @@ async def test_exchange_oauth_code_maps_token_validation_error(monkeypatch):
     with pytest.raises(HTTPException) as exc_info:
         await exchange_oauth_code(
             body=CodeExchangeRequest(code="exchange-code"),
+            response=Response(),
+            exchange_cookie="binding",
             db=object(),
             settings=object(),
         )
@@ -525,7 +570,7 @@ async def test_exchange_oauth_code_uses_token_validation_public_detail(monkeypat
             self.db = db
             self.settings = settings
 
-        async def exchange_code(self, code: str):
+        async def exchange_code(self, code: str, *, browser_binding):
             raise OAuthTokenValidationError(
                 "User not found: secret-user-id",
                 public_detail="OAuth session could not be restored.",
@@ -536,6 +581,8 @@ async def test_exchange_oauth_code_uses_token_validation_public_detail(monkeypat
     with pytest.raises(HTTPException) as exc_info:
         await exchange_oauth_code(
             body=CodeExchangeRequest(code="exchange-code"),
+            response=Response(),
+            exchange_cookie="binding",
             db=object(),
             settings=object(),
         )

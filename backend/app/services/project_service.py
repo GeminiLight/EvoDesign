@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -205,6 +206,8 @@ class ProjectService:
 
     async def delete_project(self, user_id: str, project_id: str) -> None:
         project = await self.get_project(user_id, project_id)
+        proposal_ids = list((await self.db.scalars(
+            select(AgentProposal.proposal_id).where(AgentProposal.project_id == project_id))).all())
         await self.db.execute(delete(AgentProposal).where(AgentProposal.project_id == project_id))
         await self.db.execute(delete(AgentConnection).where(AgentConnection.project_id == project_id))
         # SQLite does not enforce ON DELETE CASCADE by default, so project-scoped
@@ -217,3 +220,7 @@ class ProjectService:
         )
         await self.db.delete(project)
         await self.db.flush()
+        # Rendered previews are private caches of the deleted scene; drop them too.
+        from app.services.agent_artifact_service import remove_project_previews
+        from app.services.agent_proposal_service import artifact_root
+        await asyncio.to_thread(remove_project_previews, artifact_root(), project_id, proposal_ids)

@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from app.api.deps import get_current_user_or_guest
 from app.application import create_app
+from app.config import get_settings
 from app.db.session import get_db
 from app.api.v1.endpoints import diagram
 from app.services.local_edit_service import LocalEditResult
@@ -18,6 +19,8 @@ def _settings():
         app_version="test",
         debug=False,
         cors_origins_list=["http://localhost:5175"],
+        guest_daily_generation_limit=10,
+        session_secret="test-session-secret",
     )
 
 
@@ -25,8 +28,21 @@ async def _guest_user():
     return None
 
 
+class _FakeSession:
+    async def commit(self):
+        return None
+
+    async def rollback(self):
+        return None
+
+
 async def _db_session():
-    yield object()
+    yield _FakeSession()
+
+
+class _UnlimitedGuestQuota:
+    async def consume(self, db, **_kwargs):
+        return 1
 
 
 class _ForbiddenWorkflowGenerateService:
@@ -56,6 +72,8 @@ def _client() -> TestClient:
     )
     app.dependency_overrides[get_current_user_or_guest] = _guest_user
     app.dependency_overrides[get_db] = _db_session
+    app.dependency_overrides[get_settings] = _settings
+    app.dependency_overrides[diagram.get_guest_quota] = _UnlimitedGuestQuota
     app.dependency_overrides[diagram.get_workflow_generate_service] = (
         lambda: _ForbiddenWorkflowGenerateService()
     )
@@ -76,6 +94,8 @@ def _app_with_common_overrides():
     )
     app.dependency_overrides[get_current_user_or_guest] = _guest_user
     app.dependency_overrides[get_db] = _db_session
+    app.dependency_overrides[get_settings] = _settings
+    app.dependency_overrides[diagram.get_guest_quota] = _UnlimitedGuestQuota
     return app
 
 

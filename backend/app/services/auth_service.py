@@ -1,3 +1,6 @@
+import asyncio
+import hmac
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -64,11 +67,13 @@ class AuthService:
     ) -> User:
         """Create a new user."""
         normalized_email = normalize_email(email)
+        # PBKDF2 is deliberately slow; keep it off the event loop.
+        password_hash = await asyncio.to_thread(hash_password, password) if password else None
         user = User(
             email=normalized_email,
             username=username or normalized_email.split("@")[0],
             avatar_url=avatar_url,
-            password_hash=hash_password(password) if password else None,
+            password_hash=password_hash,
             auth_provider=auth_provider,
             external_id=external_id,
         )
@@ -137,11 +142,14 @@ class AuthService:
     ) -> User:
         """Register a new email/password user."""
         normalized_email = normalize_email(email)
-        if (
-            self.settings.enable_signup_verification
-            and verification_code != self.settings.signup_verification_code
-        ):
-            raise InvalidVerificationCodeException()
+        if self.settings.enable_signup_verification:
+            expected_code = self.settings.signup_verification_code or ""
+            # Fail closed: an unset code must never match an empty submission.
+            if not expected_code.strip() or not hmac.compare_digest(
+                verification_code.encode("utf-8"),
+                expected_code.encode("utf-8"),
+            ):
+                raise InvalidVerificationCodeException()
 
         existing_user = await self.get_user_by_email(normalized_email)
         if existing_user:
@@ -175,7 +183,9 @@ class AuthService:
         if not user or user.auth_provider != "email":
             raise InvalidCredentialsException()
 
-        if not user.password_hash or not verify_password(password, user.password_hash):
+        if not user.password_hash or not await asyncio.to_thread(
+            verify_password, password, user.password_hash
+        ):
             raise InvalidCredentialsException()
 
         user.last_login_at = utc_now()

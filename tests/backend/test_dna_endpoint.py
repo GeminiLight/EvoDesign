@@ -9,7 +9,7 @@ import pytest
 from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from app.api.deps import get_current_user_id
+from app.api.deps import get_current_user_id, get_rate_limited_user_id
 from app.api.v1.endpoints import dna
 from app.db.base import Base
 from app.models import DnaRule, OAuthCode, Project, Snapshot, Subscription, User  # noqa: F401
@@ -39,8 +39,14 @@ async def _analyze(file, dna_service, *, request=object(), user_id="user-1"):
         request=request,
         file=file,
         user_id=user_id,
+        db=_ReleasableSession(),
         dna_service=dna_service,
     )
+
+
+class _ReleasableSession:
+    async def commit(self):
+        return None
 
 
 @pytest.mark.asyncio
@@ -149,7 +155,11 @@ def test_analyze_dna_image_requires_an_authenticated_user():
         dna.analyze_dna_image.__wrapped__
     ).parameters["user_id"]
 
-    assert user_id_param.default.dependency is get_current_user_id
+    dependency = user_id_param.default.dependency
+    assert dependency is get_rate_limited_user_id
+    # The rate-limit wrapper still resolves through the login-required dependency.
+    nested = inspect.signature(dependency).parameters["user_id"].default.dependency
+    assert nested is get_current_user_id
 
 
 @pytest.mark.asyncio

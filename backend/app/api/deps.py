@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
+from app.core.rate_limit import bind_rate_limit_identity
 from app.db.session import get_db
 from app.models.user import User
 from app.services.auth_token_service import AuthTokenError, AuthTokenService
@@ -119,3 +120,32 @@ async def get_current_user_id_or_none(
 ) -> str | None:
     """Return user_id for authenticated users, or None for guests."""
     return current_user.user_id if current_user else None
+
+
+async def get_rate_limited_user_or_guest(
+    request: Request,
+    current_user: User | None = Depends(get_current_user_or_guest),
+) -> User | None:
+    """Resolve user-or-guest and key per-minute limits by account when signed in."""
+    if current_user is not None:
+        bind_rate_limit_identity(request, current_user.user_id)
+    return current_user
+
+
+async def get_rate_limited_user_id(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+) -> str:
+    """Resolve the signed-in user and key per-minute limits by account."""
+    bind_rate_limit_identity(request, user_id)
+    return user_id
+
+
+async def release_db_connection(db: AsyncSession) -> None:
+    """Commit the auth transaction so no pooled connection is held during long work.
+
+    The session stays usable afterwards; it checks out a fresh connection on
+    its next query. Loaded objects stay readable because sessions are created
+    with expire_on_commit=False.
+    """
+    await db.commit()

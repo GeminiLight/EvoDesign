@@ -144,6 +144,28 @@ class _PassThroughDiagramStreamService:
         return chunk
 
 
+class _ReleasableSession:
+    """Stands in for the request session that admission commits before the LLM run."""
+
+    def __init__(self):
+        self.commits = 0
+        self.rollbacks = 0
+
+    async def commit(self):
+        self.commits += 1
+
+    async def rollback(self):
+        self.rollbacks += 1
+
+
+class _UnlimitedGuestQuota:
+    async def consume(self, db, *, client_ip, limit, secret):
+        return 1
+
+
+_ENDPOINT_SETTINGS = SimpleNamespace(guest_daily_generation_limit=10, session_secret="test-secret")
+
+
 async def _call_generate_diagram(
     *,
     body: DiagramGenerateRequest,
@@ -156,6 +178,9 @@ async def _call_generate_diagram(
         request=request,
         body=body,
         current_user=current_user,
+        db=_ReleasableSession(),
+        settings=_ENDPOINT_SETTINGS,
+        guest_quota=_UnlimitedGuestQuota(),
         workflow_service=workflow_service,
         persistence_service=persistence_service or _UnusedDiagramPersistenceService(),
     )
@@ -172,6 +197,9 @@ async def _call_edit_diagram_local(
         request=request,
         body=body,
         current_user=current_user,
+        db=_ReleasableSession(),
+        settings=_ENDPOINT_SETTINGS,
+        guest_quota=_UnlimitedGuestQuota(),
         service=service,
     )
 
@@ -188,6 +216,9 @@ async def _call_generate_diagram_stream(
         request=request,
         body=body,
         current_user=current_user,
+        db=_ReleasableSession(),
+        settings=_ENDPOINT_SETTINGS,
+        guest_quota=_UnlimitedGuestQuota(),
         workflow_service=workflow_service,
         stream_service=stream_service or _PassThroughDiagramStreamService(),
     )

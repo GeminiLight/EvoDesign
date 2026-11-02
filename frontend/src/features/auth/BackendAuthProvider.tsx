@@ -2,18 +2,13 @@ import { BROWSER_MODE } from '../../services/browser/runtime';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { BackendAuthResponse } from '../../contracts/backendApi.generated';
 import { apiV1Url, readResponseDetail } from '../../services/httpClient';
+import { normalizeAuthUser, type AuthUser } from './authUser';
 import { AUTH_INVALIDATED_EVENT, AUTH_USER_ID_STORAGE_KEY, notifyAuthInvalidated } from './authEvents';
 import { readLocalStorage, removeLocalStorage } from '../../utils/safeLocalStorage';
 import { useToast } from '../../components/toastContext';
 import { useLanguage } from '../../i18n/LanguageProvider';
 
-interface User {
-  user_id: string;
-  email: string;
-  username: string;
-  avatar_url?: string;
-  auth_provider: string;
-}
+type User = AuthUser;
 
 interface AuthContextValue {
   user: User | null;
@@ -29,30 +24,24 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 const AUTH_USER_PROFILE_STORAGE_KEY = 'auth_user_profile';
 
-const normalizeUser = (raw: BackendAuthResponse['user']): User => {
-  const username = raw.username ?? raw.email.split('@')[0];
-
-  return {
-    user_id: raw.user_id,
-    email: raw.email,
-    username,
-    avatar_url: raw.avatar_url ?? undefined,
-    auth_provider: raw.auth_provider,
-  };
-};
-
-const persistSession = (token: string, rawUser: BackendAuthResponse['user']) => {
-  const normalizedUser = normalizeUser(rawUser);
-  localStorage.setItem('auth_token', token);
-  localStorage.setItem(AUTH_USER_ID_STORAGE_KEY, normalizedUser.user_id);
-  localStorage.setItem(AUTH_USER_PROFILE_STORAGE_KEY, JSON.stringify(normalizedUser));
-  return normalizedUser;
-};
-
 const clearStoredSession = () => {
   localStorage.removeItem('auth_token');
   localStorage.removeItem(AUTH_USER_ID_STORAGE_KEY);
   localStorage.removeItem(AUTH_USER_PROFILE_STORAGE_KEY);
+};
+
+// Returns null (and clears storage) when the response carries no usable user;
+// callers treat that as an invalid session.
+const persistSession = (token: string, rawUser: unknown): User | null => {
+  const normalizedUser = normalizeAuthUser(rawUser);
+  if (!normalizedUser) {
+    clearStoredSession();
+    return null;
+  }
+  localStorage.setItem('auth_token', token);
+  localStorage.setItem(AUTH_USER_ID_STORAGE_KEY, normalizedUser.user_id);
+  localStorage.setItem(AUTH_USER_PROFILE_STORAGE_KEY, JSON.stringify(normalizedUser));
+  return normalizedUser;
 };
 
 const isStoredTokenCurrent = (token: string) => localStorage.getItem('auth_token') === token;
@@ -62,21 +51,11 @@ const readCachedUser = (): User | null => {
   const rawProfile = readLocalStorage(AUTH_USER_PROFILE_STORAGE_KEY);
   if (rawProfile) {
     try {
-      const parsed = JSON.parse(rawProfile) as Partial<User>;
-      if (
-        typeof parsed.user_id === 'string'
-        && typeof parsed.username === 'string'
-        && typeof parsed.email === 'string'
-        && typeof parsed.auth_provider === 'string'
-      ) {
-        return {
-          user_id: parsed.user_id,
-          email: parsed.email,
-          username: parsed.username,
-          avatar_url: typeof parsed.avatar_url === 'string' ? parsed.avatar_url : undefined,
-          auth_provider: parsed.auth_provider,
-        };
+      const cached = normalizeAuthUser(JSON.parse(rawProfile));
+      if (cached) {
+        return cached;
       }
+      removeLocalStorage(AUTH_USER_PROFILE_STORAGE_KEY);
     } catch {
       removeLocalStorage(AUTH_USER_PROFILE_STORAGE_KEY);
     }
@@ -144,7 +123,12 @@ export const BackendAuthProvider = ({ children }: { children: React.ReactNode })
 
         if (response.ok) {
           const data = (await response.json()) as BackendAuthResponse;
-          setUser(persistSession(storedToken, data.user));
+          const sessionUser = persistSession(storedToken, data.user);
+          if (!sessionUser) {
+            notifyAuthInvalidated();
+            return;
+          }
+          setUser(sessionUser);
           setToken(storedToken);
         } else if (isAuthInvalidResponse(response)) {
           if (isStoredTokenCurrent(storedToken)) {
@@ -176,8 +160,11 @@ export const BackendAuthProvider = ({ children }: { children: React.ReactNode })
         // Clear URL immediately to prevent code reuse on refresh
         window.history.replaceState({}, document.title, '/');
         try {
+          // The backend only redeems a code together with the httpOnly cookie it
+          // set on this browser during the OAuth callback (login CSRF guard).
           const exchangeResponse = await fetch(apiV1Url('/auth/exchange'), {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code: callbackCode }),
           });
@@ -185,8 +172,13 @@ export const BackendAuthProvider = ({ children }: { children: React.ReactNode })
             const data = (await exchangeResponse.json()) as BackendAuthResponse;
             const exchangedToken = data.token;
             const normalizedUser = persistSession(exchangedToken, data.user);
-            setToken(exchangedToken);
-            setUser(normalizedUser);
+            if (normalizedUser) {
+              setToken(exchangedToken);
+              setUser(normalizedUser);
+            } else {
+              console.error('OAuth code exchange returned no usable user');
+              notifyAuthInvalidated();
+            }
             if (mounted) setLoading(false);
           } else {
             console.error('OAuth code exchange failed');
@@ -277,7 +269,12 @@ export const BackendAuthProvider = ({ children }: { children: React.ReactNode })
         }
 
         const data = (await response.json()) as BackendAuthResponse;
-        setUser(persistSession(nextToken, data.user));
+        const sessionUser = persistSession(nextToken, data.user);
+        if (!sessionUser) {
+          notifyAuthInvalidated();
+          return;
+        }
+        setUser(sessionUser);
         setToken(nextToken);
       } catch (error) {
         console.error('Failed to hydrate session from storage event', error);
@@ -326,7 +323,11 @@ export const BackendAuthProvider = ({ children }: { children: React.ReactNode })
     }
 
     const data = (await response.json()) as BackendAuthResponse;
-    setUser(persistSession(data.token, data.user));
+    const sessionUser = persistSession(data.token, data.user);
+    if (!sessionUser) {
+      throw new Error('Authentication response did not include a valid user');
+    }
+    setUser(sessionUser);
     setToken(data.token);
   }, []);
 
@@ -345,7 +346,11 @@ export const BackendAuthProvider = ({ children }: { children: React.ReactNode })
     }
 
     const data = (await response.json()) as BackendAuthResponse;
-    setUser(persistSession(data.token, data.user));
+    const sessionUser = persistSession(data.token, data.user);
+    if (!sessionUser) {
+      throw new Error('Authentication response did not include a valid user');
+    }
+    setUser(sessionUser);
     setToken(data.token);
   }, []);
 

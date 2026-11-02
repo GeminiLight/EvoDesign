@@ -973,6 +973,7 @@ def test_service_launcher_uses_project_python_not_global_uvicorn(tmp_path, root_
         interpreter.write_text(f'#!/bin/bash\nprintf "%s\\n" "{label}" "$@" > "$CAPTURE_ARGS"\n')
         interpreter.chmod(0o755)
     env = {**os.environ, 'CAPTURE_ARGS': str(capture), 'HOST': '127.0.0.1'}
+    env.pop('FORWARDED_ALLOW_IPS', None)
     result = subprocess.run(['bash', str(script), 'backend'], env=env, capture_output=True, text=True, timeout=10)
     assert result.returncode == 0, result.stderr
     deadline = time.monotonic() + 3
@@ -981,4 +982,6 @@ def test_service_launcher_uses_project_python_not_global_uvicorn(tmp_path, root_
     assert capture.read_text().splitlines() == [
         'root' if root_environment else 'legacy', '-m', 'uvicorn', 'app.main:app',
         '--host', '127.0.0.1', '--port', '3010', '--reload',
+        # Trust X-Forwarded-For only from the loopback Vite proxy.
+        '--proxy-headers', '--forwarded-allow-ips', '127.0.0.1,::1',
     ]

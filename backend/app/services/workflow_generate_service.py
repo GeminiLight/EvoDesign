@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import asyncio
-import hashlib
 from pathlib import Path
 import uuid
 from typing import Any, AsyncGenerator, Optional
 
 from app.config import Settings, get_settings
+from app.services.design_learning_jobs import private_memory_path
 from app.services.diagram_generation_contract import normalize_canvas_library
 from app.services.dna_design_expertise import load_dna_design_expertise
 from app.services.llm_client import create_backend_llm
@@ -62,9 +62,10 @@ class WorkflowGenerateService:
             enable_refiner=self.settings.auto_refine_enabled,
             refiner_max_iterations=self.settings.auto_refine_max_iterations,
             enable_design_memory=self.settings.design_memory_enabled,
-            design_memory_path=str(Path(self.settings.design_memory_path) / (
-                hashlib.sha256(user_id.encode()).hexdigest()[:24] if user_id else "guest"
-            )),
+            design_memory_path=str(
+                private_memory_path(self.settings.design_memory_path, user_id)
+                if user_id else Path(self.settings.design_memory_path) / "guest"
+            ),
             design_memory_seed_path=self.settings.design_memory_seed_path,
             design_memory_model=self.settings.design_memory_model,
             design_memory_top_k=self.settings.design_memory_top_k,

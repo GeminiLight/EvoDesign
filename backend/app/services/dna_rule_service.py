@@ -7,9 +7,10 @@ from datetime import datetime, timezone
 from uuid import uuid4
 
 from sqlalchemy import delete, or_, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import ProjectNotFoundException
+from app.core.exceptions import ProjectNotFoundException, PublicErrorMixin
 from app.db.base import utc_now
 from app.models.dna_rule import DnaRule
 from app.models.project import Project
@@ -17,6 +18,13 @@ from app.schemas.dna import DnaRuleSchema, DnaRulesPayload
 
 
 DnaRuleIdFactory = Callable[[], str]
+
+
+class DnaRuleConflictError(PublicErrorMixin, RuntimeError):
+    """Raised when a concurrent save replaced the same DNA rules first."""
+
+    default_public_detail = "DNA rules were changed by another save; reload and try again"
+
 Clock = Callable[[], datetime]
 
 
@@ -55,6 +63,15 @@ class DnaRuleService:
         if project_id is not None:
             await self._require_owned_project(user_id=user_id, project_id=project_id)
 
+        # Bump affected project versions first: on Postgres the row locks
+        # serialize concurrent replacements of the same scope before any
+        # delete/insert runs, so the second writer sees the first one's rows.
+        affected = [Project.user_id == user_id]
+        if project_id is not None:
+            affected.append(Project.project_id == project_id)
+        await self.db.execute(update(Project).where(*affected).values(version=Project.version+1)
+                              .execution_options(synchronize_session=False))
+
         supplied_ids = [rule.rule_id for _, rule in iter_payload_rules(payload) if rule.rule_id]
         foreign_ids = set((await self.db.scalars(select(DnaRule.rule_id).where(
             DnaRule.rule_id.in_(supplied_ids),
@@ -71,13 +88,12 @@ class DnaRuleService:
         rows = self._build_rows(user_id=user_id, payload=payload, reserved_ids=foreign_ids)
         if rows:
             self.db.add_all(rows)
-
-        affected = [Project.user_id == user_id]
-        if project_id is not None:
-            affected.append(Project.project_id == project_id)
-        await self.db.execute(update(Project).where(*affected).values(version=Project.version+1)
-                              .execution_options(synchronize_session=False))
-        await self.db.flush()
+        try:
+            await self.db.flush()
+        except IntegrityError as exc:
+            # A concurrent save of the same rule IDs won the race (or the
+            # scope had no lockable project row); the client should reload.
+            raise DnaRuleConflictError("concurrent DNA rule replacement") from exc
         saved = await self._fetch_rows(user_id=user_id, project_id=project_id)
         return rows_to_payload(saved, project_id)
 

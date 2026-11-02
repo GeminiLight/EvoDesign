@@ -1,8 +1,33 @@
-from typing import Any, Literal, Optional
+import json
+from typing import Annotated, Any, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.core.canvas import CanvasLibrary, normalize_canvas_library_value
+
+# Input caps keep one request from monopolising the LLM pipeline or memory.
+MAX_CONTEXT_CHARS = 100_000
+MAX_REQUIREMENTS_CHARS = 50_000
+MAX_INSTRUCTION_CHARS = 10_000
+MAX_NODE_ID_LIST_ITEMS = 2_000
+MAX_NODE_ID_CHARS = 256
+MAX_CURRENT_SCHEMA_BYTES = 5 * 1024 * 1024
+NodeId = Annotated[str, Field(max_length=MAX_NODE_ID_CHARS)]
+
+
+def _require_schema_size(value: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Reject canvas schemas whose compact JSON exceeds MAX_CURRENT_SCHEMA_BYTES."""
+    if value is None:
+        return value
+    try:
+        size = len(json.dumps(value, separators=(",", ":"), ensure_ascii=False).encode("utf-8"))
+    except (TypeError, ValueError) as exc:
+        raise ValueError("current_schema must be JSON serializable") from exc
+    if size > MAX_CURRENT_SCHEMA_BYTES:
+        raise ValueError(
+            f"current_schema is too large ({size} bytes; limit {MAX_CURRENT_SCHEMA_BYTES})"
+        )
+    return value
 
 
 class DiagramGenerateRequest(BaseModel):
@@ -10,9 +35,13 @@ class DiagramGenerateRequest(BaseModel):
 
     use_icons: bool = Field(default=True, strict=True, description="Add small semantic icons to key nodes by default")
     diagram_type: str | None = Field(default=None, description="Explicit diagram type; omit for automatic selection")
-    context: str = Field(..., description="Input context text")
-    requirements: Optional[str] = Field(default=None, description="Generation requirements")
-    locked_nodes: list[str] = Field(default_factory=list, description="Locked nodes")
+    context: str = Field(..., max_length=MAX_CONTEXT_CHARS, description="Input context text")
+    requirements: Optional[str] = Field(
+        default=None, max_length=MAX_REQUIREMENTS_CHARS, description="Generation requirements"
+    )
+    locked_nodes: list[NodeId] = Field(
+        default_factory=list, max_length=MAX_NODE_ID_LIST_ITEMS, description="Locked nodes"
+    )
     project_id: Optional[str] = Field(default=None, description="Existing project ID, can be empty")
     base_version: int | None = Field(default=None, ge=1)
     current_schema: Optional[dict[str, Any]] = Field(default=None, description="Current diagram schema")
@@ -43,6 +72,10 @@ class DiagramGenerateRequest(BaseModel):
     def normalize_canvas_library(cls, value: Any) -> CanvasLibrary:
         return normalize_canvas_library_value(value)
 
+    @field_validator("current_schema")
+    @classmethod
+    def limit_current_schema_size(cls, value: dict[str, Any] | None) -> dict[str, Any] | None:
+        return _require_schema_size(value)
 
     @field_validator("diagram_type", mode="before")
     @classmethod
@@ -73,8 +106,10 @@ class DiagramLocalEditRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     current_schema: dict[str, Any] = Field(..., description="Full canvas JSON (excalidraw or tldraw)")
-    selected_node_ids: list[str] = Field(..., description="IDs of nodes to modify")
-    instruction: str = Field(..., description="User's modification instruction")
+    selected_node_ids: list[NodeId] = Field(
+        ..., max_length=MAX_NODE_ID_LIST_ITEMS, description="IDs of nodes to modify"
+    )
+    instruction: str = Field(..., max_length=MAX_INSTRUCTION_CHARS, description="User's modification instruction")
     canvas_library: CanvasLibrary = Field(..., description="Canvas type: excalidraw/tldraw")
     project_id: Optional[str] = Field(default=None, description="For context only, no snapshot created")
 
@@ -82,6 +117,11 @@ class DiagramLocalEditRequest(BaseModel):
     @classmethod
     def normalize_canvas_library(cls, value: Any) -> CanvasLibrary:
         return normalize_canvas_library_value(value)
+
+    @field_validator("current_schema")
+    @classmethod
+    def limit_current_schema_size(cls, value: dict[str, Any]) -> dict[str, Any]:
+        return _require_schema_size(value)
 
 
 class DiagramLocalEditResponse(BaseModel):

@@ -1,7 +1,9 @@
 """Bounded cleanup of generated private PNG caches."""
 
+from collections.abc import Iterable
 from pathlib import Path
 import re
+import shutil
 import time
 from uuid import UUID
 
@@ -40,4 +42,20 @@ def prune_old_previews(root: Path, *, max_age: float = 7*86400, limit: int = 64)
             directory.rmdir()
         except OSError:
             pass
+    return removed
+
+
+def remove_project_previews(root: Path, project_id: str, proposal_ids: Iterable[str]) -> int:
+    """Delete a deleted project's formal preview cache and its proposal previews.
+
+    Only server-generated UUID directory names directly under ``root`` are
+    touched, and symlinks are never followed.
+    """
+    targets = [root / 'formal' / project_id, *(root / proposal_id for proposal_id in proposal_ids)]
+    removed = 0
+    for directory in targets:
+        if not _uuid(directory.name) or directory.is_symlink() or not directory.is_dir():
+            continue
+        shutil.rmtree(directory, ignore_errors=True)
+        removed += 1
     return removed

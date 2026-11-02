@@ -25,7 +25,7 @@ from app.services.agent_connection_service import AgentActor, approve_connection
 from app.services.agent_contract import (AgentError, ApprovalRequest, ClaimRequest, ConnectionRequest,
     ContextRequest, ProposalRequest, RestoreRequest, envelope)
 from app.services.agent_proposal_service import (artifact_root, commit_proposal, create_proposal,
-    get_proposal, prepare_preview, render_candidate, restore_proposal)
+    get_proposal, prepare_preview, reject_proposal, render_bounded, restore_proposal)
 from app.services.document_service import digest, effective_constraints, node_index, owned_project
 from app.services.agent_artifact_service import prune_old_previews
 
@@ -158,7 +158,8 @@ async def document_preview(request: Request, project_id: str, version: int,
     if not output.is_file():
         temporary = directory / (str(uuid4()) + '.png')
         try:
-            await asyncio.wait_for(asyncio.to_thread(render_candidate, schema, temporary), timeout=45)
+            # Shares the proposal render slots; the temp file is removed on any failure.
+            await render_bounded(schema, temporary)
             temporary.replace(output)
         except asyncio.TimeoutError as exc:
             raise AgentError('render_failed', 'Preview timed out; the saved document is unchanged', 503) from exc
@@ -190,7 +191,9 @@ async def history(project_id: str, limit: int = 20, actor: AgentActor = Depends(
 
 
 @router.post('/projects/{project_id}/agent-proposals', status_code=status.HTTP_202_ACCEPTED)
-async def propose(project_id: str, body: ProposalRequest, actor: AgentActor = Depends(get_agent_actor), db: AsyncSession = Depends(get_db)):
+@limiter.limit('30/minute')
+async def propose(request: Request, project_id: str, body: ProposalRequest, actor: AgentActor = Depends(get_agent_actor),
+                  db: AsyncSession = Depends(get_db)):
     return envelope(proposal_view(await create_proposal(db, actor, project_id, body)))
 
 
@@ -228,11 +231,7 @@ async def commit(project_id: str, proposal_id: str, actor: AgentActor = Depends(
 
 @router.post('/projects/{project_id}/agent-proposals/{proposal_id}/reject')
 async def reject(project_id: str, proposal_id: str, actor: AgentActor = Depends(get_agent_actor), db: AsyncSession = Depends(get_db)):
-    proposal = await get_proposal(db, actor, project_id, proposal_id)
-    if proposal.status == 'committed':
-        raise AgentError('proposal_committed', 'A committed proposal cannot be rejected')
-    proposal.status = 'rejected'
-    return envelope(proposal_view(proposal))
+    return envelope(proposal_view(await reject_proposal(db, actor, project_id, proposal_id)))
 
 
 @router.post('/projects/{project_id}/restore-proposals', status_code=202)

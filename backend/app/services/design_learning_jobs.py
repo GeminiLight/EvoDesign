@@ -34,7 +34,16 @@ def _write(path: Path, value: Any) -> None:
 
 
 def private_memory_path(root: str, user_id: str) -> Path:
+    """Return the per-account design-memory directory (hashed, never the raw ID)."""
     return Path(root) / hashlib.sha256(user_id.encode()).hexdigest()[:24]
+
+
+def _persist_job(directory: Path, report_path: str, job: dict[str, Any], status: dict[str, Any]) -> None:
+    directory.mkdir(parents=True, exist_ok=True, mode=0o700)
+    # Copy inputs before the request's temporary artifacts can be removed.
+    _write(directory / "report.json", json.loads(Path(report_path).read_text()))
+    _write(directory / "job.json", job)
+    _write(directory / "status.json", status)
 
 
 def read_status(memory_path: str | Path, job_id: str) -> dict[str, Any] | None:
@@ -103,25 +112,23 @@ def _start(directory: Path, **kwargs: Any) -> None:
     task.add_done_callback(_TASKS.discard)
 
 
-def enqueue_learning(*, memory_path: str, embedding_model: str, report_path: str,
-                     request_id: str, diagram_type: str, before: dict, after: dict,
-                     model: Any, retriever: Any, learner: Any) -> dict[str, Any]:
+async def enqueue_learning(*, memory_path: str, embedding_model: str, report_path: str,
+                           request_id: str, diagram_type: str, before: dict, after: dict,
+                           model: Any, retriever: Any, learner: Any) -> dict[str, Any]:
+    """Durably queue post-delivery learning; the fsync'd writes run off the event loop."""
     from evo_diagram.agentic_system.quality_policy import verified_learning_gain
     if not verified_learning_gain(before, after):
         return {"status": "skipped", "saved_count": 0, "reason": "no_verified_gain"}
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", request_id):
         raise ValueError("Invalid internal request ID")
     directory = Path(memory_path) / ".learning" / request_id
-    directory.mkdir(parents=True, exist_ok=True, mode=0o700)
     status = {"status": "queued", "saved_count": 0, "job_id": request_id}
-    # Copy inputs before the request's temporary artifacts can be removed.
-    _write(directory / "report.json", json.loads(Path(report_path).read_text()))
-    _write(directory / "job.json", {
+    job = {
         "memory_path": str(Path(memory_path).resolve()), "embedding_model": embedding_model,
         "inputs": {"request_id": request_id, "diagram_type": diagram_type,
                    "before": before, "after": after},
-    })
-    _write(directory / "status.json", status)
+    }
+    await asyncio.to_thread(_persist_job, directory, report_path, job, status)
     _start(directory, model=model, retriever=retriever, learner=learner)
     return status
 
