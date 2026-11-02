@@ -3418,3 +3418,45 @@ def test_feedback_cycle_separates_incoming_and_outgoing_ports(chart_type):
     start_y = outgoing["y"] + outgoing["points"][0][1]
     end_y = incoming["y"] + incoming["points"][-1][1]
     assert abs(start_y - end_y) >= 12
+
+
+def test_excalidraw_group_fitter_keeps_quadrant_frames_and_only_grows_them():
+    manifest = {
+        "type": "excalidraw/clipboard",
+        "_meta": {"id_map": {"q_tl": "bg", "q_tr": "bg2", "n1": "child", "n2": "wide"}},
+        "elements": [
+            {"id": "bg", "type": "rectangle", "x": 0, "y": 0, "width": 400, "height": 400},
+            {"id": "bg2", "type": "rectangle", "x": 400, "y": 0, "width": 400, "height": 400},
+            {"id": "child", "type": "rectangle", "x": 100, "y": 100, "width": 80, "height": 40},
+            {"id": "wide", "type": "rectangle", "x": 500, "y": 100, "width": 340, "height": 40},
+        ],
+    }
+    structure = {"chart_type": "quadrant", "groups": [
+        {"id": "q_tl", "members": ["n1"]}, {"id": "q_tr", "members": ["n2"]}]}
+
+    elements = {e["id"]: e for e in fit_excalidraw_groups_to_children(manifest, structure, padding=10)["elements"]}
+
+    assert (elements["bg"]["x"], elements["bg"]["width"], elements["bg"]["height"]) == (0, 400, 400)
+    assert (elements["bg2"]["x"], elements["bg2"]["width"]) == (400, 450)
+
+
+def test_excalidraw_group_fitter_wraps_child_scopes_of_nested_diagrams():
+    manifest = {
+        "type": "excalidraw/clipboard",
+        "_meta": {"id_map": {"outer": "f_outer", "inner": "f_inner", "a": "n_a", "b": "n_b"}},
+        "elements": [
+            {"id": "f_outer", "type": "rectangle", "x": 300, "y": 0, "width": 200, "height": 120},
+            {"id": "f_inner", "type": "rectangle", "x": 0, "y": 0, "width": 100, "height": 100},
+            {"id": "n_a", "type": "rectangle", "x": 20, "y": 40, "width": 160, "height": 40},
+            {"id": "n_b", "type": "rectangle", "x": 320, "y": 40, "width": 80, "height": 40},
+        ],
+    }
+    structure = {"chart_type": "nested", "groups": [
+        {"id": "outer", "members": ["b"]},
+        {"id": "inner", "parent_group_id": "outer", "members": ["a"]}]}
+
+    elements = {e["id"]: e for e in fit_excalidraw_groups_to_children(manifest, structure, padding=10)["elements"]}
+    inner, outer = elements["f_inner"], elements["f_outer"]
+
+    assert inner["x"] + inner["width"] == 190
+    assert outer["x"] <= inner["x"] - 10 and outer["x"] + outer["width"] >= 500

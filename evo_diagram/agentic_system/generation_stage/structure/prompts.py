@@ -17,11 +17,14 @@ STRUCTURE_TASK_PROMPT = (
      - Lane (swimlane: parallel ownership columns) | Layer (architecture: horizontal band containment) | Axis (timeline/gantt: ordered progression)
      - Level (tree/orgchart/pyramid: hierarchical depth) | Cell (matrix/SWOT: uniform grid, NO arrows) | Set region (Venn: overlapping areas)
      - Center (mindmap: radial tree from root, NO lateral links) | Spine (fishbone)
+     - Band (layer_stack: stacked layers, NO arrows) | Scope (nested: groups inside groups, NO arrows) | Plane (quadrant: two axes, four regions, NO arrows)
+     - Depth (dependency_graph: dependent → prerequisite) | Ring (cycle: the last step returns to the first)
+     - Column (kanban: one per workflow state; user_journey: one per stage; story_map: one per activity, release bands across) | Environment (deployment: nested hosts/zones holding artifacts)
 
 (b) **Fetch the Type-Driven Budget** (from the TYPE BUDGET section in your stage knowledge below):
      - Which node slots does this chart_type render well, and how many (cells / levels / actors / layers)?
-     - Does this chart_type use groups? (matrix/mindmap/tree/pyramid/venn/swot → NO, emit `groups: []`)
-     - Does this chart_type use edges? (matrix/swot/venn/pyramid/funnel/gantt/timeline/most infographic → NO, emit `edges: []` regardless of what the source text says; mindmap/tree/orgchart → exactly n−1; architecture → only named flows)
+     - Does this chart_type use groups? (matrix/mindmap/tree/pyramid/venn/swot/cycle → NO, emit `groups: []`; layer_stack → one per layer; nested → one per scope, nested with `parent_group_id`; quadrant → exactly 4; kanban → one per state; user_journey → one per stage; story_map → one per release; deployment → one per environment, nested with `parent_group_id`)
+     - Does this chart_type use edges? (matrix/swot/venn/pyramid/funnel/gantt/timeline/layer_stack/nested/quadrant/kanban/story_map/most infographic → NO, emit `edges: []` regardless of what the source text says; mindmap/tree/orgchart → exactly n−1; cycle → one per step closing the loop, plus one per entry node; dependency_graph → one per stated dependency; user_journey → stages − 1, between consecutive feeling nodes; deployment → only named connections; architecture → only named flows)
      State the budget as a one-liner: `"type=X → nodes≤N, groups=G, edges=E"`. This is the contract for the rest of this turn.
 
 (c) **Extract source-grounded entities to fill the budget.** List candidate nodes

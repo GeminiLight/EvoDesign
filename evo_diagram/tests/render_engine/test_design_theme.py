@@ -133,3 +133,26 @@ def test_mindmap_links_are_straight_and_headless_from_facing_sides():
     themed = apply_design_theme(scene(), data, STYLE)
     arrow = {e['id']: e for e in themed['elements']}['arrow-1']
     assert arrow['endArrowhead'] is None and len(arrow['points']) == 2
+
+
+def test_quadrant_axis_names_are_plain_captions():
+    nodes = [dict(n) for n in NODES]
+    nodes[1]['class'] = 'axis'
+    themed = apply_design_theme(scene(), {**structure('quadrant'), 'nodes': nodes, 'edges': []}, STYLE)
+    elements = {e['id']: e for e in themed['elements']}
+    id_map = themed['_meta']['id_map']
+    axis, item = elements[id_map['check']], elements[id_map['shipped']]
+    assert axis['strokeColor'] == axis['backgroundColor'] == 'transparent'
+    assert item['strokeColor'] != 'transparent'
+
+
+def test_cycle_steps_are_linked_straight_and_keep_their_arrowheads():
+    themed = apply_design_theme(scene(), {**structure('cycle'), 'nodes': [dict(n) for n in NODES]}, STYLE)
+    arrow = {e['id']: e for e in themed['elements']}['arrow-1']
+    assert arrow['endArrowhead'] == 'triangle' and len(arrow['points']) == 2 and arrow['elbowed'] is False
+
+
+def test_journey_feelings_form_one_headless_line():
+    themed = apply_design_theme(scene(), {**structure('user_journey'), 'nodes': [dict(n) for n in NODES]}, STYLE)
+    arrow = {e['id']: e for e in themed['elements']}['arrow-1']
+    assert arrow['endArrowhead'] is None and len(arrow['points']) == 2

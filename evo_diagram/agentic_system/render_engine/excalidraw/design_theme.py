@@ -41,12 +41,15 @@ logger = logging.getLogger(__name__)
 LINK_TYPES = {
     "flowchart", "swimlane", "data_flow_diagram", "state_diagram", "sequence_diagram",
     "class_diagram", "er_diagram", "network_topology", "orgchart", "tree", "mindmap",
-    "concept_map", "fishbone",
+    "concept_map", "fishbone", "dependency_graph", "cycle", "deployment",
 }
-AREA_TYPES = {"gantt", "timeline", "funnel", "pyramid", "swot", "matrix", "infographic"}
+AREA_TYPES = {
+    "gantt", "timeline", "funnel", "pyramid", "swot", "matrix", "infographic",
+    "layer_stack", "nested", "quadrant", "user_journey", "kanban", "story_map",
+}
 THEMED_TYPES = LINK_TYPES | AREA_TYPES
 # Chen-notation ER links carry no direction, whatever heads the agents drew.
-UNDIRECTED_TYPES = {"er_diagram"}
+UNDIRECTED_TYPES = {"er_diagram", "user_journey"}
 _LINK_TINT = 0.55
 _LEAF_TINT = 0.75
 # Types whose hierarchy is the tree itself: the root leads and leaves recede.
@@ -112,6 +115,7 @@ def _tree_emphasis(nodes: list, edges: list, agent: Dict[str, str]) -> Dict[str,
 
 # Process types read along one happy path from start to end.
 MAIN_PATH_TYPES = {"flowchart", "swimlane"}
+CAPTION_TYPES = {"quadrant", "layer_stack"}
 _POSITIVE = ("yes", "是", "通过", "成功", "ok", "pass", "approve", "批准", "同意", "true")
 _SIDE_OPACITY = 60
 
@@ -235,6 +239,12 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
         host = by_eid.get(id_map.get(str(node["id"]), ""))
         if not host or host.get("type") not in {"rectangle", "ellipse", "diamond"}:
             continue
+        if chart_type in CAPTION_TYPES and node.get("class") == "axis":
+            # Axis names and stated rules caption the figure; they are not items in it.
+            host.update({"backgroundColor": "transparent", "strokeColor": "transparent", "roughness": 0,
+                         "customData": {**(host.get("customData") or {}), THEME_KEY: True}})
+            host_ink[host["id"]] = node_ink[str(node["id"])] = _TITLE_INK
+            continue
         style = styling.get(node["id"]) if isinstance(styling.get(node["id"]), dict) else {}
         fill = _hex(style.get("backgroundColor")) or _hex(host.get("backgroundColor"))
         tint = _AREA_TINT if chart_type in AREA_TYPES else _LINK_TINT
@@ -309,7 +319,12 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
         })
         arrow_ids.add(element.get("id"))
     # Mind-map links show belonging, not flow: no heads, side to side.
-    if chart_type == "mindmap" and aesthetic_enabled("MINDLINKS"):
+    # Mind-map branches, cycle steps and journey feelings link neighbours that
+    # face each other; an elbow between near-aligned sides degenerates into a
+    # stub, and a feeling curve drawn in steps no longer reads as a curve.
+    mindmap = chart_type == "mindmap" and aesthetic_enabled("MINDLINKS")
+    headless = mindmap or chart_type == "user_journey"
+    if headless or chart_type in {"cycle", "user_journey"}:
         for element in elements:
             meta = element.get("meta") or {}
             parent = by_eid.get(id_map.get(str(meta.get("source") or ""), ""))
@@ -322,7 +337,8 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
             element.update({
                 "x": ox, "y": oy, "points": [[x - ox, y - oy] for x, y in points],
                 "width": max(xs) - min(xs), "height": max(ys) - min(ys),
-                "startArrowhead": None, "endArrowhead": None, "elbowed": False,
+                "startArrowhead": None, "elbowed": False,
+                "endArrowhead": None if headless else element.get("endArrowhead"),
                 "roundness": None,
                 "startBinding": {"elementId": parent["id"], "focus": 0, "gap": 1},
                 "endBinding": {"elementId": child["id"], "focus": 0, "gap": 1},

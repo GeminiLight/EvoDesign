@@ -9,6 +9,7 @@ import logging
 from copy import deepcopy
 from typing import Any, Dict, List, Optional
 
+from evo_diagram.agentic_system.common.diagram_types import normalize_diagram_type
 from evo_diagram.agentic_system.common.spec_utils import unwrap_structure_instantiation
 from evo_diagram.agentic_system.common.semantic_ids import (
     BACKGROUND_SUFFIX,
@@ -19,6 +20,13 @@ from evo_diagram.agentic_system.common.semantic_ids import (
 from ..shared.normalization import normalize_member_ref
 
 logger = logging.getLogger(__name__)
+
+# Types whose frames are the figure itself (equal quadrants, columns and
+# bands, scopes with a title band): shrinking them to their children breaks
+# the geometry.
+_FIXED_FRAME_TYPES = {
+    "quadrant", "layer_stack", "nested", "deployment", "user_journey", "kanban", "story_map",
+}
 
 
 def _get_element_bounds(elem: Dict[str, Any]) -> Dict[str, float]:
@@ -90,16 +98,30 @@ def fit_excalidraw_groups_to_children(
 
     data = unwrap_structure_instantiation(structure_instantiation)
 
+    fixed_frames = normalize_diagram_type(str(data.get("chart_type") or "")) in _FIXED_FRAME_TYPES
     groups = data.get("groups", [])
     if not groups:
         logger.info("[ExcalidrawGroupFitter] No groups found in structure_instantiation")
         return manifest
 
-    for group in groups:
+    # Fit inner scopes first so each parent wraps its child frames as fitted.
+    parent_of = {g.get("id"): g.get("parent_group_id") for g in groups if g.get("parent_group_id")}
+    children_of: Dict[str, List[str]] = {}
+    for child, parent in parent_of.items():
+        children_of.setdefault(parent, []).append(child)
+
+    def depth(group_id: str) -> int:
+        seen = set()
+        while group_id in parent_of and group_id not in seen:
+            seen.add(group_id)
+            group_id = parent_of[group_id]
+        return len(seen)
+
+    for group in sorted(groups, key=lambda g: -depth(g.get("id", ""))):
         group_semantic_id = group.get("id", "")
         members = group.get("members", [])
 
-        if not members:
+        if not members and not children_of.get(group_semantic_id):
             logger.debug(f"[ExcalidrawGroupFitter] Group {group_semantic_id} has no members, skipping")
             continue
 
@@ -108,7 +130,7 @@ def fit_excalidraw_groups_to_children(
         if not bg_excalidraw_id:
             logger.debug(f"[ExcalidrawGroupFitter] Background ID not found for {group_semantic_id}")
             continue
-        uses_companion_frame = (
+        uses_companion_frame = fixed_frames or (
             id_map.get(companion_id(group_semantic_id, BACKGROUND_SUFFIX))
             == bg_excalidraw_id
         )
@@ -138,6 +160,11 @@ def fit_excalidraw_groups_to_children(
                     logger.debug(f"[ExcalidrawGroupFitter] Member {member_id} -> {member_excalidraw_id} not found or is text")
             else:
                 logger.debug(f"[ExcalidrawGroupFitter] Member {member_id} not in id_map")
+
+        for child_id in children_of.get(group_semantic_id, []):
+            child_frame = elem_by_eid.get(group_frame_render_id(id_map, child_id) or "")
+            if child_frame:
+                shapes_to_wrap.append(child_frame)
 
         if not shapes_to_wrap:
             logger.warning(f"[ExcalidrawGroupFitter] No valid shapes to wrap for group {group_semantic_id}")

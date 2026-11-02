@@ -3,7 +3,7 @@
 The diagram type and palette routing tables are loaded from dedicated
 Markdown digest files under ``system_prompt/``:
 
-- ``diagram_type_digest.md`` — concise index of all 22 supported families.
+- ``diagram_type_digest.md`` — concise index of all 31 supported families.
 - ``palette_digest.md`` — concise index of all supported palettes.
 
 The full palette card (mood, balance guidance, per-family voices) is
