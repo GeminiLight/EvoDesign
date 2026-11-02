@@ -200,6 +200,11 @@ test('browser review describes content only even when visual status is unverifie
   assert.equal(getGenerationReviewState(report), 'reviewed');
   assert.equal(hasCurrentVisualScores(report), false);
 });
+test('a reverted browser review retains the original plan', () => {
+  const report = { ...reviewedReport, browserEdition: true, qualityStatus: 'unverified', refinement: { status: 'reverted', fixesApplied: 0 } };
+  assert.equal(getGenerationReviewState(report), 'kept_original');
+  assert.equal(getGenerationReviewState({ ...report, qualityStatus: 'edited' }), 'edited');
+});
 test('later edits invalidate the displayed review and historical scores', () => {
   for (const browserEdition of [true, false]) {
     const report = { ...reviewedReport, browserEdition, qualityStatus: 'edited' };
