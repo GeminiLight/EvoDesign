@@ -19,8 +19,10 @@ their legacy URL aliases. After installing the renderer dependencies, run
 The script uses the renderer's existing Sharp package. Commit the source and
 generated files together; the app needs no image-rendering dependency at runtime.
 
-The wordmark uses Outfit glyph outlines under SIL OFL 1.1. Keep
-`Outfit-OFL.txt` with the assets. Vector wordmarks do not load a font or depend
+The wordmark uses Syne Bold 700 glyph outlines under SIL OFL 1.1. Keep
+`Syne-OFL.txt` with the assets. Evo uses blue-violet and Design uses teal;
+the dark-theme lockup uses lighter matching colors. HarfBuzz kerning is
+preserved in the outlined glyphs. Font source: https://github.com/google/fonts/tree/main/ofl/syne . Vector wordmarks do not load a font or depend
 on the viewer's installed fonts. Dark assets follow the application's explicit
 theme, including when it differs from the operating-system preference.
 
