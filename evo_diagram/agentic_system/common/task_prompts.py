@@ -117,10 +117,10 @@ _STRUCTURE_CONTRACT = """
        - `flowchart` BUT ONLY for edges OUT OF a `decision` node (the branch condition: "yes" / "no" / "approved" / "<5s"). Non-decision flowchart edges get NO label.
 
    - **FORBIDDEN**: emit `""` (empty string) or omit `label` entirely on every edge —
-       - `mindmap`, `tree`, `orgchart`, `pyramid`, `venn`, `swot`, `funnel`, `matrix`, `fishbone`, `gantt`, `timeline` — direction / containment / hierarchy / time axis already encodes the relation; a label adds zero info and clutters the canvas.
+       - `mindmap`, `tree`, `orgchart`, `pyramid`, `venn`, `swot`, `funnel`, `matrix`, `fishbone`, `gantt`, `timeline`, `layer_stack`, `nested`, `quadrant`, `cycle`, `kanban`, `story_map`, `user_journey` — direction / containment / hierarchy / time axis already encodes the relation; a label adds zero info and clutters the canvas.
 
    - **OPTIONAL** (default empty unless the label clears every quality bar below):
-       - `architecture` (protocol or flow name), `network` (protocol or flow name), `swimlane` (handoff description), `infographic` (descriptive callout), dependency / call / reference diagrams.
+       - `architecture` (protocol or flow name), `network` (protocol or flow name), `swimlane` (handoff description), `infographic` (descriptive callout), `dependency_graph` (only a qualifier such as "optional" or "dev only"), `deployment` (port or protocol), call / reference diagrams.
 
 7. **Quality bar for OPTIONAL labels** (apply to every label you emit on an OPTIONAL-class chart_type — if the label fails ANY of these, drop it):
    - **≤ 5 words.** "approves", "publishes JSON", "REST 200", "Real-time Inventory Update" are fine. "Liquidity & credit distribution to firms" is too long → drop.

@@ -33,7 +33,7 @@ def test_supported_diagram_type_registry_matches_prompt_assets():
     pattern_types = {path.stem for path in Path(TYPE_PATTERNS_DIR).glob("*.md")}
     supported_types = set(get_supported_diagram_types())
 
-    assert len(supported_types) == 22
+    assert len(supported_types) == 31
     assert supported_types == pattern_types
     assert supported_types == _digest_types()
 
@@ -46,6 +46,15 @@ def test_supported_diagram_type_registry_matches_prompt_assets():
         ("uml class diagram", "class_diagram"),
         ("swimlane diagram", "swimlane"),
         ("state machine", "state_diagram"),
+        ("flywheel", "cycle"),
+        ("dependency diagram", "dependency_graph"),
+        ("layered diagram", "layer_stack"),
+        ("nested diagram", "nested"),
+        ("quadrant chart", "quadrant"),
+        ("customer journey map", "user_journey"),
+        ("kanban board", "kanban"),
+        ("user story map", "story_map"),
+        ("deployment diagram", "deployment"),
     ],
 )
 def test_supported_diagram_type_aliases_canonicalize(raw, expected):
