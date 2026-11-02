@@ -188,6 +188,10 @@ See [contributing](CONTRIBUTING.md), [configuration](docs/guides/configuration.m
   <a href="https://github.com/one2piece2hello"><img src="docs/assets/contributors/one2piece2hello.svg" width="64" height="64" alt="novacore" title="novacore (@one2piece2hello)" /></a>
 </p>
 
+## Acknowledgments
+
+- [diagram-design](https://github.com/cathrynlavery/diagram-design) — thank you to [Cathryn Lavery](https://github.com/cathrynlavery) for sharing diagram design guidance and examples.
+
 ## Citation
 
 If you use EvoDesign or CanvasBench, please cite our **NeurIPS 2026** paper. GitHub's **Cite this repository** action is backed by `CITATION.cff`.

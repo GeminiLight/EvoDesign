@@ -188,6 +188,10 @@ python -m pip install -e ".[dev]"
   <a href="https://github.com/one2piece2hello"><img src="docs/assets/contributors/one2piece2hello.svg" width="64" height="64" alt="novacore" title="novacore (@one2piece2hello)" /></a>
 </p>
 
+## 致谢
+
+- [diagram-design](https://github.com/cathrynlavery/diagram-design) — 感谢 [Cathryn Lavery](https://github.com/cathrynlavery) 分享图表设计指南与示例。
+
 ## 引用
 
 如果使用了 EvoDesign 或 CanvasBench，请引用我们的 **NeurIPS 2026** 论文。GitHub 的 **Cite this repository** 功能读取仓库中的 `CITATION.cff`。
