@@ -57,6 +57,7 @@ from evo_diagram.core.experiment import (  # noqa: E402
     get_evodiagram_output_dir,
     get_experiment_id,
 )
+from scripts.research.build_test_subset import sample_diagram_type  # noqa: E402
 
 
 logging.basicConfig(level=logging.INFO, format="[run_round] %(message)s")
@@ -366,7 +367,7 @@ def main() -> None:
 
     for sample_idx, sample in enumerate(samples, start=1):
         data_id = sample["id"]
-        diagram_type = sample.get("diagram_type")
+        diagram_type = sample_diagram_type(sample)
         logger.info(
             "[%d/%d] %s (%s)", sample_idx, len(samples), data_id, diagram_type
         )

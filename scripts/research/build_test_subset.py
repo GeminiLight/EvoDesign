@@ -58,11 +58,15 @@ def _load_dataset(path: Path) -> List[Dict]:
     return data
 
 
+def sample_diagram_type(entry: Dict) -> str:
+    """Return the type label used to group and report research round samples."""
+    return entry.get("diagram_type") or entry.get("type") or "unknown"
+
+
 def _group_by_type(entries: List[Dict]) -> Dict[str, List[Dict]]:
     bucket: Dict[str, List[Dict]] = defaultdict(list)
     for e in entries:
-        t = e.get("diagram_type") or e.get("type") or "unknown"
-        bucket[t].append(e)
+        bucket[sample_diagram_type(e)].append(e)
     return bucket
 
 
@@ -140,7 +144,7 @@ def main() -> None:
     print()
     print("Selected ids:")
     for e in chosen:
-        print(f"  {e.get('diagram_type'):14s} {e.get('id')}")
+        print(f"  {sample_diagram_type(e):14s} {e.get('id')}")
 
 
 if __name__ == "__main__":

@@ -38,6 +38,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 from evo_diagram.core.experiment import get_experiment_id  # noqa: E402
 from evaluation.path_resolver import parse_method_paths  # noqa: E402
+from scripts.research.build_test_subset import sample_diagram_type  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -218,7 +219,8 @@ def aggregate(
 
     for s in samples:
         data_id = s["id"]
-        diagram_type = s.get("diagram_type", "?")
+        diagram_type = sample_diagram_type(s)
+        type_scores = by_type_method_avg[diagram_type]
         for method in method_defs:
             label = method.label
             ej = _load_eval_json(
@@ -266,7 +268,7 @@ def aggregate(
                     if sub_v is not None:
                         by_method_sub[label][dim][sub_name].append(sub_v)
             if scores.get("avg") is not None:
-                by_type_method_avg[diagram_type][label].append(scores["avg"])
+                type_scores[label].append(scores["avg"])
 
     # --- write CSV ---------------------------------------------------------
     round_dir.mkdir(parents=True, exist_ok=True)
@@ -336,7 +338,7 @@ def aggregate(
     lines.append("|---|---|" + "|".join(["---:"] * len(method_labels)) + "|---|")
     for s in samples:
         did = s["id"]
-        dt = s.get("diagram_type", "?")
+        dt = sample_diagram_type(s)
         cells = [avg_grid.get((did, label)) for label in method_labels]
         valid = [(label, x) for label, x in zip(method_labels, cells) if x is not None]
         best = max(valid, key=lambda kv: kv[1])[0] if valid else "—"
@@ -353,15 +355,11 @@ def aggregate(
     lines.append("")
     lines.append("| diagram_type | " + " | ".join(method_labels) + " |")
     lines.append("|---|" + "|".join(["---:"] * len(method_labels)) + "|")
-    seen_types: List[str] = []
-    for s in samples:
-        if s.get("diagram_type") not in seen_types:
-            seen_types.append(s.get("diagram_type"))
-    for t in seen_types:
+    for t, method_avgs in by_type_method_avg.items():
         def _fmt(x):
             return f"{x:.2f}" if isinstance(x, (int, float)) else "—"
 
-        cells = [_fmt(_mean(by_type_method_avg[t][label])) for label in method_labels]
+        cells = [_fmt(_mean(method_avgs[label])) for label in method_labels]
         lines.append(f"| {t} | " + " | ".join(cells) + " |")
 
     # ---- 4. Head-to-head deltas (evodiagram vs each baseline) -------------
