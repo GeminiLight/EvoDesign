@@ -396,4 +396,3 @@ def test_main_path_connectors_lead_and_side_ones_step_back():
     side = [a for a in arrows if a not in main]
     assert main and all(a['strokeWidth'] > 1.5 and a['opacity'] == 100 for a in main)
     assert side and all(a['opacity'] < 100 for a in side)
-
