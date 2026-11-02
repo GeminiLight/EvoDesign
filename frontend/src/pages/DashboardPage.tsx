@@ -39,6 +39,9 @@ type ProjectCard = {
 };
 
 const DASHBOARD_PROJECT_PAGE_SIZE = 60;
+// Favorites outside the first page are looked up eagerly so they can be pinned,
+// but never by walking an unbounded history (one stale id used to fetch all of it).
+const DASHBOARD_FAVORITE_LOOKUP_MAX_PAGES = 5;
 type ProjectLoadStatus = 'loading' | 'ready' | 'failed';
 type ProjectLoadMode = 'replace' | 'append';
 
@@ -163,6 +166,7 @@ export const DashboardPage = () => {
       const loadedPageItems: RecentDiagram[] = [];
       let nextOffset = offset;
       let lastPageLength = 0;
+      let pagesFetched = 0;
 
       while (true) {
         const page = await fetchRecentDiagrams(requestAuthIdentity ?? '', {
@@ -171,6 +175,7 @@ export const DashboardPage = () => {
         });
         loadedPageItems.push(...page);
         lastPageLength = page.length;
+        pagesFetched += 1;
         page.forEach((item) => {
           missingFavoriteIds.delete(getProjectKeyFromDiagram(item));
         });
@@ -180,6 +185,7 @@ export const DashboardPage = () => {
           || favoriteIdsForRequest.size === 0
           || missingFavoriteIds.size === 0
           || page.length < DASHBOARD_PROJECT_PAGE_SIZE
+          || pagesFetched >= DASHBOARD_FAVORITE_LOOKUP_MAX_PAGES
         ) {
           break;
         }
@@ -197,6 +203,15 @@ export const DashboardPage = () => {
       );
       setRecentFiles(nextFiles);
       setLoadStatus('ready');
+      if (lastPageLength < DASHBOARD_PROJECT_PAGE_SIZE && favoritesAuthIdentityRef.current === requestAuthIdentity) {
+        // The whole history is loaded, so favorites that are not in it point at
+        // deleted projects. Drop them so they stop triggering extra lookups.
+        const loadedProjectKeys = new Set(nextFiles.map(getProjectKeyFromDiagram));
+        setFavoriteProjectIds((current) => {
+          const kept = current.filter((id) => loadedProjectKeys.has(id));
+          return kept.length === current.length ? current : kept;
+        });
+      }
     } catch (error) {
       if (!isCurrentRequest()) return;
       console.warn('Dashboard projects are unavailable:', error);

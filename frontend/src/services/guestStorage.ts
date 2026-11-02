@@ -64,19 +64,125 @@ export class GuestProjectNotFoundError extends Error {
   }
 }
 
-function readGuestDiagrams(): GuestDiagram[] {
-  try {
-    const raw = localStorage.getItem(GUEST_DIAGRAMS_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
+export const GUEST_DIAGRAMS_BACKUP_KEY = `${GUEST_DIAGRAMS_KEY}_unreadable_backup`;
+export const MAX_GUEST_SNAPSHOTS_PER_PROJECT = 50;
+
+export class GuestStorageError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'GuestStorageError';
   }
 }
 
+// Set when stored guest data could not be parsed and could not be copied aside
+// either. Writes refuse to run while it is set so they never replace the only
+// copy of the user's projects.
+let unreadableGuestDataPending = false;
+
+function isQuotaExceededError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const { name, code } = error as { name?: unknown; code?: unknown };
+  return name === 'QuotaExceededError' || name === 'NS_ERROR_DOM_QUOTA_REACHED' || code === 22 || code === 1014;
+}
+
+function preserveUnreadableGuestDiagrams(raw: string): boolean {
+  try {
+    const existingBackup = localStorage.getItem(GUEST_DIAGRAMS_BACKUP_KEY);
+    if (existingBackup !== raw) {
+      const backupKey = existingBackup === null
+        ? GUEST_DIAGRAMS_BACKUP_KEY
+        : `${GUEST_DIAGRAMS_BACKUP_KEY}_${Date.now().toString(36)}`;
+      localStorage.setItem(backupKey, raw);
+    }
+    localStorage.removeItem(GUEST_DIAGRAMS_KEY);
+    unreadableGuestDataPending = false;
+    return true;
+  } catch (error) {
+    console.error('Unreadable guest projects could not be backed up:', error);
+    unreadableGuestDataPending = true;
+    return false;
+  }
+}
+
+function readGuestDiagrams(): GuestDiagram[] {
+  let raw: string | null;
+  try {
+    raw = localStorage.getItem(GUEST_DIAGRAMS_KEY);
+  } catch {
+    return [];
+  }
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (Array.isArray(parsed)) {
+      return parsed.filter((item): item is GuestDiagram => Boolean(item) && typeof item === 'object');
+    }
+  } catch {
+    // Fall through: keep the unreadable value instead of letting the next write replace it.
+  }
+  preserveUnreadableGuestDiagrams(raw);
+  return [];
+}
+
+function trimProjectSnapshots(project: GuestDiagram): void {
+  if (!Array.isArray(project.snapshots) || project.snapshots.length <= MAX_GUEST_SNAPSHOTS_PER_PROJECT) return;
+  const keep = new Set(project.snapshots.slice(-MAX_GUEST_SNAPSHOTS_PER_PROJECT));
+  const current = project.snapshots.find(snapshot => snapshot.snapshot_id === project.snapshot_id);
+  if (current && !keep.has(current)) {
+    // Always keep the version the project currently points at.
+    const oldestKept = project.snapshots.find(snapshot => keep.has(snapshot));
+    if (oldestKept) keep.delete(oldestKept);
+    keep.add(current);
+  }
+  project.snapshots = project.snapshots.filter(snapshot => keep.has(snapshot));
+}
+
+/** Removes the oldest non-current snapshots across all projects; returns how many were removed. */
+function pruneOldestSnapshots(diagrams: GuestDiagram[]): number {
+  const candidates: { project: GuestDiagram; snapshot: GuestSnapshot; time: number }[] = [];
+  for (const project of diagrams) {
+    for (const snapshot of project.snapshots ?? []) {
+      if (snapshot.snapshot_id === project.snapshot_id) continue;
+      const time = new Date(snapshot.timestamp).getTime();
+      candidates.push({ project, snapshot, time: Number.isFinite(time) ? time : 0 });
+    }
+  }
+  if (!candidates.length) return 0;
+  candidates.sort((a, b) => a.time - b.time);
+  const removed = candidates.slice(0, Math.max(1, Math.ceil(candidates.length / 4)));
+  const removedSet = new Set(removed.map(candidate => candidate.snapshot));
+  for (const project of diagrams) {
+    if (project.snapshots) project.snapshots = project.snapshots.filter(snapshot => !removedSet.has(snapshot));
+  }
+  return removed.length;
+}
+
 function writeGuestDiagrams(diagrams: GuestDiagram[]): void {
-  localStorage.setItem(GUEST_DIAGRAMS_KEY, JSON.stringify(diagrams));
+  if (unreadableGuestDataPending) {
+    const raw = localStorage.getItem(GUEST_DIAGRAMS_KEY);
+    if (raw && !preserveUnreadableGuestDiagrams(raw)) {
+      throw new GuestStorageError(
+        'Saved guest projects could not be read and could not be backed up, so nothing was overwritten. Free some browser storage and try again.',
+      );
+    }
+    unreadableGuestDataPending = false;
+  }
+  diagrams.forEach(trimProjectSnapshots);
+  for (;;) {
+    try {
+      localStorage.setItem(GUEST_DIAGRAMS_KEY, JSON.stringify(diagrams));
+      return;
+    } catch (error) {
+      if (!isQuotaExceededError(error)) throw error;
+      // Older versions are the cheapest thing to give up; projects and the
+      // version each one currently shows are never evicted here.
+      if (pruneOldestSnapshots(diagrams) === 0) {
+        throw new GuestStorageError(
+          'Browser storage is full, so this canvas could not be saved. Delete some guest projects or sign in to keep working.',
+        );
+      }
+    }
+  }
 }
 
 export function guestExportProjects(): GuestDiagram[] {

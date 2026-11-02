@@ -1,7 +1,7 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useCallback, useMemo, useState, type ReactNode } from 'react';
 import type { DiagramResponse } from '../../types/api';
 import { ExcalidrawCanvas } from '../ExcalidrawCanvas';
-import { TldrawCanvas } from '../TldrawCanvas/TldrawCanvas';
+import { CanvasFallback } from '../CanvasFallback';
 import type { CanvasMode } from './CanvasModeSelector';
 import type { Editor, TLEditorSnapshot } from '@tldraw/tldraw';
 import { CanvasToolbar } from './CanvasToolbar';
@@ -9,6 +9,9 @@ import type { CanvasViewState } from '../../utils/workspaceDocuments';
 import { inspectCanvasPayload, isExcalidrawPayload, isTldrawPayload, parseJsonObject } from '../../utils/app';
 import { CanvasStateOverlay, type CanvasStateOverlayKind } from './CanvasStateOverlay';
 import { CanvasRenderBoundary } from './CanvasRenderBoundary';
+
+// tldraw is large; only documents opened in tldraw mode should download it.
+const TldrawCanvas = lazy(() => import('../TldrawCanvas/TldrawCanvas'));
 
 export type CanvasBusyKind = 'generation' | 'local-edit' | 'save-recovery' | 'history-switch';
 
@@ -159,15 +162,17 @@ export const DiagramCanvasPanel = ({
                 disabled={Boolean(overlayKind) || !preview} report={!isGenerating ? preview?.generationReport : undefined}
                 onToggleFullscreen={onToggleFullscreen} />
               <div className="relative min-h-0 flex-1">
-            <TldrawCanvas
-              key={canvasResetKey}
-              snapshot={tldrawSnapshot}
-              initialView={initialView}
-              onEditorReady={handleTldrawReady}
-              onSnapshotChange={onTldrawSnapshotChange}
-              onSelectionChange={onSelectionChange}
-              onRenderError={handleRenderError}
-            />
+                <Suspense fallback={<CanvasFallback label="tldraw" />}>
+                  <TldrawCanvas
+                    key={canvasResetKey}
+                    snapshot={tldrawSnapshot}
+                    initialView={initialView}
+                    onEditorReady={handleTldrawReady}
+                    onSnapshotChange={onTldrawSnapshotChange}
+                    onSelectionChange={onSelectionChange}
+                    onRenderError={handleRenderError}
+                  />
+                </Suspense>
               </div>
             </div>
           ) : (

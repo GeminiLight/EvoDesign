@@ -25,7 +25,8 @@ const { getGenerationReviewState, hasCurrentVisualScores } = await load('src/uti
 const { clearConsumedProjectHandoff, getInitialStartupGenerationDraft, getInitialPreflightGeneration } = await load('src/services/workspaceRouteHandoff.ts');
 const { loadNodeIconPreference, saveNodeIconPreference, resolveNodeIcons } = await load('src/services/projectPreferences.ts');
 const { saveStartupGenerationDraft, loadStartupGenerationDraft, clearStartupGenerationDraft } = await load('src/services/startupGenerationDraft.ts');
-const { guestSaveDiagram, guestExportProjects, guestSyncProjectSchema, guestFetchRecentDiagrams, guestFetchProjectSnapshots, guestLoadDnaRules, guestSaveDnaRules } = await load('src/services/guestStorage.ts');
+const { guestSaveDiagram, guestExportProjects, guestSyncProjectSchema, guestFetchRecentDiagrams, guestFetchProjectSnapshots, guestLoadDnaRules, guestSaveDnaRules,
+  GUEST_DIAGRAMS_BACKUP_KEY, MAX_GUEST_SNAPSHOTS_PER_PROJECT } = await load('src/services/guestStorage.ts');
 const { fetchRecentDiagrams, fetchProjectDiagram, fetchProjectSnapshots, syncProjectSchema, saveDnaRules, loadDnaRules, createBlankCanvasProject } = await load('src/services/backendApi.ts');
 const { createBlankExcalidrawScene } = await load('src/utils/blankCanvas.ts');
 const { requestCanvasFullscreen } = await load('src/hooks/useCanvasFullscreen.ts');
@@ -72,6 +73,7 @@ test('new diagrams default to icons while explicit choices, scenes and legacy dr
 const { generationActivityStages, activityCanAutoClose } = await load('src/utils/generationActivity.ts');
 const { clampFloatingAnchor, defaultFloatingAnchor, floatingPanelPosition, isAnchorDrag } = await load('src/utils/floatingAnchor.ts');
 const { notifyAuthInvalidated } = await load('src/features/auth/authEvents.ts');
+const { normalizeAuthUser } = await load('src/features/auth/authUser.ts');
 const { shouldSubmitOnEnter, shouldSubmitOnModifiedEnter } = await load('src/utils/keyboard.ts');
 const { saveWorkspacePreflightDraft, loadWorkspacePreflightDraft } = await load('src/services/workspacePreflightDraft.ts');
 const { rememberDnaDraft, readDnaDraft, clearDnaDraft, isLatestDnaDraft, sameDnaPreferences } = await load('src/utils/dnaSyncDraft.ts');
@@ -442,13 +444,43 @@ test('unversioned overwrites fail closed before sending a request; versioned sav
   globalThis.fetch = async (_url, init) => {
     calls++;
     assert.equal(JSON.parse(init.body).version, 8);
-    return new Response(JSON.stringify({ version: 9 }));
+    return new Response(JSON.stringify({ project_id: 'p', snapshot_id: 's', latest_schema: { elements: [] }, edit_source: 'excalidraw', version: 9 }));
   };
   const request = { project_id: 'p', base_snapshot_id: 's', schema_patch: { elements: [] } };
   await assert.rejects(syncProjectSchema(request), error => error.status === 409);
   assert.equal(calls, 0);
   assert.equal((await syncProjectSchema({ ...request, version: 8 })).version, 9);
   assert.equal(calls, 1);
+});
+
+test('contract drift in project and save responses degrades safely instead of crashing', async () => {
+  globalThis.fetch = async () => new Response(JSON.stringify({ projects: [null, { title: 'no id' },
+    { project_id: 'p', title: null, latest_schema: 'oops', created_at: null, version: '3', canvas_engine: 'excalidraw' }] }));
+  const projects = await fetchRecentDiagrams();
+  assert.equal(projects.length, 1);
+  assert.equal(projects[0].project_version, undefined);
+  assert.equal(projects[0].excalidraw_payload, null);
+  assert.ok(projects[0].created_at);
+  globalThis.fetch = async () => new Response('null');
+  assert.deepEqual(await fetchRecentDiagrams(), []);
+  await assert.rejects(fetchProjectSnapshots({ projectId: 'p' }), error => error.status === 502);
+  globalThis.fetch = async () => new Response(JSON.stringify({ project_version: 2, snapshots: [{ snapshot_id: 's' }, 'bad'] }));
+  const history = await fetchProjectSnapshots({ projectId: 'p' });
+  assert.equal(history.snapshots.length, 1);
+  assert.equal(history.total, 1);
+  globalThis.fetch = async () => new Response(JSON.stringify({ version: 9 }));
+  await assert.rejects(syncProjectSchema({ project_id: 'p', base_snapshot_id: 's', schema_patch: { elements: [] }, version: 8 }),
+    error => error.status === 502, 'a save response without a new baseline fails the save');
+});
+
+test('auth users without email or with null fields still restore a usable session', () => {
+  assert.deepEqual(normalizeAuthUser({ user_id: 'u1', email: null, username: null, avatar_url: null, auth_provider: 'github' }),
+    { user_id: 'u1', email: '', username: 'u1', avatar_url: undefined, auth_provider: 'github' });
+  assert.equal(normalizeAuthUser({ user_id: 'u2', email: 'ada@example.com' }).username, 'ada');
+  assert.equal(normalizeAuthUser({ user_id: 'u2', email: 'ada@example.com' }).auth_provider, 'email');
+  assert.equal(normalizeAuthUser({ email: 'no-id@example.com' }), null);
+  assert.equal(normalizeAuthUser(null), null);
+  assert.equal(normalizeAuthUser('user'), null);
 });
 
 test('guest storage keeps earlier projects and snapshots, including generation reports', () => {
@@ -477,6 +509,60 @@ test('guest storage keeps earlier projects and snapshots, including generation r
     'a manual snapshot must not borrow a different version’s report');
 });
 
+
+test('unreadable guest storage is backed up before the next save instead of being overwritten', () => {
+  const original = values.get('evodiagram_guest_diagrams');
+  values.set('evodiagram_guest_diagrams', '{"broken"');
+  try {
+    const saved = guestSaveDiagram({ id: 'after-corruption', prompt: 'Test', diagramType: 'flow', metadata: {} },
+      { projectId: 'guest_after_corruption', snapshotId: 'snap-after', excalidrawPayload: JSON.stringify({ elements: [node('a')] }) });
+    assert.equal(values.get(GUEST_DIAGRAMS_BACKUP_KEY), '{"broken"');
+    assert.deepEqual(guestExportProjects().map(project => project.project_id), [saved.projectId]);
+  } finally {
+    values.delete(GUEST_DIAGRAMS_BACKUP_KEY);
+    if (original === undefined) values.delete('evodiagram_guest_diagrams'); else values.set('evodiagram_guest_diagrams', original);
+  }
+});
+
+test('guest snapshots are capped per project and quota errors prune old versions before failing clearly', () => {
+  const original = values.get('evodiagram_guest_diagrams');
+  const originalSetItem = globalThis.localStorage.setItem;
+  values.delete('evodiagram_guest_diagrams');
+  try {
+    const saved = guestSaveDiagram({ id: 'capped', prompt: 'Test', diagramType: 'flow', metadata: {} },
+      { projectId: 'guest_capped', snapshotId: 'snap-0', excalidrawPayload: JSON.stringify({ elements: [node('a')] }) });
+    for (let i = 0; i < MAX_GUEST_SNAPSHOTS_PER_PROJECT + 5; i++) {
+      guestSyncProjectSchema({ project_id: saved.projectId, create_snapshot: true, schema_patch: { elements: [node('v-' + i)] } });
+    }
+    const snapshots = guestFetchProjectSnapshots(saved.projectId).snapshots;
+    assert.equal(snapshots.length, MAX_GUEST_SNAPSHOTS_PER_PROJECT);
+    const current = guestExportProjects()[0].snapshot_id;
+    assert.equal(snapshots.at(-1).snapshot_id, current);
+
+    const quota = () => Object.assign(new Error('quota'), { name: 'QuotaExceededError' });
+    let failures = 2;
+    globalThis.localStorage.setItem = (key, value) => {
+      if (key === 'evodiagram_guest_diagrams' && failures-- > 0) throw quota();
+      values.set(key, value);
+    };
+    guestSyncProjectSchema({ project_id: saved.projectId, create_snapshot: true, schema_patch: { elements: [node('after-quota')] } });
+    const pruned = guestFetchProjectSnapshots(saved.projectId).snapshots;
+    assert.ok(pruned.length < MAX_GUEST_SNAPSHOTS_PER_PROJECT, 'old versions were pruned to make room');
+    assert.equal(pruned.at(-1).snapshot_id, guestExportProjects()[0].snapshot_id, 'the current version survives pruning');
+
+    globalThis.localStorage.setItem = (key, value) => {
+      if (key === 'evodiagram_guest_diagrams') throw quota();
+      values.set(key, value);
+    };
+    const before = values.get('evodiagram_guest_diagrams');
+    assert.throws(() => guestSyncProjectSchema({ project_id: saved.projectId, create_snapshot: true, schema_patch: { elements: [node('full')] } }),
+      error => error.name === 'GuestStorageError' && /storage is full/i.test(error.message));
+    assert.equal(values.get('evodiagram_guest_diagrams'), before, 'a failed write leaves stored projects untouched');
+  } finally {
+    globalThis.localStorage.setItem = originalSetItem;
+    if (original === undefined) values.delete('evodiagram_guest_diagrams'); else values.set('evodiagram_guest_diagrams', original);
+  }
+});
 
 test('DNA saves serialize replacements and retain the originating identity across login changes', async () => {
   const calls = [];

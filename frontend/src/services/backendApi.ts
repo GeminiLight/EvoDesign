@@ -66,8 +66,24 @@ const BACKEND_DIAGRAM_TYPE_ALIASES: Record<string, DiagramType> = {
   network_topology: 'network',
 };
 
-const normalizeBackendDiagramType = (value: string | null | undefined): DiagramType => {
-  if (!value) return 'automated';
+// Responses are typed by the generated contract but not validated at runtime.
+// These guards keep contract drift (null fields, missing ids) from crashing the
+// project list, session restore or the editor's save loop.
+const isRecord = (value: unknown): value is Record<string, unknown> => (
+  Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+);
+const recordOrNull = (value: unknown): Record<string, unknown> | null => (isRecord(value) ? value : null);
+const stringOr = <T>(value: unknown, fallback: T): string | T => (typeof value === 'string' ? value : fallback);
+const numberOrUndefined = (value: unknown): number | undefined => (
+  typeof value === 'number' && Number.isFinite(value) ? value : undefined
+);
+const timestampOr = (value: unknown, fallback: string): string => (
+  normalizeBackendTimestamp(typeof value === 'string' && value ? value : fallback)
+);
+const malformedResponse = (what: string) => new ApiError(`Malformed ${what} response from the server`, 502);
+
+const normalizeBackendDiagramType = (value: unknown): DiagramType => {
+  if (typeof value !== 'string' || !value) return 'automated';
   const normalized = value.trim().toLowerCase().replace(/[-\s]+/g, '_');
   return BACKEND_DIAGRAM_TYPE_ALIASES[normalized] ?? 'automated';
 };
@@ -142,32 +158,34 @@ export async function fetchRecentDiagrams(
     throw new ApiError(detail, res.status, detail);
   }
 
-  const data = await res.json() as BackendProjectListResponse;
-  const projects: BackendProjectListItem[] = Array.isArray(data.projects) ? data.projects : [];
+  const data = await res.json() as BackendProjectListResponse | null;
+  const projects: BackendProjectListItem[] = Array.isArray(data?.projects)
+    ? data.projects.filter((p): p is BackendProjectListItem => isRecord(p) && typeof p.project_id === 'string' && p.project_id !== '')
+    : [];
 
   return projects.map((p) => {
     const projectId = p.project_id ?? '';
-    const latestSnapshotId = p.latest_snapshot_id ?? null;
-    const latestSchema = p.latest_schema ?? null;
+    const latestSnapshotId = stringOr(p.latest_snapshot_id, null);
+    const latestSchema = recordOrNull(p.latest_schema);
     const canvasLibrary = normalizeCanvasLibraryOrNull(p.canvas_library ?? p.canvas_engine);
     const fallbackTimestamp = new Date().toISOString();
-    const createdAt = normalizeBackendTimestamp(p.created_at || fallbackTimestamp);
-    const updatedAt = normalizeBackendTimestamp(p.updated_at || createdAt);
+    const createdAt = timestampOr(p.created_at, fallbackTimestamp);
+    const updatedAt = timestampOr(p.updated_at, createdAt);
 
     return {
       id: projectId,
       request_id: projectId,
       diagram_id: latestSnapshotId || projectId,
       project_id: projectId,
-      snapshot_id: p.latest_snapshot_id || null,
-      project_version: p.version,
-      prompt: p.source_text || p.title || '',
+      snapshot_id: latestSnapshotId || null,
+      project_version: numberOrUndefined(p.version),
+      prompt: stringOr(p.source_text, '') || stringOr(p.title, ''),
       diagram_type: normalizeBackendDiagramType(p.diagram_type),
-      summary: p.title,
+      summary: stringOr(p.title, null),
       excalidraw_payload: canvasLibrary === 'excalidraw' ? latestSchema : null,
       tldraw_snapshot: canvasLibrary === 'tldraw' ? latestSchema : null,
       canvas_library: canvasLibrary,
-      thumbnail_url: p.thumbnail_url || null,
+      thumbnail_url: stringOr(p.thumbnail_url, null) || null,
       created_at: createdAt,
       updated_at: updatedAt,
       snapshot_count: typeof p.snapshot_count === 'number' ? p.snapshot_count : 0,
@@ -192,23 +210,26 @@ export async function fetchProjectDiagram(projectId: string): Promise<RecentDiag
     const detail = await readResponseDetail(response, 'Project could not be loaded');
     throw new ApiError(detail, response.status, detail);
   }
-  const project = await response.json() as BackendProjectDetailResponse;
+  const project = await response.json() as BackendProjectDetailResponse | null;
+  if (!isRecord(project)) throw malformedResponse('project');
+  const currentSnapshotId = stringOr(project.current_snapshot_id, null);
   const snapshot = history.snapshots[0];
-  const currentSnapshot = snapshot?.snapshot_id === project.current_snapshot_id ? snapshot : undefined;
+  const currentSnapshot = currentSnapshotId && snapshot?.snapshot_id === currentSnapshotId ? snapshot : undefined;
   const canvas = normalizeCanvasLibraryOrNull(project.canvas_library ?? project.canvas_engine);
-  const schema = project.latest_schema ?? (canvas === 'excalidraw' ? createBlankExcalidrawScene() : null);
+  const schema = recordOrNull(project.latest_schema) ?? (canvas === 'excalidraw' ? createBlankExcalidrawScene() : null);
+  const createdAt = timestampOr(project.created_at, new Date().toISOString());
   return {
     id: projectId, project_id: projectId, request_id: projectId,
-    diagram_id: project.current_snapshot_id ?? projectId, snapshot_id: project.current_snapshot_id ?? undefined,
-    project_version: project.version,
+    diagram_id: currentSnapshotId ?? projectId, snapshot_id: currentSnapshotId ?? undefined,
+    project_version: numberOrUndefined(project.version),
     generation_report: currentSnapshot?.generation_report ?? parseGenerationReport(currentSnapshot?.metrics_scores),
-    prompt: project.source_text ?? '', summary: project.title,
+    prompt: stringOr(project.source_text, ''), summary: stringOr(project.title, null),
     diagram_type: normalizeBackendDiagramType(project.diagram_type), canvas_library: canvas,
     excalidraw_payload: canvas === 'excalidraw' ? schema : null,
     tldraw_snapshot: canvas === 'tldraw' ? schema : null,
-    thumbnail_url: project.thumbnail_url,
-    created_at: normalizeBackendTimestamp(project.created_at),
-    updated_at: normalizeBackendTimestamp(project.updated_at), snapshot_count: history.total,
+    thumbnail_url: stringOr(project.thumbnail_url, null),
+    created_at: createdAt,
+    updated_at: timestampOr(project.updated_at, createdAt), snapshot_count: history.total,
   };
 }
 
@@ -358,8 +379,20 @@ export async function fetchProjectSnapshots(params: {
     throw new ApiError(detail, res.status, detail);
   }
 
-  const data = await res.json() as ProjectSnapshotResponse;
-  return { ...data, snapshots: data.snapshots.map(snapshot => ({ ...snapshot, timestamp: normalizeBackendTimestamp(snapshot.timestamp), project_version: data.project_version })) };
+  const data = await res.json() as ProjectSnapshotResponse | null;
+  if (!isRecord(data)) throw malformedResponse('project history');
+  const snapshots = Array.isArray(data.snapshots)
+    ? data.snapshots.filter(snapshot => isRecord(snapshot) && typeof snapshot.snapshot_id === 'string')
+    : [];
+  return {
+    ...data,
+    snapshots: snapshots.map(snapshot => ({
+      ...snapshot,
+      timestamp: timestampOr(snapshot.timestamp, new Date(0).toISOString()),
+      project_version: data.project_version,
+    })),
+    total: numberOrUndefined(data.total) ?? snapshots.length,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -598,5 +631,16 @@ export async function syncProjectSchema(
     throw new ApiError(detail, res.status, detail);
   }
 
-  return res.json();
+  const result = await res.json() as SchemaSyncResult | null;
+  // The save loop adopts snapshot_id, version and latest_schema as its new
+  // baseline; a response without them must fail the save, not corrupt it.
+  if (
+    !isRecord(result)
+    || typeof result.snapshot_id !== 'string'
+    || numberOrUndefined(result.version) === undefined
+    || !isRecord(result.latest_schema)
+  ) {
+    throw malformedResponse('save');
+  }
+  return result;
 }

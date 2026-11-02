@@ -1,4 +1,4 @@
-import { type MutableRefObject, type Dispatch, type SetStateAction, useState, useCallback, useRef } from 'react';
+import { type MutableRefObject, type Dispatch, type SetStateAction, useState, useCallback, useEffect, useRef } from 'react';
 import type { DiagramRequest, DiagramResponse, DiagramType } from '../types/api';
 import type { GenerationProgress, HistoryViewMode, RecentDiagram } from '../types/app';
 import type { CanvasMode } from '../components/DiagramCanvas/CanvasModeSelector';
@@ -139,6 +139,19 @@ export function useGenerateDiagram(deps: GenerateDiagramDeps) {
   const generationAbortControllerRef = useRef<AbortController | null>(null);
   const lastGenerationCancelledRef = useRef(false);
 
+  // Generation is deliberately not aborted on unmount: the server keeps working
+  // either way, and a guest result is still written to local storage when the
+  // stream finishes, so the diagram shows up in Projects later. Only the UI
+  // feedback is dropped, so toasts never appear on an unrelated page.
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+  const notify = useCallback((message: string, type?: 'success' | 'error' | 'info') => {
+    if (mountedRef.current) showToast(message, type);
+  }, [showToast]);
+
   const cancelGeneration = useCallback(() => {
     generationAbortControllerRef.current?.abort();
   }, []);
@@ -267,7 +280,7 @@ export function useGenerateDiagram(deps: GenerateDiagramDeps) {
               },
             } : prev);
             if (event.status === 'completed' && event.fixes_applied > 0) {
-              showToast(
+              notify(
                 t(BROWSER_MODE ? 'browser.reviewChanges' : 'workspace.autoFixedIssues').replace('{count}', String(event.fixes_applied)),
                 'success',
               );
@@ -307,7 +320,7 @@ export function useGenerateDiagram(deps: GenerateDiagramDeps) {
       if (response.proposalId) {
         const message = t('agent.generatedCandidate');
         setError?.(message);
-        showToast(message, 'info');
+        notify(message, 'info');
         // A candidate must never replace or become the saved canvas baseline.
         return false;
       }
@@ -315,7 +328,7 @@ export function useGenerateDiagram(deps: GenerateDiagramDeps) {
       if (unusableCanvasWarning) {
         const payloadMessage = getCanvasPayloadWarningMessage(unusableCanvasWarning, t);
         setError?.(payloadMessage);
-        showToast(payloadMessage, 'error');
+        notify(payloadMessage, 'error');
         if (!isAddingToProject) {
           setRecentDiagrams((prev) => prev.filter((d) => d.diagram_id !== placeholderDiagramId));
           setPreview((prev) =>
@@ -342,7 +355,7 @@ export function useGenerateDiagram(deps: GenerateDiagramDeps) {
         } catch (saveErr) {
           guestPersistenceOk = false;
           console.error('Failed to save guest diagram locally:', saveErr);
-          showToast(t('workspace.guestSaveFailed'), 'error');
+          notify(t('workspace.guestSaveFailed'), 'error');
         }
       }
 
@@ -361,7 +374,7 @@ export function useGenerateDiagram(deps: GenerateDiagramDeps) {
       if (effectiveResponse.persistError) {
         const persistMessage = t('workspace.generationPersistFailed');
         setError?.(persistMessage);
-        showToast(persistMessage, 'error');
+        notify(persistMessage, 'error');
       }
       // Update the placeholder card with real thumbnail if available
       if (effectiveResponse.thumbnailUrl) {
@@ -394,7 +407,7 @@ export function useGenerateDiagram(deps: GenerateDiagramDeps) {
           return false;
         }
         console.warn('Failed to refresh sidebar after generation:', refreshErr);
-        showToast(t('workspace.sidebarRefreshAfterGenerationFailed'), 'info');
+        notify(t('workspace.sidebarRefreshAfterGenerationFailed'), 'info');
       }
 
       return true;
@@ -409,10 +422,10 @@ export function useGenerateDiagram(deps: GenerateDiagramDeps) {
       lastGenerationCancelledRef.current = wasCancelled;
       const errorMessage = getGenerationErrorMessage(err, t);
       if (wasCancelled) {
-        showToast(errorMessage, 'info');
+        notify(errorMessage, 'info');
       } else {
         setError?.(errorMessage);
-        showToast(errorMessage, 'error');
+        notify(errorMessage, 'error');
       }
       if (!isAddingToProject) {
         setRecentDiagrams((prev) => prev.filter((d) => d.diagram_id !== placeholderDiagramId));
@@ -438,7 +451,7 @@ export function useGenerateDiagram(deps: GenerateDiagramDeps) {
     setPreview, setRecentDiagrams, setHistoryViewMode,
     latestSnapshotRef, activeEditingSnapshotIdRef, lastSyncedDocSignatureRef,
     setRequest, setCanvasMode, setError,
-    showToast, t, userId, authIdentity, projectName, getRunGuard,
+    notify, t, userId, authIdentity, projectName, getRunGuard,
   ]);
 
   return {
