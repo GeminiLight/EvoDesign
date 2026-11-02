@@ -1,6 +1,6 @@
 # EvoDesign
 
-> An open-source AI workspace for editable diagram generation, refinement and personal design memory.
+> An open-source, personalized diagram workspace shared with your Agent: editable AI diagram generation and refinement, Agent collaboration through a CLI and skill, and personal design memory. Built on the NeurIPS 2026 paper "EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution".
 
 EvoDesign runs locally using the user's own vision-capable model endpoint. It includes a React canvas workspace, FastAPI backend, agentic generation engine and rendering service. Users can generate diagrams, refine them, edit canvas objects, request local edits, save/reopen projects and export results. Icons are optional. Personal DNA rules cover structure, style and layout; a portable example and import/export utility are provided.
 

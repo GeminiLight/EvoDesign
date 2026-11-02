@@ -11,8 +11,8 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const write = (file, text) => fs.writeFileSync(path.join(root, file), text);
 const paper = JSON.parse(read('research/paper.json'));
 const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const productTitle = 'EvoDesign — Turn ideas into editable diagrams';
-const productDescription = 'Create editable diagrams in your browser with the shared demo or your own model. Explore the open-source research pipeline and personal design memory.';
+const productTitle = 'EvoDesign — Personalized diagram workspace, together with your Agent';
+const productDescription = 'An open-source, personalized diagram workspace you share with your Agent. Edit every element, collaborate through the CLI, and carry your design preferences forward. Try it in the browser without an API key.';
 const fullName = author => `${author.given} ${author.family}`;
 const bibtex = `@inproceedings{wang2026evodesign,
   title = {${paper.title.replace('EvoDesign', '{EvoDesign}')}},

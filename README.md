@@ -8,7 +8,7 @@
 
 # EvoDesign
 
-### Turn ideas into diagrams you can keep editing.
+### Personalized diagram workspace, together with your Agent.
 
 **English** · [简体中文](README.zh-CN.md)
 
@@ -28,18 +28,21 @@
 
 </div>
 
-EvoDesign is an open-source workspace for creating editable diagrams with AI. Describe an architecture, sequence or process, generate a first draft, then refine and edit it on the canvas. Save your work, reopen it later, and export it when it is ready. Personal design memory helps you carry your preferences into the next diagram.
+EvoDesign is an open-source diagram workspace that you share with your Agent. Generate an architecture, sequence or process diagram, edit every element on the canvas, and let your Agent continue the work through the EvoDesign CLI. Your structure, style and layout preferences come with you to the next diagram.
 
-Try the [browser edition](https://evodesign.vercel.app/) with the shared GLM-5.3-Flash demo or your own model, or run the full edition locally with your own model endpoint. The project builds on our research in agentic diagram creation and evolving design expertise; the [paper](https://arxiv.org/abs/2604.09568) explains the method and evaluation.
+Try the [browser edition](https://evodesign.vercel.app/) with the shared GLM-5.3-Flash demo or your own model, or run the full edition locally with your own model endpoint. EvoDesign is built on our NeurIPS 2026 paper, [**EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution**](https://arxiv.org/abs/2604.09568), which explains the method and evaluation.
 
-[Try it online](#try-it-online) · [Run locally](#run-locally) · [How it works](#how-evodesign-works) · [Repository map](#repository-map)
+[Why EvoDesign](#why-evodesign) · [Try it online](#try-it-online) · [Run locally](#run-locally) · [How it works](#how-evodesign-works) · [Repository map](#repository-map)
 
-## From an idea to a finished diagram
+## Why EvoDesign
 
-1. **Describe what you need.** Start with your own content or the included quick-start example. Choose whether to include icons.
-2. **Review and refine.** Automatic checks and visual feedback guide focused improvements to the draft.
-3. **Make the final edits.** Move and restyle canvas elements, or ask for a local change. The result stays editable.
-4. **Save, export and reuse.** Reopen projects and manage reusable style, structure and layout preferences in Your DNA.
+**Every element stays editable.** Not an image, not code. Every node, edge and group is a canvas object you can move, restyle or regroup, by hand or with a one-line request. Save it, reopen it, and export it when it is ready.
+
+**Edit together with your Agent.** Your terminal Agent, such as Claude Code or Codex, reads your paper or code and proposes a diagram through the EvoDesign CLI. Review the real render in the browser, accept it and keep editing. Next time, your Agent builds on your saved edits instead of overwriting them. See [Work with your existing Agent](#work-with-your-existing-agent).
+
+**Learns how you design.** Keep your structure, style and layout preferences as a personal Design DNA. Review, pin and export the rules, and they shape your next diagram; your Agent works with the same DNA. Underneath, EvoDesign checks each render for overlaps, crossings and text overflow, repairs only what is broken, and turns fixes that keep working into design knowledge for future diagrams.
+
+<sub>Agent collaboration and design expertise evolution run in the full local edition. The browser edition keeps your DNA preferences locally and includes them in requests.</sub>
 
 ## What is included
 
