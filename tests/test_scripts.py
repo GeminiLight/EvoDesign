@@ -294,6 +294,34 @@ def test_run_evodiagram_rejects_unpaired_range(tmp_path):
     assert args == []
 
 
+def test_research_subset_reports_types_and_preserves_selected_records(tmp_path):
+    records = [
+        {"id": "canonical", "diagram_type": "flowchart", "type": "other"},
+        {"id": "alias", "type": "sequence"},
+        {"id": "untyped"},
+    ]
+    source = tmp_path / "data.json"
+    output = tmp_path / "samples.json"
+    source.write_text(json.dumps(records), encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            sys.executable, "-m", "scripts.research.build_test_subset",
+            "--data", str(source), "--out", str(output),
+            "--types", "flowchart", "sequence", "unknown",
+            "--types-per-round", "3", "--samples-per-type", "1",
+        ],
+        cwd=REPO_ROOT, capture_output=True, text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert json.loads(output.read_text(encoding="utf-8")) == records
+    summary = result.stdout.split("Selected ids:\n", 1)[1]
+    assert [line.split() for line in summary.splitlines()] == [
+        ["flowchart", "canonical"], ["sequence", "alias"], ["unknown", "untyped"],
+    ]
+
+
 def test_research_run_round_uses_package_mode_evodiagram_entrypoint(monkeypatch, tmp_path):
     from scripts.research import run_round
 
@@ -428,7 +456,7 @@ def test_research_aggregate_reads_experiments_scores_and_dynamic_round_config(mo
     model_segment = "provider_model_tag"
     samples = [
         {"id": "sample-a", "diagram_type": "flow"},
-        {"id": "sample-b", "diagram_type": "flow"},
+        {"id": "sample-b", "type": "sequence"},
     ]
     _write_json(samples_path, samples)
     _write_json(
@@ -498,6 +526,9 @@ def test_research_aggregate_reads_experiments_scores_and_dynamic_round_config(mo
     breakdown = (round_dir / "breakdown.md").read_text(encoding="utf-8")
 
     assert "sample-a,flow,evodiagram,5,4,3,4" in scores_csv
+    assert "sample-b,sequence,evodiagram,5,4,3,4" in scores_csv
+    assert "| sequence | `sample-b` | 4.00 | 3.00 | 2.00 | evodiagram |" in breakdown
+    assert "| sequence | 4.00 | 3.00 | 2.00 |" in breakdown
     assert "sample-a,flow,evodiagram,1,1,1,1" not in scores_csv
     assert "# round_custom — 2 samples" in breakdown
     assert "- **Experiment**: `exp-42`" in breakdown
