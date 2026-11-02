@@ -128,7 +128,7 @@ evodesign document get --profile paper --json
 
 ```sh
 python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json
-# 图标默认关闭，需要时启用：
+# 研究 CLI 按需启用图标（网页新建图表默认开启）：
 python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json --use-icons
 ```
 

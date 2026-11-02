@@ -2,6 +2,7 @@ import { PLAN_PROMPT, EDIT_PROMPT } from '../../../../shared/diagram-prompts.mjs
 import type { DiagramRequest, DiagramResponse, DiagramLocalEditRequest, DiagramLocalEditResponse, StreamStage } from '../../types/api';
 import type { StreamCallbacks, StreamOptions } from '../apiDiagramService';
 import { nodeIconNames } from '../../utils/nodeIcons';
+import { resolveNodeIcons } from '../projectPreferences';
 import { callBrowserModel, loadModelConfig, parseModelJson } from './modelConfig';
 import { normalizePlan, preservesContent, type DiagramPlan } from './diagramPlan';
 import { preserveLockedElements, repairSceneBindings, reflowEditedText, renderPlan } from './scene';
@@ -33,7 +34,7 @@ export async function generateBrowserDiagram(request: DiagramRequest, requiremen
   let current: Record<string, unknown> | null = null;
   if (request.metadata?.currentSchema) { try { current = JSON.parse(request.metadata.currentSchema); } catch { /* Initial creation has no current scene. */ } }
   const context = Array.isArray(current?.elements) ? current.elements.filter(e => e && !e.isDeleted && e.type !== 'image').map(e => ({ id: e.id, type: e.type, text: e.text, x: e.x, y: e.y, containerId: e.containerId, startBinding: e.startBinding, endBinding: e.endBinding })) : [];
-  const icons = request.useIcons ?? request.metadata?.useIcons === 'true';
+  const icons = resolveNodeIcons(request);
   // Legend/layout flags belong to the full renderer; the browser schema has no legend object.
   const { includeLegend: _legend, autoLayout: _layout, preferOrthogonal: _orthogonal, ...constraints } = request.constraints || {};
   void _legend; void _layout; void _orthogonal;

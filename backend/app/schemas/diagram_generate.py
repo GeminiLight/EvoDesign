@@ -8,7 +8,7 @@ from app.core.canvas import CanvasLibrary, normalize_canvas_library_value
 class DiagramGenerateRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    use_icons: bool = Field(default=False, strict=True, description="Add small semantic icons to key nodes")
+    use_icons: bool = Field(default=True, strict=True, description="Add small semantic icons to key nodes by default")
     diagram_type: str | None = Field(default=None, description="Explicit diagram type; omit for automatic selection")
     context: str = Field(..., description="Input context text")
     requirements: Optional[str] = Field(default=None, description="Generation requirements")
@@ -23,6 +23,17 @@ class DiagramGenerateRequest(BaseModel):
 
     @model_validator(mode="after")
     def require_project_version(self):
+        if "use_icons" not in self.model_fields_set:
+            if self.canvas_library != "excalidraw":
+                self.use_icons = False
+            else:
+                elements = (self.current_schema or {}).get("elements")
+                if isinstance(elements, list):
+                    live = [e for e in elements if isinstance(e, dict) and not e.get("isDeleted")]
+                    if live:
+                        self.use_icons = any(e.get("type") == "image" and
+                            isinstance(e.get("customData"), dict) and e["customData"].get("evoDesignIcon")
+                            for e in live)
         if self.project_id and not self.project_id.startswith("guest_") and self.base_version is None:
             raise ValueError("base_version is required when generating into an existing project")
         return self

@@ -1,4 +1,30 @@
 import { readLocalStorage, writeLocalStorage } from '../utils/safeLocalStorage';
+import type { DiagramRequest } from '../types/api';
+
+const NODE_ICONS_PREFERENCE_KEY = 'evodesign.generation.useIcons';
+
+export const loadNodeIconPreference = (): boolean => readLocalStorage(NODE_ICONS_PREFERENCE_KEY) !== 'false';
+
+export const saveNodeIconPreference = (enabled: boolean): void => {
+  writeLocalStorage(NODE_ICONS_PREFERENCE_KEY, String(enabled));
+};
+
+/** Fresh diagrams default on; explicit choices and existing scenes stay authoritative. */
+export const resolveNodeIcons = (request: Pick<DiagramRequest, 'useIcons' | 'metadata'>,
+  canvasLibrary = request.metadata?.canvasLibrary ?? 'excalidraw'): boolean => {
+  if (canvasLibrary !== 'excalidraw') return false;
+  if (request.useIcons !== undefined) return request.useIcons;
+  if (request.metadata?.useIcons !== undefined) return request.metadata.useIcons === 'true';
+  if (request.metadata?.currentSchema) {
+    try {
+      const elements = JSON.parse(request.metadata.currentSchema)?.elements;
+      if (Array.isArray(elements) && elements.some(e => e && !e.isDeleted)) {
+        return elements.some(e => e?.type === 'image' && !e.isDeleted && e.customData?.evoDesignIcon);
+      }
+    } catch { return false; }
+  }
+  return loadNodeIconPreference();
+};
 
 const LEGACY_PROJECT_FAVORITES_STORAGE_KEY = 'evodiagram_project_favorites';
 const GUEST_PROJECT_FAVORITES_STORAGE_KEY = 'evodiagram_guest_project_favorites';

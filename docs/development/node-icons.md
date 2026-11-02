@@ -1,12 +1,12 @@
 # Optional node icons
 
 The workspace's **Create diagram** dialog offers **Add node icons** for
-Excalidraw. It is off by default and available to every user tier. Leaving it
-off deterministically removes model-produced icon entries before layout. An
+Excalidraw. It is on by default for new web diagrams and available to every user tier. Turning it
+off deterministically removes model-produced icon entries before layout. Explicit choices and existing diagrams keep their own icon settings. An
 enabled request permits the styling model to choose icons; an explicit user
 request for no icons is also included in the styling instructions.
 
-The request field is `use_icons: boolean`, default `false`, on both generation
+The request field is `use_icons: boolean`, default `true` for new Excalidraw scenes, on both generation
 endpoints. The value is forwarded through the generation service, engine
 adapter and programmatic workflow constructor. Retried browser requests retain
 the option in their generation metadata. Regenerating a reopened scene preserves

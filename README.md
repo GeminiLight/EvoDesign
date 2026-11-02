@@ -128,7 +128,7 @@ With the Python environment, model configuration and renderer running:
 
 ```sh
 python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json
-# Icons are opt-in:
+# For the research CLI, enable icons explicitly (new web diagrams default on):
 python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json --use-icons
 ```
 

@@ -15,6 +15,7 @@ type Props = { awaitingDocument?: boolean; composer: ComposerProps; onGeneratePr
 export function WorkspaceOnboarding({ composer, onGeneratePrompt, disabled, useIcons, onUseIconsChange, onClose, awaitingDocument }: Props) {
   const { language, t } = useLanguage();
   const zh = language === 'zh';
+  const supportsIcons = composer.canvasOptions[composer.canvasIndex]?.id === 'excalidraw';
   const input = useRef<HTMLInputElement>(null);
   const attachmentTrigger = useRef<HTMLElement | null>(null);
   const [reference, setReference] = useState<HomeReference | null>(null);
@@ -30,8 +31,9 @@ export function WorkspaceOnboarding({ composer, onGeneratePrompt, disabled, useI
         onGenerate={() => onGeneratePrompt(promptWithReference(composer.prompt, reference, language))}
         onAttachmentClick={() => { attachmentTrigger.current = document.activeElement as HTMLElement; input.current?.click(); }}
         attachmentContent={reference ? <HomeReferencePreview reference={reference} disabled={disabled} onRemove={() => setReference(null)} /> : undefined}
-        leadingContent={<div className="home-composer-tools"><button type="button" className="home-icons-toggle" role="switch" aria-label={zh ? '节点图标' : 'Node icons'} aria-checked={useIcons}
-          disabled={disabled || reading} onClick={() => onUseIconsChange(!useIcons)}><Shapes size={15} aria-hidden="true" /><span>{zh ? '图标' : 'Icons'}</span><i aria-hidden="true" /></button></div>} />
+        leadingContent={<div className="home-composer-tools"><button type="button" className="home-icons-toggle" role="switch" aria-label={zh ? '节点图标' : 'Node icons'} aria-checked={useIcons && supportsIcons}
+          title={t(supportsIcons ? 'workspace.useIconsHint' : 'workspace.useIconsCanvasHint')}
+          disabled={disabled || reading || !supportsIcons} onClick={() => onUseIconsChange(!useIcons)}><Shapes size={15} aria-hidden="true" /><span>{zh ? '图标' : 'Icons'}</span><i aria-hidden="true" /></button></div>} />
       <input ref={input} className="sr-only" tabIndex={-1} type="file" accept={HOME_REFERENCE_ACCEPT} aria-label={zh ? '添加参考文件' : 'Add a reference file'}
         onChange={async event => {
           const file = event.target.files?.[0]; event.target.value = '';
