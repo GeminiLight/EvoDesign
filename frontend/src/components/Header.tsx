@@ -1,4 +1,4 @@
-import { BROWSER_MODE, openModelSettings } from '../services/browser/runtime';
+import { BROWSER_MODE, REGION_SWITCH, openModelSettings } from '../services/browser/runtime';
 import { useState, useRef, useEffect } from 'react';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { ArrowUpRight, Bell, Bot, CheckCircle2, ChevronRight, CircleHelp, Cloud, Database, Folder, Home, Lightbulb, Languages, LogOut, Menu, Monitor, Moon, Settings2, Sparkles, Sun, UserRound, X } from 'lucide-react';
@@ -10,6 +10,7 @@ import { readLocalStorage, writeLocalStorage } from '../utils/safeLocalStorage';
 import { ChoiceSelect } from './ChoiceSelect';
 import { BrandWordmark } from './BrandLockup';
 import { useBrowserModelLabel } from '../hooks/useBrowserModelLabel';
+import { RegionLinks } from './RegionLinks';
 
 const navBaseClass = 'relative inline-flex min-h-10 min-w-11 items-center justify-center rounded-lg px-3 text-sm font-medium transition-colors';
 const navActiveClass = 'bg-brand-50 font-semibold text-brand-700 dark:bg-brand-500/15 dark:text-brand-300';
@@ -575,6 +576,7 @@ export const Header = ({
                 </div>
 
                 <div className="header-preferences-links">
+                  {REGION_SWITCH && <RegionLinks language={language} />}
                   <button type="button" onClick={() => handleNotificationNavigate('/dna')}>
                     <Database size={17} aria-hidden="true" /><span>{language === 'zh' ? 'DNA 设计偏好' : 'DNA preferences'}</span><ChevronRight size={13} className="ml-auto" aria-hidden="true" />
                   </button>

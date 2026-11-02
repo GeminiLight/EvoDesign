@@ -20,6 +20,7 @@ and citation downloads stay at their existing URLs.
 - [Agent architecture](development/specs/spec-agent-cli-v1.md) · [CLI and skill contract](development/specs/agent-cli-v1-cli-and-skill.md)
 - [Web quality loop](development/web-quality-loop.md) · [node icons](development/node-icons.md)
 - [Website maintenance and discovery](development/website.md) · [performance](development/performance.md)
+- [Regional browser deployments](development/regional-deployment.md)
 - [Integration reviews](development/reviews/)
 
 ## Research and reference

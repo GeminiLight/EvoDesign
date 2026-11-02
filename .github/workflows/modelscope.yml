@@ -1,0 +1,47 @@
+name: China workspace
+
+on:
+  workflow_run:
+    workflows: [Quality]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: modelscope-production
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # Manual runs on main always work. Automatic publishing after each main
+    # Quality run starts once the repository variable MODELSCOPE_PUBLISH=true.
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (vars.MODELSCOPE_PUBLISH == 'true' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || 'main' }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - run: npm ci --prefix frontend
+      - run: npm --prefix frontend run build:browser
+        env:
+          VITE_REGION_SWITCH: ${{ vars.VITE_REGION_SWITCH }}
+      - name: Publish browser release only
+        env:
+          MODELSCOPE_API_KEY: ${{ secrets.MODELSCOPE_API_KEY }}
+        run: python scripts/publish_modelscope.py

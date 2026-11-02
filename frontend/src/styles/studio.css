@@ -62,6 +62,10 @@ html.dark {
 .header-preferences-links > a:hover, .header-preferences-links > button:hover { background: var(--studio-soft); color: var(--studio-accent); }
 .header-preferences-links > a > svg:last-child { margin-left: auto; }
 .header-preferences-links [aria-disabled='true'] { opacity: .5; }
+.header-region-options .header-preference-row { gap: 8px; }
+.header-region-options label { gap: 7px; white-space: nowrap; }
+.header-region-options .choice-select-trigger { max-width: 160px; }
+.header-region-options p { padding: 0 9px 9px; margin: 0; color: var(--studio-muted); font-size: 10px; line-height: 1.6; }
 .header-account-summary { display: flex; align-items: center; gap: 10px; padding: 7px 9px 16px; margin-bottom: 6px; border-bottom: 1px solid var(--studio-line); }
 .header-account-avatar { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--studio-soft); color: var(--studio-accent); font-size: 12px; }
 .header-account-summary > div { min-width: 0; }
