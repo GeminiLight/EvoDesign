@@ -7,3 +7,13 @@ export function BrandLockup() {
     </span>
   );
 }
+
+/** Wordmark-only lockup for placements that already display the app icon. */
+export function BrandWordmark() {
+  return (
+    <span className="inline-block w-36 max-w-full align-middle">
+      <img src="/brand/evodesign-wordmark.svg?v=syne700-1" alt="EvoDesign" width="200" height="48" className="block h-auto w-full dark:hidden" />
+      <img src="/brand/evodesign-wordmark-dark.svg?v=syne700-1" alt="EvoDesign" width="200" height="48" className="hidden h-auto w-full dark:block" />
+    </span>
+  );
+}

@@ -7,6 +7,7 @@ negative space across applications.
 - `evodesign-mark.svg`: transparent symbol; browser favicon and small placements.
 - `evodesign-icon.svg`, `evodesign-icon-dark.svg`: padded application icons.
 - `evodesign-lockup.svg`, `evodesign-lockup-dark.svg`: symbol and outlined wordmark.
+- `evodesign-wordmark.svg`, `evodesign-wordmark-dark.svg`: lettering for placements that already show the app icon.
 - `*-mono.svg`, `*-white.svg`: single-color variants for print or reversed use.
 - `evodesign-social.png`: 1200 × 630 sharing image.
 - `apple-touch-icon.png`: 180 × 180 home-screen icon.

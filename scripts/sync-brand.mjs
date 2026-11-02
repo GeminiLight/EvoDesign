@@ -44,6 +44,8 @@ const files = new Map([
   ['frontend/public/brand/evodesign-icon-dark.svg', svg('0 0 512 512', icon(true))],
   ['frontend/public/brand/evodesign-lockup.svg', svg('0 0 276 64', lockup(colors.ink))],
   ['frontend/public/brand/evodesign-lockup-dark.svg', svg('0 0 276 64', lockup(colors.white))],
+  ['frontend/public/brand/evodesign-wordmark.svg', svg('76 8 200 48', `<g transform="translate(3.1125 0) scale(1.25)">${wordmark(colors.ink)}</g>`)],
+  ['frontend/public/brand/evodesign-wordmark-dark.svg', svg('76 8 200 48', `<g transform="translate(3.1125 0) scale(1.25)">${wordmark(colors.white)}</g>`)],
   ['frontend/public/brand/evodesign-lockup-mono.svg', svg('0 0 276 64', lockup(colors.ink, colors.ink))],
   ['frontend/public/brand/evodesign-lockup-white.svg', svg('0 0 276 64', lockup(colors.white, colors.white))],
   ['frontend/public/brand/evodesign-social.svg', social],
