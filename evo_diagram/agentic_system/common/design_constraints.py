@@ -55,7 +55,9 @@ def locked_scene_elements(manifest: dict, constraints: str) -> dict:
     protected = {}
     for item in manifest.get("elements", []):
         icon = (item.get("customData") or {}).get("evoDesignIcon") or {}
+        part = (item.get("customData") or {}).get("evoDesignCardPart") or {}
         if (item.get("id") in ids or item.get("containerId") in ids
-                or isinstance(icon, dict) and icon.get("hostId") in ids):
+                or isinstance(icon, dict) and icon.get("hostId") in ids
+                or isinstance(part, dict) and part.get("hostId") in ids):
             protected[item["id"]] = {key: item.get(key) for key in fields}
     return protected

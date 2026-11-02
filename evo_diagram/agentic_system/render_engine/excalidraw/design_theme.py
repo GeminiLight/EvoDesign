@@ -201,9 +201,13 @@ def _branch_points(parent: Dict[str, Any], child: Dict[str, Any]) -> list:
 
 
 def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
-                       layout_instantiation: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+                       layout_instantiation: Optional[Dict[str, Any]] = None,
+                       design_constraints: str = "") -> Dict[str, Any]:
     """Restyle a non-architecture scene in place of its old treatment; unchanged on any doubt."""
     if not is_enabled() or not isinstance(manifest, dict):
+        return manifest
+    from ..shared.design_policy import preserve_design
+    if preserve_design(manifest, design_constraints):
         return manifest
     structure = unwrap_structure_instantiation(structure_instantiation)
     chart_type = normalize_diagram_type(str(structure.get("chart_type") or ""))
@@ -247,6 +251,11 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
         elif level == "muted":
             background, ink, width = _MUTED[0], _MUTED[2], 1
             muted_hosts.add(host["id"])
+        # The styling agent has already resolved explicit palette requests.
+        # Add defaults only where it left the corresponding property unspecified.
+        background = style.get("backgroundColor", background)
+        ink = style.get("strokeColor", ink)
+        width = style.get("strokeWidth", width)
         host.update({
             "backgroundColor": background, "strokeColor": ink, "strokeWidth": width,
             "roughness": 0, "fillStyle": "solid",
@@ -261,7 +270,7 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
         kind = element.get("type")
         if kind == "text" and element.get("containerId") in host_ink:
             ink = _MUTED_TITLE_INK if element.get("containerId") in muted_hosts else _TITLE_INK
-            element.update({"strokeColor": ink, "fontFamily": 2, "roughness": 0})
+            element.update({"strokeColor": ink, "roughness": 0})
         elif kind == "image":
             data = (element.get("customData") or {}).get(ICON_KEY) or {}
             host_id = data.get("hostId")
@@ -295,8 +304,8 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
             "opacity": 100 if on_main or not main_edges else _SIDE_OPACITY,
             # Undirected links (ER, mind map) stay undirected.
             "roughness": 0,
-            "endArrowhead": None if chart_type in UNDIRECTED_TYPES else _head(element.get("endArrowhead")),
-            "startArrowhead": None if chart_type in UNDIRECTED_TYPES else _head(element.get("startArrowhead")),
+            "endArrowhead": None if chart_type in UNDIRECTED_TYPES and element.get("endArrowhead") in {None, "arrow", "triangle"} else _head(element.get("endArrowhead")),
+            "startArrowhead": None if chart_type in UNDIRECTED_TYPES and element.get("startArrowhead") in {None, "arrow", "triangle"} else _head(element.get("startArrowhead")),
         })
         arrow_ids.add(element.get("id"))
     # Mind-map links show belonging, not flow: no heads, side to side.
@@ -314,15 +323,25 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
                 "x": ox, "y": oy, "points": [[x - ox, y - oy] for x, y in points],
                 "width": max(xs) - min(xs), "height": max(ys) - min(ys),
                 "startArrowhead": None, "endArrowhead": None, "elbowed": False,
-                "roundness": None, "startBinding": None, "endBinding": None,
+                "roundness": None,
+                "startBinding": {"elementId": parent["id"], "focus": 0, "gap": 1},
+                "endBinding": {"elementId": child["id"], "focus": 0, "gap": 1},
             })
+            for host in (parent, child):
+                bindings = host.setdefault("boundElements", [])
+                if not any(binding.get("id") == element["id"] for binding in bindings):
+                    bindings.append({"id": element["id"], "type": "arrow"})
+            for label in elements:
+                if label.get("type") == "text" and label.get("containerId") == element["id"]:
+                    label.update(x=(points[0][0] + points[-1][0] - label["width"]) / 2,
+                                 y=(points[0][1] + points[-1][1] - label["height"]) / 2)
     for element in elements:
         if element.get("type") == "text" and element.get("containerId") in arrow_ids:
             element.update({"strokeColor": _SUBLABEL_INK, "fontFamily": 2, "roughness": 0})
 
     used_files = {e.get("fileId") for e in elements if e.get("type") == "image"}
     result["files"] = {k: v for k, v in files.items() if k in used_files}
-    result.setdefault("appState", {})["viewBackgroundColor"] = "#FFFFFF"
+    result.setdefault("appState", {}).setdefault("viewBackgroundColor", "#FFFFFF")
     meta["design_theme"] = {"chart_type": chart_type, "nodes": len(host_ink)}
     logger.info("[DesignTheme] Applied to %d nodes of a %s", len(host_ink), chart_type)
     return result

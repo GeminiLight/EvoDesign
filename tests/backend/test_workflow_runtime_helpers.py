@@ -731,6 +731,8 @@ async def test_workflow_runtime_render_stage_uses_thread_runner():
     artifacts = _StreamingArtifacts(
         structure_instantiation={"nodes": [{"id": "n1"}]},
         layout_instantiation={"blocks": [{"id": "n1"}]},
+        layout_specification={"tier_plan": {"columns": [["n1"]]}},
+        design_constraints='{"user_design_preferences":"Keep the chosen palette"}',
     )
     await _run_render_stage(
         render_manifest=fake_render_manifest,
@@ -744,6 +746,8 @@ async def test_workflow_runtime_render_stage_uses_thread_runner():
         {
             "layout_instantiation": {"blocks": [{"id": "n1"}]},
             "structure_instantiation": {"nodes": [{"id": "n1"}]},
+            "layout_specification": {"tier_plan": {"columns": [["n1"]]}},
+            "design_constraints": '{"user_design_preferences":"Keep the chosen palette"}',
             "canvas_library": "excalidraw",
             "output_dir": "/tmp/run/4_render",
         }

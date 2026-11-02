@@ -37,6 +37,7 @@ def render_manifest(
     viewport_width: int = CANVAS_DEFAULT_VIEWPORT_WIDTH,
     viewport_height: int = CANVAS_DEFAULT_VIEWPORT_HEIGHT,
     layout_specification: Optional[Dict[str, Any]] = None,
+    design_constraints: str = "",
 ) -> RenderResult:
     """Build a canvas manifest from layout+structure and render a PNG.
 
@@ -54,6 +55,7 @@ def render_manifest(
         viewport_width=viewport_width,
         viewport_height=viewport_height,
         layout_specification=layout_specification,
+        design_constraints=design_constraints,
     )
     return RenderResult(
         manifest=result.manifest,

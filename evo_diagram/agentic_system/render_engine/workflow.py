@@ -270,6 +270,7 @@ class RenderWorkflow:
 			state.structure_instantiation,
 			layout_instantiation=state.layout_instantiation,
 			layout_specification=state.layout_specification,
+			design_constraints=state.design_constraints,
 		)
 		if designed is state.diagram_manifest:
 			from .excalidraw.design_theme import apply_design_theme
@@ -277,6 +278,7 @@ class RenderWorkflow:
 				state.diagram_manifest,
 				state.structure_instantiation,
 				layout_instantiation=state.layout_instantiation,
+				design_constraints=state.design_constraints,
 			)
 		if designed is not state.diagram_manifest:
 			state.update_stage(ARROW, {"manifest": designed})

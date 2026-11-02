@@ -17,6 +17,14 @@ import {
   type WorkspacePreflightSource,
 } from './workspacePreflightDraft';
 
+/** Project handoffs are consumed once; refreshed URLs must read the saved head. */
+export function clearConsumedProjectHandoff(state: unknown): Record<string, unknown> | null {
+  if (!state || typeof state !== 'object' || Array.isArray(state)) return null;
+  const next = { ...state } as Record<string, unknown>;
+  delete next.pendingLoadProject;
+  return next;
+}
+
 export const isWorkspaceDiagramType = (value: unknown): value is DiagramType => (
   typeof value === 'string' && Object.prototype.hasOwnProperty.call(diagramTypeToPillId, value)
 );

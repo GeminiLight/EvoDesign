@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import math
+import unicodedata
 from typing import Any
 
 from .scene import excalidraw_element_defaults
@@ -15,6 +16,48 @@ class EditError(ValueError):
         super().__init__(message)
 
 
+def _card_companions(elements: dict[str, dict], eid: str) -> set[str]:
+    card = (elements.get(eid, {}).get('customData') or {}).get('evoDesignCard')
+    if not isinstance(card, dict):
+        return set()
+    result = set()
+    for key, marker in (('iconId', 'evoDesignIcon'), ('sublabelId', 'evoDesignCardPart')):
+        part_id = card.get(key)
+        part = elements.get(part_id, {}) if isinstance(part_id, str) else {}
+        owner = (part.get('customData') or {}).get(marker)
+        if isinstance(owner, dict) and owner.get('hostId') == eid:
+            result.add(part_id)
+    return result
+
+
+def _place_card_label(host: dict, title: dict, elements: dict[str, dict]) -> None:
+    card = (host.get('customData') or {}).get('evoDesignCard')
+    if not isinstance(card, dict) or card.get('titleId') != title['id']:
+        return
+    companions = _card_companions(elements, host['id'])
+    icon_id, subtitle_id = card.get('iconId'), card.get('sublabelId')
+    left = 22 + (52 if isinstance(icon_id, str) and icon_id in companions else 0)
+    available = max(1, host['width'] - left - 22)
+    lines = []
+    for paragraph in title['originalText'].split('\n'):
+        line, width = '', 0.0
+        for char in paragraph:
+            advance = title.get('fontSize', 20) * (1 if unicodedata.east_asian_width(char) in {'W', 'F'} else
+                                                   0.66 if char.isupper() else 0.3 if char == ' ' else 0.55)
+            if line and width + advance > available:
+                lines.append(line)
+                line, width = '', 0.0
+            line, width = line + char, width + advance
+        lines.append(line)
+    height = len(lines) * title.get('fontSize', 20) * title.get('lineHeight', 1.25)
+    subtitle = elements.get(subtitle_id, {}) if isinstance(subtitle_id, str) and subtitle_id in companions else {}
+    sub_height = subtitle.get('height', 0) if not subtitle.get('isDeleted') else 0
+    top = host['y'] + (host['height'] - height - (sub_height + 6 if sub_height else 0)) / 2
+    title.update(text='\n'.join(lines), x=host['x']+left, y=top, width=available, height=height)
+    if sub_height:
+        subtitle.update(x=host['x']+left, y=top+height+6)
+
+
 def assert_preserves_locks(before: dict[str, Any], after: dict[str, Any]) -> None:
     """Protect locked shapes, their labels and image data at a write boundary."""
     old = {e['id']: e for e in before.get('elements', []) if not e.get('isDeleted')}
@@ -24,6 +67,7 @@ def assert_preserves_locks(before: dict[str, Any], after: dict[str, Any]) -> Non
         locked.update(binding['id'] for binding in old[eid].get('boundElements') or []
                       if binding.get('type') == 'text')
         locked.update(key for key, element in old.items() if element.get('containerId') == eid)
+        locked.update(_card_companions(old, eid))
     for eid in locked:
         if old.get(eid) != new.get(eid):
             raise EditError('locked_element', 'The candidate changes a locked element or its label')
@@ -48,6 +92,7 @@ def apply_operations(
     hard_locked = set(locked) | {eid for eid, e in by_id.items() if e.get('locked')}
     for eid in list(hard_locked):
         hard_locked.update(b['id'] for b in by_id.get(eid, {}).get('boundElements') or [] if b.get('type') == 'text')
+        hard_locked.update(_card_companions(by_id, eid))
     permitted = None if scope is None else set(scope)
 
     def number(value: Any, *, positive: bool = False) -> float:
@@ -109,6 +154,8 @@ def apply_operations(
             else:
                 target.update(x=el['x']+8, y=el['y']+(el['height']-height)/2,
                               width=max(1, el['width']-16), height=height)
+        host = by_id.get(target.get('containerId'), {})
+        _place_card_label(host, target, by_id)
 
     # A node's bound label is part of its semantic scope. Arrows are not:
     # moving a connected node may require explicitly including its connectors.
@@ -116,6 +163,7 @@ def apply_operations(
         for eid in list(permitted):
             el = get(eid)
             permitted.update(b['id'] for b in el.get('boundElements') or [] if b.get('type') == 'text')
+            permitted.update(_card_companions(by_id, eid))
 
     for op in operations:
         fields = {
@@ -187,6 +235,9 @@ def apply_operations(
             text = label(el)
             if text is not None and text is not el:
                 text.update(x=text['x'] + dx, y=text['y'] + dy)
+            for part_id in _card_companions(by_id, eid):
+                part = by_id[part_id]
+                part.update(x=part['x'] + dx, y=part['y'] + dy)
             for arrow in by_id.values():
                 if arrow.get('isDeleted') or arrow.get('type') != 'arrow':
                     continue
@@ -215,6 +266,7 @@ def apply_operations(
             if not isinstance(op.get('cascade'), bool):
                 raise EditError('cascade_required', 'Specify cascade explicitly')
             dependents = {b['id'] for b in el.get('boundElements') or [] if b['id'] in by_id}
+            dependents.update(_card_companions(by_id, eid))
             if dependents and not op['cascade']:
                 raise EditError('dependent_elements', 'Element has bound text or connectors; specify cascade')
             removing = {eid} | dependents

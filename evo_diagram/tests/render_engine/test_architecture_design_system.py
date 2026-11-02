@@ -27,7 +27,7 @@ def structure(chart_type='architecture'):
         'chart_type': chart_type,
         'nodes': copy.deepcopy(NODES),
         'edges': [{'id': f'edge:{s}2{t}', 'source': s, 'target': t} for s, t in EDGES],
-        'groups': [{'id': 'data_layer', 'label': 'Data', 'members': ['db', 'cache']}],
+        'groups': [],
     }
 
 
@@ -37,6 +37,8 @@ def manifest():
         layout[node['id']] = {'shape': 'ellipse' if node['id'] == 'db' else 'rectangle',
                               'label': {'text': node['label']}, 'x': 100 + index * 50, 'y': 100,
                               'w': 160, 'h': 60, 'strokeColor': '#333333', 'backgroundColor': '#EEEEEE'}
+        layout[node['id'] + ':icon'] = {'shape': 'icon', 'props': {'icon': 'outline_monitor'},
+                                      'x': 100, 'y': 100, 'w': 26, 'h': 26}
     layout['data_layer:background'] = {'shape': 'rectangle', 'x': 0, 'y': 0, 'w': 900, 'h': 400}
     layout['data_layer:title'] = {'shape': 'text', 'label': {'text': 'Data'}, 'x': 10, 'y': 10, 'w': 80, 'h': 20}
     scene = InstantiationToExcalidrawConverter(layout).convert()
@@ -61,6 +63,68 @@ def arrow_paths(scene):
 def test_non_architecture_scene_is_untouched():
     scene = manifest()
     assert apply_architecture_design_system(scene, structure('flowchart')) is scene
+
+
+def test_semantic_boundaries_labels_and_feedback_loops_use_the_complete_native_scene():
+    for addition in ('group', 'label', 'loop'):
+        data, base = structure(), manifest()
+        if addition == 'group':
+            data['groups'] = [{'id': 'data_layer', 'label': 'EU private data', 'members': ['db', 'cache']}]
+        elif addition == 'label':
+            data['edges'][0]['label'] = 'HTTPS request'
+        else:
+            data['edges'].append({'id': 'retry', 'source': 'gw', 'target': 'gw'})
+        assert apply_architecture_design_system(base, data) is base
+
+
+def test_incomplete_many_to_many_relations_do_not_get_joined_into_a_complete_bus():
+    base, data = manifest(), structure()
+    data['edges'] = [e for e in data['edges'] if (e['source'], e['target']) not in
+                     {('users', 'cache'), ('orders', 'db')}]
+    assert apply_architecture_design_system(base, data) is base
+
+
+def test_icons_off_and_intentional_partial_coverage_are_preserved():
+    base = manifest()
+    keep_host = base['_meta']['id_map']['web']
+    base['elements'] = [e for e in base['elements'] if e['type'] != 'image' or
+                        e['customData'][ICON_KEY]['hostId'] == keep_host]
+    scene = apply_architecture_design_system(base, structure())
+    assert len([e for e in scene['elements'] if e['type'] == 'image']) == 1
+    base['elements'] = [e for e in base['elements'] if e['type'] != 'image']
+    assert not any(e['type'] == 'image' for e in apply_architecture_design_system(base, structure())['elements'])
+
+
+def test_refiner_geometry_edits_keep_card_parts_together_and_sync_is_idempotent():
+    from evo_diagram.agentic_system.common.node_icons import sync_node_icons
+    scene = apply_architecture_design_system(manifest(), structure())
+    host = cards(scene)['web']
+    before = {e['id']: copy.deepcopy(e) for e in scene['elements']}
+    host['x'] += 20
+    host['y'] += 30
+    sync_node_icons(scene, host['id'])
+    by_id = {e['id']: e for e in scene['elements']}
+    for key in ('titleId', 'sublabelId', 'iconId'):
+        eid = host['customData'][CARD_KEY][key]
+        assert by_id[eid]['x'] == before[eid]['x']+20
+        assert by_id[eid]['y'] == before[eid]['y']+30
+    stable = copy.deepcopy(scene)
+    sync_node_icons(scene, host['id'])
+    assert scene == stable
+
+
+def test_long_cjk_labels_wrap_inside_cards_without_truncating_source_text():
+    data = structure()
+    data['nodes'][0]['label'] = '这是一个必须完整保留的很长的中文架构节点标题用于测试自动换行和边界'
+    data['nodes'][0]['sublabel'] = '详细说明也需要完整保留且不能越过卡片的右边界'
+    data['title'] = 'An architecture title that is deliberately longer than forty characters'
+    scene = apply_architecture_design_system(manifest(), data)
+    host = cards(scene)['web']
+    text = [e for e in scene['elements'] if e['type'] == 'text' and e.get('groupIds') == host['groupIds']]
+    assert {t['originalText'] for t in text} == {data['nodes'][0]['label'], data['nodes'][0]['sublabel']}
+    assert all(t['x'] >= host['x'] and t['x']+t['width'] <= host['x']+host['width']+0.01 for t in text)
+    assert all(t['y'] >= host['y'] and t['y']+t['height'] <= host['y']+host['height']+0.01 for t in text)
+    assert any(e.get('text') == data['title'] for e in scene['elements'])
 
 
 def test_cards_share_one_size_and_carry_icon_title_and_sublabel():
@@ -89,7 +153,7 @@ def test_roles_place_tiers_left_to_right_with_storage_below():
     assert hosts['db']['y'] == hosts['cache']['y'] > main_bottom
 
 
-def test_group_frames_and_edge_labels_are_removed():
+def test_orphaned_backgrounds_are_replaced_by_tier_decorations():
     scene = apply_architecture_design_system(manifest(), structure())
     texts = [e['text'] for e in scene['elements'] if e['type'] == 'text']
     assert 'Data' not in texts
@@ -112,6 +176,7 @@ def test_connectors_are_orthogonal_and_avoid_unrelated_cards():
 
 def test_bidirectional_pair_becomes_one_double_headed_connector():
     data = structure()
+    data['edges'] = [e for e in data['edges'] if e['source'] == 'web']
     data['edges'].append({'id': 'edge:gw2web', 'source': 'gw', 'target': 'web'})
     scene = apply_architecture_design_system(manifest(), data)
     arrows = [a for a in scene['elements'] if a['type'] == 'arrow']
@@ -121,6 +186,7 @@ def test_bidirectional_pair_becomes_one_double_headed_connector():
 
 def test_merged_duplicate_and_reverse_edges_still_count_as_rendered():
     data = structure()
+    data['edges'] = [e for e in data['edges'] if e['source'] == 'web']
     data['edges'] += [{'id': 'edge:gw2web', 'source': 'gw', 'target': 'web'},
                       {'id': 'edge:web2gw_1', 'source': 'web', 'target': 'gw'}]
     scene = apply_architecture_design_system(manifest(), data)
@@ -158,7 +224,7 @@ def test_card_colours_come_from_the_style_agent_family():
     styling = {node['id']: {'backgroundColor': '#D8E6D1', 'strokeColor': '#56765A'} for node in NODES}
     scene = apply_architecture_design_system(manifest(), structure(), layout_instantiation=styling)
     host = cards(scene)['users']
-    assert host['backgroundColor'] == '#EDF4EA' and host['strokeColor'] == '#AABAAC'
+    assert host['backgroundColor'] == '#D8E6D1' and host['strokeColor'] == '#56765A'
     icon = next(e for e in scene['elements'] if e['type'] == 'image' and e['groupIds'] == host['groupIds'])
     svg = base64.b64decode(scene['files'][icon['fileId']]['dataURL'].split(',')[1]).decode()
     assert '#56765A' in svg
@@ -181,7 +247,7 @@ def test_plan_nested_in_layout_blueprint_is_accepted():
     assert scene['_meta']['architecture_design_system']['tier_plan_source'] == 'layout_agent'
 
 
-def test_long_bottom_row_moves_downstream_chain_to_last_column():
+def test_bottom_chain_retains_native_routing_when_a_shared_bus_would_add_relations():
     nodes = [{'id': 'gw', 'label': 'Gateway', 'sublabel': 'entry', 'role': 'gateway'},
              {'id': 'svc', 'label': 'Engine', 'sublabel': 'decide', 'role': 'service'},
              {'id': 'db', 'label': 'MySQL', 'sublabel': 'rules', 'role': 'database'},
@@ -197,13 +263,7 @@ def test_long_bottom_row_moves_downstream_chain_to_last_column():
     scene = InstantiationToExcalidrawConverter(layout).convert()
     data = {'chart_type': 'architecture', 'nodes': nodes, 'groups': [],
             'edges': [{'id': f'edge:{s}2{t}', 'source': s, 'target': t} for s, t in pairs]}
-    scene = apply_architecture_design_system(scene, data)
-    elements = {e['id']: e for e in scene['elements']}
-    hosts = {n['id']: elements[scene['_meta']['id_map'][n['id']]] for n in nodes}
-    bottom_y = hosts['db']['y']
-    assert hosts['mq']['y'] == bottom_y and hosts['mon']['y'] == bottom_y
-    assert hosts['dw']['y'] < bottom_y and hosts['dw']['x'] == hosts['job']['x'] > hosts['svc']['x']
-    assert hosts['dw']['y'] < hosts['job']['y']
+    assert apply_architecture_design_system(scene, data) is scene
 
 
 def test_plan_flowing_right_to_left_is_mirrored():

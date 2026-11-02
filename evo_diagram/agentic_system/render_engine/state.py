@@ -33,6 +33,7 @@ class WorkflowState(WorkflowStateBase):
 		default=None,
 		description="Layout strategy emitted by the layout agent (e.g. an architecture tier plan).",
 	)
+	design_constraints: str = ""
 
 	validation_report: Optional[Dict[str, Any]] = None
 

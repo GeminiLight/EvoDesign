@@ -8,8 +8,8 @@ geometry with one fixed visual treatment, the way the shape-size estimator
 turns text into exact node sizes:
 
 * Card: icon + title + muted sublabel, one width for all cards.
-* Colour treatment: the style agent's family becomes a light fill, a mid
-  stroke and a dark ink for the icon and outgoing connectors.
+* Colour treatment: supplied fill/stroke values stay exact; missing values
+  use a light role palette and a dark ink for icons/outgoing connectors.
 * Tier plan: columns left to right, data/infrastructure as a bottom row.
 * Orthogonal routing: edges across a column gap share one trunk and edges
   into the bottom row share one bus.
@@ -258,16 +258,23 @@ def _mix(color: Tuple[int, int, int], weight: float) -> str:
 
 
 def _card_colors(card: "_Card", styling: Dict[str, Any]) -> Tuple[Tuple[str, str, str], str]:
-    """Map the style agent's family onto the card treatment, else the role fallback."""
-    fill, stroke = _hex(styling.get("backgroundColor")), _hex(styling.get("strokeColor"))
-    if fill and stroke:
-        luminance = (0.299 * stroke[0] + 0.587 * stroke[1] + 0.114 * stroke[2]) / 255
-        ink = stroke if luminance < 0.62 else tuple(round(c * 0.55) for c in stroke)
-        return (_mix(fill, 0.55), _mix(stroke, 0.5), _mix(ink, 0)), "style_agent"
-    return _HUES[card.hue], "fallback"
+    """Keep supplied colors exact; use role defaults for missing properties."""
+    fallback = _HUES[card.hue]
+    fill = styling.get("backgroundColor")
+    stroke = styling.get("strokeColor")
+    fill = fill if isinstance(fill, str) and fill else None
+    stroke = stroke if isinstance(stroke, str) and stroke else None
+    if fill or stroke:
+        rgb = _hex(stroke) or _hex(fallback[2])
+        luminance = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255
+        ink = rgb if luminance < 0.62 else tuple(round(c * 0.55) for c in rgb)
+        return (fill or fallback[0], stroke or fallback[1], _mix(ink, 0)), "style_agent"
+    return fallback, "fallback"
 
 
 def _text_width(text: str, size: float) -> float:
+    if "\n" in text:
+        return max((_text_width(line, size) for line in text.split("\n")), default=0)
     width = 0.0
     for ch in text:
         if unicodedata.east_asian_width(ch) in {"W", "F"}:
@@ -279,6 +286,20 @@ def _text_width(text: str, size: float) -> float:
         else:
             width += size * 0.55
     return width
+
+
+def _wrap_text(text: str, size: float, width: float) -> str:
+    """Wrap without truncating the source, including CJK and long identifiers."""
+    lines = []
+    for paragraph in text.split("\n"):
+        line = ""
+        for char in paragraph:
+            if line and _text_width(line + char, size) > width:
+                lines.append(line)
+                line = ""
+            line += char
+        lines.append(line)
+    return "\n".join(lines)
 
 
 def _pick_icon(node: Dict[str, Any], role: str) -> str:
@@ -402,11 +423,20 @@ def _layout(cards: List[_Card], edges: List[Tuple[str, str]],
             plan: Optional[Tuple[List[List[_Card]], List[_Card]]] = None) -> None:
     by_id = {card.id: card for card in cards}
     width = max(_MIN_CARD_W, min(_MAX_CARD_W, max(
-        _PAD_X * 2 + _ICON + _ICON_GAP
+        _PAD_X * 2 + (_ICON + _ICON_GAP if c.icon else 0)
         + max(_text_width(c.title, _PRIMARY_TITLE_SIZE if c.emphasis == "primary" else _TITLE_SIZE),
               _text_width(c.sublabel, _SUBLABEL_SIZE))
         for c in cards)))
     height = _CARD_H if any(c.sublabel for c in cards) else _CARD_H_NO_SUB
+    for card in cards:
+        size = _PRIMARY_TITLE_SIZE if card.emphasis == "primary" else _TITLE_SIZE
+        available = width - _PAD_X * 2 - (_ICON + _ICON_GAP if card.icon else 0)
+        card.display_title = _wrap_text(card.title, size, available)
+        card.display_sublabel = _wrap_text(card.sublabel, _SUBLABEL_SIZE, available)
+        text_height = len(card.display_title.split("\n")) * size * _LINE_HEIGHT
+        if card.sublabel:
+            text_height += 6 + len(card.display_sublabel.split("\n")) * _SUBLABEL_SIZE * _LINE_HEIGHT
+        height = max(height, text_height + 28)
     for card in cards:
         card.w, card.h = width, height
 
@@ -568,11 +598,9 @@ class _Router:
     """Orthogonal router for the tier template.
 
     Edges crossing the same column gap share one vertical trunk, and every
-    edge into the bottom row shares one horizontal bus, as in hand-drawn
-    reference diagrams. Separate lanes, per connection set and later only for
-    many-to-many corridors, were evaluated twice and rejected: parallel
-    strokes read as clutter. Junction dots mark where a shared stroke branches
-    instead.
+    edge into the bottom row shares one horizontal bus. Junction dots mark
+    shared branches. The caller keeps native routing if a joined component
+    would imply dependencies absent from the semantic graph.
     """
 
     def __init__(self, cards: List[_Card], pairs: List[Tuple[str, str]]):
@@ -751,7 +779,7 @@ def _text_element(element_id: str, text: str, size: float, color: str, x: float,
                   group_ids: List[str], index: str) -> Dict[str, Any]:
     return {
         "id": element_id, "type": "text", "x": x, "y": y,
-        "width": _text_width(text, size), "height": size * _LINE_HEIGHT,
+        "width": _text_width(text, size), "height": size * _LINE_HEIGHT * len(text.split("\n")),
         "angle": 0, "strokeColor": color, "backgroundColor": "transparent",
         "fillStyle": "solid", "strokeWidth": 1, "strokeStyle": "solid", "roughness": 0,
         "opacity": 100, "groupIds": group_ids, "frameId": None, "roundness": None,
@@ -763,10 +791,42 @@ def _text_element(element_id: str, text: str, size: float, color: str, x: float,
     }
 
 
+def _ambiguous_junctions(connectors: List[Dict[str, Any]]) -> bool:
+    """A joined bus must not imply source/target relations absent from the graph."""
+    paths = [[(a["x"]+x, a["y"]+y) for x, y in a["points"]] for a in connectors]
+    parents = list(range(len(paths)))
+
+    def root(index: int) -> int:
+        while parents[index] != index:
+            index = parents[index]
+        return index
+
+    for (x, y), _ in _junctions([(points, "") for points in paths]):
+        joined = [i for i, points in enumerate(paths) if any(
+            min(p[0], q[0])-0.5 <= x <= max(p[0], q[0])+0.5 and
+            min(p[1], q[1])-0.5 <= y <= max(p[1], q[1])+0.5
+            for p, q in zip(points, points[1:]))]
+        for index in joined[1:]:
+            parents[root(index)] = root(joined[0])
+    groups: Dict[int, set] = {}
+    for i, arrow in enumerate(connectors):
+        source, target = arrow["meta"]["source"], arrow["meta"]["target"]
+        arcs = groups.setdefault(root(i), set())
+        arcs.add((source, target))
+        if arrow.get("startArrowhead"):
+            arcs.add((target, source))
+    for arcs in groups.values():
+        implied = {(s, t) for s, _ in arcs for _, t in arcs if s != t}
+        if implied - arcs:
+            return True
+    return False
+
+
 def apply_architecture_design_system(manifest: Dict[str, Any],
                                      structure_instantiation: Any,
                                      layout_instantiation: Optional[Dict[str, Any]] = None,
                                      layout_specification: Optional[Dict[str, Any]] = None,
+                                     design_constraints: str = "",
                                      ) -> Dict[str, Any]:
     """Execute the agents' architecture decisions on the manifest; unchanged on any doubt."""
     if not is_enabled() or not isinstance(manifest, dict):
@@ -775,6 +835,25 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
     chart_type = str(structure.get("chart_type") or "").strip().lower()
     nodes = [n for n in structure.get("nodes") or [] if isinstance(n, dict) and n.get("id")]
     if chart_type not in _ARCHITECTURE_TYPES or not 2 <= len(nodes) <= _MAX_NODES:
+        return manifest
+    from ..shared.design_policy import preserve_design
+    if preserve_design(manifest, design_constraints):
+        return manifest
+    # This template has no faithful representation for named boundaries,
+    # labeled relations or self-loops. Keep the native renderer's complete scene.
+    if structure.get("groups") or any(
+        edge.get("source") == edge.get("target") or edge.get("label") or edge.get("text")
+        for edge in structure.get("edges") or [] if isinstance(edge, dict)
+    ):
+        return manifest
+    if any(e.get("type") == "text" and e.get("containerId") in {
+        a.get("id") for a in manifest.get("elements", []) if a.get("type") == "arrow"
+    } for e in manifest.get("elements", [])):
+        return manifest
+    if any(e.get("type") == "arrow" and (
+        e.get("startArrowhead") is not None or
+        "endArrowhead" in e and e.get("endArrowhead") not in {"arrow", "triangle"}
+    ) for e in manifest.get("elements", [])):
         return manifest
 
     result = deepcopy(manifest)
@@ -796,13 +875,20 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
         return manifest
     _assign_service_hues(cards)
     colour_sources = []
+    from ...common.design_constraints import icons_disabled
     for card in cards:
+        # Existing icons encode the user's toggle and intentional partial coverage.
+        if icons_disabled(design_constraints) or not any(e.get("type") == "image" and (
+            e.get("id") == id_map.get(f"{card.id}:icon") or
+            ((e.get("customData") or {}).get(ICON_KEY) or {}).get("hostId") == hosts[card.id]["id"]
+        ) for e in elements):
+            card.icon = ""
         styling = (layout_instantiation or {}).get(card.id)
         card.colors, source = _card_colors(card, styling if isinstance(styling, dict) else {})
         colour_sources.append(source)
-        if aesthetic_enabled("EMPHASIS") and card.emphasis == "muted":
+        if source == "fallback" and aesthetic_enabled("EMPHASIS") and card.emphasis == "muted":
             card.colors = _MUTED
-        elif aesthetic_enabled("EMPHASIS") and card.emphasis == "primary":
+        elif source == "fallback" and aesthetic_enabled("EMPHASIS") and card.emphasis == "primary":
             ink = card.colors[2]
             card.colors = (_mix(_hex(ink), 0.82), ink, ink)
     card_by_id = {c.id: c for c in cards}
@@ -815,7 +901,7 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
     _layout(cards, [(e["source"], e["target"]) for e in edges], plan)
 
     removed: set = set()
-    # Group frames are dropped: the tier template already carries the grouping.
+    # Remove stale decorative frames; semantic groups took the native path above.
     group_ids = [str(g.get("id")) for g in structure.get("groups") or [] if isinstance(g, dict) and g.get("id")]
     for group_id in group_ids:
         for eid in (group_frame_render_id(id_map, group_id), id_map.get(group_id + TITLE_SUFFIX)):
@@ -869,13 +955,17 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
                            CARD_KEY: {"role": card.role}},
             "version": int(host.get("version", 1)) + 1,
         })
+        styling = (layout_instantiation or {}).get(card.id) or {}
+        if "strokeWidth" in styling:
+            host["strokeWidth"] = styling["strokeWidth"]
         host["index"] = next_index()
         new_elements.append(host)
 
-        asset = icon_file(card.icon, ink)
-        files[asset["id"]] = asset
-        icon_id = icons[0]["id"] if icons else _stable_id("icon", card.id)
-        new_elements.append({
+        if card.icon:
+            asset = icon_file(card.icon, ink)
+            files[asset["id"]] = asset
+            icon_id = icons[0]["id"] if icons else _stable_id("icon", card.id)
+            new_elements.append({
             "id": icon_id, "type": "image", "x": card.x + _PAD_X, "y": card.cy - _ICON / 2,
             "width": _ICON, "height": _ICON, "angle": 0, "strokeColor": "transparent",
             "backgroundColor": "transparent", "fillStyle": "solid", "strokeWidth": 1,
@@ -885,21 +975,32 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
             "updated": 1, "link": None, "locked": False, "fileId": asset["id"],
             "status": "saved", "scale": [1, 1], "crop": None,
             "customData": {ICON_KEY: {"hostId": host["id"], "name": card.icon}},
-        })
-        id_map[f"{card.id}:icon"] = icon_id
+            })
+            id_map[f"{card.id}:icon"] = icon_id
 
-        text_x = card.x + _PAD_X + _ICON + _ICON_GAP
-        title_h = title_size * _LINE_HEIGHT
-        sub_h = _SUBLABEL_SIZE * _LINE_HEIGHT if card.sublabel else 0.0
+        text_x = card.x + _PAD_X + (_ICON + _ICON_GAP if card.icon else 0)
+        title_h = title_size * _LINE_HEIGHT * len(card.display_title.split("\n"))
+        sub_h = _SUBLABEL_SIZE * _LINE_HEIGHT * len(card.display_sublabel.split("\n")) if card.sublabel else 0.0
         gap = 6 if card.sublabel else 0
         top = card.cy - (title_h + gap + sub_h) / 2
         title_id = texts[0]["id"] if texts else _stable_id("title", card.id)
-        new_elements.append(_text_element(title_id, card.title, title_size, title_ink,
-                                          text_x, top, [group_id], next_index()))
+        label_element = _text_element(title_id, card.display_title, title_size, title_ink,
+                                     text_x, top, [group_id], next_index())
+        label_element.update(containerId=host["id"], originalText=card.title, autoResize=False,
+                             width=card.right - _PAD_X - text_x)
+        new_elements.append(label_element)
+        host["boundElements"] = [{"id": title_id, "type": "text"}]
+        parts = host["customData"][CARD_KEY]
+        parts.update(titleId=title_id, iconId=icon_id if card.icon else None)
         if card.sublabel:
-            new_elements.append(_text_element(_stable_id("sublabel", card.id), card.sublabel,
+            sublabel_id = _stable_id("sublabel", card.id)
+            sublabel = _text_element(sublabel_id, card.display_sublabel,
                                               _SUBLABEL_SIZE, _SUBLABEL_INK, text_x,
-                                              top + title_h + gap, [group_id], next_index()))
+                                              top + title_h + gap, [group_id], next_index())
+            sublabel.update(originalText=card.sublabel,
+                            customData={"evoDesignCardPart": {"hostId": host["id"]}})
+            new_elements.append(sublabel)
+            parts["sublabelId"] = sublabel_id
 
     # Connectors: one per unordered pair, double-headed when both directions exist.
     pair_heads: Dict[Tuple[str, str], Dict[str, Any]] = {}
@@ -948,10 +1049,18 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
             "isDeleted": False, "boundElements": [], "updated": 1, "link": None, "locked": False,
             "startArrowhead": "triangle" if info["bidirectional"] else None,
             "endArrowhead": "triangle", "lastCommittedPoint": None, "elbowed": False,
+            "startBinding": {"elementId": hosts[source]["id"], "focus": 0, "gap": 1},
+            "endBinding": {"elementId": hosts[target]["id"], "focus": 0, "gap": 1},
             "meta": {**(original.get("meta") or {}), "semantic_edge_id": edge.get("id"),
                      "merged_semantic_edge_ids": [i for i in info["merged"] if isinstance(i, str)],
                      "source": source, "target": target},
         })
+        for endpoint in (source, target):
+            hosts[endpoint]["boundElements"].append({"id": arrow_id, "type": "arrow"})
+
+    if _ambiguous_junctions(connector_elements):
+        logger.info("[ArchDesignSystem] Shared junctions would imply extra relations; keeping native routing")
+        return manifest
 
     # Paint order: connectors behind cards, so shared trunks never cover text.
     ordered: List[Dict[str, Any]] = []
@@ -977,7 +1086,7 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
     title = str(structure.get("title") or "").strip()
     if title and aesthetic_enabled("TITLE"):
         boxes = [(c.x, c.y) for c in cards] + [(d["x"], d["y"]) for d in decorations]
-        decorations.append(title_element(title[:40], min(x for x, _ in boxes), min(y for _, y in boxes) - 64))
+        decorations.append(title_element(title, min(x for x, _ in boxes), min(y for _, y in boxes) - 64))
     for decoration in decorations:
         decoration["index"] = next_index()
     ordered[:0] = decorations
@@ -997,7 +1106,7 @@ def apply_architecture_design_system(manifest: Dict[str, Any],
     used_files = {e.get("fileId") for e in ordered if e.get("type") == "image"}
     result["files"] = {k: v for k, v in files.items() if k in used_files}
     app_state = result.setdefault("appState", {})
-    app_state["viewBackgroundColor"] = "#FFFFFF"
+    app_state.setdefault("viewBackgroundColor", "#FFFFFF")
     meta["architecture_design_system"] = {
         "tier_plan_source": "layout_agent" if plan else "fallback",
         "colour_source": "style_agent" if all(s == "style_agent" for s in colour_sources) else (

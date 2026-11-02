@@ -45,7 +45,7 @@ run_backend() {
 
 run_cli() {
     cd "$PROJECT_ROOT"
-    PYTHONPATH="$PROJECT_ROOT/cli/src${PYTHONPATH:+:$PYTHONPATH}" "$PY" -m pytest cli/tests tests/canvas_environment/test_editing.py
+    PYTHONPATH="$PROJECT_ROOT/cli/src${PYTHONPATH:+:$PYTHONPATH}" "$PY" -m pytest cli/tests tests/canvas_environment/test_editing.py tests/canvas_environment/test_design_card_editing.py
 }
 
 run_evaluation() {

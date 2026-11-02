@@ -30,13 +30,37 @@ def test_architecture_and_other_types_are_left_alone():
     assert apply_design_theme(base, structure('venn'), STYLE) is base
 
 
+def test_explicit_dna_and_native_locks_bypass_automatic_visual_treatment():
+    import json
+    from evo_diagram.agentic_system.render_engine.excalidraw.architecture_design_system import apply_architecture_design_system
+    from evo_diagram.tests.render_engine.test_architecture_design_system import manifest, structure as arch_structure
+    for apply, base, data in ((apply_design_theme, scene(), structure()),
+                              (apply_architecture_design_system, manifest(), arch_structure())):
+        assert apply(base, data, design_constraints=json.dumps({'user_design_preferences': 'Use exactly #ff0000'})) is base
+        base['elements'][0]['locked'] = True
+        assert apply(base, data) is base
+
+
+def test_mindmap_routing_keeps_native_binding_and_repositions_edge_labels():
+    base = scene()
+    arrow = base['elements'][-1]
+    arrow['width'], arrow['height'] = 0, 60
+    base['elements'].append({'id': 'edge-label', 'type': 'text', 'containerId': arrow['id'],
+                             'x': 1000, 'y': 1000, 'width': 40, 'height': 20, 'text': 'belongs'})
+    themed = apply_design_theme(base, structure('mindmap'))
+    by_id = {e['id']: e for e in themed['elements']}
+    assert by_id[arrow['id']]['startBinding']['elementId'] == themed['_meta']['id_map']['start']
+    assert by_id[arrow['id']]['endBinding']['elementId'] == themed['_meta']['id_map']['check']
+    assert by_id['edge-label']['x'] != 1000
+
+
 def test_flowchart_keeps_shapes_and_takes_the_shared_treatment():
     themed = apply_design_theme(scene(), structure(), STYLE)
     id_map = themed['_meta']['id_map']
     elements = {e['id']: e for e in themed['elements']}
     assert [elements[id_map[n['id']]]['type'] for n in NODES] == ['ellipse', 'rectangle', 'diamond']
     host = elements[id_map['check']]
-    assert host['backgroundColor'] == '#EBF5F4' and host['strokeColor'] == '#367E8A'
+    assert host['backgroundColor'] == '#D2E9E7' and host['strokeColor'] == '#367E8A'
     assert host['strokeWidth'] == 1.5 and host['roughness'] == 0
     labels = [e for e in themed['elements'] if e['type'] == 'text' and e.get('containerId') == host['id']]
     assert labels and all(t['strokeColor'] == '#1F2937' for t in labels)
@@ -56,8 +80,8 @@ def test_undirected_and_uml_heads_keep_their_meaning():
 
 
 def test_area_types_keep_more_of_their_colour():
-    link = apply_design_theme(scene(), structure('flowchart'), STYLE)
-    area = apply_design_theme(scene(), structure('funnel'), STYLE)
+    link = apply_design_theme(scene(), structure('flowchart'))
+    area = apply_design_theme(scene(), structure('funnel'))
     host = lambda s: next(e for e in s['elements'] if e['id'] == s['_meta']['id_map']['check'])
     assert host(area)['backgroundColor'] < host(link)['backgroundColor']
 

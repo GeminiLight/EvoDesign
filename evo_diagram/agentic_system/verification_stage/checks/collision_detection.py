@@ -373,6 +373,22 @@ def check_node_overlap(manifest: Dict[str, Any]) -> List[Finding]:
 
             if not _bboxes_overlap(bbox_a, bbox_b):
                 continue
+            # A card's registered subtitle is content, not a second node.
+            # Keep reporting a subtitle that escapes its card or overlaps others.
+            contained_part = False
+            for part, host, part_box, host_box in (
+                (elem_a, elem_b, bbox_a, bbox_b), (elem_b, elem_a, bbox_b, bbox_a)
+            ):
+                owner = (part.get("customData") or {}).get("evoDesignCardPart") or {}
+                card = (host.get("customData") or {}).get("evoDesignCard") or {}
+                if (isinstance(owner, dict) and isinstance(card, dict)
+                        and owner.get("hostId") == host.get("id")
+                        and card.get("sublabelId") == part.get("id")):
+                    px, py, pw, ph = part_box
+                    hx, hy, hw, hh = host_box
+                    contained_part = hx <= px and hy <= py and px+pw <= hx+hw and py+ph <= hy+hh
+            if contained_part:
+                continue
 
             # Same-group children of a banded layout (swimlane) can legitimately
             # share x-spans only if their lane widths span the canvas; we still

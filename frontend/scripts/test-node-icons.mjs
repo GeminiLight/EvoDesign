@@ -47,6 +47,48 @@ function repair(elements, files={}) {
   const result = reconcileNodeIcons(elements, files);
   return { ...result, files: { ...files, ...Object.fromEntries(result.assets.map(f=>[f.id,f])) } };
 }
+
+test('architecture cards keep editable bound titles and their subtitle/icon spacing', () => {
+  const asset = makeNodeIconAsset('outline_monitor', '#2563eb');
+  const elements = [
+    { id: 'card', type: 'rectangle', x: 200, y: 120, width: 280, height: 84,
+      customData: { evoDesignCard: { titleId: 'title', iconId: 'card-icon', sublabelId: 'sub' } } },
+    { id: 'title', type: 'text', containerId: 'card', x: 0, y: 0, width: 200, height: 25 },
+    { id: 'sub', type: 'text', x: 0, y: 0, width: 100, height: 17.5,
+      customData: { evoDesignCardPart: { hostId: 'card' } } },
+    { id: 'card-icon', type: 'image', x: 0, y: 0, width: 36, height: 36, fileId: asset.id,
+      customData: { evoDesignIcon: { hostId: 'card', name: 'outline_monitor' } } },
+  ];
+  const before = structuredClone(elements);
+  const result = repair(elements, { [asset.id]: asset });
+  const [host, title, subtitle, icon] = result.elements;
+  assert.equal(title.containerId, host.id);
+  assert.equal(title.x, host.x + 74);
+  assert.equal(title.width, host.width - 96);
+  assert.equal(subtitle.y, title.y + title.height + 6);
+  assert.ok(title.x > icon.x + icon.width);
+  assert.equal(repair(result.elements, result.files).changed, false);
+  assert.deepEqual(elements, before);
+  const moved = structuredClone(result.elements);
+  moved[0].x += 40;
+  moved[0].y += 30;
+  const updated = repair(moved, result.files).elements;
+  for (const index of [1, 2, 3]) {
+    assert.equal(updated[index].x, result.elements[index].x + 40);
+    assert.equal(updated[index].y, result.elements[index].y + 30);
+  }
+});
+
+test('native locked architecture cards are left unchanged', () => {
+  const elements = [
+    { id: 'card', type: 'rectangle', x: 100, y: 100, width: 200, height: 84, locked: true,
+      customData: { evoDesignCard: { titleId: 'title' } } },
+    { id: 'title', type: 'text', containerId: 'card', x: 150, y: 125, width: 80, height: 25 },
+  ];
+  const result = repair(elements);
+  assert.equal(result.changed, false);
+  assert.deepEqual(result.elements, elements);
+});
 function valid(result) {
   const [host,label,icon] = result.elements;
   assert.equal(icon.width,26);
