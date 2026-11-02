@@ -56,6 +56,16 @@ def main():
             target = checkout / name
             if target.exists(): shutil.rmtree(target)
         shutil.copytree(ROOT / 'frontend/dist', checkout / 'static')
+        # Keep notices with redistributed fonts, SDKs and the icon catalog.
+        notices = checkout / 'static/licenses'
+        shutil.copytree(ROOT / 'licenses', notices, dirs_exist_ok=True)
+        for name in ['MATERIAL_ICONS_LICENSE.txt', 'LUCIDE_ICONS_LICENSE.txt']:
+            shutil.copyfile(ROOT / 'evo_diagram/agentic_system/common/assets' / name, notices / name)
+        for package in ['@dagrejs/dagre', 'lucide-react', '@tldraw/tldraw']:
+            source = ROOT / 'frontend/node_modules' / package
+            for name in ['LICENSE', 'LICENSE.md']:
+                if (source / name).is_file():
+                    shutil.copyfile(source / name, notices / f'{package.replace("/", "-")}-{name}')
         for name in ['api/model.mjs', 'shared/diagram-prompts.mjs', 'shared/edge-identity.mjs', 'deploy/modelscope/server.mjs', 'LICENSE']:
             target = checkout / name
             target.parent.mkdir(parents=True, exist_ok=True)
