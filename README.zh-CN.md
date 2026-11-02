@@ -6,8 +6,6 @@
   <img src="frontend/public/brand/evodesign-lockup.svg?v=syne700-1" alt="EvoDesign 标志" width="276" height="64">
 </picture>
 
-# EvoDesign
-
 ### 和你的 Agent 共用的个性化图表工作台。
 
 [English](README.md) · **简体中文**

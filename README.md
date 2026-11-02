@@ -6,8 +6,6 @@
   <img src="frontend/public/brand/evodesign-lockup.svg?v=syne700-1" alt="EvoDesign logo" width="276" height="64">
 </picture>
 
-# EvoDesign
-
 ### Personalized diagram workspace, together with your Agent.
 
 **English** · [简体中文](README.zh-CN.md)
