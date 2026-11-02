@@ -134,7 +134,10 @@ def apply_operations(
             raise EditError('invalid_text', 'Text must be at most 10000 characters')
         target = label(el)
         if target is None:
-            tid = el['id'] + '-label'
+            # <id>-label may still be taken by a deleted or unbound label, so pick a free one.
+            tid, suffix = el['id'] + '-label', 2
+            while tid in by_id:
+                tid, suffix = f"{el['id']}-label-{suffix}", suffix + 1
             target = add(tid, 'text', x=el['x'] + 8, y=el['y'] + 8,
                          width=max(1, el['width'] - 16), height=max(20, el['height'] - 16),
                          containerId=el['id'], fontSize=20, fontFamily=2, lineHeight=1.25,
