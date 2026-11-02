@@ -2,6 +2,8 @@
 
 [Open the online workspace](https://evodesign.aurax.live/) · [Project website](https://tianfu.wang/EvoDesign/) · [Paper](https://arxiv.org/abs/2604.09568)
 
+The [China workspace](https://modelscope.cn/studios/GeminiLight/EvoDesign?mode=full) runs the same browser edition on ModelScope. Choose a workspace from **Preferences → Workspace region**. Projects, DNA and model settings remain on their original site; switching opens a new tab and does not transfer data.
+
 Start directly with the shared **GLM-5.3-Flash** demo; no API key or EvoDesign account is required. To use your own model, open **Model settings → Your own model**, enter an **OpenAI-compatible Chat Completions endpoint**, model identifier and API key, read the model catalog with **Check connection**, then save. The model ID field supports searching the returned catalog and manual entry. The check uses only a metadata GET request: it sends no prompt and never falls back to a generation call. Directory access does not prove generation permissions, balance or Chat Completions compatibility. Providers without a catalog can still be configured manually. Previously configured custom models stay selected until you choose the shared demo.
 
 Describe a diagram, choose optional icons, and generate. Select an object before asking for a local edit. Projects and snapshots stay on this browser and origin; export an editable `.excalidraw` copy as a backup, or PNG/SVG for sharing. In **DNA**, add a preference in your own words and enable the rules you want included in subsequent requests.
@@ -28,7 +30,7 @@ Browser diagrams are limited to 60 nodes and 120 connections. AI edits update ex
 
 ## Shared demo and privacy
 
-The default demo sends diagram content through `/api/model` on Vercel to BigModel's general API using `glm-5.3-flash`. The function supplies fixed diagram/edit prompts, bounds requests and output, and keeps the shared credential on the server. It is not a general API or CORS proxy. The application does not archive model request bodies or completions on the server. Projects, editable scenes and personal design preferences stay in your browser.
+The default demo sends diagram content through `/api/model` on the current deployment (Vercel or ModelScope) to BigModel's general API using `glm-5.3-flash`. The function supplies fixed diagram/edit prompts, bounds requests and output, and keeps the shared credential on the server. It is not a general API or CORS proxy. The application does not archive model request bodies or completions on the server. Projects, editable scenes and personal design preferences stay in your browser.
 
 The shared service reserves a conservative token allowance before each call, with independent daily, concurrent and visitor limits. Its Redis namespace stores only counters, short-lived request leases and daily hashes of visitor IPs; it stores no prompts, raw IPs or diagrams. Generating with review uses two requests; an edit uses one. Connection checks use the status endpoint and do not reserve an inference allowance. If the demo is busy or reaches its allowance, retry later or switch to your own model. Turning off review reduces calls. There is no automatic switch from your own provider to the shared service.
 

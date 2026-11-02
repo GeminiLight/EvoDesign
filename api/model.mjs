@@ -1,5 +1,6 @@
 import { createHmac, randomUUID } from 'node:crypto';
 import { PLAN_PROMPT, EDIT_PROMPT } from '../shared/diagram-prompts.mjs';
+import { visitorIp } from '../shared/edge-identity.mjs';
 
 const MODEL = 'glm-5.3-flash';
 const ENDPOINT = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
@@ -72,8 +73,9 @@ export function createModelHandler(env = process.env, fetcher = fetch, options =
     const system = SYSTEMS[input.task];
     const reserved = new TextEncoder().encode(system + input.prompt).length + maxTokens + 512;
     const id = randomUUID();
-    // Vercel overwrites x-real-ip; never trust a client-supplied forwarded chain.
-    const ip = request.headers.get('x-real-ip') || 'unknown';
+    // Direct traffic uses Vercel's overwritten x-real-ip. Our Cloudflare
+    // ingress signs its real client IP so proxy users do not share one limit.
+    const ip = await visitorIp(request, env.DEMO_EDGE_IP_SECRET);
     const day = Math.floor(Date.now() / 86_400_000);
     const visitor = createHmac('sha256', env.DEMO_GLM_API_KEY).update(`${day}:${ip}`).digest('hex').slice(0, 24);
     let reservation;
