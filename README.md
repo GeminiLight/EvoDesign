@@ -184,6 +184,8 @@ See [contributing](CONTRIBUTING.md), [configuration](docs/guides/configuration.m
   <a href="https://github.com/GeminiLight"><img src="docs/assets/contributors/geminilight.svg" width="64" height="64" alt="Tianfu Wang" title="Tianfu Wang" /></a>
   &nbsp;
   <a href="https://github.com/USTChandsomeboy"><img src="docs/assets/contributors/ustchandsomeboy.svg" width="64" height="64" alt="Yi Zhan" title="Yi Zhan" /></a>
+  &nbsp;
+  <a href="https://github.com/one2piece2hello"><img src="docs/assets/contributors/one2piece2hello.svg" width="64" height="64" alt="novacore" title="novacore (@one2piece2hello)" /></a>
 </p>
 
 ## Citation
