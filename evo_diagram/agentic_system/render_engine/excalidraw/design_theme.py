@@ -18,6 +18,7 @@ from evo_diagram.agentic_system.common.diagram_types import normalize_diagram_ty
 from evo_diagram.agentic_system.common.node_icons import ICON_KEY, bundled_icons, icon_file
 from evo_diagram.agentic_system.common.spec_utils import unwrap_structure_instantiation
 
+from .caption_placer import CAPTION_TYPES, is_caption, place_captions
 from .architecture_design_system import (
     _ICON_KEYWORDS,
     _MUTED,
@@ -115,7 +116,6 @@ def _tree_emphasis(nodes: list, edges: list, agent: Dict[str, str]) -> Dict[str,
 
 # Process types read along one happy path from start to end.
 MAIN_PATH_TYPES = {"flowchart", "swimlane"}
-CAPTION_TYPES = {"quadrant", "layer_stack"}
 _POSITIVE = ("yes", "是", "通过", "成功", "ok", "pass", "approve", "批准", "同意", "true")
 _SIDE_OPACITY = 60
 
@@ -239,10 +239,11 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
         host = by_eid.get(id_map.get(str(node["id"]), ""))
         if not host or host.get("type") not in {"rectangle", "ellipse", "diamond"}:
             continue
-        if chart_type in CAPTION_TYPES and node.get("class") == "axis":
+        if chart_type in CAPTION_TYPES and is_caption(node):
             # Axis names and stated rules caption the figure; they are not items in it.
             host.update({"backgroundColor": "transparent", "strokeColor": "transparent", "roughness": 0,
-                         "customData": {**(host.get("customData") or {}), THEME_KEY: True}})
+                         "customData": {**(host.get("customData") or {}), THEME_KEY: True},
+                         "version": int(host.get("version", 1)) + 1})
             host_ink[host["id"]] = node_ink[str(node["id"])] = _TITLE_INK
             continue
         style = styling.get(node["id"]) if isinstance(styling.get(node["id"]), dict) else {}
@@ -326,10 +327,14 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
     headless = mindmap or chart_type == "user_journey"
     if headless or chart_type in {"cycle", "user_journey"}:
         for element in elements:
+            if element.get("type") != "arrow":
+                continue
             meta = element.get("meta") or {}
-            parent = by_eid.get(id_map.get(str(meta.get("source") or ""), ""))
-            child = by_eid.get(id_map.get(str(meta.get("target") or ""), ""))
-            if element.get("type") != "arrow" or not parent or not child:
+            parent = (by_eid.get(id_map.get(str(meta.get("source") or ""), ""))
+                      or by_eid.get((element.get("startBinding") or {}).get("elementId")))
+            child = (by_eid.get(id_map.get(str(meta.get("target") or ""), ""))
+                     or by_eid.get((element.get("endBinding") or {}).get("elementId")))
+            if not parent or not child:
                 continue
             boxes = [by_eid[e] for e in host_ink if e not in (parent["id"], child["id"])]
             points = _clear_branch(parent, child, boxes)
@@ -337,7 +342,8 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
             element.update({
                 "x": ox, "y": oy, "points": [[x - ox, y - oy] for x, y in points],
                 "width": max(xs) - min(xs), "height": max(ys) - min(ys),
-                "startArrowhead": None, "elbowed": False,
+                "elbowed": False,
+                "startArrowhead": None if headless else element.get("startArrowhead"),
                 "endArrowhead": None if headless else element.get("endArrowhead"),
                 "roundness": None,
                 "startBinding": {"elementId": parent["id"], "focus": 0, "gap": 1},
@@ -354,6 +360,8 @@ def apply_design_theme(manifest: Dict[str, Any], structure_instantiation: Any,
     for element in elements:
         if element.get("type") == "text" and element.get("containerId") in arrow_ids:
             element.update({"strokeColor": _SUBLABEL_INK, "fontFamily": 2, "roughness": 0})
+
+    place_captions(chart_type, structure, elements, id_map)
 
     used_files = {e.get("fileId") for e in elements if e.get("type") == "image"}
     result["files"] = {k: v for k, v in files.items() if k in used_files}

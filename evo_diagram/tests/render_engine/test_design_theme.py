@@ -153,6 +153,21 @@ def test_cycle_steps_are_linked_straight_and_keep_their_arrowheads():
 
 
 def test_journey_feelings_form_one_headless_line():
-    themed = apply_design_theme(scene(), {**structure('user_journey'), 'nodes': [dict(n) for n in NODES]}, STYLE)
+    base = scene()
+    arrow = base['elements'][-1]
+    arrow.update(points=[[0, 0], [0, 30], [40, 30], [40, 60]], elbowed=True, endArrowhead='dot')
+    themed = apply_design_theme(base, {**structure('user_journey'), 'nodes': [dict(n) for n in NODES]}, STYLE)
     arrow = {e['id']: e for e in themed['elements']}['arrow-1']
-    assert arrow['endArrowhead'] is None and len(arrow['points']) == 2
+    assert arrow['endArrowhead'] is None and len(arrow['points']) == 2 and arrow['elbowed'] is False
+
+
+def test_cycle_links_keep_a_start_head_and_fall_back_to_bindings():
+    base = scene()
+    arrow = base['elements'][-1]
+    id_map = base['_meta']['id_map']
+    arrow.update(meta={}, startArrowhead='arrow', elbowed=True, points=[[0, 0], [0, 30], [0, 60]],
+                 startBinding={'elementId': id_map['start']}, endBinding={'elementId': id_map['check']})
+    themed = apply_design_theme(base, {**structure('cycle'), 'nodes': [dict(n) for n in NODES]}, STYLE)
+    arrow = {e['id']: e for e in themed['elements']}['arrow-1']
+    assert arrow['startArrowhead'] and arrow['endArrowhead']
+    assert len(arrow['points']) == 2 and arrow['elbowed'] is False

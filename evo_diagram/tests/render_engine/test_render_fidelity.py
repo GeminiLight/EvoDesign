@@ -3441,22 +3441,25 @@ def test_excalidraw_group_fitter_keeps_quadrant_frames_and_only_grows_them():
 
 
 def test_excalidraw_group_fitter_wraps_child_scopes_of_nested_diagrams():
+    # The inner scope's member reaches past the outer frame, so the outer
+    # scope is only right if the inner one is fitted first.
     manifest = {
         "type": "excalidraw/clipboard",
         "_meta": {"id_map": {"outer": "f_outer", "inner": "f_inner", "a": "n_a", "b": "n_b"}},
         "elements": [
-            {"id": "f_outer", "type": "rectangle", "x": 300, "y": 0, "width": 200, "height": 120},
-            {"id": "f_inner", "type": "rectangle", "x": 0, "y": 0, "width": 100, "height": 100},
-            {"id": "n_a", "type": "rectangle", "x": 20, "y": 40, "width": 160, "height": 40},
-            {"id": "n_b", "type": "rectangle", "x": 320, "y": 40, "width": 80, "height": 40},
+            {"id": "f_outer", "type": "rectangle", "x": 0, "y": 0, "width": 300, "height": 200},
+            {"id": "f_inner", "type": "rectangle", "x": 20, "y": 20, "width": 100, "height": 100},
+            {"id": "n_a", "type": "rectangle", "x": 40, "y": 60, "width": 500, "height": 40},
+            {"id": "n_b", "type": "rectangle", "x": 40, "y": 160, "width": 80, "height": 40},
         ],
     }
-    structure = {"chart_type": "nested", "groups": [
-        {"id": "outer", "members": ["b"]},
-        {"id": "inner", "parent_group_id": "outer", "members": ["a"]}]}
-
-    elements = {e["id"]: e for e in fit_excalidraw_groups_to_children(manifest, structure, padding=10)["elements"]}
-    inner, outer = elements["f_inner"], elements["f_outer"]
-
-    assert inner["x"] + inner["width"] == 190
-    assert outer["x"] <= inner["x"] - 10 and outer["x"] + outer["width"] >= 500
+    for nesting in (
+        [{"id": "outer", "members": ["b"]}, {"id": "inner", "parent_group_id": "outer", "members": ["a"]}],
+        [{"id": "outer", "members": ["b", "inner"]}, {"id": "inner", "members": ["a"]}],
+    ):
+        structure = {"chart_type": "nested", "groups": nesting}
+        elements = {e["id"]: e for e in fit_excalidraw_groups_to_children(manifest, structure, padding=10)["elements"]}
+        inner, outer = elements["f_inner"], elements["f_outer"]
+        assert inner["x"] + inner["width"] == 40 + 500 + 24
+        assert outer["x"] <= inner["x"] and outer["x"] + outer["width"] >= inner["x"] + inner["width"] + 24
+        assert outer["y"] + outer["height"] == 160 + 40 + 24

@@ -38,7 +38,8 @@
 
 ### Styling
 - Steps share one card style. The hub is larger and uses the accent family.
-- Arrows are curved or follow the ring, all with the same weight.
+- Arrows are straight segments between facing sides of neighbouring steps,
+  all with the same weight.
 
 ### Layout
 - Primary family: Radial ring.
@@ -46,6 +47,6 @@
   Use a radius large enough that neighbouring cards keep at least 40px apart.
 - Put the hub, if any, at the centre of the circle.
 - Put each entry node outside the ring, next to the step it drives.
-- Route each edge along the ring from one step to the next with `routing:
-  "curved"`; no edge crosses the centre.
+- Link each step only to its ring neighbour with `routing: "straight"`; the
+  ring itself keeps every edge out of the centre.
 - [Geometry] Steps evenly spaced on a circle, clockwise from the top. Hub at the centre. Edges follow the ring between neighbours, all in one direction, none crossing the centre.
