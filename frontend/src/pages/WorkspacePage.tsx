@@ -2620,7 +2620,7 @@ export function WorkspacePage() {
                     modelOptions: createModelOptions, modelIndex: createModelIndex, onModelChange: setCreateModelIndex,
                     canvasOptions: createCanvasOptions, canvasIndex: createCanvasIndex, onCanvasChange: setCreateCanvasIndex }}
                   onGeneratePrompt={prompt => { void handleGenerateFromDialog(prompt); }} disabled={workspaceInteractionBlocked}
-                  useIcons={createUseIcons} onUseIconsChange={handleUseIconsChange}
+                  useIcons={createUseIcons} onUseIconsChange={value => { handleUseIconsChange(value); persistCreatePreflightDraft({ useIcons: value }); }}
                   onClose={() => { if (preview) { setOnboardingDismissed(true); setShowCreateDialog(false); clearActiveCreatePreflight(); }
                     else void handleCreateBlankDocument(false); }}
                 />
