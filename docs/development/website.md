@@ -13,7 +13,7 @@
 - `docs/development/performance.md`: first-load changes, controlled measurement results and checks.
 - `README.md`: repository landing page and release status.
 
-The static website uses relative asset URLs so it works under the `/EvoDesign/` GitHub Pages path. The two editable CSS sources are combined into a generated inline style block by `scripts/sync-research.mjs`, so first paint does not wait for additional stylesheet requests. Script URLs include a content-hash `v` query. DM Sans and Manrope are served locally from `docs/assets/fonts/`; the page preloads both variable fonts and uses `font-display: swap`. No analytics or application backend is included.
+The static website uses relative asset URLs so it works under the `/EvoDesign/` GitHub Pages path. The two editable CSS sources are combined into a generated inline style block by `scripts/sync-research.mjs`, so first paint does not wait for additional stylesheet requests. Script URLs include a content-hash `v` query. DM Sans (body, variable weights 400–700) and Syne (display, weight 600) are served locally as Latin WOFF2 subsets from `docs/assets/fonts/`. The page preloads these two files and uses `font-display: swap`; their combined payload is 35,560 bytes. The outlined SVG wordmark requires no font request. Font sources, modifications and licenses are recorded in the fonts directory. No analytics or application backend is included.
 
 ## Publishing
 
