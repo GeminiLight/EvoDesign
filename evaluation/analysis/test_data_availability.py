@@ -30,30 +30,19 @@ def check_data_availability(
 
     for item in data:
         data_id = item['id']
-        found_path = None
-
-        # Check multiple possible locations
-        locations = [
-            diagram_path / data_id / "rendered_diagram.png",
-            diagram_path / data_id / "4_render",
+        sample_dir = diagram_path / data_id
+        candidates = (
+            sample_dir / "rendered_diagram.png",
+            sample_dir / "render.png",
+            sample_dir / "image.png",
+            *sorted((sample_dir / "4_render").glob("*.png")),
             diagram_path / f"{data_id}.png",
-        ]
+        )
+        found_path = next((path for path in candidates if path.is_file()), None)
 
-        for loc in locations:
-            if loc.exists():
-                if loc.is_dir():
-                    # Check for PNG files in directory
-                    pngs = list(loc.glob("*.png"))
-                    if pngs:
-                        found_path = str(pngs[0])
-                        break
-                else:
-                    found_path = str(loc)
-                    break
-
-        if found_path:
+        if found_path is not None:
             item_copy = item.copy()
-            item_copy['found_image_path'] = found_path
+            item_copy['found_image_path'] = str(found_path)
             available.append(item_copy)
         else:
             missing.append(item)
