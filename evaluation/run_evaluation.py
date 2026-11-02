@@ -558,12 +558,19 @@ def print_results_summary(results: dict):
     if summary.get("worst_image"):
         print(f"Worst image: {summary['worst_image']} (avg: {summary['worst_score']:.2f}/5)")
 
+    incomplete = summary.get("incomplete_average_count", 0)
+    if incomplete:
+        print(
+            f"Images without a complete weighted average: {incomplete} "
+            "(excluded from best/worst)"
+        )
+
     print("\n--- Scores by Image ---")
     for image_name, avg_score in summary.get("average_scores", {}).items():
         if isinstance(avg_score, (int, float)):
             print(f"  {image_name}: {avg_score:.2f}/5")
         else:
-            print(f"  {image_name}: N/A (no valid metric score)")
+            print(f"  {image_name}: N/A (incomplete: a weighted dimension has no valid score)")
 
     print("\n--- Average Scores by Metric ---")
     for metric_name, avg_score in summary.get("metric_averages", {}).items():

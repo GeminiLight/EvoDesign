@@ -10,7 +10,7 @@ from uuid import uuid4
 import webbrowser
 
 from . import __version__
-from .client import Client, CliError, server_origin
+from .client import LOOPBACK_HOSTS, Client, CliError, server_origin
 from .config import check_profile_storage, load_profile, remove_profile, save_profile
 
 
@@ -30,6 +30,8 @@ def parser() -> Parser:
     connect.add_argument('--server', required=True)
     connect.add_argument('--name', default='Agent CLI')
     connect.add_argument('--no-browser', action='store_true')
+    connect.add_argument('--web-origin', default=None,
+                         help='Web app origin when it differs from --server (approval links must use it)')
     commands.add_parser('disconnect', parents=[common])
     groups = {
         'connection': ['status'], 'project': ['get', 'open'], 'document': ['get', 'preview'],
@@ -62,28 +64,62 @@ def parser() -> Parser:
     return root
 
 
+def origin_of(url: str) -> tuple[str, str, str]:
+    parts = urlsplit(url)
+    if parts.scheme not in {'http', 'https'} or not parts.hostname:
+        raise CliError('invalid_verification_url', 'Server returned an invalid web URL')
+    return parts.scheme, parts.hostname, str(parts.port or (443 if parts.scheme == 'https' else 80))
+
+
+def trusted_web_url(url, server: str, web_origin: str | None) -> str:
+    """Return *url* only if it points at an origin the user chose, not one the server named.
+
+    Trusted: the --server origin, an explicit --web-origin, or (local
+    development) any loopback origin when --server itself is loopback.
+    """
+    if not isinstance(url, str):
+        raise CliError('invalid_verification_url', 'Server returned an invalid web URL')
+    target = origin_of(url)
+    allowed = {origin_of(server)} | ({origin_of(web_origin)} if web_origin else set())
+    local = urlsplit(server).hostname in LOOPBACK_HOSTS and target[1] in LOOPBACK_HOSTS
+    if target not in allowed and not local:
+        raise CliError('untrusted_web_url',
+                       f'Server returned a web URL outside {server}; pass --web-origin if the Web app lives elsewhere')
+    return url
+
+
 def pair(args, profile: str) -> dict:
     server = server_origin(args.server)
+    web_origin = server_origin(args.web_origin) if getattr(args, 'web_origin', None) else None
     # A pairing can be claimed only once; check that its token can be saved first.
     check_profile_storage()
     client = Client(server)
     try:
         start = client.request('POST', '/agent/connections', body={'name': args.name})
-        target = urlsplit(start['verification_url'])
-        origin = urlsplit(start['web_origin'])
-        if target.scheme not in {'http', 'https'} or (target.scheme, target.netloc) != (origin.scheme, origin.netloc):
-            raise CliError('invalid_verification_url', 'Server returned an invalid verification URL')
-        print(f"Approve in Web: {start['verification_url']}\nPairing code: {start['user_code']}", file=sys.stderr)
+        verification_url = trusted_web_url(start['verification_url'], server, web_origin)
+        print(f"Approve in Web: {verification_url}\nPairing code: {start['user_code']}", file=sys.stderr)
         if not args.no_browser:
-            webbrowser.open(start['verification_url'])
+            webbrowser.open(verification_url)
+        claim_path = '/agent/connections/' + quote(start['connection_id'], safe='') + '/claim'
+        interval = min(max(start.get('interval', 3), 1), 10)
         deadline = time.monotonic() + 600
         while time.monotonic() < deadline:
-            status = client.request('POST', '/agent/connections/' + quote(start['connection_id'], safe='') + '/claim',
-                                    body={'device_secret': start['device_secret']})
+            try:
+                status = client.request('POST', claim_path, body={'device_secret': start['device_secret']})
+            except CliError as error:
+                # Keep polling through dropped connections and server hiccups;
+                # 4xx answers (expired, revoked, unknown) are final.
+                if not error.transient:
+                    raise
+                print(f'Waiting for approval; retrying after: {error}', file=sys.stderr)
+                time.sleep(interval)
+                continue
             if status['status'] == 'active':
-                save_profile(profile, {'server': server, **{k: status[k] for k in ('project_id', 'connection_id', 'expires_at', 'can_commit')}}, status['access_token'])
+                save_profile(profile, {'server': server, **({'web_origin': web_origin} if web_origin else {}),
+                                       **{k: status[k] for k in ('project_id', 'connection_id', 'expires_at', 'can_commit')}},
+                             status['access_token'])
                 return {k: v for k, v in status.items() if k != 'access_token'}
-            time.sleep(min(max(start.get('interval', 3), 1), 10))
+            time.sleep(interval)
         raise CliError('pairing_expired', 'Pairing timed out; start a new connection', 3)
     finally:
         client.close()
@@ -119,8 +155,9 @@ def execute(args) -> dict | list:
         if args.command in {'project', 'document'}:
             doc = client.request('GET', prefix + '/document')
             if args.command == 'project' and args.action == 'open':
-                webbrowser.open(doc['web_url'])
-                return {'project_id': doc['project_id'], 'web_url': doc['web_url']}
+                web_url = trusted_web_url(doc['web_url'], config['server'], config.get('web_origin'))
+                webbrowser.open(web_url)
+                return {'project_id': doc['project_id'], 'web_url': web_url}
             return {k: v for k, v in doc.items() if args.command == 'document' or k not in {'schema', 'nodes'}}
         if args.command == 'context':
             return client.request('GET', prefix + '/agent-context')
@@ -188,6 +225,11 @@ def main(argv: list[str] | None = None) -> None:
     except CliError as exc:
         print(json.dumps({'ok': False, 'protocol_version': 1, 'error': {'code': exc.code, 'message': str(exc), **exc.extra}}, ensure_ascii=False))
         raise SystemExit(exc.exit_code) from exc
+    except (KeyError, TypeError, AttributeError) as exc:
+        # A malformed server payload must still honour the JSON error contract.
+        error = CliError('invalid_response', f'Server response is missing or has an invalid field: {exc}')
+        print(json.dumps({'ok': False, 'protocol_version': 1, 'error': {'code': error.code, 'message': str(error)}}, ensure_ascii=False))
+        raise SystemExit(error.exit_code) from exc
     except KeyboardInterrupt:
         print('Interrupted; an existing candidate may still be available.', file=sys.stderr)
         raise SystemExit(130)

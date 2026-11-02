@@ -6,25 +6,32 @@ Converts simplified element JSON from LLM output to a complete Excalidraw scene.
 """
 
 import hashlib
-import random
-import time
+import json
 from typing import Any, Dict, List, Optional
 
-
-def _generate_id() -> str:
-    h = hashlib.md5(f"{time.time_ns()}{random.random()}".encode()).hexdigest()
-    return h[:20]
+# Fixed so converting the same LLM output twice yields byte-identical scenes.
+_FIXED_UPDATED_MS = 1
 
 
-def _random_seed() -> int:
-    return random.randint(1, 2_000_000_000)
+def _generate_id(key: str) -> str:
+    """Deterministic element id derived from *key* (element id or content)."""
+    return hashlib.md5(key.encode("utf-8")).hexdigest()[:20]
 
 
-def _now_ms() -> int:
-    return int(time.time() * 1000)
+def _stable_seed(key: str) -> int:
+    digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
+    return int(digest[:12], 16) % 2_000_000_000 + 1
 
 
-def _default_fields() -> Dict[str, Any]:
+def _content_key(elem: Dict[str, Any], ordinal: int) -> str:
+    """Fallback key for elements the LLM emitted without an id."""
+    canonical = json.dumps(elem, sort_keys=True, ensure_ascii=False, default=str)
+    return f"{ordinal}:{canonical}"
+
+
+def _default_fields(element_id: str) -> Dict[str, Any]:
+    # Rough.js seeds come from the element id so hand-drawn strokes (and
+    # therefore rendered pixels) are reproducible across runs.
     return {
         "angle": 0,
         "strokeColor": "#1e1e1e",
@@ -38,12 +45,12 @@ def _default_fields() -> Dict[str, Any]:
         "frameId": None,
         "index": "a0",
         "roundness": None,
-        "seed": _random_seed(),
+        "seed": _stable_seed(f"{element_id}:seed"),
         "version": 2,
-        "versionNonce": _random_seed(),
+        "versionNonce": _stable_seed(f"{element_id}:nonce"),
         "isDeleted": False,
         "boundElements": [],
-        "updated": _now_ms(),
+        "updated": _FIXED_UPDATED_MS,
         "link": None,
         "locked": False,
     }
@@ -117,10 +124,10 @@ def _connection_points(
     return start, end
 
 
-def _convert_shape(elem: Dict[str, Any]) -> List[Dict[str, Any]]:
+def _convert_shape(elem: Dict[str, Any], key: str = "") -> List[Dict[str, Any]]:
     """Convert a simplified shape node to full Excalidraw elements (shape + bound text)."""
     result = []
-    shape_id = elem.get("id") or _generate_id()
+    shape_id = elem.get("id") or _generate_id(key or _content_key(elem, 0))
     x = int(elem.get("x", 0))
     y = int(elem.get("y", 0))
     width = int(elem.get("width", elem.get("w", 160)))
@@ -128,7 +135,7 @@ def _convert_shape(elem: Dict[str, Any]) -> List[Dict[str, Any]]:
     text = (elem.get("text") or "").strip()
 
     shape = {
-        **_default_fields(),
+        **_default_fields(shape_id),
         "id": shape_id,
         "type": elem.get("type", "rectangle"),
         "x": x,
@@ -147,13 +154,13 @@ def _convert_shape(elem: Dict[str, Any]) -> List[Dict[str, Any]]:
 
     # If there's text, create a bound text element
     if text:
-        text_id = _generate_id()
+        text_id = _generate_id(f"{shape_id}:text")
         text_size = _estimate_text_size(text, 20)
         text_width = min(text_size["width"], width - 10)
         text_height = min(text_size["height"], height - 10)
 
         text_elem = {
-            **_default_fields(),
+            **_default_fields(text_id),
             "id": text_id,
             "type": "text",
             "x": x + (width - text_width) / 2,
@@ -182,9 +189,10 @@ def _convert_shape(elem: Dict[str, Any]) -> List[Dict[str, Any]]:
 def _convert_arrow(
     elem: Dict[str, Any],
     element_bounds: Optional[Dict[str, Dict[str, float]]] = None,
+    key: str = "",
 ) -> List[Dict[str, Any]]:
     """Convert a simplified arrow to a full Excalidraw arrow element."""
-    arrow_id = elem.get("id") or _generate_id()
+    arrow_id = elem.get("id") or _generate_id(key or _content_key(elem, 0))
     text = (elem.get("text") or "").strip()
     start_binding = elem.get("startBinding")
     end_binding = elem.get("endBinding")
@@ -213,7 +221,7 @@ def _convert_arrow(
         points = elem.get("points", [[0, 0], [width, height]])
 
     arrow = {
-        **_default_fields(),
+        **_default_fields(arrow_id),
         "id": arrow_id,
         "type": "arrow",
         "x": x,
@@ -245,9 +253,9 @@ def _convert_arrow(
         mid_x = x + width / 2
         mid_y = y + height / 2 - 10
         label_size = _estimate_text_size(text, 16)
-        label_id = _generate_id()
+        label_id = _generate_id(f"{arrow_id}:label")
         label_elem = {
-            **_default_fields(),
+            **_default_fields(label_id),
             "id": label_id,
             "type": "text",
             "x": mid_x - label_size["width"] / 2,
@@ -270,9 +278,9 @@ def _convert_arrow(
     return result
 
 
-def _convert_free_text(elem: Dict[str, Any]) -> List[Dict[str, Any]]:
+def _convert_free_text(elem: Dict[str, Any], key: str = "") -> List[Dict[str, Any]]:
     """Convert a simplified free text element."""
-    text_id = elem.get("id") or _generate_id()
+    text_id = elem.get("id") or _generate_id(key or _content_key(elem, 0))
     text = (elem.get("text") or "").strip()
     x = int(elem.get("x", 0))
     y = int(elem.get("y", 0))
@@ -282,7 +290,7 @@ def _convert_free_text(elem: Dict[str, Any]) -> List[Dict[str, Any]]:
     height = int(elem.get("height", elem.get("h", text_size["height"])))
 
     return [{
-        **_default_fields(),
+        **_default_fields(text_id),
         "id": text_id,
         "type": "text",
         "x": x,
@@ -336,17 +344,18 @@ class ExcalidrawDirectCodeConverter:
             and elem.get("type", "rectangle") != "arrow"
         }
 
-        for elem in raw_elements:
+        for ordinal, elem in enumerate(raw_elements):
             elem_type = elem.get("type", "")
+            key = _content_key(elem, ordinal)
             if elem_type in ("rectangle", "diamond", "ellipse"):
-                elements.extend(_convert_shape(elem))
+                elements.extend(_convert_shape(elem, key))
             elif elem_type == "arrow":
-                elements.extend(_convert_arrow(elem, element_bounds))
+                elements.extend(_convert_arrow(elem, element_bounds, key))
             elif elem_type == "text":
-                elements.extend(_convert_free_text(elem))
+                elements.extend(_convert_free_text(elem, key))
             else:
                 # Unknown type — try shape fallback
-                elements.extend(_convert_shape(elem))
+                elements.extend(_convert_shape(elem, key))
 
         elements.sort(key=_zorder_rank)
 

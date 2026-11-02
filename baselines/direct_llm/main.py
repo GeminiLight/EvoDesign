@@ -425,6 +425,7 @@ def main():
     # Load environment variables
     from dotenv import load_dotenv
     from evo_diagram.utils.env_loader import ensure_env_loaded
+    from baselines.llm_endpoint import require_llm_endpoint
 
     ensure_env_loaded()
     # load_dotenv() is a silent no-op on a missing path, so an env file the user
@@ -454,7 +455,7 @@ def main():
         "model_name": resolved_model_name,
         "model_alias": named_model_config.get("model_alias") or requested_model or resolved_model_name,
         "provider": args.provider or named_model_config.get("provider") or os.getenv("LLM_MODEL_PROVIDER", "openai"),
-        "base_url": args.base_url or named_model_config.get("base_url") or os.getenv("LLM_ENDPOINT_URL", "https://apis.iflow.cn/v1"),
+        "base_url": require_llm_endpoint(args.base_url, named_model_config.get("base_url")),
         "api_key": (
             args.api_key
             or named_model_config.get("api_key")

@@ -141,3 +141,25 @@ def test_resolve_named_model_config_fails_fast_for_broken_declared_model(monkeyp
 
     with pytest.raises(RuntimeError, match="Failed to resolve model config"):
         direct_main._resolve_named_model_config("broken-model")
+
+
+def test_excalidraw_converter_is_deterministic_for_identical_input():
+    simplified = {
+        "elements": [
+            {"id": "a", "type": "rectangle", "x": 0, "y": 0, "width": 100, "height": 50, "text": "A"},
+            {"type": "ellipse", "x": 200, "y": 0, "width": 80, "height": 80, "text": "no id"},
+            {"type": "ellipse", "x": 200, "y": 0, "width": 80, "height": 80, "text": "no id"},
+            {"id": "edge", "type": "arrow", "text": "go",
+             "startBinding": {"elementId": "a"}, "endBinding": {"elementId": "b"}},
+            {"type": "text", "x": 0, "y": 200, "text": "caption"},
+        ],
+    }
+
+    first = ExcalidrawDirectCodeConverter().convert(simplified)
+    second = ExcalidrawDirectCodeConverter().convert(simplified)
+
+    assert first == second
+    ids = [elem["id"] for elem in first["elements"]]
+    assert len(ids) == len(set(ids)), "identical id-less elements must not collide"
+    seeds = {elem["id"]: elem["seed"] for elem in first["elements"]}
+    assert seeds["a"] != seeds["edge"]

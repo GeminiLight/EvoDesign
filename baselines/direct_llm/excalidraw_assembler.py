@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import hashlib
 import random
-import time
 from typing import Any, Dict, List, Optional, Tuple
 
 
@@ -32,7 +31,8 @@ _CHAR_WIDTH_FACTOR = 0.6
 
 
 def _new_id(rng: random.Random) -> str:
-    raw = f"{rng.random()}{time.time_ns()}".encode()
+    # Derived only from the seeded RNG so equal inputs give equal scenes.
+    raw = f"{rng.random()}".encode()
     return hashlib.md5(raw).hexdigest()[:20]
 
 
@@ -59,7 +59,7 @@ def _base_element(rng: random.Random, index: str) -> Dict[str, Any]:
         "versionNonce": _new_seed(rng),
         "isDeleted": False,
         "boundElements": [],
-        "updated": int(time.time() * 1000),
+        "updated": 1,
         "link": None,
         "locked": False,
     }
