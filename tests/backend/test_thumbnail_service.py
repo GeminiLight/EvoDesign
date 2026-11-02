@@ -8,6 +8,7 @@ from app.services import thumbnail_service
 from app.services.thumbnail_service import (
     ThumbnailGenerationError,
     _get_fill,
+    _rich_text,
     generate_svg_thumbnail,
 )
 
@@ -16,6 +17,17 @@ def _decode_svg(data_uri: str) -> str:
     prefix = "data:image/svg+xml;base64,"
     assert data_uri.startswith(prefix)
     return base64.b64decode(data_uri.removeprefix(prefix)).decode()
+
+
+def _rich_text_doc(*lines: str) -> dict:
+    """TLDraw 3 rich text, as toRichText() builds it: one paragraph per line."""
+    return {
+        "type": "doc",
+        "content": [
+            {"type": "paragraph", "content": [{"type": "text", "text": line}]}
+            for line in lines
+        ],
+    }
 
 
 def test_generate_svg_thumbnail_renders_nodes_edges_and_escaped_labels():
@@ -114,6 +126,80 @@ def test_generate_svg_thumbnail_renders_tldraw_root_records():
     assert "Finish" in svg
     assert 'marker-end="url(#ah)"' in svg
     assert "No preview" not in svg
+
+
+def test_generate_svg_thumbnail_renders_tldraw_editor_snapshots():
+    """TLDraw 3 snapshots: document.store, rich-text labels, arrow binding records."""
+    store = {
+        "document:document": {"id": "document:document", "typeName": "document"},
+        "page:page": {"id": "page:page", "typeName": "page", "name": "Page 1"},
+        "shape:a": {
+            "id": "shape:a",
+            "typeName": "shape",
+            "type": "geo",
+            "x": 0,
+            "y": 0,
+            "props": {
+                "geo": "rectangle",
+                "w": 100,
+                "h": 50,
+                "richText": _rich_text_doc("Start"),
+            },
+        },
+        "shape:b": {
+            "id": "shape:b",
+            "typeName": "shape",
+            "type": "geo",
+            "x": 180,
+            "y": 100,
+            "props": {
+                "geo": "ellipse",
+                "w": 120,
+                "h": 60,
+                "richText": _rich_text_doc("Review", "queue"),
+            },
+        },
+        "shape:arrow": {
+            "id": "shape:arrow",
+            "typeName": "shape",
+            "type": "arrow",
+            "x": 100,
+            "y": 25,
+            "props": {
+                "start": {"x": 0, "y": 0},
+                "end": {"x": 80, "y": 105},
+                "text": "",
+            },
+        },
+        "binding:start": {
+            "id": "binding:start",
+            "typeName": "binding",
+            "type": "arrow",
+            "fromId": "shape:arrow",
+            "toId": "shape:a",
+            "props": {"terminal": "start"},
+        },
+        "binding:end": {
+            "id": "binding:end",
+            "typeName": "binding",
+            "type": "arrow",
+            "fromId": "shape:arrow",
+            "toId": "shape:b",
+            "props": {"terminal": "end"},
+        },
+    }
+
+    data_uri = generate_svg_thumbnail(
+        {"document": {"store": store, "schema": {"schemaVersion": 2}}, "session": {}},
+        canvas_engine="tldraw",
+    )
+
+    svg = _decode_svg(data_uri)
+
+    assert "No preview" not in svg
+    assert ">Start<" in svg
+    assert "Review" in svg and "queue" in svg
+    assert svg.count("<line") == 1
 
 
 def test_generate_svg_thumbnail_renders_tldraw_document_records():
@@ -235,3 +321,26 @@ def test_get_fill_accepts_hex_colors_only():
     assert _get_fill({"fill": " #aabbcc "}, 0) == "#aabbcc"
     assert _get_fill({"fill": '#fff" onload="alert(1)'}, 0) == "#dbeafe"
     assert _get_fill({"fill": "red"}, 1) == "#e0e7ff"
+
+
+def test_rich_text_puts_hard_breaks_and_list_items_on_separate_lines():
+    def text(value: str) -> dict:
+        return {"type": "text", "text": value}
+
+    def list_item(value: str) -> dict:
+        paragraph = {"type": "paragraph", "content": [text(value)]}
+        return {"type": "listItem", "content": [paragraph]}
+
+    doc = {
+        "type": "doc",
+        "content": [
+            {
+                "type": "paragraph",
+                "content": [text("line1"), {"type": "hardBreak"}, text("line2")],
+            },
+            {"type": "paragraph"},
+            {"type": "bulletList", "content": [list_item("one"), list_item("two")]},
+        ],
+    }
+
+    assert _rich_text(doc) == "line1\nline2\none\ntwo"

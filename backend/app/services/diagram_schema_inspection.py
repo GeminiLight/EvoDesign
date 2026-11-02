@@ -49,12 +49,36 @@ def tldraw_shape_records(
     return shapes
 
 
-def _tldraw_records(schema_blob: dict[str, Any]) -> dict[str, Any]:
-    document = schema_blob.get("document")
-    if isinstance(document, dict) and isinstance(document.get("records"), dict):
-        return document["records"]
+def tldraw_arrow_terminals(schema_blob: Any) -> dict[str, dict[str, str]]:
+    """Map each TLDraw arrow ID to the shapes its binding records attach it to.
 
-    records = schema_blob.get("records")
-    if isinstance(records, dict):
-        return records
+    TLDraw 3 keeps arrow attachments in separate ``binding`` records
+    (``fromId`` arrow, ``toId`` shape, ``props.terminal`` start or end).
+    """
+    if not isinstance(schema_blob, dict):
+        return {}
+    terminals: dict[str, dict[str, str]] = {}
+    for value in _tldraw_records(schema_blob).values():
+        if not isinstance(value, dict):
+            continue
+        if value.get("typeName") != "binding" or value.get("type") != "arrow":
+            continue
+        props = value.get("props")
+        terminal = props.get("terminal") if isinstance(props, dict) else None
+        if terminal in {"start", "end"} and value.get("fromId") and value.get("toId"):
+            terminals.setdefault(str(value["fromId"]), {})[terminal] = str(value["toId"])
+    return terminals
+
+
+def _tldraw_records(schema_blob: dict[str, Any]) -> dict[str, Any]:
+    # The editor's getSnapshot() and the TLDraw converter both save
+    # {"document": {"store": ...}}; "records" maps stay readable.
+    document = schema_blob.get("document")
+    for holder in (document, schema_blob):
+        if not isinstance(holder, dict):
+            continue
+        for key in ("store", "records"):
+            records = holder.get(key)
+            if isinstance(records, dict):
+                return records
     return {}
