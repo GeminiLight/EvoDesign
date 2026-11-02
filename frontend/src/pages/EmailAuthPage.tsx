@@ -5,15 +5,13 @@ import { useBackendAuth } from '../features/auth/BackendAuthProvider';
 import { consumeAuthReturnTo, rememberAuthReturnTo, resolveAuthReturnTo } from '../features/auth/authRedirect';
 import { useLanguage } from '../i18n/LanguageProvider';
 
-const LOGO_ASSET_VERSION = '20260303';
-
 export const EmailAuthPage = () => {
   const { user, loading } = useBackendAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const logoSrc = `${isDarkMode ? '/evodiagram-dark.svg' : '/evodiagram.svg'}?v=${LOGO_ASSET_VERSION}`;
+  const logoSrc = isDarkMode ? '/brand/evodesign-icon-dark.svg' : '/brand/evodesign-icon.svg';
   const stateReturnTo = (location.state as { returnTo?: unknown } | null)?.returnTo;
   const queryReturnTo = new URLSearchParams(location.search).get('returnTo');
   const requestedReturnTo = stateReturnTo ?? queryReturnTo;

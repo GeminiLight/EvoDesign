@@ -1,9 +1,9 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="frontend/public/evodiagram-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="frontend/public/evodiagram.svg">
-  <img src="frontend/public/evodiagram.svg" alt="EvoDesign logo" width="112" height="112">
+  <source media="(prefers-color-scheme: dark)" srcset="frontend/public/brand/evodesign-lockup-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="frontend/public/brand/evodesign-lockup.svg">
+  <img src="frontend/public/brand/evodesign-lockup.svg" alt="EvoDesign logo" width="276" height="64">
 </picture>
 
 # EvoDesign

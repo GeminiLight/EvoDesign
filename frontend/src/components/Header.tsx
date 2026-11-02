@@ -14,7 +14,6 @@ const navBaseClass = 'relative inline-flex min-h-10 min-w-11 items-center justif
 const navActiveClass = 'bg-brand-50 font-semibold text-brand-700 dark:bg-brand-500/15 dark:text-brand-300';
 const navInactiveClass = 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100 after:absolute after:bottom-1 after:left-0 after:right-0 after:h-0.5 after:scale-x-0 after:rounded-full after:bg-brand-300 after:transition-transform hover:after:scale-x-100';
 type ThemeMode = 'dark' | 'light' | 'system';
-const LOGO_ASSET_VERSION = '20260303';
 
 type HeaderProps = {
   children?: ReactNode;
@@ -55,7 +54,7 @@ export const Header = ({
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const logoSrc = `${isDarkMode ? '/evodiagram-dark.svg' : '/evodiagram.svg'}?v=${LOGO_ASSET_VERSION}`;
+  const logoSrc = isDarkMode ? '/brand/evodesign-icon-dark.svg' : '/brand/evodesign-icon.svg';
 
   const userRef = useRef<HTMLDivElement>(null);
   const userButtonRef = useRef<HTMLButtonElement>(null);

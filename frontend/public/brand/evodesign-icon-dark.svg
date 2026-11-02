@@ -1,0 +1,10 @@
+<!-- Generated from shared/brand.json by scripts/sync-brand.mjs. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" >
+<defs>
+  <linearGradient id="violet" x1="0" y1="0" x2="260" y2="310" gradientUnits="userSpaceOnUse"><stop stop-color="#6c68ff"/><stop offset="1" stop-color="#3f43cf"/></linearGradient>
+  <linearGradient id="cyan" x1="360" y1="145" x2="170" y2="320" gradientUnits="userSpaceOnUse"><stop stop-color="#82dce5"/><stop offset="1" stop-color="#50bcd4"/></linearGradient>
+</defs>
+<rect width="512" height="512" rx="112" fill="#121526"/>
+<g transform="translate(60 62) scale(1.04)"><path d="M43 8 236 85Q260 95 260 123V204L250 210V138Q250 123 238 131L161 176Q145 185 145 205V278Q145 300 161 310L28 252Q0 239 0 214V32Q0-8 43 8Z" fill="url(#violet)"/>
+<path d="M184 229 347 143Q377 128 377 164V325Q377 348 356 359L335 370Q321 376 303 368L166 310V254Q166 238 184 229Z" fill="url(#cyan)"/></g>
+</svg>
