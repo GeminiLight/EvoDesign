@@ -89,6 +89,10 @@ test('endpoints require HTTPS, except loopback, and never accept URL credentials
   assert.equal(model.completionUrl('http://localhost:11434/v1/chat/completions'), 'http://localhost:11434/v1/chat/completions');
   for (const url of ['http://provider.example/v1', 'https://secret@provider.example', 'https://provider.example?key=secret', 'javascript:alert(1)', 'https://provider.example/#key']) assert.throws(() => model.completionUrl(url));
 });
+test('model endpoints at the provider root use a single leading slash', () => {
+  assert.equal(model.completionUrl('https://provider.example'), 'https://provider.example/chat/completions');
+  assert.equal(model.modelCatalogUrl('http://localhost:8080/'), 'http://localhost:8080/models');
+});
 test('model calls use only the chosen provider and omit cookies, redirects and referrers', async () => {
   globalThis.fetch = async (url, options) => {
     assert.equal(url, 'https://model.example/v1/chat/completions');
