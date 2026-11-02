@@ -35,6 +35,7 @@ callable, wrap it with a lock first.
 
 from __future__ import annotations
 
+import contextvars
 import logging
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
@@ -109,7 +110,12 @@ def sample_and_vote(
     # Concurrent fan-out. If an individual sample raises, we swallow and move
     # on so majority vote is still meaningful.
     with ThreadPoolExecutor(max_workers=n_samples) as pool:
-        futures = [pool.submit(invoke_fn, input_dict) for _ in range(n_samples)]
+        # Copy the caller's context into each worker so the per-run LLM budget
+        # (``core.base_agent.llm_run_budget``) also caps the N fan-out calls.
+        futures = [
+            pool.submit(contextvars.copy_context().run, invoke_fn, input_dict)
+            for _ in range(n_samples)
+        ]
         for idx, fut in enumerate(futures):
             try:
                 raw = fut.result()

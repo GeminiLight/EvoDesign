@@ -20,6 +20,7 @@ Excalidraw conventions used here:
 
 from __future__ import annotations
 
+import math
 from typing import Any, Dict, List, Optional, Tuple
 from evo_diagram.agentic_system.common.node_icons import sync_node_icons, set_node_icon
 
@@ -169,6 +170,19 @@ _ARROW_GEOMETRY_ERROR = (
 )
 
 
+def _finite_float(value: Any, name: str) -> Tuple[Optional[float], Optional[str]]:
+    """Parse *value* as a finite float; NaN/Inf would poison every geometry check."""
+    if isinstance(value, bool):
+        return None, f"{name} must be a number, got {value!r}"
+    try:
+        number = float(value)
+    except (TypeError, ValueError) as exc:
+        return None, f"{name}: {exc}"
+    if not math.isfinite(number):
+        return None, f"{name} must be finite, got {value!r}"
+    return number, None
+
+
 def op_set_position(
     manifest: Dict[str, Any],
     element_id: str,
@@ -182,19 +196,18 @@ def op_set_position(
         return False, _ARROW_GEOMETRY_ERROR
     if "x" not in payload or "y" not in payload:
         return False, "set_position requires x and y in payload"
-    try:
-        old_x = _num(elem.get("x"))
-        old_y = _num(elem.get("y"))
-        elem["x"] = float(payload["x"])
-        elem["y"] = float(payload["y"])
-    except (TypeError, ValueError) as exc:
-        return False, f"invalid x/y: {exc}"
-    _move_bound_text(
-        elements,
-        elem,
-        dx=_num(elem.get("x")) - old_x,
-        dy=_num(elem.get("y")) - old_y,
-    )
+    # Validate both coordinates before mutating so a bad y never leaves a
+    # half-applied move behind.
+    x, x_error = _finite_float(payload["x"], "x")
+    y, y_error = _finite_float(payload["y"], "y")
+    if x_error or y_error:
+        return False, f"invalid x/y: {x_error or y_error}"
+    assert x is not None and y is not None
+    old_x = _num(elem.get("x"))
+    old_y = _num(elem.get("y"))
+    elem["x"] = x
+    elem["y"] = y
+    _move_bound_text(elements, elem, dx=x - old_x, dy=y - old_y)
     sync_node_icons(manifest, element_id)
     _bump_version(elem)
     return True, None
@@ -213,11 +226,11 @@ def op_set_size(
         return False, _ARROW_GEOMETRY_ERROR
     if "width" not in payload or "height" not in payload:
         return False, "set_size requires width and height in payload"
-    try:
-        w = float(payload["width"])
-        h = float(payload["height"])
-    except (TypeError, ValueError) as exc:
-        return False, f"invalid w/h: {exc}"
+    w, w_error = _finite_float(payload["width"], "width")
+    h, h_error = _finite_float(payload["height"], "height")
+    if w_error or h_error:
+        return False, f"invalid w/h: {w_error or h_error}"
+    assert w is not None and h is not None
     if w <= 0 or h <= 0:
         return False, f"non-positive width/height (w={w}, h={h})"
     elem["width"] = w

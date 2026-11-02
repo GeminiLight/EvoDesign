@@ -550,7 +550,8 @@ class TestModelConfig:
         assert created["params"]["base_url"] == "https://api.openai.com/v1"
         assert created["params"]["api_key"] == "sk-openai"
         assert created["params"]["max_tokens"] == 16384
-        assert created["params"]["max_retries"] == 6
+        # BaseAgent owns transport retries; the CLI must not stack SDK retries.
+        assert "max_retries" not in created["params"]
 
     def test_initialize_model_rejects_unknown_model_alias(self, tmp_path, monkeypatch):
         from evo_diagram.agentic_system.config import AgenticSystemConfig

@@ -20,6 +20,23 @@ from .primitives import OP_HANDLERS
 logger = logging.getLogger(__name__)
 
 
+def _collapse_whitespace(text: str) -> str:
+    return " ".join(text.split())
+
+
+def _same_label_content(element: Dict[str, Any], new_text: str) -> bool:
+    """True when *new_text* only re-wraps the label (whitespace/line breaks).
+
+    Visual refinement may re-flow a semantic label to fix overflow, but must
+    not reword, abbreviate or translate it: the words are source facts.
+    """
+    candidate = _collapse_whitespace(new_text)
+    return any(
+        isinstance(current, str) and _collapse_whitespace(current) == candidate
+        for current in (element.get("originalText"), element.get("text"))
+    )
+
+
 def _semantic_edit_error(manifest: Dict[str, Any], edit: EditOp) -> str | None:
     """Prevent visual cleanup from erasing source facts."""
     if edit.source != "llm":
@@ -44,8 +61,15 @@ def _semantic_edit_error(manifest: Dict[str, Any], edit: EditOp) -> str | None:
         return None
     if edit.op == "delete_element":
         return "semantic content cannot be deleted during visual refinement"
-    if edit.op == "set_text" and not str(edit.payload.get("text", "")).strip():
-        return "semantic labels cannot be erased during visual refinement"
+    if edit.op == "set_text":
+        new_text = edit.payload.get("text", "")
+        if not str(new_text).strip():
+            return "semantic labels cannot be erased during visual refinement"
+        if not _same_label_content(element, str(new_text)):
+            return (
+                "semantic label content is fixed during visual refinement; "
+                "set_text may only re-wrap it (whitespace/line breaks)"
+            )
     if edit.op == "set_style":
         if metadata.get("conceptFactAnchor") and (
             float(edit.payload.get("strokeWidth", 1)) <= 0

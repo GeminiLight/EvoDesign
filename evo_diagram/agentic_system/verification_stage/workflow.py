@@ -174,7 +174,8 @@ def _node_build_report(state: VerifierState) -> VerifierState:
         from evo_diagram.config.model_loader import ModelConfig
         params = ModelConfig.get_default().get_model_config("verifier")
         vlm_model = params.get("model", "unknown")
-    except (KeyError, FileNotFoundError):
+    except (KeyError, FileNotFoundError, ValueError):
+        # Report metadata only; an unconfigured model must not fail the report.
         pass
 
     if state.has_blocking_errors:

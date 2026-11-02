@@ -79,13 +79,22 @@ def ensure_env_loaded() -> None:
     _loaded = True
 
 
+_LEGACY_LLM_ENV_NAMES = (
+    "LLM_MODEL_PROVIDER",
+    "LLM_MODEL_NAME",
+    "LLM_ENDPOINT_URL",
+    "LLM_API_KEY",
+)
+
+
 def _apply_stepfun_legacy_llm_defaults() -> None:
     """Map the canonical StepFun key to legacy LLM_* settings.
 
     Core EvoDiagram resolves models through configs/models.yaml and
     configs/settings.yaml. Some older baseline and research scripts still read
     LLM_* variables directly; keep those paths on the same default provider
-    without requiring users to duplicate their API key in .env.
+    without requiring users to duplicate their API key in .env. The mapping
+    applies only when none of the LLM_* variables is set.
     """
     stepfun_api_key = os.getenv("STEPFUN_API_KEY")
     if not stepfun_api_key:
@@ -93,10 +102,15 @@ def _apply_stepfun_legacy_llm_defaults() -> None:
     if is_placeholder_secret(stepfun_api_key):
         return
 
-    os.environ.setdefault("LLM_MODEL_PROVIDER", "openai")
-    os.environ.setdefault("LLM_MODEL_NAME", _STEPFUN_MODEL_NAME)
-    os.environ.setdefault("LLM_ENDPOINT_URL", _STEPFUN_BASE_URL)
-    os.environ.setdefault("LLM_API_KEY", stepfun_api_key)
+    # All-or-nothing: filling only the unset names would mix configurations,
+    # e.g. send the StepFun key to a user-configured LLM_ENDPOINT_URL.
+    if any(os.getenv(name) for name in _LEGACY_LLM_ENV_NAMES):
+        return
+
+    os.environ["LLM_MODEL_PROVIDER"] = "openai"
+    os.environ["LLM_MODEL_NAME"] = _STEPFUN_MODEL_NAME
+    os.environ["LLM_ENDPOINT_URL"] = _STEPFUN_BASE_URL
+    os.environ["LLM_API_KEY"] = stepfun_api_key
 
 
 # Auto-load on import

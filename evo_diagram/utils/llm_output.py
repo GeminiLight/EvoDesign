@@ -9,9 +9,47 @@ import json
 from typing import Any
 
 
+def _split_json_strings(text: str) -> list[tuple[bool, str]]:
+    """Split *text* into ``(is_string, chunk)`` runs.
+
+    String runs include their quotes; an unterminated string runs to the end.
+    """
+    parts: list[tuple[bool, str]] = []
+    idx = 0
+    length = len(text)
+    while idx < length:
+        quote = text.find('"', idx)
+        if quote < 0:
+            parts.append((False, text[idx:]))
+            break
+        if quote > idx:
+            parts.append((False, text[idx:quote]))
+        pos = quote + 1
+        while pos < length:
+            char = text[pos]
+            if char == "\\":
+                pos += 2
+                continue
+            if char == '"':
+                break
+            pos += 1
+        end = min(pos + 1, length)
+        parts.append((True, text[quote:end]))
+        idx = end
+    return parts
+
+
+# A value can end with one of these characters right before a missing comma.
+_VALUE_END_CHARS = set("}]0123456789'")
+
+
 def fix_json_string(json_str: str) -> str:
     """
     Attempt to fix common JSON formatting issues.
+
+    Repairs (trailing commas, duplicate commas, a missing comma before the
+    next ``"key":``) are applied only to structural text: string literals are
+    copied verbatim, so a label such as ``"a, }"`` is never rewritten.
 
     Args:
         json_str: Potentially malformed JSON string
@@ -19,29 +57,40 @@ def fix_json_string(json_str: str) -> str:
     Returns:
         Fixed JSON string
     """
-    # Remove trailing commas before closing braces/brackets
-    json_str = re.sub(r',\s*}', '}', json_str)
-    json_str = re.sub(r',\s*]', ']', json_str)
+    parts = _split_json_strings(json_str)
 
-    # Fix missing commas between object properties (common LLM error)
-    # Pattern 1: "key": value "key2": value2  ->  "key": value, "key2": value2
-    json_str = re.sub(r'([}\]0-9"\'])\s+("[\w_]+"\s*:)', r'\1, \2', json_str)
+    # Structural cleanup inside non-string runs.
+    cleaned: list[tuple[bool, str]] = []
+    for is_string, chunk in parts:
+        if not is_string:
+            previous = None
+            while previous != chunk:
+                previous = chunk
+                chunk = re.sub(r',(\s*),', r',\1', chunk)
+            chunk = re.sub(r',(\s*)(?=[}\]])', r'\1', chunk)
+        cleaned.append((is_string, chunk))
 
-    # Pattern 2: Missing comma after closing brace/bracket before next property
-    # } "key":  ->  }, "key":
-    json_str = re.sub(r'([}\]])\s+("[\w_]+"\s*:)', r'\1, \2', json_str)
-
-    # Pattern 3: Missing comma between string values and next property
-    # "value" "key":  ->  "value", "key":
-    json_str = re.sub(r'("\s*)\s+("[\w_]+"\s*:)', r'\1, \2', json_str)
-
-    # Fix missing commas on line breaks between properties
-    json_str = re.sub(r'([}\]0-9"\'])\s*\n\s*("[\w_]+"\s*:)', r'\1,\n\2', json_str)
-
-    # Remove duplicate commas
-    json_str = re.sub(r',\s*,', ',', json_str)
-
-    return json_str
+    # Missing comma before a key: <value> <ws> "key" <ws> :
+    out: list[str] = []
+    for index, (is_string, chunk) in enumerate(cleaned):
+        if is_string and index > 0:
+            following = cleaned[index + 1][1] if index + 1 < len(cleaned) else ""
+            is_key = not cleaned[index + 1][0] if index + 1 < len(cleaned) else False
+            is_key = is_key and following.lstrip().startswith(":")
+            if is_key:
+                gap_is_string, gap = cleaned[index - 1]
+                if gap_is_string:
+                    # "value""key": with nothing in between.
+                    out.append(",")
+                elif not gap.strip() and index >= 2 and cleaned[index - 2][0]:
+                    # "value" <ws> "key":
+                    out[-1] = "," + gap
+                else:
+                    stripped = gap.rstrip()
+                    if stripped and stripped[-1] in _VALUE_END_CHARS and gap != stripped:
+                        out[-1] = stripped + "," + gap[len(stripped):]
+        out.append(chunk)
+    return "".join(out)
 
 
 def _extract_balanced_json_substring(text: str, start_idx: int) -> str | None:
@@ -81,28 +130,55 @@ def _extract_balanced_json_substring(text: str, start_idx: int) -> str | None:
 
 
 def _loads_json_from_start(text: str, start_idx: int) -> Any:
+    return _loads_json_span(text, start_idx)[0]
+
+
+def _loads_json_span(text: str, start_idx: int) -> tuple[Any, int]:
+    """Parse the JSON value at *start_idx*; return ``(value, end_idx)``."""
     decoder = json.JSONDecoder(strict=False)
     try:
-        value, _ = decoder.raw_decode(text, start_idx)
-        return value
+        return decoder.raw_decode(text, start_idx)
     except json.JSONDecodeError as raw_error:
         json_str = _extract_balanced_json_substring(text, start_idx)
         if json_str is None:
             raise raw_error
 
         fixed_json = fix_json_string(json_str)
-        return json.loads(fixed_json, strict=False)
+        return json.loads(fixed_json, strict=False), start_idx + len(json_str)
 
 
 def _loads_embedded_json(output: str) -> Any:
+    """Return the first *outermost* parsable JSON value embedded in prose.
+
+    When a candidate fails to parse but is balanced, values nested inside it
+    are only a fallback: a later top-level value is preferred over, e.g., the
+    first inner ``{...}`` of a broken wrapper object.
+    """
     first_error: json.JSONDecodeError | None = None
+    nested_fallback: tuple[bool, Any] = (False, None)
+    skip_until = -1
 
     for match in re.finditer(r"[\[{]", output):
+        start = match.start()
+        nested = start < skip_until
+        if nested and nested_fallback[0]:
+            continue
         try:
-            return _loads_json_from_start(output, match.start())
+            value, end = _loads_json_span(output, start)
         except json.JSONDecodeError as exc:
             if first_error is None:
                 first_error = exc
+            if not nested:
+                balanced = _extract_balanced_json_substring(output, start)
+                if balanced is not None:
+                    skip_until = start + len(balanced)
+            continue
+        if not nested:
+            return value
+        nested_fallback = (True, value)
+
+    if nested_fallback[0]:
+        return nested_fallback[1]
 
     if first_error is not None:
         raise first_error

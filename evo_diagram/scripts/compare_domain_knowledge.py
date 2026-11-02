@@ -83,7 +83,7 @@ def find_item(dataset: Iterable[dict[str, Any]], target_id: str) -> dict[str, An
 def create_model():
     from evo_diagram.core.llm_factory import LLMFactory
 
-    return LLMFactory.create_for_role("generator", max_tokens=16384, max_retries=6)
+    return LLMFactory.create_for_role("generator", max_tokens=16384)
 
 
 def run_single(

@@ -59,30 +59,35 @@ class LLMFactory:
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
         timeout: Optional[int] = 1200,  # Default 20 minutes timeout for slow reasoning models
-        max_retries: int = 2,
+        max_retries: int = 0,
         max_tokens: Optional[int] = None,
         **kwargs
     ) -> BaseChatModel:
         """Initialize LLM client with model parameters.
 
         Args:
-            model: Model name (e.g., 'gpt-4', 'claude-3-5-sonnet-20241022')
+            model: Model name (e.g., 'gpt-4', 'claude-3-5-sonnet-20241022'); required
             model_provider: Provider name (e.g., 'openai', 'anthropic', 'nvidia')
             temperature: Temperature for model responses (default: 0)
             base_url: Custom base URL for API endpoint
             api_key: Custom API key
-            timeout: Request timeout in seconds (default: 120)
-            max_retries: Max retries for API calls (default: 3)
+            timeout: Per-request timeout in seconds (default: 1200)
+            max_retries: SDK-level retries (default: 0). ``BaseAgent`` owns the
+                single transport retry layer and the per-call deadline; a
+                non-zero value here multiplies with it, so only set it for
+                clients used outside ``BaseAgent``.
             max_tokens: Maximum tokens in response
             **kwargs: Additional parameters passed to init_chat_model
                       (e.g., streaming=True, top_p=0.95)
 
         Raises:
-            ValueError: If neither llm nor model is provided
+            ValueError: If no model name is provided
         """
-        if model is None:
-            model = "claude-3-5-sonnet-20241022"
-            model_provider = model_provider or "anthropic"
+        if model is None or not str(model).strip():
+            raise ValueError(
+                "LLMFactory.create requires a model name. Configure model_name "
+                "for the role in models.yaml or pass model=... explicitly."
+            )
 
         # NVIDIA endpoints are OpenAI-compatible; just remap the provider.
         # Streaming is needed because NVIDIA's gateway returns 504 on long

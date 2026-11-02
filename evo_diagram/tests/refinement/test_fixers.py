@@ -1425,3 +1425,73 @@ class TestArrowRoutingFacade:
                 {"x": 90, "y": 90, "w": 10, "h": 10},
                 canvas_library="tldraw",
             )
+
+
+def _semantic_label_manifest():
+    return {
+        "elements": [{"id": "label", "type": "text", "containerId": "box",
+                      "text": "Customer\nonboarding flow", "originalText": "Customer onboarding flow"}],
+        "_meta": {"id_map": {"onboarding": "box"}},
+    }
+
+
+@pytest.mark.parametrize("new_text", ["Customer onboarding\nflow", "Customer   onboarding flow "])
+def test_refiner_may_rewrap_semantic_labels(new_text):
+    from evo_diagram.agentic_system.refinement_stage.fixers.apply_edits import apply_edits
+    from evo_diagram.agentic_system.refinement_stage.state import EditOp
+
+    result, outcomes = apply_edits(_semantic_label_manifest(), [
+        EditOp(op="set_text", id="label", payload={"text": new_text}, source="llm"),
+    ])
+    assert outcomes[0].applied, outcomes[0].error
+    assert result["elements"][0]["text"] == new_text
+
+
+@pytest.mark.parametrize("new_text", ["Cust. onboarding", "Customer signup flow", "Customer onboardingflow"])
+def test_refiner_cannot_reword_semantic_labels(new_text):
+    from evo_diagram.agentic_system.refinement_stage.fixers.apply_edits import apply_edits
+    from evo_diagram.agentic_system.refinement_stage.state import EditOp
+
+    manifest = _semantic_label_manifest()
+    original = deepcopy(manifest)
+    result, outcomes = apply_edits(manifest, [
+        EditOp(op="set_text", id="label", payload={"text": new_text}, source="llm"),
+    ])
+    assert result == original
+    assert not outcomes[0].applied
+    assert "re-wrap" in outcomes[0].error
+
+
+@pytest.mark.parametrize("payload,error", [
+    ({"x": 10, "y": float("nan")}, "finite"),
+    ({"x": float("inf"), "y": 10}, "finite"),
+    ({"x": 10, "y": "abc"}, "invalid x/y"),
+    ({"x": True, "y": 10}, "number"),
+])
+def test_set_position_rejects_bad_numbers_without_half_applying(payload, error):
+    from evo_diagram.agentic_system.refinement_stage.fixers.primitives import op_set_position
+
+    manifest = {"elements": [
+        {"id": "box", "type": "rectangle", "x": 0, "y": 0, "width": 50, "height": 20,
+         "boundElements": [{"id": "t", "type": "text"}]},
+        {"id": "t", "type": "text", "containerId": "box", "x": 5, "y": 5, "text": "A"},
+    ]}
+    original = deepcopy(manifest)
+    applied, message = op_set_position(manifest, "box", payload)
+    assert not applied and error in message
+    assert manifest == original
+
+
+@pytest.mark.parametrize("payload", [
+    {"width": float("nan"), "height": 10},
+    {"width": 10, "height": float("inf")},
+    {"width": 10, "height": None},
+])
+def test_set_size_rejects_non_finite_numbers(payload):
+    from evo_diagram.agentic_system.refinement_stage.fixers.primitives import op_set_size
+
+    manifest = {"elements": [{"id": "box", "type": "rectangle", "x": 0, "y": 0, "width": 50, "height": 20}]}
+    original = deepcopy(manifest)
+    applied, _message = op_set_size(manifest, "box", payload)
+    assert not applied
+    assert manifest == original

@@ -22,7 +22,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from .prompts import VERIFIER_CRITIC_SYSTEM_PROMPT, build_user_prompt
-from evo_diagram.core.base_agent import _is_provider_quota_exhausted
+from evo_diagram.core.base_agent import _is_permanent_http_error, charge_llm_run_budget
 from evo_diagram.core.llm_factory import LLMFactory
 from evo_diagram.utils.io_utils import image_to_data_url
 from evo_diagram.utils.llm_output import convert_json_output
@@ -63,15 +63,33 @@ def review_image_edge_limit(image_path: str, manifest: dict | None) -> int | Non
         return None
 
 
-def _coerce_dimension(payload: Any) -> DimensionCritique:
-    """Be defensive: clamp scores, default missing arrays to []."""
-    if not isinstance(payload, dict):
-        return DimensionCritique(score=0.0)
+class IncompleteCritiqueError(ValueError):
+    """The VLM response lacks a required score.
+
+    A missing score is a critic failure, never an implicit 0: a fabricated low
+    "before" score would let ``quality_policy.verified_learning_gain`` credit a
+    fake improvement and write it into design memory.
+    """
+
+
+def _required_score(payload: Dict[str, Any], key: str, label: str) -> float:
+    raw = payload.get(key)
+    if isinstance(raw, bool) or raw is None:
+        raise IncompleteCritiqueError(f"VLM critique is missing {label}")
     try:
-        score = float(payload.get("score", 0.0))
+        score = float(raw)
     except (TypeError, ValueError):
-        score = 0.0
-    score = max(0.0, min(10.0, score))
+        raise IncompleteCritiqueError(f"VLM critique has a non-numeric {label}: {raw!r}") from None
+    if not math.isfinite(score):
+        raise IncompleteCritiqueError(f"VLM critique has a non-finite {label}: {raw!r}")
+    return max(0.0, min(10.0, score))
+
+
+def _coerce_dimension(payload: Any, name: str) -> DimensionCritique:
+    """Require a numeric score; clamp it and default missing arrays to []."""
+    if not isinstance(payload, dict):
+        raise IncompleteCritiqueError(f"VLM critique is missing the {name} dimension")
+    score = _required_score(payload, "score", f"{name}.score")
 
     def _as_str_list(key: str) -> list[str]:
         raw = payload.get(key)
@@ -90,20 +108,15 @@ def _coerce_dimension(payload: Any) -> DimensionCritique:
 
 
 def _coerce_critique(data: Dict[str, Any], raw: Optional[str]) -> Critique:
-    """Turn the parsed dict into a strict Critique pydantic model."""
-    structure = _coerce_dimension(data.get("structure"))
-    styling = _coerce_dimension(data.get("styling"))
-    layout = _coerce_dimension(data.get("layout"))
+    """Turn the parsed dict into a strict Critique pydantic model.
 
-    overall: float
-    try:
-        overall = float(data.get("overall_score", 0.0))
-    except (TypeError, ValueError):
-        overall = 0.0
-    if overall <= 0.0:
-        # Reasonable fallback if the model omits overall — average the three.
-        overall = (structure.score + styling.score + layout.score) / 3
-    overall = max(0.0, min(10.0, overall))
+    Raises ``IncompleteCritiqueError`` when ``overall_score`` or any dimension
+    score is missing or non-numeric.
+    """
+    structure = _coerce_dimension(data.get("structure"), "structure")
+    styling = _coerce_dimension(data.get("styling"), "styling")
+    layout = _coerce_dimension(data.get("layout"), "layout")
+    overall = _required_score(data, "overall_score", "overall_score")
 
     summary = data.get("summary", "") or ""
     if not isinstance(summary, str):
@@ -182,6 +195,7 @@ class VerifierCriticAgent:
         last_error: Optional[Exception] = None
         delay = self.retry_delay_seconds
         for attempt in range(1, self.max_retries + 1):
+            charge_llm_run_budget()  # outside try: an exhausted run budget is final
             try:
                 response = self.model.invoke(messages)
                 if response is None or not getattr(response, "content", None):
@@ -220,7 +234,8 @@ class VerifierCriticAgent:
                     self.max_retries,
                     exc,
                 )
-                if _is_provider_quota_exhausted(exc):
+                # Auth / bad request / exhausted quota cannot succeed on retry.
+                if _is_permanent_http_error(exc):
                     break
                 if attempt < self.max_retries:
                     time.sleep(delay)
