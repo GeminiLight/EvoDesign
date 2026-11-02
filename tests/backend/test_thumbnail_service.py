@@ -141,6 +141,93 @@ def test_generate_svg_thumbnail_renders_tldraw_document_records():
     assert "No preview" not in svg
 
 
+def test_generate_svg_thumbnail_ignores_deleted_excalidraw_elements():
+    """The editor saves deleted elements too; they must not be drawn or sized."""
+    deleted = [
+        {
+            "id": "gone",
+            "type": "rectangle",
+            "x": 4000,
+            "y": 4000,
+            "width": 100,
+            "height": 50,
+            "backgroundColor": "#ff0000",
+            "isDeleted": True,
+        },
+        {
+            "id": "gone-label",
+            "type": "text",
+            "x": 4010,
+            "y": 4010,
+            "width": 80,
+            "height": 25,
+            "text": "Gone",
+            "containerId": "gone",
+            "isDeleted": True,
+        },
+        {
+            "id": "old-arrow",
+            "type": "arrow",
+            "startBinding": {"elementId": "a"},
+            "endBinding": {"elementId": "b"},
+            "isDeleted": True,
+        },
+    ]
+    live = [
+        {
+            "id": "a",
+            "type": "rectangle",
+            "x": 0,
+            "y": 0,
+            "width": 100,
+            "height": 50,
+            "backgroundColor": "transparent",
+            "isDeleted": False,
+        },
+        {
+            "id": "b",
+            "type": "rectangle",
+            "x": 180,
+            "y": 100,
+            "width": 120,
+            "height": 60,
+            "backgroundColor": "transparent",
+        },
+    ]
+
+    data_uri = generate_svg_thumbnail({"elements": deleted + live})
+
+    svg = _decode_svg(data_uri)
+    assert "#ff0000" not in svg
+    assert "Gone" not in svg
+    assert "<line" not in svg
+    # Same scale, positions and default fills as a scene that only had the
+    # live nodes.
+    assert svg == _decode_svg(generate_svg_thumbnail({"elements": live}))
+
+
+def test_generate_svg_thumbnail_ignores_deleted_connectors():
+    """Deleted connectors draw no line; non-dict entries are skipped, not fatal."""
+    data_uri = generate_svg_thumbnail(
+        {
+            "nodes": [
+                None,
+                {"id": "a", "x": 0, "y": 0, "width": 100, "height": 50},
+                {"id": "b", "x": 180, "y": 100, "width": 120, "height": 60},
+            ],
+            "edges": [
+                None,
+                {"source": "a", "target": "b", "isDeleted": True},
+            ],
+        }
+    )
+
+    svg = _decode_svg(data_uri)
+
+    assert "<line" not in svg
+    assert "No preview" not in svg
+
+
 def test_generate_svg_thumbnail_returns_placeholder_for_invalid_geometry():
     data_uri = generate_svg_thumbnail(
         {
