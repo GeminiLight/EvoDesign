@@ -54,6 +54,50 @@ def test_delete_removes_references_and_keeps_other_node():
     assert elements['b']['boundElements'] == [{'id': 'b-label', 'type': 'text'}]
 
 
+def test_set_text_relabels_a_node_after_its_label_was_deleted():
+    without_label, _ = apply_operations(scene(), [{'op': 'delete_node', 'id': 'a-label', 'cascade': False}])
+    updated, changed = apply_operations(
+        without_label, [{'op': 'set_text', 'id': 'a', 'text': 'Features'}], scope=['a'])
+    elements = {e['id']: e for e in updated['elements']}
+    assert [b for b in elements['a']['boundElements'] if b['type'] == 'text'] == [
+        {'id': 'a-label-2', 'type': 'text'}]
+    assert elements['a-label-2']['containerId'] == 'a'
+    assert elements['a-label-2']['text'] == 'Features'
+    assert elements['a-label'] == next(e for e in without_label['elements'] if e['id'] == 'a-label')
+    assert set(changed) == {'a', 'a-label-2'}
+
+
+def test_set_text_relabels_a_node_whose_label_was_unbound():
+    # Excalidraw's "Unbind text" keeps the text live under its old ID.
+    original = scene()
+    for e in original['elements']:
+        if e['id'] == 'a-label':
+            e['containerId'] = None
+        if e['id'] == 'a':
+            e['boundElements'] = [b for b in e['boundElements'] if b['id'] != 'a-label']
+    updated, changed = apply_operations(
+        original, [{'op': 'set_text', 'id': 'a', 'text': 'Features'}], scope=['a'])
+    elements = {e['id']: e for e in updated['elements']}
+    assert [b for b in elements['a']['boundElements'] if b['type'] == 'text'] == [
+        {'id': 'a-label-2', 'type': 'text'}]
+    assert elements['a-label']['text'] == 'Input' and elements['a-label']['containerId'] is None
+    assert set(changed) == {'a', 'a-label-2'}
+
+
+def test_set_text_labels_a_connector_after_its_label_was_deleted_in_the_same_batch():
+    updated, _ = apply_operations(scene(), [
+        {'op': 'set_text', 'id': 'edge', 'text': 'old'},
+        {'op': 'delete_node', 'id': 'edge-label', 'cascade': False},
+        {'op': 'set_text', 'id': 'edge', 'text': 'features'},
+        {'op': 'delete_node', 'id': 'edge-label-2', 'cascade': False},
+        {'op': 'set_text', 'id': 'edge', 'text': 'tokens'},
+    ])
+    elements = {e['id']: e for e in updated['elements']}
+    assert elements['edge-label']['isDeleted'] and elements['edge-label-2']['isDeleted']
+    assert elements['edge']['boundElements'] == [{'id': 'edge-label-3', 'type': 'text'}]
+    assert elements['edge-label-3']['text'] == 'tokens'
+
+
 @pytest.mark.parametrize('value', [float('nan'), float('inf'), True, 100001])
 def test_rejects_nonfinite_or_unbounded_geometry(value):
     with pytest.raises(EditError):
