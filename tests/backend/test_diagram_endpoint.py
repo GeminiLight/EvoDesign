@@ -700,7 +700,7 @@ async def test_edit_diagram_local_hides_unexpected_exception_details(monkeypatch
     with pytest.raises(HTTPException) as exc_info:
         await _call_edit_diagram_local(
             body=DiagramLocalEditRequest(
-                current_schema={"elements": []},
+                current_schema={"elements": [{"id": "node-1"}]},
                 selected_node_ids=["node-1"],
                 instruction="Make it larger",
                 canvas_library="excalidraw",
@@ -723,7 +723,7 @@ async def test_edit_diagram_local_hides_backend_llm_configuration_errors(monkeyp
     with pytest.raises(HTTPException) as exc_info:
         await _call_edit_diagram_local(
             body=DiagramLocalEditRequest(
-                current_schema={"elements": []},
+                current_schema={"elements": [{"id": "node-1"}]},
                 selected_node_ids=["node-1"],
                 instruction="Make it larger",
                 canvas_library="excalidraw",
@@ -749,7 +749,7 @@ async def test_edit_diagram_local_returns_validation_errors_as_bad_request(monke
     with pytest.raises(HTTPException) as exc_info:
         await _call_edit_diagram_local(
             body=DiagramLocalEditRequest(
-                current_schema={"elements": []},
+                current_schema={"elements": [{"id": "node-1"}]},
                 selected_node_ids=["node-1"],
                 instruction="Make it larger",
                 canvas_library="excalidraw",
@@ -772,7 +772,7 @@ async def test_edit_diagram_local_hides_validation_error_details(monkeypatch):
     with pytest.raises(HTTPException) as exc_info:
         await _call_edit_diagram_local(
             body=DiagramLocalEditRequest(
-                current_schema={"elements": []},
+                current_schema={"elements": [{"id": "node-1"}]},
                 selected_node_ids=["node-1"],
                 instruction="Make it larger",
                 canvas_library="excalidraw",
@@ -795,7 +795,7 @@ async def test_edit_diagram_local_hides_invalid_llm_response_details(monkeypatch
     with pytest.raises(HTTPException) as exc_info:
         await _call_edit_diagram_local(
             body=DiagramLocalEditRequest(
-                current_schema={"elements": []},
+                current_schema={"elements": [{"id": "node-1"}]},
                 selected_node_ids=["node-1"],
                 instruction="Make it larger",
                 canvas_library="excalidraw",
@@ -818,7 +818,7 @@ async def test_edit_diagram_local_hides_unexpected_plain_value_errors(monkeypatc
     with pytest.raises(HTTPException) as exc_info:
         await _call_edit_diagram_local(
             body=DiagramLocalEditRequest(
-                current_schema={"elements": []},
+                current_schema={"elements": [{"id": "node-1"}]},
                 selected_node_ids=["node-1"],
                 instruction="Make it larger",
                 canvas_library="excalidraw",

@@ -288,6 +288,9 @@ def aggregate(
         return round(statistics.mean(xs), 3) if xs else None
 
     overall_avg: Dict[str, Optional[float]] = {}
+    # Samples whose weighted average is incomplete (a dimension failed) are
+    # excluded from the mean; record coverage so methods stay comparable.
+    avg_coverage: Dict[str, int] = {}
     for m in method_labels:
         all_avgs = [
             avg_grid[(s["id"], m)]
@@ -295,6 +298,7 @@ def aggregate(
             if avg_grid.get((s["id"], m)) is not None
         ]
         overall_avg[m] = _mean(all_avgs)
+        avg_coverage[m] = len(all_avgs)
 
     # --- write Markdown ---------------------------------------------------
     md_path = round_dir / "breakdown.md"
@@ -317,8 +321,8 @@ def aggregate(
     lines.append("")
     lines.append(f"## 1. Overall scoreboard (mean over {len(samples)} samples)")
     lines.append("")
-    header = "| Method | content | visual | cognitive | **avg** |"
-    sep = "|---|---:|---:|---:|---:|"
+    header = "| Method | content | visual | cognitive | **avg** | avg n |"
+    sep = "|---|---:|---:|---:|---:|---:|"
     lines += [header, sep]
     for m in method_labels:
         c = _mean(by_method_dim[m]["content_dimension"])
@@ -327,7 +331,8 @@ def aggregate(
         avg = overall_avg[m]
         lines.append(
             f"| {m} | {c if c is not None else '—'} | {v if v is not None else '—'} | "
-            f"{cog if cog is not None else '—'} | **{avg if avg is not None else '—'}** |"
+            f"{cog if cog is not None else '—'} | **{avg if avg is not None else '—'}** | "
+            f"{avg_coverage[m]}/{len(samples)} |"
         )
 
     # ---- 2. Per-sample table ----------------------------------------------
