@@ -15,6 +15,7 @@ from app.services.diagram_schema_inspection import (
     NODE_COLLECTION_KEYS,
     TL_DRAW_ARROW_TYPES,
     first_schema_collection,
+    tldraw_arrow_terminals,
 )
 
 _DEFAULT_FILLS = [
@@ -63,6 +64,10 @@ def _get_label(el: dict[str, Any]) -> str:
         for key in ("text", "label", "name", "title"):
             if props.get(key):
                 return str(props[key])
+        # TLDraw 3 geo shapes keep their label as rich text
+        rich_text = _rich_text(props.get("richText")).strip()
+        if rich_text:
+            return rich_text
     # Generic label / name fields
     for key in ("label", "name", "title", "content"):
         if el.get(key):
@@ -74,6 +79,20 @@ def _get_label(el: dict[str, Any]) -> str:
             if label_obj.get(k):
                 return str(label_obj[k])
     return ""
+
+
+def _rich_text(node: Any) -> str:
+    """Plain text of a TLDraw rich-text document, one line per block."""
+    if not isinstance(node, dict):
+        return ""
+    if node.get("type") == "text":
+        return str(node.get("text") or "")
+    if node.get("type") == "hardBreak":
+        return "\n"
+    content = node.get("content")
+    children = [_rich_text(child) for child in content] if isinstance(content, list) else []
+    inline = node.get("type") in {"paragraph", "heading"}
+    return ("" if inline else "\n").join(child for child in children if inline or child)
 
 
 def _get_geometry(el: dict[str, Any]) -> tuple[float, float, float, float] | None:
@@ -198,9 +217,11 @@ def _render(schema_blob: dict[str, Any], canvas_engine: str) -> str:
         f'<rect width="{_W}" height="{_H}" fill="#f8fafc" rx="8"/>'
     ]
 
+    terminals = tldraw_arrow_terminals(schema_blob)
     for arrow in arrows:
-        start_id = _get_arrow_endpoint_id(arrow, "start")
-        end_id = _get_arrow_endpoint_id(arrow, "end")
+        bound = terminals.get(str(arrow.get("id", "")), {})
+        start_id = _get_arrow_endpoint_id(arrow, "start") or bound.get("start", "")
+        end_id = _get_arrow_endpoint_id(arrow, "end") or bound.get("end", "")
         sc = id_to_centre.get(start_id)
         ec = id_to_centre.get(end_id)
         if sc and ec:
