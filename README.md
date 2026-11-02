@@ -186,7 +186,13 @@ See [contributing](CONTRIBUTING.md), [configuration](docs/guides/configuration.m
   <a href="https://github.com/USTChandsomeboy"><img src="docs/assets/contributors/ustchandsomeboy.svg" width="64" height="64" alt="Yi Zhan" title="Yi Zhan" /></a>
   &nbsp;
   <a href="https://github.com/one2piece2hello"><img src="docs/assets/contributors/one2piece2hello.svg" width="64" height="64" alt="novacore" title="novacore (@one2piece2hello)" /></a>
+  &nbsp;
+  <a href="https://github.com/JoeyWu-tech"><img src="docs/assets/contributors/joeywu-tech.svg" width="64" height="64" alt="Yin WU" title="Yin WU (@JoeyWu-tech)" /></a>
 </p>
+
+## Acknowledgments
+
+- [diagram-design](https://github.com/cathrynlavery/diagram-design) — thank you to [Cathryn Lavery](https://github.com/cathrynlavery) for sharing diagram design guidance and examples.
 
 ## Citation
 
