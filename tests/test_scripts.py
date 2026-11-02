@@ -534,6 +534,8 @@ def test_research_aggregate_reads_experiments_scores_and_dynamic_round_config(mo
     assert "- **Experiment**: `exp-42`" in breakdown
     assert "- **Total scored pairs**: 6 expected, 6 present" in breakdown
     assert "mean over 2 samples" in breakdown
+    assert "| avg n |" in breakdown
+    assert " | 2/2 |" in breakdown
     assert "Round 1 Pilot" not in breakdown
 
 

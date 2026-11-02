@@ -71,14 +71,7 @@ class LocalEditService:
         canvas_library: str,
     ) -> LocalEditResult:
         """Perform a local edit on selected nodes via a single LLM call."""
-        canvas = self._validate_canvas_library(canvas_library)
-        selected_nodes = self._extract_nodes(current_schema, selected_node_ids, canvas)
-
-        if not self._has_selected_nodes(selected_nodes, canvas):
-            raise LocalEditValidationError(
-                f"No nodes found with IDs: {selected_node_ids}",
-                public_detail=LOCAL_EDIT_INVALID_SELECTION_DETAIL,
-            )
+        canvas, selected_nodes = self.select_nodes(current_schema, selected_node_ids, canvas_library)
 
         prompt = self._build_prompt(selected_nodes, instruction, canvas)
         response = await self._get_llm().ainvoke(prompt)
@@ -93,6 +86,22 @@ class LocalEditService:
             operation_type=operation_type,
             summary=f"Modified {len(selected_node_ids)} node(s): {instruction[:50]}",
         )
+
+    def select_nodes(
+        self,
+        current_schema: dict[str, Any],
+        selected_node_ids: list[str],
+        canvas_library: str,
+    ) -> tuple[CanvasLibrary, dict[str, Any]]:
+        """Validate the request and extract the selected nodes without calling the LLM."""
+        canvas = self._validate_canvas_library(canvas_library)
+        selected_nodes = self._extract_nodes(current_schema, selected_node_ids, canvas)
+        if not self._has_selected_nodes(selected_nodes, canvas):
+            raise LocalEditValidationError(
+                f"No nodes found with IDs: {selected_node_ids}",
+                public_detail=LOCAL_EDIT_INVALID_SELECTION_DETAIL,
+            )
+        return canvas, selected_nodes
 
     @staticmethod
     def _validate_canvas_library(canvas_library: str) -> CanvasLibrary:
@@ -276,3 +285,16 @@ Return ONLY valid JSON, no explanations or markdown code blocks."""
             original_ids = set(original_nodes["records"])
             modified_ids = set(modified_nodes["records"])
         return "add" if modified_ids - original_ids else "update"
+
+
+def precheck_local_edit(
+    current_schema: dict[str, Any],
+    selected_node_ids: list[str],
+    canvas_library: str,
+) -> None:
+    """Reject malformed local-edit requests before quota is charged or the LLM is built."""
+    LocalEditService(llm_factory=_no_llm).select_nodes(current_schema, selected_node_ids, canvas_library)
+
+
+def _no_llm() -> Any:
+    raise RuntimeError("precheck_local_edit must not construct an LLM")

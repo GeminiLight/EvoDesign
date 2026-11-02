@@ -42,6 +42,7 @@ from app.services.local_edit_service import (
     LocalEditResponseError,
     LocalEditService,
     LocalEditValidationError,
+    precheck_local_edit,
 )
 from app.services.workflow_generate_service import WorkflowGenerateService
 from app.services.workflow_runtime.stream_errors import (
@@ -435,6 +436,16 @@ async def edit_diagram_local(
     - Uses a single LLM call for selected-node edits
     - Suitable for iterative chat-based editing
     """
+    try:
+        # Cheap validation first, so malformed requests never spend guest quota.
+        precheck_local_edit(body.current_schema, body.selected_node_ids, body.canvas_library)
+    except Exception as exc:
+        _raise_diagram_api_error(
+            exc,
+            policy=LOCAL_EDIT_ERROR_POLICY,
+            log_mappings=LOCAL_EDIT_ERROR_LOGS,
+            fallback_log_message="Local edit failed",
+        )
     await _admit_generation(
         request, current_user=current_user, db=db, settings=settings, guest_quota=guest_quota
     )

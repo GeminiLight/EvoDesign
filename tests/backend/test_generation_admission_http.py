@@ -99,7 +99,7 @@ def _from(ip: str) -> dict:
 @pytest.mark.asyncio
 async def test_guest_quota_is_shared_across_generation_endpoints_and_returns_429(api):
     client = api.client
-    edit = {'current_schema': {'elements': []}, 'selected_node_ids': ['a'], 'instruction': 'Bigger',
+    edit = {'current_schema': {'elements': [{'id': 'a'}]}, 'selected_node_ids': ['a'], 'instruction': 'Bigger',
             'canvas_library': 'excalidraw'}
     assert (await client.post('/api/v1/diagram/generate', headers=_from('198.51.100.7'), json=GENERATE)).status_code == 201
     stream = await client.post('/api/v1/diagram/generate/stream', headers=_from('198.51.100.7'), json=GENERATE)
@@ -189,3 +189,18 @@ async def test_password_policy_returns_422_instead_of_500(api):
     assert short.status_code == 422
     huge = await api.client.post('/api/v1/auth/login', json={'email': 'quota@example.org', 'password': 'x' * 5000})
     assert huge.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_invalid_local_edit_is_rejected_before_spending_guest_quota(api):
+    client = api.client
+    missing = {'current_schema': {'elements': []}, 'selected_node_ids': ['ghost'], 'instruction': 'Bigger',
+               'canvas_library': 'excalidraw'}
+    for _ in range(5):
+        response = await client.post('/api/v1/diagram/edit-local', headers=_from('198.51.100.9'), json=missing)
+        assert response.status_code == 400
+        assert response.json()['detail'] == 'Selected nodes were not found'
+    # The full allowance (3 in this fixture) is still available afterwards.
+    for _ in range(3):
+        assert (await client.post('/api/v1/diagram/generate', headers=_from('198.51.100.9'),
+                                  json=GENERATE)).status_code == 201
