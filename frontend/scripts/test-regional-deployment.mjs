@@ -34,6 +34,10 @@ test('entry routing respects explicit choice, remembers it, and never redirects 
   assert.match(selected.headers.get('set-cookie'), /cn;.*HttpOnly/);
   const stay = await router(request('/home', 'CN', { Cookie: 'evodesign_route=global' }), env);
   assert.equal(await stay.text(), 'origin');
+  const automaticChina = await router(request('/?region=auto', 'CN'), env);
+  assert.equal(automaticChina.status, 200);
+  assert.match(await automaticChina.text(), /localStorage/);
+  assert.match(automaticChina.headers.get('set-cookie'), /Max-Age=0/);
   const reset = await router(request('/?region=auto', 'US'), env);
   assert.match(reset.headers.get('set-cookie'), /Max-Age=0/);
   assert.equal(await (await router(request('/home?region=global', 'CN'), env)).text(), 'origin');

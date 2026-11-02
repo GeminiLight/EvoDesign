@@ -16,9 +16,12 @@ concurrency:
 
 jobs:
   publish:
+    # Manual runs on main always work. Automatic publishing after each main
+    # Quality run starts once the repository variable MODELSCOPE_PUBLISH=true.
     if: >-
       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
-      (github.event.workflow_run.conclusion == 'success' &&
+      (vars.MODELSCOPE_PUBLISH == 'true' &&
+       github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'push' &&
        github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
@@ -36,6 +39,8 @@ jobs:
           python-version: '3.11'
       - run: npm ci --prefix frontend
       - run: npm --prefix frontend run build:browser
+        env:
+          VITE_REGION_SWITCH: ${{ vars.VITE_REGION_SWITCH }}
       - name: Publish browser release only
         env:
           MODELSCOPE_API_KEY: ${{ secrets.MODELSCOPE_API_KEY }}

@@ -10,13 +10,13 @@ const redirect = (target, cookie) => new Response(null, { status: 302, headers: 
 
 // A tiny same-origin check protects existing browser-only projects and DNA.
 // Their contents never leave the device. This loads no application bundle.
-export function entryGate(globalUrl, chinaUrl) {
+export function entryGate(globalUrl, chinaUrl, cookie) {
   const nonce = crypto.randomUUID().replaceAll('-', '');
   const script = `let keep=true;try{keep=['evodiagram_guest_diagrams','evodiagram_guest_dna','evodesign.browser-model.v1'].some(k=>{const v=localStorage.getItem(k);return v&&v!=='[]'&&v!=='{}'&&v!=='null'})}catch{}location.replace(keep?${JSON.stringify(globalUrl)}:${JSON.stringify(chinaUrl)});`;
   return new Response(`<!doctype html><html lang="zh"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EvoDesign</title><style>body{margin:0;display:grid;place-content:center;min-height:100dvh;background:#fafaff;color:#6c6580;font:14px system-ui}a{color:#6255d6;margin:12px}</style><p>正在选择访问线路…</p><script nonce="${nonce}">${script}</script><noscript><a href="${globalUrl}">国际工作台 / Global</a><a href="${chinaUrl}">国内工作台 / China</a></noscript></html>`, {
     headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'private, no-store',
       'Content-Security-Policy': `default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline'; frame-ancestors 'none'`,
-      'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff' },
+      'Referrer-Policy': 'no-referrer', 'X-Content-Type-Options': 'nosniff', ...(cookie ? { 'Set-Cookie': routeCookie(cookie) } : {}) },
   });
 }
 
@@ -31,7 +31,10 @@ export function createRouter(fetcher = fetch) {
     let preferenceCookie;
     if (entry && navigation && env.AUTO_ROUTE_ENABLED === '1') {
       if (choices.has(selected)) {
-        if (selected === 'cn' || (selected === 'auto' && request.cf?.country === 'CN')) return redirect(env.CHINA_URL, selected);
+        if (selected === 'cn') return redirect(env.CHINA_URL, selected);
+        // Automatic is not a choice of China: existing browser data still
+        // keeps the visitor on this origin.
+        if (selected === 'auto' && request.cf?.country === 'CN') return entryGate(`${env.MAIN_ORIGIN}/?region=global`, env.CHINA_URL, selected);
         // Keep the explicit choice in the landing URL as a fallback when
         // cookies are disabled; otherwise /home could enter a redirect loop.
         if (url.pathname !== '/home') return redirect(`${env.MAIN_ORIGIN}/home?region=${selected}`, selected);

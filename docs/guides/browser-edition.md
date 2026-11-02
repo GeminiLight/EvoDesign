@@ -2,7 +2,7 @@
 
 [Open the online workspace](https://evodesign.aurax.live/) · [Project website](https://tianfu.wang/EvoDesign/) · [Paper](https://arxiv.org/abs/2604.09568)
 
-The [China workspace](https://modelscope.cn/studios/GeminiLight/EvoDesign?mode=full) runs the same browser edition on ModelScope. Choose a workspace from **Preferences → Workspace region**. Projects, DNA and model settings remain on their original site; switching opens a new tab and does not transfer data.
+The [China workspace](https://modelscope.cn/studios/GeminiLight/EvoDesign?mode=full) runs the same browser edition on ModelScope. Once regional routing is enabled, choose a workspace from **Preferences → Workspace region**. Projects, DNA and model settings remain on their original site; switching opens a new tab and does not transfer data.
 
 Start directly with the shared **GLM-5.3-Flash** demo; no API key or EvoDesign account is required. To use your own model, open **Model settings → Your own model**, enter an **OpenAI-compatible Chat Completions endpoint**, model identifier and API key, read the model catalog with **Check connection**, then save. The model ID field supports searching the returned catalog and manual entry. The check uses only a metadata GET request: it sends no prompt and never falls back to a generation call. Directory access does not prove generation permissions, balance or Chat Completions compatibility. Providers without a catalog can still be configured manually. Previously configured custom models stay selected until you choose the shared demo.
 
