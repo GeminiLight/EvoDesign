@@ -75,9 +75,11 @@ The online edition is a lightweight path for trying editable generation; the met
 
 EvoDesign coordinates generation and feedback around a **diagram manifest**: an object-level canvas representation that agents can update and people can edit directly.
 
+### Overall architecture
+
 ![EvoDesign method overview: coordinated canvas generation; diagnostic verification and local refinement; experience exploration; and hierarchical promotion of strategies, guidelines and principles into design expertise memory](docs/assets/method-overview.png)
 
-*Method overview from the maintained manuscript source. [Open the full-resolution figure](docs/assets/method-overview.png) · [Read the paper](https://arxiv.org/abs/2604.09568).*
+*Overall architecture from the maintained manuscript source. [Open the full-resolution figure](docs/assets/method-overview.png) · [Read the paper](https://arxiv.org/abs/2604.09568).*
 
 1. **Create an editable diagram.** Structure, style and layout agents turn content and user requirements into a canvas manifest, guided by retrieved design expertise.
 2. **Verify and refine.** Render the manifest, check geometric defects and visual quality, then apply localized edits and verify the result again.
@@ -148,6 +150,12 @@ Signed-in users can export and additively import rules through the same utility.
 ## Research and reproducibility
 
 The [paper, **EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution**](https://arxiv.org/abs/2604.09568), describes the method and evaluates it with CanvasBench across content, visual and cognitive dimensions.
+
+### CanvasBench
+
+![CanvasBench overview: image and webpage collection, renderability validation and human review, description and query synthesis, diagram-type distribution, and evaluation across content integrity, visual presentation and cognitive utility](docs/assets/canvasbench-overview.png)
+
+*CanvasBench construction and evaluation from the maintained manuscript source. [Open the full-resolution figure](docs/assets/canvasbench-overview.png) · [Read the paper](https://arxiv.org/abs/2604.09568).*
 
 The repository includes the implementation, evaluation tools and baseline adapters. **Training and test datasets will be released separately.** The one-task quick-start example is for trying the software, not benchmarking it. The website's research scores are manuscript-reported results; this maintained code release does not claim a fresh reproduction of the full experiment. See [reproducibility notes](research/reproducibility.md) for research use.
 
