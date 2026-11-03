@@ -10,8 +10,6 @@ instead of calling load_dotenv() directly.
 import os
 from pathlib import Path
 
-from dotenv import load_dotenv
-
 _loaded = False
 
 _STEPFUN_MODEL_NAME = "step-3.7-flash"
@@ -73,8 +71,13 @@ def ensure_env_loaded() -> None:
         _apply_stepfun_legacy_llm_defaults()
         return
 
-    for env_file in _find_env_files():
-        load_dotenv(env_file, override=False)
+    env_files = _find_env_files()
+    if env_files:
+        # Imported only when there is a file to read (the browser build has none).
+        from dotenv import load_dotenv
+
+        for env_file in env_files:
+            load_dotenv(env_file, override=False)
     _apply_stepfun_legacy_llm_defaults()
     _loaded = True
 

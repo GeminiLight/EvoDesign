@@ -110,7 +110,7 @@ def _history_agent(model, *, attempts: int = 3, strict: bool = True) -> _DummyAg
 
 
 def test_invoke_with_history_feeds_parse_error_back_into_the_retry():
-    model = _ScriptedModel(['```json\n{"ok": true}\n```', '{"ok": true}'])
+    model = _ScriptedModel(['Here it is:\n```json\n{"ok": true}\n```', '{"ok": true}'])
     agent = _history_agent(model, attempts=3)
 
     assert agent.invoke_with_history([{"role": "user", "content": "Return JSON"}]) == {
@@ -128,14 +128,22 @@ def test_invoke_with_history_feeds_parse_error_back_into_the_retry():
 
 
 def test_invoke_with_history_last_attempt_falls_back_to_lenient_parsing():
-    """A deterministic fenced response must not burn every attempt for nothing."""
-    model = _ScriptedModel(['```json\n{"ok": true}\n```'])
+    """A deterministic prose-wrapped response must not burn every attempt for nothing."""
+    model = _ScriptedModel(['Here it is:\n```json\n{"ok": true}\n```'])
     agent = _history_agent(model, attempts=2)
 
     assert agent.invoke_with_history([{"role": "user", "content": "Return JSON"}]) == {
         "ok": True
     }
     assert len(model.calls) == 2
+
+
+def test_invoke_with_history_accepts_a_sole_fenced_block_first_time():
+    model = _ScriptedModel(['```json\n{"ok": true}\n```'])
+    agent = _history_agent(model, attempts=3)
+
+    assert agent.invoke_with_history([{"role": "user", "content": "Return JSON"}]) == {"ok": True}
+    assert len(model.calls) == 1
 
 
 def test_invoke_with_history_still_raises_on_unparsable_output():
@@ -160,7 +168,7 @@ def test_invoke_retries_with_repair_turn_and_lenient_final_attempt(monkeypatch):
 
     def fake_invoke_with_retry(prompt):
         prompts.append(prompt)
-        return '```json\n{"ok": true}\n```'
+        return 'Here it is:\n```json\n{"ok": true}\n```'
 
     agent._invoke_with_retry = fake_invoke_with_retry
 

@@ -8,6 +8,9 @@ import re
 import json
 from typing import Any
 
+# The whole (stripped) response is one ```json / ``` fenced block.
+_SOLE_FENCE = re.compile(r"```(?:json|JSON)?[ \t]*\n([\s\S]*?)\n?[ \t]*```")
+
 
 def _split_json_strings(text: str) -> list[tuple[bool, str]]:
     """Split *text* into ``(is_string, chunk)`` runs.
@@ -206,6 +209,11 @@ def convert_json_output(output: str, *, strict_response: bool = False) -> Any:
         output = output.strip()
 
     if strict_response:
+        # A response that is exactly one fenced block carries the same single
+        # JSON value; unwrap it instead of paying for a full regeneration.
+        fenced = _SOLE_FENCE.fullmatch(output)
+        if fenced:
+            output = fenced.group(1).strip()
         try:
             return json.loads(output)
         except json.JSONDecodeError as exc:

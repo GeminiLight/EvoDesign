@@ -45,8 +45,16 @@ def test_convert_json_output_strict_accepts_exact_json_only():
     with pytest.raises(json.JSONDecodeError, match="Expected response to be exactly"):
         convert_json_output('Result: {"ok": true}', strict_response=True)
 
-    with pytest.raises(json.JSONDecodeError, match="Expected response to be exactly"):
-        convert_json_output('```json\n{"ok": true}\n```', strict_response=True)
+    # A response that is exactly one fenced block is still exactly one value.
+    assert convert_json_output('```json\n{"ok": true}\n```', strict_response=True) == {"ok": True}
+    assert convert_json_output('  ```\n[1, 2]\n```\n', strict_response=True) == [1, 2]
+    assert convert_json_output('```json\n{"code": "a ``` b"}\n```', strict_response=True) == {"code": "a ``` b"}
+
+    for text in ('Here you go:\n```json\n{"ok": true}\n```',
+                 '```json\n{"ok": true}\n```\nHope this helps',
+                 '```json\n{"ok": true}\n```\n```json\n{"ok": false}\n```'):
+        with pytest.raises(json.JSONDecodeError, match="Expected response to be exactly"):
+            convert_json_output(text, strict_response=True)
 
 
 @pytest.mark.parametrize("text", [

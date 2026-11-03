@@ -251,10 +251,12 @@ class RefinerLLMAgent:
             except LLMBudgetExceeded as exc:
                 last_exc = exc
                 break
+            answered = False
             try:
                 response = self.model.invoke(messages)
                 if response is None or not getattr(response, "content", None):
                     raise ValueError("VLM returned empty response")
+                answered = True
                 raw = response.content
                 if isinstance(raw, list):
                     raw = "".join(p.get("text", "") for p in raw if isinstance(p, dict))
@@ -306,7 +308,9 @@ class RefinerLLMAgent:
                         "provider HTTP error"
                     )
                     break
-                if attempt < self.max_retries:
+                # A malformed answer is resampled at once; only transport
+                # failures (no answer yet) back off.
+                if attempt < self.max_retries and not answered:
                     time.sleep(delay)
                     delay *= 2
 

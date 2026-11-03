@@ -31,7 +31,8 @@ typical ``E ≤ 50`` diagrams.
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple
+import math
+from typing import Any, Dict, List, Optional, Tuple
 
 
 # Epsilon for floating-point orientation checks.  At pixel scale,
@@ -172,11 +173,84 @@ def count_segment_crossings(
     rebuilding a complete candidate manifest for every visibility-graph edge.
     Each existing arrow contributes at most one crossing to the count.
     """
-    count = 0
+    return count_prepared_crossings(segment, prepare_crossing_segments(arrows))
+
+
+# Exact early rejection for axis-aligned pairs. When both segments are
+# exactly horizontal/vertical, every cross product in _segments_intersect is
+# one product ``length * offset``, so an orientation of 0 means an offset of at
+# most _ORIENT_EPSILON / length, and _on_segment allows _ORIENT_EPSILON. With
+# lengths of at least _AXIS_MIN_LENGTH that slack is <= 0.1 px, so boxes more
+# than _AXIS_GAP apart can never intersect. Diagonal or tiny segments always
+# take the exact predicate, so results are identical.
+_AXIS_MIN_LENGTH = 1e-5
+_AXIS_GAP = 1.0
+
+_PreparedSegment = Tuple[Tuple[float, float, float, float], Optional[Tuple[float, float, float, float]]]
+
+
+def _axis_box(segment: Tuple[float, float, float, float]) -> Optional[Tuple[float, float, float, float]]:
+    """Bounding box of an exactly axis-aligned, non-tiny segment, else None."""
+    x1, y1, x2, y2 = segment
+    if y1 == y2:
+        length = abs(x2 - x1)
+    elif x1 == x2:
+        length = abs(y2 - y1)
+    else:
+        return None
+    if not (length >= _AXIS_MIN_LENGTH and all(map(math.isfinite, segment))):
+        return None
+    return (min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
+
+
+def _boxes_apart(a: Tuple[float, float, float, float], b: Tuple[float, float, float, float]) -> bool:
+    return (a[2] + _AXIS_GAP < b[0] or b[2] + _AXIS_GAP < a[0]
+            or a[3] + _AXIS_GAP < b[1] or b[3] + _AXIS_GAP < a[1])
+
+
+def _prepare(segments: List[Tuple[float, float, float, float]]) -> List[_PreparedSegment]:
+    return [(segment, _axis_box(segment)) for segment in segments]
+
+
+def _union_box(prepared: List[_PreparedSegment]) -> Optional[Tuple[float, float, float, float]]:
+    """Box around an arrow whose segments all have axis boxes, else None.
+
+    Each segment box lies inside it, so a candidate apart from this box is
+    apart from every segment and the whole arrow can be skipped.
+    """
+    boxes = [box for _, box in prepared]
+    if not boxes or any(box is None for box in boxes):
+        return None
+    return (min(b[0] for b in boxes), min(b[1] for b in boxes),
+            max(b[2] for b in boxes), max(b[3] for b in boxes))
+
+
+_PreparedArrow = Tuple[List[_PreparedSegment], Optional[Tuple[float, float, float, float]]]
+
+
+def prepare_crossing_segments(arrows: List[Dict[str, Any]]) -> List[_PreparedArrow]:
+    """Flatten the visible arrows once for repeated crossing counts."""
+    prepared = []
     for arrow in arrows:
-        if not _is_visible_arrow(arrow):
+        if _is_visible_arrow(arrow):
+            segments = _prepare(_arrow_segments(arrow))
+            prepared.append((segments, _union_box(segments)))
+    return prepared
+
+
+def count_prepared_crossings(
+    segment: Tuple[float, float, float, float],
+    prepared: List[_PreparedArrow],
+) -> int:
+    """:func:`count_segment_crossings` over :func:`prepare_crossing_segments` output."""
+    box = _axis_box(segment)
+    count = 0
+    for segments, arrow_box in prepared:
+        if box is not None and arrow_box is not None and _boxes_apart(box, arrow_box):
             continue
-        for existing_segment in _arrow_segments(arrow):
+        for existing_segment, existing_box in segments:
+            if box is not None and existing_box is not None and _boxes_apart(box, existing_box):
+                continue
             if _shares_endpoint(segment, existing_segment):
                 continue
             if _segments_intersect(segment, existing_segment):
@@ -204,7 +278,7 @@ def detect_crossings(
         return []
 
     # Pre-compute segments per arrow
-    indexed: List[Tuple[str, List[Tuple[float, float, float, float]]]] = []
+    indexed: List[Tuple[str, List[_PreparedSegment], Optional[Tuple[float, float, float, float]]]] = []
     for a in arrows:
         if not _is_visible_arrow(a):
             continue
@@ -213,17 +287,22 @@ def detect_crossings(
             continue
         segs = _arrow_segments(a)
         if segs:
-            indexed.append((aid, segs))
+            prepared = _prepare(segs)
+            indexed.append((aid, prepared, _union_box(prepared)))
 
     crossings: List[Tuple[str, str, Dict[str, Any]]] = []
 
     for i in range(len(indexed)):
-        id_i, segs_i = indexed[i]
+        id_i, segs_i, box_i_all = indexed[i]
         for j in range(i + 1, len(indexed)):
-            id_j, segs_j = indexed[j]
+            id_j, segs_j, box_j_all = indexed[j]
+            if box_i_all is not None and box_j_all is not None and _boxes_apart(box_i_all, box_j_all):
+                continue
             first_cross: Tuple[int, int] = (-1, -1)
-            for si_idx, si in enumerate(segs_i):
-                for sj_idx, sj in enumerate(segs_j):
+            for si_idx, (si, box_i) in enumerate(segs_i):
+                for sj_idx, (sj, box_j) in enumerate(segs_j):
+                    if box_i is not None and box_j is not None and _boxes_apart(box_i, box_j):
+                        continue
                     if _shares_endpoint(si, sj):
                         # Two segments that join at a common point (e.g.
                         # two incoming arrows sharing the same target

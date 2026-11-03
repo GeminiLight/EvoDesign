@@ -6,6 +6,7 @@ Excalidraw Arrow Adder - Add directional arrows to an Excalidraw manifest.
 
 import logging
 import math
+from contextvars import ContextVar
 from copy import deepcopy
 from heapq import heappop, heappush
 from typing import Any, Dict, List, Optional, Tuple
@@ -17,7 +18,11 @@ from evodesign.agentic_system.common.semantic_ids import (
     reverse_id_map,
 )
 from evodesign.agentic_system.common.spec_utils import unwrap_structure_instantiation
-from ..shared.edge_crossing_detector import count_segment_crossings, detect_crossings
+from ..shared.edge_crossing_detector import (
+    count_prepared_crossings,
+    detect_crossings,
+    prepare_crossing_segments,
+)
 from ..shared.label_geometry import disjoint_segment_box_distance
 from ..shared.edge_routing import (
     audit_sides,
@@ -154,6 +159,29 @@ def _shape_obstacles(
                 bbox[2] + 2.0 * padding, bbox[3] + 2.0 * padding,
             ))
     return obstacles
+
+
+_SPAN_MARGIN = 1.0  # well beyond the 1e-6 interior epsilon of _segment_hits_box
+
+
+def _obstacles_spanning(
+    obstacles: List[Tuple[float, float, float, float]], value: float, *, axis: int,
+) -> List[Tuple[float, float, float, float]]:
+    """Obstacles whose span on ``axis`` (0 = x, 1 = y) reaches ``value``."""
+    return [
+        obstacle for obstacle in obstacles
+        if obstacle[axis] - _SPAN_MARGIN <= value <= obstacle[axis] + obstacle[axis + 2] + _SPAN_MARGIN
+    ]
+
+
+def _obstacles_overlapping(
+    obstacles: List[Tuple[float, float, float, float]], low: float, high: float, *, axis: int,
+) -> List[Tuple[float, float, float, float]]:
+    """Obstacles whose span on ``axis`` overlaps ``[low, high]`` (with margin)."""
+    return [
+        obstacle for obstacle in obstacles
+        if obstacle[axis] - _SPAN_MARGIN <= high and low <= obstacle[axis] + obstacle[axis + 2] + _SPAN_MARGIN
+    ]
 
 
 def _path_is_clear(
@@ -379,7 +407,53 @@ def _compress_orthogonal_path(
     return compact
 
 
+# Routes are pure functions of their geometric input, and one render asks for
+# the same route many times (crossing-reduction retries and the midpoint-port
+# comparison pass). The memo lives for one top-level arrow pass only.
+_ROUTE_MEMO: ContextVar[Optional[Dict[Any, Any]]] = ContextVar("_ROUTE_MEMO", default=None)
+
+
+def _route_memo_key(start, end, obstacles, existing_arrows, clearance, port_normals) -> str:
+    # repr keeps every float exactly (including -0.0), so a hit returns
+    # byte-identical geometry. Only the fields the router reads are keyed.
+    arrows = [
+        (
+            arrow.get("type"),
+            arrow.get("isDeleted"),
+            arrow.get("opacity", 100),
+            arrow.get("x"),
+            arrow.get("y"),
+            arrow.get("points"),
+        )
+        for arrow in existing_arrows or []
+    ]
+    return repr((start, end, obstacles, arrows, clearance, port_normals))
+
+
 def _orthogonal_visibility_route(
+    start: Tuple[float, float],
+    end: Tuple[float, float],
+    obstacles: List[Tuple[float, float, float, float]],
+    existing_arrows: Optional[List[Dict[str, Any]]],
+    clearance: float,
+    port_normals: Optional[Tuple[Tuple[float, float], Tuple[float, float]]] = None,
+) -> Optional[List[Tuple[float, float]]]:
+    """Memoized :func:`_find_orthogonal_visibility_route` within one arrow pass."""
+    memo = _ROUTE_MEMO.get()
+    if memo is None:
+        return _find_orthogonal_visibility_route(
+            start, end, obstacles, existing_arrows, clearance, port_normals
+        )
+    key = _route_memo_key(start, end, obstacles, existing_arrows, clearance, port_normals)
+    if key not in memo:
+        memo[key] = _find_orthogonal_visibility_route(
+            start, end, obstacles, existing_arrows, clearance, port_normals
+        )
+    route = memo[key]
+    return list(route) if route is not None else None
+
+
+def _find_orthogonal_visibility_route(
     start: Tuple[float, float],
     end: Tuple[float, float],
     obstacles: List[Tuple[float, float, float, float]],
@@ -417,38 +491,53 @@ def _orthogonal_visibility_route(
     xs = sorted(x_values)
     ys = sorted(y_values)
 
-    def available(point: Tuple[float, float]) -> bool:
-        return not any(
-            left + 1e-6 < point[0] < left + width - 1e-6
-            and top + 1e-6 < point[1] < top + height - 1e-6
-            for left, top, width, height in expanded
-        )
-
-    points = {
-        (x, y)
-        for x in xs
-        for y in ys
-        if available((x, y))
-    }
+    # A grid point is unavailable only inside an obstacle's strict interior,
+    # so each column needs only the obstacles whose x span reaches it.
+    points = set()
+    for x in xs:
+        column_obstacles = _obstacles_spanning(expanded, x, axis=0)
+        for y in ys:
+            if not any(
+                left + 1e-6 < x < left + width - 1e-6
+                and top + 1e-6 < y < top + height - 1e-6
+                for left, top, width, height in column_obstacles
+            ):
+                points.add((x, y))
     if start not in points or end not in points:
         return None
+
+    rows: Dict[float, List[Tuple[float, float]]] = {}
+    columns: Dict[float, List[Tuple[float, float]]] = {}
+    for point in points:
+        rows.setdefault(point[1], []).append(point)
+        columns.setdefault(point[0], []).append(point)
 
     neighbors: Dict[Tuple[float, float], List[Tuple[Tuple[float, float], str]]] = {
         point: [] for point in points
     }
+    # A grid edge can only enter obstacles whose span covers its row/column
+    # and overlaps its extent; _segment_hits_box tests the strict interior.
     for y in ys:
-        row = sorted((point for point in points if point[1] == y), key=lambda item: item[0])
+        row = sorted(rows.get(y, ()), key=lambda item: item[0])
+        row_obstacles = _obstacles_spanning(expanded, y, axis=1)
         for left_point, right_point in zip(row, row[1:]):
-            if _path_is_clear([left_point, right_point], expanded):
+            blockers = _obstacles_overlapping(row_obstacles, left_point[0], right_point[0], axis=0)
+            if _path_is_clear([left_point, right_point], blockers):
                 neighbors[left_point].append((right_point, "horizontal"))
                 neighbors[right_point].append((left_point, "horizontal"))
     for x in xs:
-        column = sorted((point for point in points if point[0] == x), key=lambda item: item[1])
+        column = sorted(columns.get(x, ()), key=lambda item: item[1])
+        column_obstacles = _obstacles_spanning(expanded, x, axis=0)
         for top_point, bottom_point in zip(column, column[1:]):
-            if _path_is_clear([top_point, bottom_point], expanded):
+            blockers = _obstacles_overlapping(column_obstacles, top_point[1], bottom_point[1], axis=1)
+            if _path_is_clear([top_point, bottom_point], blockers):
                 neighbors[top_point].append((bottom_point, "vertical"))
                 neighbors[bottom_point].append((top_point, "vertical"))
 
+    # Existing arrows are fixed during the search, and Dijkstra relaxes the
+    # same grid edge from up to three travel directions.
+    prepared_arrows = prepare_crossing_segments(visible_arrows)
+    edge_crossings: Dict[Tuple[Tuple[float, float], Tuple[float, float]], int] = {}
     start_state = (start, "")
     primary_axis = (
         "horizontal"
@@ -491,10 +580,13 @@ def _orthogonal_visibility_route(
                 if direction and direction != next_direction
                 else 0.0
             )
-            crossing_count = count_segment_crossings(
-                (point[0], point[1], next_point[0], next_point[1]),
-                visible_arrows,
-            )
+            crossing_count = edge_crossings.get((point, next_point))
+            if crossing_count is None:
+                crossing_count = count_prepared_crossings(
+                    (point[0], point[1], next_point[0], next_point[1]),
+                    prepared_arrows,
+                )
+                edge_crossings[(point, next_point)] = crossing_count
             deviation_cost = 0.0
             if primary_axis == "horizontal" and next_direction == "horizontal":
                 deviation_cost = (
@@ -1944,6 +2036,30 @@ def _architecture_port_hint(
 
 
 def add_excalidraw_arrows_to_manifest(
+    manifest: Dict[str, Any],
+    structure_instantiation: Dict[str, Any],
+    *,
+    port_spacing: Optional[float] = None,
+    _adaptive_ports: bool = True,
+    _report_crossings: bool = True,
+) -> Dict[str, Any]:
+    """Add arrows; see :func:`_add_excalidraw_arrows_to_manifest`.
+
+    The outermost call owns the route memo, so nested comparison passes reuse
+    routes and nothing outlives one arrow pass.
+    """
+    kwargs = dict(port_spacing=port_spacing, _adaptive_ports=_adaptive_ports,
+                  _report_crossings=_report_crossings)
+    if _ROUTE_MEMO.get() is not None:
+        return _add_excalidraw_arrows_to_manifest(manifest, structure_instantiation, **kwargs)
+    token = _ROUTE_MEMO.set({})
+    try:
+        return _add_excalidraw_arrows_to_manifest(manifest, structure_instantiation, **kwargs)
+    finally:
+        _ROUTE_MEMO.reset(token)
+
+
+def _add_excalidraw_arrows_to_manifest(
     manifest: Dict[str, Any],
     structure_instantiation: Dict[str, Any],
     *,
