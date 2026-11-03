@@ -58,7 +58,7 @@ evaluation/
 继承自 `BaseAgent`，负责管理指标实例并执行图像评估。
 
 ```python
-from evo_diagram.core.llm_factory import LLMFactory
+from evodesign.core.llm_factory import LLMFactory
 from evaluation.metric_scorer import MetricScorer
 
 model = LLMFactory.create(
@@ -112,19 +112,19 @@ results = scorer.evaluate_image(
 ```python
 from evaluation.path_resolver import parse_method_paths
 
-image_path, output_dir, ref_path = parse_method_paths("evodiagram", "data_001")
+image_path, output_dir, ref_path = parse_method_paths("evodesign", "data_001")
 ```
 
 支持的方法名格式：
 
 | 格式 | 说明 | 示例 |
 |------|------|------|
-| `evodiagram` | 自动检测子模型 | `evodiagram` |
-| `evodiagram/<submodel>` | 显式指定子模型 | `evodiagram/gpt-5.2` |
-| `evodiagram_wo_refiner` | 无 Refiner 版本 | `evodiagram_wo_refiner` |
-| `evodiagram_wo_refiner/<submodel>` | 无 Refiner + 子模型 | `evodiagram_wo_refiner/gpt-5.2` |
-| `evodiagram-local` | 本地实验目录 | `evodiagram-local` |
-| `evodiagram_*` | 其他旧格式变体 | `evodiagram_claude` |
+| `evodesign` | 自动检测子模型 | `evodesign` |
+| `evodesign/<submodel>` | 显式指定子模型 | `evodesign/gpt-5.2` |
+| `evodesign_wo_refiner` | 无 Refiner 版本 | `evodesign_wo_refiner` |
+| `evodesign_wo_refiner/<submodel>` | 无 Refiner + 子模型 | `evodesign_wo_refiner/gpt-5.2` |
+| `evodesign-local` | 本地实验目录 | `evodesign-local` |
+| `evodesign_*` | 其他旧格式变体 | `evodesign_claude` |
 | `baselines/<type>/<model>` | Baseline 斜杠格式 | `baselines/code_mermaid/gemini-3-pro` |
 | `baselines_<type>_<model>` | Baseline 下划线格式 | `baselines_code_mermaid_gemini-3-pro` |
 
@@ -156,16 +156,16 @@ image_path, output_dir, ref_path = parse_method_paths("evodiagram", "data_001")
 
 ```bash
 # 默认数据集，评估全部指标
-python -m evaluation.run_evaluation --method evodiagram
+python -m evaluation.run_evaluation --method evodesign
 
 # 显式指定子模型
-python -m evaluation.run_evaluation --method evodiagram/gpt-5.2
+python -m evaluation.run_evaluation --method evodesign/gpt-5.2
 
 # 指定配置文件
-python -m evaluation.run_evaluation --method evodiagram --settings configs/settings.yaml --model-config configs/models.yaml
+python -m evaluation.run_evaluation --method evodesign --settings configs/settings.yaml --model-config configs/models.yaml
 
 # 临时指定评估角色
-python -m evaluation.run_evaluation --method evodiagram --eval-role eval
+python -m evaluation.run_evaluation --method evodesign --eval-role eval
 
 # 评估某个 baseline
 python -m evaluation.run_evaluation --method baselines/code_mermaid/gemini-3-pro
@@ -177,28 +177,28 @@ python -m evaluation.run_evaluation --method baselines/mermaid/gpt-5.5
 python -m evaluation.run_evaluation --method baselines/direct_llm/gpt-5.5
 
 # 并行评估
-python -m evaluation.run_evaluation --method evodiagram --workers 4
+python -m evaluation.run_evaluation --method evodesign --workers 4
 
 # Judge 重采样：每个 (样本, 指标) 独立评 3 次，最终分取中位数
-python -m evaluation.run_evaluation --method evodiagram --judge-runs 3
+python -m evaluation.run_evaluation --method evodesign --judge-runs 3
 
 # 仅评估指定指标
 python -m evaluation.run_evaluation --metrics content_dimension visual_dimension
 
 # 强制重新评估（默认会跳过已有结果）
-python -m evaluation.run_evaluation --method evodiagram --regeneration
+python -m evaluation.run_evaluation --method evodesign --regeneration
 
 # 指定数据范围（1-based）
-python -m evaluation.run_evaluation --method evodiagram --start 1 --end 50
+python -m evaluation.run_evaluation --method evodesign --start 1 --end 50
 
 # 显示详细日志
-python -m evaluation.run_evaluation --method evodiagram --verbose
+python -m evaluation.run_evaluation --method evodesign --verbose
 ```
 
 ### Bash 包装脚本
 
 ```bash
-./scripts/evaluate.sh --method evodiagram --workers 4
+./scripts/evaluate.sh --method evodesign --workers 4
 ```
 
 ### Judge 重采样（--judge-runs）
@@ -224,7 +224,7 @@ python -m evaluation.run_evaluation --method evodiagram --verbose
 
 ```bash
 # CLI 单方法
-python -m evaluation.run_evaluation --method evodiagram --judge-runs 3
+python -m evaluation.run_evaluation --method evodesign --judge-runs 3
 
 # 批量脚本（JUDGE_RUNS 环境变量透传，默认 1）
 JUDGE_RUNS=3 ./scripts/run_evaluation.sh
@@ -234,7 +234,7 @@ JUDGE_RUNS=3 ./scripts/run_evaluation.sh
 
 ```bash
 # 分析单个算法
-python evaluation/analysis/analysis_results.py experiments/{exp_id}/scores/evodiagram
+python evaluation/analysis/analysis_results.py experiments/{exp_id}/scores/evodesign
 
 # 对齐到完整测试集，缺失样本单独统计（推荐：论文数字必须带 --dataset）
 python evaluation/analysis/analysis_results.py experiments/{exp_id}/scores \
@@ -246,11 +246,11 @@ python evaluation/analysis/analysis_results.py experiments/{exp_id}/scores \
 
 # 与某个方法做配对显著性检验（Wilcoxon signed-rank + bootstrap CI）
 python evaluation/analysis/analysis_results.py experiments/{exp_id}/scores \
-    --dataset dataset/test/data.json --compare-to evodiagram/evodiagram/gpt-5.2
+    --dataset dataset/test/data.json --compare-to evodesign/evodesign/gpt-5.2
 
 # 显式指定方法目录（关闭自动发现）
 python evaluation/analysis/analysis_results.py experiments/{exp_id}/scores \
-    --method baseline/code_mermaid/gpt-5.2 --method evodiagram/evodiagram/gpt-5.2
+    --method baseline/code_mermaid/gpt-5.2 --method evodesign/evodesign/gpt-5.2
 ```
 
 #### 缺失样本口径
@@ -273,7 +273,7 @@ python evaluation/analysis/analysis_results.py experiments/{exp_id}/scores \
 ```bash
 python evaluation/analysis/test_data_availability.py \
     --input-json dataset/test/data.json \
-    --diagram-dir experiments/{exp_id}/outputs/evodiagram/evodiagram
+    --diagram-dir experiments/{exp_id}/outputs/evodesign/evodesign
 ```
 
 检查脚本只验证图片是否存在；正式评估仍通过 `--method` 和 `--exp-id` 解析路径：
@@ -281,7 +281,7 @@ python evaluation/analysis/test_data_availability.py \
 ```bash
 python -m evaluation.run_evaluation \
     --input-json dataset/test/data.json \
-    --method evodiagram/gpt-5.5 \
+    --method evodesign/gpt-5.5 \
     --exp-id {exp_id}
 ```
 
@@ -293,7 +293,7 @@ python -m evaluation.run_evaluation \
 {
   "timestamp": "2026-01-27T10:30:00",
   "data_id": "example_001",
-  "method": "evodiagram",
+  "method": "evodesign",
   "status": "success",
   "reference_image_available": true,
   "run_signature": {
@@ -373,7 +373,7 @@ python -m evaluation.run_evaluation \
   "comparisons": [
     {
       "algorithm_name": "baseline/pixel/flux-2-flex",
-      "reference": "evodiagram/evodiagram/gpt-5.2",
+      "reference": "evodesign/evodesign/gpt-5.2",
       "metric": "content_dimension",
       "n_pairs": 185,
       "mean_difference": -1.42,
@@ -420,8 +420,8 @@ python -m evaluation.run_evaluation \
 
 ### 不对称的存在
 
-EvoDesign 默认启用 refiner 做多轮迭代精修（`evo_diagram/agentic_system/main.py` 的
-`--refiner-iterations` 默认 3；经 `scripts/run_evodiagram.sh` 运行时由 `REFINER_ITERS`
+EvoDesign 默认启用 refiner 做多轮迭代精修（`evodesign/agentic_system/main.py` 的
+`--refiner-iterations` 默认 3；经 `scripts/run_evodesign.sh` 运行时由 `REFINER_ITERS`
 环境变量控制上限，当前脚本默认 1），而所有 baseline 都是单次生成、0 轮精修。
 直接拿 EvoDesign（full）与 baseline 比较，会把 refiner 带来的增益全部归因于系统设计本身，
 审稿人有理由质疑该比较不公平。
@@ -437,33 +437,33 @@ EvoDesign 默认启用 refiner 做多轮迭代精修（`evo_diagram/agentic_syst
 
 **本仓库采用选项 2**：论文主表同时报告 EvoDesign `full` 与 `wo_refiner` 两行，
 与 baseline 的对齐比较使用 `wo_refiner` 行。该方案不需要修改任何生成代码，
-只依赖 `scripts/run_evodiagram.sh` 已有的消融变体机制。
+只依赖 `scripts/run_evodesign.sh` 已有的消融变体机制。
 
 ### wo_refiner 变体怎么跑
 
-`scripts/run_evodiagram.sh` 用 `ABLATION` 环境变量选择变体预设。`ABLATION=wo_refiner`
-会向 main.py 传 `--variant evodiagram_wo_refiner`，该预设在 Python 侧置
+`scripts/run_evodesign.sh` 用 `ABLATION` 环境变量选择变体预设。`ABLATION=wo_refiner`
+会向 main.py 传 `--variant evodesign_wo_refiner`，该预设在 Python 侧置
 `enable_refiner=False`（不再传 `--refiner-iterations`），产物写入
-`experiments/{exp_id}/outputs/evodiagram/evodiagram_wo_refiner/{model}/{item_id}/`：
+`experiments/{exp_id}/outputs/evodesign/evodesign_wo_refiner/{model}/{item_id}/`：
 
 ```bash
 # 生成（可与 MODELS / DATASET / START / END 组合）
-ABLATION=wo_refiner ./scripts/run_evodiagram.sh
-ABLATION=wo_refiner MODELS=kimi-k3 ./scripts/run_evodiagram.sh
+ABLATION=wo_refiner ./scripts/run_evodesign.sh
+ABLATION=wo_refiner MODELS=kimi-k3 ./scripts/run_evodesign.sh
 
-# 评估：--evodiagram_wo_refiner 会把 method 切换为 evodiagram_wo_refiner
-python -m evaluation.run_evaluation --method evodiagram --evodiagram_wo_refiner
+# 评估：--evodesign_wo_refiner 会把 method 切换为 evodesign_wo_refiner
+python -m evaluation.run_evaluation --method evodesign --evodesign_wo_refiner
 
 # 等价的显式写法（推荐：显式指定子模型，避免多 backbone 歧义）
-python -m evaluation.run_evaluation --method evodiagram_wo_refiner/kimi-k3
+python -m evaluation.run_evaluation --method evodesign_wo_refiner/kimi-k3
 
 # 批量评估脚本
-METHODS=evodiagram_wo_refiner/kimi-k3 ./scripts/run_evaluation.sh
+METHODS=evodesign_wo_refiner/kimi-k3 ./scripts/run_evaluation.sh
 ```
 
-得分写入 `experiments/{exp_id}/scores/evodiagram/evodiagram_wo_refiner/{submodel}/`，
+得分写入 `experiments/{exp_id}/scores/evodesign/evodesign_wo_refiner/{submodel}/`，
 在 `analysis_results.py` 报告中呈现为独立算法行（如
-`evodiagram/evodiagram_wo_refiner/kimi-k3`），与 full 行（`evodiagram/evodiagram/kimi-k3`）
+`evodesign/evodesign_wo_refiner/kimi-k3`），与 full 行（`evodesign/evodesign/kimi-k3`）
 使用同一个 `--dataset` 对齐口径。
 
 ## 结果口径约定

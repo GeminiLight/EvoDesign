@@ -23,7 +23,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e ".[dev]"
 npm ci --prefix frontend
-npm ci --prefix evo_diagram/agentic_system/tool_services
+npm ci --prefix evodesign/agentic_system/tool_services
 ```
 
 These shell examples use Bash or Zsh; Windows users can use WSL. Installing
@@ -56,9 +56,9 @@ complete, `./scripts/start_service.sh` starts the API on `:3010`, renderer on
 | Browser API adapters and generated contracts | `frontend/src/services/`, `frontend/src/contracts/` |
 | HTTP routes and business logic | `backend/app/api/`, `backend/app/services/` |
 | Runtime database schema bootstrap | `backend/app/db/bootstrap.py` |
-| Structure, styling, layout, verification and refinement | `evo_diagram/agentic_system/` |
-| Canvas conversion, rendering and measurement | `evo_diagram/canvas_environment/`, `evo_diagram/agentic_system/render_engine/`, `evo_diagram/agentic_system/tool_services/` |
-| Shared expertise, personal preferences and knowledge evolution | `evo_diagram/design_memory/`, `evo_diagram/user_memory/`, `evo_diagram/knowledge_evolution/` |
+| Structure, styling, layout, verification and refinement | `evodesign/agentic_system/` |
+| Canvas conversion, rendering and measurement | `evodesign/canvas_environment/`, `evodesign/agentic_system/render_engine/`, `evodesign/agentic_system/tool_services/` |
+| Shared expertise, personal preferences and knowledge evolution | `evodesign/design_memory/`, `evodesign/user_memory/`, `evodesign/knowledge_evolution/` |
 | Evaluation and comparison methods | `evaluation/`, `baselines/` |
 
 Keep Python indentation at four spaces, use `snake_case`, and add type hints to
@@ -66,7 +66,7 @@ public interfaces. Match the React code's two-space indentation, semicolons and
 single quotes; use `PascalCase` for components and `useX` for hooks. Follow the
 existing module boundaries and ESLint rules rather than reformatting whole files.
 
-The product, paper and algorithm are **EvoDesign**. Keep compatible `evo_diagram`
+The product, paper and algorithm are **EvoDesign**. Keep compatible `evodesign`
 imports, schema keys and artifact identifiers; a branding change is not a reason
 to break saved diagrams or downstream imports. Historical Supabase SQL under
 `backend/docs/archive/supabase/` is reference material, not the active schema source.

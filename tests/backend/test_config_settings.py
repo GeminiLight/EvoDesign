@@ -31,6 +31,7 @@ def test_settings_defaults_to_sqlite_without_database_password():
     settings = _settings(db_password=None)
 
     assert settings.db_type == "sqlite"
+    # Rebranding must keep the default pointing at the user's existing database.
     assert settings.database_url == "sqlite+aiosqlite:///evodiagram.db"
 
 
@@ -77,7 +78,7 @@ def test_settings_normalizes_supported_postgres_database_types(db_type):
         db_type=db_type,
         db_host="db.example",
         db_port=6543,
-        db_name="evodiagram_prod",
+        db_name="evodesign_prod",
         db_user="evo",
         db_password="secret-password",
     )
@@ -85,7 +86,7 @@ def test_settings_normalizes_supported_postgres_database_types(db_type):
     assert settings.db_type == "postgres"
     assert settings.database_url == (
         "postgresql+asyncpg://evo:secret-password"
-        "@db.example:6543/evodiagram_prod"
+        "@db.example:6543/evodesign_prod"
     )
 
 

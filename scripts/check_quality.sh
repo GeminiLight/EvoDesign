@@ -87,14 +87,14 @@ run_engine() {
     cd "$PROJECT_ROOT"
     # Discover new engine tests automatically. The embedding download/inference
     # integration remains an explicit local check, separate from offline CI.
-    "$PY" -m pytest tests/pipeline evo_diagram/tests \
-        --ignore=evo_diagram/tests/user_memory \
-        --ignore=evo_diagram/tests/design_memory/test_real_chroma_cosine.py
+    "$PY" -m pytest tests/pipeline evodesign/tests \
+        --ignore=evodesign/tests/user_memory \
+        --ignore=evodesign/tests/design_memory/test_real_chroma_cosine.py
 }
 
 run_user_memory() {
     cd "$PROJECT_ROOT"
-    "$PY" -m pytest evo_diagram/tests/user_memory
+    "$PY" -m pytest evodesign/tests/user_memory
 }
 
 run_frontend() {
@@ -112,7 +112,7 @@ run_frontend() {
 run_renderer() {
     cd "$PROJECT_ROOT"
     "$PY" -m pytest tests/test_tool_service_contract.py
-    cd "$PROJECT_ROOT/evo_diagram/agentic_system/tool_services"
+    cd "$PROJECT_ROOT/evodesign/agentic_system/tool_services"
     npm run typecheck --if-present
     npm run lint
     npm run build

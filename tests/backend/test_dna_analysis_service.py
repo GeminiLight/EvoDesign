@@ -16,7 +16,7 @@ from app.services.dna_analysis_service import (
     DnaImageValidationError,
     _default_extractor_factory,
 )
-from evo_diagram.user_memory.extractors.dna_extractor import DnaImageExtractor, DnaRuleExtractionError
+from evodesign.user_memory.extractors.dna_extractor import DnaImageExtractor, DnaRuleExtractionError
 
 
 _DEFAULT_RULES = object()
@@ -119,7 +119,7 @@ def test_default_dna_extractor_factory_wraps_engine_import_failure(monkeypatch):
 
     monkeypatch.setattr(
         dna_service_module,
-        "ensure_evo_diagram_importable",
+        "ensure_evodesign_importable",
         fail_import_boundary,
     )
 

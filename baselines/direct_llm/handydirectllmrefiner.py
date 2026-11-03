@@ -3,7 +3,7 @@
 Handy Direct LLM Refiner
 
 A CLI tool to perform multi-iteration refinement on already-generated baseline diagrams
-using IterativeRefinerWorkflow from evo_diagram.agentic_system.
+using IterativeRefinerWorkflow from evodesign.agentic_system.
 
 Usage:
     python -m baselines.direct_llm.handydirectllmrefiner --method baselines_direct_llm_gpt-5.2 --iterations 3
@@ -18,7 +18,7 @@ import argparse
 from pathlib import Path
 from typing import Dict, Tuple, Optional, Any, List
 from dotenv import load_dotenv
-from evo_diagram.utils.env_loader import ensure_env_loaded
+from evodesign.utils.env_loader import ensure_env_loaded
 
 
 # Baseline types ordered by length (longest first) to avoid prefix matching issues
@@ -67,7 +67,7 @@ def parse_method_path(method: str) -> Tuple[str, str, Path]:
             f"Expected format: 'baselines_<type>_<model>'"
         )
 
-    from evo_diagram.core.experiment import get_baseline_output_dir
+    from evodesign.core.experiment import get_baseline_output_dir
 
     base_path = get_baseline_output_dir(baseline_type, model_name)
 
@@ -135,7 +135,7 @@ def refine_single_item(
     """
     try:
         # Initialize workflow
-        from evo_diagram.agentic_system.iterative_workflow import IterativeRefinerWorkflow
+        from evodesign.agentic_system.iterative_workflow import IterativeRefinerWorkflow
 
         print(f"  [Init] Creating IterativeRefinerWorkflow with {iterations} iterations...")
         workflow = IterativeRefinerWorkflow()
@@ -351,7 +351,7 @@ Examples:
     # Step 4: Check VLM configuration
     try:
         print("\n[Pre-check] Verifying VLM configuration...")
-        from evo_diagram.core.llm_factory import LLMFactory
+        from evodesign.core.llm_factory import LLMFactory
 
         LLMFactory.create_for_role(
             "refiner",

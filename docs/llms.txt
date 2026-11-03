@@ -15,4 +15,4 @@ EvoDesign runs locally using the user's own vision-capable model endpoint. It in
 - [Reproducibility notes](https://github.com/GeminiLight/EvoDesign/blob/main/research/reproducibility.md)
 - [Citation](https://tianfu.wang/EvoDesign/citation.bib)
 
-The project website contains an interactive illustration, not a hosted model-generation service. Result tables are manuscript-reported results, not an independent reproduction of this maintained release. Training and test datasets are not included in the initial code release. The former internal name EvoDiagram persists in Python imports for compatibility; the project and algorithm are EvoDesign.
+The project website contains an interactive illustration, not a hosted model-generation service. Result tables are manuscript-reported results, not an independent reproduction of this maintained release. Training and test datasets are not included in the initial code release. The former internal name EvoDesign persists in Python imports for compatibility; the project and algorithm are EvoDesign.

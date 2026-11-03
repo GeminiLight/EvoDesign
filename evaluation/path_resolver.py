@@ -8,10 +8,10 @@ Supports both the new experiments/ layout and the legacy results/ layout:
     experiments/{exp_id}/
         outputs/
             baseline/{algo}/{model}/{sample_id}/render.png
-            evodiagram/{variant}/{model}/{sample_id}/rendered_diagram.png
+            evodesign/{variant}/{model}/{sample_id}/rendered_diagram.png
         scores/
             baseline/{algo}/{model}/{sample_id}.json
-            evodiagram/{variant}/{model}/{sample_id}.json
+            evodesign/{variant}/{model}/{sample_id}.json
 
     results/  (legacy, read-only fallback)
 """
@@ -21,8 +21,8 @@ from typing import Tuple, Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
-from evo_diagram.core.experiment import get_experiment_id
-from evo_diagram.utils.path_manager import safe_join_under, safe_path_segment
+from evodesign.core.experiment import canonical_method_name, legacy_method_name, get_experiment_id, legacy_experiment_path
+from evodesign.utils.path_manager import safe_join_under, safe_path_segment
 
 
 class AmbiguousSubmodelError(ValueError):
@@ -67,7 +67,7 @@ def _find_evo_image(
     image_name: str = "rendered_diagram.png",
     submodel: Optional[str] = None,
 ) -> Optional[Path]:
-    """Find generated image under an evodiagram results directory.
+    """Find generated image under an evodesign results directory.
 
     Resolution order (first match wins):
     1. If ``submodel`` is given:
@@ -148,10 +148,10 @@ def parse_method_paths(
 
     Args:
         method: Method name, e.g.:
-            - "evodiagram"
-            - "evodiagram/gpt-5.2"
-            - "evodiagram_wo_refiner"
-            - "evodiagram_wo_icon/gpt-5.2"
+            - "evodesign"
+            - "evodesign/gpt-5.2"
+            - "evodesign_wo_refiner"
+            - "evodesign_wo_icon/gpt-5.2"
             - "baselines/code_mermaid/gemini-3-pro" (slash format)
             - "baselines/mermaid/gemini-3-pro" (alias for code_mermaid)
             - "baselines_code_mermaid_gemini-3-pro" (underscore format)
@@ -162,7 +162,7 @@ def parse_method_paths(
     Returns:
         Tuple of (generated_image_path, output_dir, reference_image_path)
     """
-    method = _validate_method(method)
+    method = canonical_method_name(_validate_method(method))
     safe_eid = safe_path_segment(_get_exp_id(exp_id), field_name="experiment id")
     safe_data_id = safe_path_segment(data_id, field_name="data_id")
 
@@ -187,13 +187,18 @@ def parse_method_paths(
         data_id: str,
         submodel: Optional[str] = None,
     ) -> Optional[Path]:
-        """Find an evodiagram image under experiments/ first, then legacy results/."""
+        """Find an evodesign image under experiments/ first, then legacy results/."""
         exp_dir = _evo_read(*exp_segments)
-        img = _find_evo_image(exp_dir, data_id, submodel=submodel)
-        if img is not None:
-            return img
-        legacy_dir = safe_join_under(PROJECT_ROOT, "results", *legacy_segments)
-        return _find_evo_image(legacy_dir, data_id, submodel=submodel)
+        for directory in dict.fromkeys((exp_dir, legacy_experiment_path(exp_dir))):
+            img = _find_evo_image(directory, data_id, submodel=submodel)
+            if img is not None:
+                return img
+        for segments in (legacy_segments, tuple(legacy_method_name(s) for s in legacy_segments)):
+            legacy_dir = safe_join_under(PROJECT_ROOT, "results", *segments)
+            img = _find_evo_image(legacy_dir, data_id, submodel=submodel)
+            if img is not None:
+                return img
+        return None
 
     def _baseline_read(baseline_type: str, model_name: str) -> Path:
         """Return generated image path, preferring experiments over legacy."""
@@ -259,7 +264,7 @@ def parse_method_paths(
             "experiments",
             safe_eid,
             "scores",
-            "evodiagram",
+            "evodesign",
             *segments,
         )
 
@@ -277,9 +282,9 @@ def parse_method_paths(
         )
 
     # ------------------------------------------------------------------
-    # EvoDiagram variants
+    # EvoDesign variants
     # ------------------------------------------------------------------
-    if method == "evodiagram" or method.startswith("evodiagram/"):
+    if method == "evodesign" or method.startswith("evodesign/"):
         parts = method.split("/", 1)
         submodel = (
             safe_path_segment(parts[1], field_name="model segment")
@@ -288,19 +293,19 @@ def parse_method_paths(
         )
 
         generated_image = _evo_read_with_fallback(
-            ("evodiagram", "evodiagram"),
-            ("evodiagram",),
+            ("evodesign", "evodesign"),
+            ("evodesign",),
             safe_data_id,
             submodel=submodel,
         )
 
         if generated_image is None:
-            exp_dir = _evo_read("evodiagram", "evodiagram")
+            exp_dir = _evo_read("evodesign", "evodesign")
             generated_image = _join_evo_image_path(exp_dir, safe_data_id, submodel)
 
-        output_dir = _evo_score_dir("evodiagram", submodel)
+        output_dir = _evo_score_dir("evodesign", submodel)
 
-    elif method == "evodiagram_wo_refiner" or method.startswith("evodiagram_wo_refiner/"):
+    elif method == "evodesign_wo_refiner" or method.startswith("evodesign_wo_refiner/"):
         parts = method.split("/", 1)
         submodel = (
             safe_path_segment(parts[1], field_name="model segment")
@@ -309,19 +314,19 @@ def parse_method_paths(
         )
 
         generated_image = _evo_read_with_fallback(
-            ("evodiagram", "evodiagram_wo_refiner"),
-            ("evodiagram_wo_refiner",),
+            ("evodesign", "evodesign_wo_refiner"),
+            ("evodesign_wo_refiner",),
             safe_data_id,
             submodel=submodel,
         )
 
         if generated_image is None:
-            exp_dir = _evo_read("evodiagram", "evodiagram_wo_refiner")
+            exp_dir = _evo_read("evodesign", "evodesign_wo_refiner")
             generated_image = _join_evo_image_path(exp_dir, safe_data_id, submodel)
 
-        output_dir = _evo_score_dir("evodiagram_wo_refiner", submodel)
+        output_dir = _evo_score_dir("evodesign_wo_refiner", submodel)
 
-    elif method.startswith("evodiagram_") or method.startswith("evodiagram-"):
+    elif method.startswith("evodesign_") or method.startswith("evodesign-"):
         parts = method.split("/", 1)
         variant = safe_path_segment(parts[0], field_name="variant segment")
         submodel = (
@@ -331,14 +336,14 @@ def parse_method_paths(
         )
 
         generated_image = _evo_read_with_fallback(
-            ("evodiagram", variant),
+            ("evodesign", variant),
             (variant,),
             safe_data_id,
             submodel=submodel,
         )
 
         if generated_image is None:
-            exp_dir = _evo_read("evodiagram", variant)
+            exp_dir = _evo_read("evodesign", variant)
             generated_image = _join_evo_image_path(exp_dir, safe_data_id, submodel)
 
         output_dir = _evo_score_dir(variant, submodel)
@@ -352,8 +357,8 @@ def parse_method_paths(
             parts = method.split("/", 2)
             if parts[0] != "baselines" or len(parts) != 3:
                 raise ValueError(
-                    f"Invalid method format: {method}. Expected 'evodiagram', "
-                    f"'evodiagram_wo_refiner', 'evodiagram/<submodel>', or "
+                    f"Invalid method format: {method}. Expected 'evodesign', "
+                    f"'evodesign_wo_refiner', 'evodesign/<submodel>', or "
                     f"'baselines/<type>/<model>'"
                 )
             baseline_type = safe_path_segment(parts[1], field_name="baseline segment")
@@ -362,8 +367,8 @@ def parse_method_paths(
             parts = method.split("_", 2)
             if parts[0] != "baselines" or len(parts) != 3:
                 raise ValueError(
-                    f"Invalid method format: {method}. Expected 'evodiagram', "
-                    f"'evodiagram_wo_refiner', or 'baselines_<type>_<model>'"
+                    f"Invalid method format: {method}. Expected 'evodesign', "
+                    f"'evodesign_wo_refiner', or 'baselines_<type>_<model>'"
                 )
             baseline_type = safe_path_segment(parts[1], field_name="baseline segment")
             model_name = safe_path_segment(parts[2], field_name="model segment")
@@ -392,8 +397,8 @@ def get_output_dir(method: str, data_id: str, exp_id: Optional[str] = None) -> P
 def get_reference_image_path(data_id: str) -> Path:
     """Get reference image path for a data ID.
 
-    Resolved directly instead of through ``parse_method_paths("evodiagram", ...)``
+    Resolved directly instead of through ``parse_method_paths("evodesign", ...)``
     so that looking up a reference image never depends on (or fails because of)
-    evodiagram generated-output resolution while evaluating another method.
+    evodesign generated-output resolution while evaluating another method.
     """
     return _reference_image_path(data_id)

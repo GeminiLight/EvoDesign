@@ -29,7 +29,7 @@ from PIL import Image
 from io import BytesIO
 
 from dotenv import load_dotenv
-from evo_diagram.utils.env_loader import ensure_env_loaded
+from evodesign.utils.env_loader import ensure_env_loaded
 
 try:
     from baselines.pixel.prompts import IMAGE_GENERATOR_PROMPT

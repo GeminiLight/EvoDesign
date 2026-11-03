@@ -108,7 +108,7 @@ REFINER_LLM_MAX_TOKENS=4000
 
 ## 前置条件
 
-1. 启动渲染服务: `cd evo_diagram/agentic_system/tool_services && npm run dev`
+1. 启动渲染服务: `cd evodesign/agentic_system/tool_services && npm run dev`
 2. 配置 `.env` 中的 `REFINER_LLM_*` 变量
 3. 确保 baseline 数据已生成
 

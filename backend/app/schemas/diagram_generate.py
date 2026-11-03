@@ -82,9 +82,9 @@ class DiagramGenerateRequest(BaseModel):
     def normalize_diagram_type(cls, value: Any) -> str | None:
         if value is None or value == "automated":
             return None
-        from app.core.evo_imports import ensure_evo_diagram_importable
-        ensure_evo_diagram_importable()
-        from evo_diagram.agentic_system.common.diagram_types import normalize_supported_diagram_type
+        from app.core.evo_imports import ensure_evodesign_importable
+        ensure_evodesign_importable()
+        from evodesign.agentic_system.common.diagram_types import normalize_supported_diagram_type
         return normalize_supported_diagram_type(value)
 
 

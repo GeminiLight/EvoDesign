@@ -9,7 +9,7 @@ def test_wo_refiner_legacy_fallback_uses_wo_refiner_variant(monkeypatch, tmp_pat
     wo_refiner_image = (
         tmp_path
         / "results"
-        / "evodiagram_wo_refiner"
+        / "evodesign_wo_refiner"
         / "sample_a"
         / "rendered_diagram.png"
     )
@@ -19,7 +19,7 @@ def test_wo_refiner_legacy_fallback_uses_wo_refiner_variant(monkeypatch, tmp_pat
     wo_icon_image = (
         tmp_path
         / "results"
-        / "evodiagram_wo_icon"
+        / "evodesign_wo_icon"
         / "sample_a"
         / "rendered_diagram.png"
     )
@@ -27,7 +27,7 @@ def test_wo_refiner_legacy_fallback_uses_wo_refiner_variant(monkeypatch, tmp_pat
     wo_icon_image.write_bytes(b"wo-icon")
 
     resolved, score_dir, reference = path_resolver.parse_method_paths(
-        "evodiagram_wo_refiner",
+        "evodesign_wo_refiner",
         "sample_a",
         exp_id="exp1",
     )
@@ -37,8 +37,8 @@ def test_wo_refiner_legacy_fallback_uses_wo_refiner_variant(monkeypatch, tmp_pat
         / "experiments"
         / "exp1"
         / "scores"
-        / "evodiagram"
-        / "evodiagram_wo_refiner"
+        / "evodesign"
+        / "evodesign_wo_refiner"
         / "sample_a"
     )
 
@@ -54,7 +54,7 @@ def test_wo_refiner_does_not_use_stale_generic_render_temp(monkeypatch, tmp_path
     stale_generic_image = (
         tmp_path
         / "results"
-        / "evodiagram"
+        / "evodesign"
         / "sample_a"
         / "4_render"
         / "diagram_manifest_temp.png"
@@ -63,7 +63,7 @@ def test_wo_refiner_does_not_use_stale_generic_render_temp(monkeypatch, tmp_path
     stale_generic_image.write_bytes(b"stale generic render")
 
     resolved, _, _ = path_resolver.parse_method_paths(
-        "evodiagram_wo_refiner/step-3.7-flash",
+        "evodesign_wo_refiner/step-3.7-flash",
         "sample_a",
         exp_id="exp1",
     )
@@ -73,8 +73,8 @@ def test_wo_refiner_does_not_use_stale_generic_render_temp(monkeypatch, tmp_path
         / "experiments"
         / "exp1"
         / "outputs"
-        / "evodiagram"
-        / "evodiagram_wo_refiner"
+        / "evodesign"
+        / "evodesign_wo_refiner"
         / "step-3.7-flash"
         / "sample_a"
         / "rendered_diagram.png"
@@ -86,23 +86,23 @@ def test_wo_refiner_does_not_use_stale_generic_render_temp(monkeypatch, tmp_path
     ("method", "expected_image_parts", "expected_score_parts"),
     [
         (
-            "evodiagram/model-x",
-            ("experiments", "exp1", "outputs", "evodiagram", "evodiagram", "model-x", "sample_a", "rendered_diagram.png"),
-            ("experiments", "exp1", "scores", "evodiagram", "evodiagram", "model-x", "sample_a"),
+            "evodesign/model-x",
+            ("experiments", "exp1", "outputs", "evodesign", "evodesign", "model-x", "sample_a", "rendered_diagram.png"),
+            ("experiments", "exp1", "scores", "evodesign", "evodesign", "model-x", "sample_a"),
         ),
         (
-            "evodiagram_wo_icon/model-x",
-            ("experiments", "exp1", "outputs", "evodiagram", "evodiagram_wo_icon", "model-x", "sample_a", "rendered_diagram.png"),
-            ("experiments", "exp1", "scores", "evodiagram", "evodiagram_wo_icon", "model-x", "sample_a"),
+            "evodesign_wo_icon/model-x",
+            ("experiments", "exp1", "outputs", "evodesign", "evodesign_wo_icon", "model-x", "sample_a", "rendered_diagram.png"),
+            ("experiments", "exp1", "scores", "evodesign", "evodesign_wo_icon", "model-x", "sample_a"),
         ),
         (
-            "evodiagram-local",
-            ("experiments", "exp1", "outputs", "evodiagram", "evodiagram-local", "sample_a", "rendered_diagram.png"),
-            ("experiments", "exp1", "scores", "evodiagram", "evodiagram-local", "sample_a"),
+            "evodesign-local",
+            ("experiments", "exp1", "outputs", "evodesign", "evodesign-local", "sample_a", "rendered_diagram.png"),
+            ("experiments", "exp1", "scores", "evodesign", "evodesign-local", "sample_a"),
         ),
     ],
 )
-def test_parse_method_paths_preserves_evodiagram_layouts(
+def test_parse_method_paths_preserves_evodesign_layouts(
     monkeypatch,
     tmp_path,
     method,
@@ -160,11 +160,11 @@ def test_parse_method_paths_preserves_baseline_layouts(
 @pytest.mark.parametrize(
     ("method", "data_id", "error_fragment"),
     [
-        ("evodiagram", "../sample_a", "data_id"),
-        ("evodiagram\\..\\model", "sample_a", "method"),
-        ("evodiagram/../model", "sample_a", "model segment"),
-        ("evodiagram_wo_icon/..", "sample_a", "model segment"),
-        ("evodiagram_bad name", "sample_a", "variant segment"),
+        ("evodesign", "../sample_a", "data_id"),
+        ("evodesign\\..\\model", "sample_a", "method"),
+        ("evodesign/../model", "sample_a", "model segment"),
+        ("evodesign_wo_icon/..", "sample_a", "model segment"),
+        ("evodesign_bad name", "sample_a", "variant segment"),
         ("baselines/../model-x", "sample_a", "baseline segment"),
         ("baselines/code_mermaid/../model-x", "sample_a", "model segment"),
         ("baselines//model-x", "sample_a", "baseline segment"),
@@ -188,7 +188,7 @@ def test_parse_method_paths_rejects_unsafe_experiment_id(monkeypatch, tmp_path):
     monkeypatch.setattr(path_resolver, "PROJECT_ROOT", tmp_path)
 
     with pytest.raises(ValueError, match="experiment id"):
-        path_resolver.parse_method_paths("evodiagram", "sample_a", exp_id="../exp1")
+        path_resolver.parse_method_paths("evodesign", "sample_a", exp_id="../exp1")
 
 
 def test_missing_submodel_raises_instead_of_picking_another_model(monkeypatch, tmp_path):
@@ -198,7 +198,7 @@ def test_missing_submodel_raises_instead_of_picking_another_model(monkeypatch, t
     monkeypatch.setattr(path_resolver, "PROJECT_ROOT", tmp_path)
 
     base = (
-        tmp_path / "experiments" / "exp1" / "outputs" / "evodiagram" / "evodiagram"
+        tmp_path / "experiments" / "exp1" / "outputs" / "evodesign" / "evodesign"
     )
     for model in ("model-a", "model-b"):
         image = base / model / "sample_a" / "rendered_diagram.png"
@@ -206,7 +206,7 @@ def test_missing_submodel_raises_instead_of_picking_another_model(monkeypatch, t
         image.write_bytes(model.encode())
 
     with pytest.raises(path_resolver.AmbiguousSubmodelError) as exc:
-        path_resolver.parse_method_paths("evodiagram", "sample_a", exp_id="exp1")
+        path_resolver.parse_method_paths("evodesign", "sample_a", exp_id="exp1")
 
     message = str(exc.value)
     assert "model-a" in message and "model-b" in message
@@ -222,8 +222,8 @@ def test_single_submodel_directory_still_requires_an_explicit_model(monkeypatch,
         / "experiments"
         / "exp1"
         / "outputs"
-        / "evodiagram"
-        / "evodiagram"
+        / "evodesign"
+        / "evodesign"
         / "model-a"
         / "sample_a"
         / "rendered_diagram.png"
@@ -232,14 +232,14 @@ def test_single_submodel_directory_still_requires_an_explicit_model(monkeypatch,
     image.write_bytes(b"png")
 
     with pytest.raises(path_resolver.AmbiguousSubmodelError):
-        path_resolver.parse_method_paths("evodiagram", "sample_a", exp_id="exp1")
+        path_resolver.parse_method_paths("evodesign", "sample_a", exp_id="exp1")
 
 
 def test_explicit_submodel_resolves_without_error(monkeypatch, tmp_path):
     monkeypatch.setattr(path_resolver, "PROJECT_ROOT", tmp_path)
 
     base = (
-        tmp_path / "experiments" / "exp1" / "outputs" / "evodiagram" / "evodiagram"
+        tmp_path / "experiments" / "exp1" / "outputs" / "evodesign" / "evodesign"
     )
     for model in ("model-a", "model-b"):
         image = base / model / "sample_a" / "rendered_diagram.png"
@@ -247,7 +247,7 @@ def test_explicit_submodel_resolves_without_error(monkeypatch, tmp_path):
         image.write_bytes(model.encode())
 
     resolved, _, _ = path_resolver.parse_method_paths(
-        "evodiagram/model-b", "sample_a", exp_id="exp1"
+        "evodesign/model-b", "sample_a", exp_id="exp1"
     )
 
     assert resolved == base / "model-b" / "sample_a" / "rendered_diagram.png"
@@ -257,22 +257,22 @@ def test_missing_sample_is_still_a_plain_miss(monkeypatch, tmp_path):
     monkeypatch.setattr(path_resolver, "PROJECT_ROOT", tmp_path)
 
     base = (
-        tmp_path / "experiments" / "exp1" / "outputs" / "evodiagram" / "evodiagram"
+        tmp_path / "experiments" / "exp1" / "outputs" / "evodesign" / "evodesign"
     )
     other = base / "model-a" / "other_sample" / "rendered_diagram.png"
     other.parent.mkdir(parents=True)
     other.write_bytes(b"png")
 
     resolved, _, _ = path_resolver.parse_method_paths(
-        "evodiagram", "sample_a", exp_id="exp1"
+        "evodesign", "sample_a", exp_id="exp1"
     )
 
     assert not resolved.exists()
 
 
-def test_reference_lookup_does_not_depend_on_evodiagram_outputs(monkeypatch, tmp_path):
+def test_reference_lookup_does_not_depend_on_evodesign_outputs(monkeypatch, tmp_path):
     """Resolving a reference image while evaluating a baseline must not trip over
-    evodiagram sub-model ambiguity."""
+    evodesign sub-model ambiguity."""
     monkeypatch.setattr(path_resolver, "PROJECT_ROOT", tmp_path)
 
     image = (
@@ -280,8 +280,8 @@ def test_reference_lookup_does_not_depend_on_evodiagram_outputs(monkeypatch, tmp
         / "experiments"
         / "exp1"
         / "outputs"
-        / "evodiagram"
-        / "evodiagram"
+        / "evodesign"
+        / "evodesign"
         / "model-a"
         / "sample_a"
         / "rendered_diagram.png"
@@ -293,9 +293,37 @@ def test_reference_lookup_does_not_depend_on_evodiagram_outputs(monkeypatch, tmp
         tmp_path / "dataset" / "images" / "diagrams" / "sample_a.jpg"
     )
 
-    # Evaluating a baseline is unaffected by the evodiagram layout.
+    # Evaluating a baseline is unaffected by the evodesign layout.
     resolved, _, reference = path_resolver.parse_method_paths(
         "baselines/mermaid/model-x", "sample_a", exp_id="exp1"
     )
     assert reference == tmp_path / "dataset" / "images" / "diagrams" / "sample_a.jpg"
     assert "code_mermaid" in str(resolved)
+
+
+@pytest.mark.parametrize('method', ['evodesign/model', 'evodiagram/model'])
+def test_package_rename_reads_historical_experiments_without_moving_them(monkeypatch, tmp_path, method):
+    monkeypatch.setattr(path_resolver, 'PROJECT_ROOT', tmp_path)
+    old = tmp_path / 'experiments' / 'past' / 'outputs' / 'evodiagram' / 'evodiagram' / 'model' / 'sample' / 'rendered_diagram.png'
+    old.parent.mkdir(parents=True)
+    old.write_bytes(b'original run')
+    # A new namespace can exist for other samples without hiding old runs.
+    current = tmp_path / 'experiments' / 'past' / 'outputs' / 'evodesign' / 'evodesign'
+    current.mkdir(parents=True)
+    image, scores, _ = path_resolver.parse_method_paths(method, 'sample', exp_id='past')
+    assert image == old
+    assert old.read_bytes() == b'original run'
+    assert scores == tmp_path / 'experiments' / 'past' / 'scores' / 'evodesign' / 'evodesign' / 'model' / 'sample'
+    new = current / 'model' / 'sample' / 'rendered_diagram.png'
+    new.parent.mkdir(parents=True)
+    new.write_bytes(b'new run')
+    assert path_resolver.parse_method_paths(method, 'sample', exp_id='past')[0] == new
+
+
+def test_package_rename_reads_historical_variant_results(monkeypatch, tmp_path):
+    monkeypatch.setattr(path_resolver, 'PROJECT_ROOT', tmp_path)
+    old = tmp_path / 'results' / 'evodiagram_wo_refiner' / 'sample' / 'rendered_diagram.png'
+    old.parent.mkdir(parents=True)
+    old.touch()
+    assert path_resolver.parse_method_paths('evodesign_wo_refiner', 'sample', exp_id='past')[0] == old
+    assert path_resolver.parse_method_paths('evodiagram_wo_refiner', 'sample', exp_id='past')[0] == old

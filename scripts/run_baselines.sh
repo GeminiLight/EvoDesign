@@ -26,7 +26,7 @@ PYTHON_BIN="${PYTHON_BIN:-python3}"
 #                    Set to 1 to allow range-unsupported baselines to run the full dataset.
 #   BASELINE_TEMPERATURE
 #                    Decoding temperature for the LLM baselines (default: 1, matching
-#                    the EvoDiagram generator). Pinned here because a repository .env
+#                    the EvoDesign generator). Pinned here because a repository .env
 #                    LLM_TEMPERATURE / TEMPERATURE would otherwise win and leave the
 #                    two sides decoding at different temperatures.
 

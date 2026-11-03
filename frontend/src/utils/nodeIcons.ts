@@ -1,4 +1,4 @@
-import iconCatalog from '../../../evo_diagram/agentic_system/common/assets/material_icons.json';
+import iconCatalog from '../../../evodesign/agentic_system/common/assets/material_icons.json';
 
 export const NODE_ICON_SIZE = 26;
 const PADDING = 16;

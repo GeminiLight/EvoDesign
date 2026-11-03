@@ -1,4 +1,4 @@
-"""Backend adapter for the EvoDiagram workflow engine port."""
+"""Backend adapter for the EvoDesign workflow engine port."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from app.services.diagram_schema_inspection import (
     count_schema_collection,
 )
 from app.services.workflow_engine_port import (
-    EvoDiagramWorkflowEnginePort,
+    EvoDesignWorkflowEnginePort,
     StreamingEngineDependencies,
     WorkflowEnginePort,
 )
@@ -96,7 +96,7 @@ from app.services.workflow_runtime.refiner import (
 
 @dataclass(frozen=True)
 class WorkflowRunRequest:
-    """Input contract for an EvoDiagram generation run."""
+    """Input contract for an EvoDesign generation run."""
 
     context: str
     requirements: str | None
@@ -135,7 +135,7 @@ class _WorkflowExecutionContext:
 WorkflowClassLoader = Callable[[], Any]
 StreamingDependencyLoader = Callable[[], StreamingEngineDependencies]
 
-_DEFAULT_ENGINE_PORT = EvoDiagramWorkflowEnginePort()
+_DEFAULT_ENGINE_PORT = EvoDesignWorkflowEnginePort()
 
 
 def _load_text_workflow_cls() -> Any:
@@ -227,7 +227,7 @@ def _design_memory_options(request: WorkflowRunRequest) -> dict[str, Any]:
 
 
 class WorkflowEngineAdapter:
-    """Adapter that owns direct calls into EvoDiagram engine internals."""
+    """Adapter that owns direct calls into EvoDesign engine internals."""
 
     def __init__(
         self,
@@ -252,7 +252,7 @@ class WorkflowEngineAdapter:
         model: Any,
         request: WorkflowRunRequest,
     ) -> AsyncGenerator[str, None]:
-        """Stream SSE events for each EvoDiagram workflow stage."""
+        """Stream SSE events for each EvoDesign workflow stage."""
         started = time.monotonic()
         engine = await asyncio.to_thread(self.streaming_dependency_loader)
 
@@ -666,7 +666,7 @@ class WorkflowEngineAdapter:
         model: Any,
         request: WorkflowRunRequest,
     ) -> dict[str, Any]:
-        """Run the EvoDiagram workflow without serving rendered assets."""
+        """Run the EvoDesign workflow without serving rendered assets."""
         workflow_cls = self.workflow_cls_loader()
 
         run_context = _build_workflow_execution_context(request)

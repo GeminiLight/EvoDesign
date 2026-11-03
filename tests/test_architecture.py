@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-EVO_DIAGRAM_DIR = Path(__file__).resolve().parent.parent / "evo_diagram"
-AGENTIC_DIR = EVO_DIAGRAM_DIR / "agentic_system"
+EVODESIGN_DIR = Path(__file__).resolve().parent.parent / "evodesign"
+AGENTIC_DIR = EVODESIGN_DIR / "agentic_system"
 
 # ── Directory structure ──────────────────────────────────────────────────────
 
@@ -56,7 +56,7 @@ def test_old_dir_removed(rel_path):
 # ── No stale imports ─────────────────────────────────────────────────────────
 
 IMPORT_RE = re.compile(
-    r"(?:from|import)\s+(?:evo_diagram\.)?agentic_system\."
+    r"(?:from|import)\s+(?:evodesign\.)?agentic_system\."
     r"(structure_workflow|styling_workflow|layout_workflow"
     r"|unified_workflow|verifier_workflow|refiner_workflow|render_workflow)"
 )
@@ -116,18 +116,18 @@ def test_active_agentic_docs_do_not_reference_legacy_module_names():
     assert not violations, "Stale module names found:\n" + "\n".join(violations)
 
 
-def test_evo_diagram_uses_package_qualified_internal_imports():
+def test_evodesign_uses_package_qualified_internal_imports():
     """Internal package imports should not depend on legacy top-level aliases."""
     violations = []
-    for py_file in EVO_DIAGRAM_DIR.rglob("*.py"):
-        parts = set(py_file.relative_to(EVO_DIAGRAM_DIR).parts)
+    for py_file in EVODESIGN_DIR.rglob("*.py"):
+        parts = set(py_file.relative_to(EVODESIGN_DIR).parts)
         if parts & SKIP_DIRS:
             continue
 
         try:
             tree = ast.parse(py_file.read_text(encoding="utf-8"))
         except SyntaxError as exc:
-            pytest.fail(f"Cannot parse {py_file.relative_to(EVO_DIAGRAM_DIR)}: {exc}")
+            pytest.fail(f"Cannot parse {py_file.relative_to(EVODESIGN_DIR)}: {exc}")
 
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
@@ -135,19 +135,19 @@ def test_evo_diagram_uses_package_qualified_internal_imports():
                     root = alias.name.split(".", 1)[0]
                     if root in FORBIDDEN_TOP_LEVEL_ENGINE_ROOTS:
                         violations.append(
-                            f"{py_file.relative_to(EVO_DIAGRAM_DIR)}:{node.lineno}: "
+                            f"{py_file.relative_to(EVODESIGN_DIR)}:{node.lineno}: "
                             f"import {alias.name}"
                         )
             elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
                 root = node.module.split(".", 1)[0]
                 if root in FORBIDDEN_TOP_LEVEL_ENGINE_ROOTS:
                     violations.append(
-                        f"{py_file.relative_to(EVO_DIAGRAM_DIR)}:{node.lineno}: "
+                        f"{py_file.relative_to(EVODESIGN_DIR)}:{node.lineno}: "
                         f"from {node.module} import ..."
                     )
 
     assert not violations, (
-        "Use evo_diagram.* or relative imports inside the package:\n"
+        "Use evodesign.* or relative imports inside the package:\n"
         + "\n".join(violations)
     )
 
@@ -157,17 +157,17 @@ def test_canvas_environment_import_does_not_load_render_engine_internals():
     code = "\n".join(
         [
             "import sys",
-            "import evo_diagram.canvas_environment",
+            "import evodesign.canvas_environment",
             "loaded = sorted(",
             "    name for name in sys.modules",
-            "    if name.startswith('evo_diagram.agentic_system.render_engine')",
+            "    if name.startswith('evodesign.agentic_system.render_engine')",
             ")",
             "assert not loaded, loaded",
         ]
     )
     result = subprocess.run(
         [sys.executable, "-c", code],
-        cwd=EVO_DIAGRAM_DIR.parent,
+        cwd=EVODESIGN_DIR.parent,
         capture_output=True,
         text=True,
         check=False,
@@ -181,19 +181,19 @@ def test_canvas_runtime_import_does_not_load_canvas_facade_or_render_engine():
     code = "\n".join(
         [
             "import sys",
-            "import evo_diagram.canvas_runtime as runtime",
+            "import evodesign.canvas_runtime as runtime",
             "assert runtime.normalize_canvas_library(' Excalidraw ') == 'excalidraw'",
             "for name in (",
-            "    'evo_diagram.canvas_environment',",
-            "    'evo_diagram.agentic_system.render_engine.service',",
-            "    'evo_diagram.agentic_system.render_engine.workflow',",
+            "    'evodesign.canvas_environment',",
+            "    'evodesign.agentic_system.render_engine.service',",
+            "    'evodesign.agentic_system.render_engine.workflow',",
             "):",
             "    assert name not in sys.modules, name",
         ]
     )
     result = subprocess.run(
         [sys.executable, "-c", code],
-        cwd=EVO_DIAGRAM_DIR.parent,
+        cwd=EVODESIGN_DIR.parent,
         capture_output=True,
         text=True,
         check=False,
@@ -207,20 +207,20 @@ def test_canvas_capabilities_import_does_not_load_agentic_system():
     code = "\n".join(
         [
             "import sys",
-            "from evo_diagram.canvas_environment.capabilities import (",
+            "from evodesign.canvas_environment.capabilities import (",
             "    get_canvas_capabilities,",
             ")",
             "assert get_canvas_capabilities(' Excalidraw ').supports_refiner is True",
             "loaded = sorted(",
             "    name for name in sys.modules",
-            "    if name.startswith('evo_diagram.agentic_system')",
+            "    if name.startswith('evodesign.agentic_system')",
             ")",
             "assert not loaded, loaded",
         ]
     )
     result = subprocess.run(
         [sys.executable, "-c", code],
-        cwd=EVO_DIAGRAM_DIR.parent,
+        cwd=EVODESIGN_DIR.parent,
         capture_output=True,
         text=True,
         check=False,
@@ -231,7 +231,7 @@ def test_canvas_capabilities_import_does_not_load_agentic_system():
 
 def test_knowledge_evolution_does_not_depend_on_agentic_capability_facade():
     """Non-agentic modules should use the canvas capability boundary directly."""
-    knowledge_dir = EVO_DIAGRAM_DIR / "knowledge_evolution"
+    knowledge_dir = EVODESIGN_DIR / "knowledge_evolution"
     violations = []
 
     for py_file in knowledge_dir.rglob("*.py"):
@@ -239,27 +239,27 @@ def test_knowledge_evolution_does_not_depend_on_agentic_capability_facade():
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    if alias.name == "evo_diagram.agentic_system.capabilities":
+                    if alias.name == "evodesign.agentic_system.capabilities":
                         violations.append(
-                            f"{py_file.relative_to(EVO_DIAGRAM_DIR)}:{node.lineno}: "
+                            f"{py_file.relative_to(EVODESIGN_DIR)}:{node.lineno}: "
                             f"import {alias.name}"
                         )
             elif isinstance(node, ast.ImportFrom) and node.module:
-                if node.module == "evo_diagram.agentic_system.capabilities":
+                if node.module == "evodesign.agentic_system.capabilities":
                     violations.append(
-                        f"{py_file.relative_to(EVO_DIAGRAM_DIR)}:{node.lineno}: "
+                        f"{py_file.relative_to(EVODESIGN_DIR)}:{node.lineno}: "
                         f"from {node.module} import ..."
                     )
 
     assert not violations, (
-        "Use evo_diagram.canvas_environment.capabilities from knowledge_evolution:\n"
+        "Use evodesign.canvas_environment.capabilities from knowledge_evolution:\n"
         + "\n".join(violations)
     )
 
 
 def test_knowledge_evolution_uses_design_retriever_public_api():
     """Knowledge evolution should not reach into retriever private internals."""
-    knowledge_dir = EVO_DIAGRAM_DIR / "knowledge_evolution"
+    knowledge_dir = EVODESIGN_DIR / "knowledge_evolution"
     violations = []
 
     for py_file in knowledge_dir.rglob("*.py"):
@@ -279,7 +279,7 @@ def test_knowledge_evolution_uses_design_retriever_public_api():
                 and target.value.id == "self"
             ):
                 violations.append(
-                    f"{py_file.relative_to(EVO_DIAGRAM_DIR)}:{node.lineno}: "
+                    f"{py_file.relative_to(EVODESIGN_DIR)}:{node.lineno}: "
                     f"self._retriever.{node.func.attr}(...)"
                 )
 
@@ -291,7 +291,7 @@ def test_knowledge_evolution_uses_design_retriever_public_api():
 
 def test_canvas_environment_render_engine_imports_stay_in_private_adapter():
     """Only the private adapter may bridge to the legacy render engine."""
-    canvas_dir = EVO_DIAGRAM_DIR / "canvas_environment"
+    canvas_dir = EVODESIGN_DIR / "canvas_environment"
     allowed = canvas_dir / "_render_engine_adapter.py"
     violations = []
 
@@ -302,15 +302,15 @@ def test_canvas_environment_render_engine_imports_stay_in_private_adapter():
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    if alias.name.startswith("evo_diagram.agentic_system.render_engine"):
+                    if alias.name.startswith("evodesign.agentic_system.render_engine"):
                         violations.append(
-                            f"{py_file.relative_to(EVO_DIAGRAM_DIR)}:{node.lineno}: "
+                            f"{py_file.relative_to(EVODESIGN_DIR)}:{node.lineno}: "
                             f"import {alias.name}"
                         )
             elif isinstance(node, ast.ImportFrom) and node.module:
-                if node.module.startswith("evo_diagram.agentic_system.render_engine"):
+                if node.module.startswith("evodesign.agentic_system.render_engine"):
                     violations.append(
-                        f"{py_file.relative_to(EVO_DIAGRAM_DIR)}:{node.lineno}: "
+                        f"{py_file.relative_to(EVODESIGN_DIR)}:{node.lineno}: "
                         f"from {node.module} import ..."
                     )
 
@@ -370,7 +370,7 @@ def test_canvas_renderer_packages_do_not_import_each_other():
                 if isinstance(node, ast.Import):
                     for alias in node.names:
                         if alias.name.startswith(
-                            f"evo_diagram.agentic_system.render_engine.{forbidden}"
+                            f"evodesign.agentic_system.render_engine.{forbidden}"
                         ):
                             violations.append(
                                 f"{py_file.relative_to(AGENTIC_DIR)}:{node.lineno}: "
@@ -378,7 +378,7 @@ def test_canvas_renderer_packages_do_not_import_each_other():
                             )
                 elif isinstance(node, ast.ImportFrom) and node.module:
                     absolute_forbidden = (
-                        f"evo_diagram.agentic_system.render_engine.{forbidden}"
+                        f"evodesign.agentic_system.render_engine.{forbidden}"
                     )
                     relative_forbidden = (
                         node.level > 0 and node.module.startswith(forbidden)
@@ -401,45 +401,45 @@ def test_canvas_renderer_packages_do_not_import_each_other():
 # ── Module importability ─────────────────────────────────────────────────────
 
 NEW_MODULES = [
-    "evo_diagram.canvas_environment",
-    "evo_diagram.canvas_environment.capabilities",
-    "evo_diagram.canvas_environment.environment",
-    "evo_diagram.canvas_environment.rendering",
-    "evo_diagram.canvas_environment.validation",
-    "evo_diagram.agentic_system.generation_stage.structure.workflow",
-    "evo_diagram.agentic_system.generation_stage.styling.workflow",
-    "evo_diagram.agentic_system.generation_stage.layout.workflow",
-    "evo_diagram.agentic_system.generation_stage.unified.workflow",
-    "evo_diagram.agentic_system.generation_stage.unified.sidecar",
-    "evo_diagram.agentic_system.verification_stage.workflow",
-    "evo_diagram.agentic_system.verification_stage.checks.finding",
-    "evo_diagram.agentic_system.iterative_workflow",
-    "evo_diagram.agentic_system.refinement_stage.fixers",
-    "evo_diagram.agentic_system.render_engine.workflow",
-    "evo_diagram.agentic_system.render_engine.service",
-    "evo_diagram.agentic_system.render_engine.canvas_render",
-    "evo_diagram.agentic_system.render_engine.shared.edge_routing",
-    "evo_diagram.agentic_system.common",
-    "evo_diagram.agentic_system.workflow",
-    "evo_diagram.agentic_system.main",
+    "evodesign.canvas_environment",
+    "evodesign.canvas_environment.capabilities",
+    "evodesign.canvas_environment.environment",
+    "evodesign.canvas_environment.rendering",
+    "evodesign.canvas_environment.validation",
+    "evodesign.agentic_system.generation_stage.structure.workflow",
+    "evodesign.agentic_system.generation_stage.styling.workflow",
+    "evodesign.agentic_system.generation_stage.layout.workflow",
+    "evodesign.agentic_system.generation_stage.unified.workflow",
+    "evodesign.agentic_system.generation_stage.unified.sidecar",
+    "evodesign.agentic_system.verification_stage.workflow",
+    "evodesign.agentic_system.verification_stage.checks.finding",
+    "evodesign.agentic_system.iterative_workflow",
+    "evodesign.agentic_system.refinement_stage.fixers",
+    "evodesign.agentic_system.render_engine.workflow",
+    "evodesign.agentic_system.render_engine.service",
+    "evodesign.agentic_system.render_engine.canvas_render",
+    "evodesign.agentic_system.render_engine.shared.edge_routing",
+    "evodesign.agentic_system.common",
+    "evodesign.agentic_system.workflow",
+    "evodesign.agentic_system.main",
 ]
 
 OLD_MODULES = [
-    "evo_diagram.agentic_system.capabilities",
-    "evo_diagram.agentic_system.structure_workflow",
-    "evo_diagram.agentic_system.styling_workflow",
-    "evo_diagram.agentic_system.layout_workflow",
-    "evo_diagram.agentic_system.unified_workflow",
-    "evo_diagram.agentic_system.verifier_workflow",
-    "evo_diagram.agentic_system.refiner_workflow",
-    "evo_diagram.agentic_system.render_workflow",
-    "evo_diagram.agentic_system._legacy.vlm_refiner",
-    "evo_diagram.agentic_system.generation_stage.layout.tools.legacy.baseline_validator",
-    "evo_diagram.agentic_system.generation_stage.layout.tools.legacy.dagre_client",
-    "evo_diagram.agentic_system.render_engine.excalidraw.render",
-    "evo_diagram.agentic_system.render_engine.tldraw.render",
-    "evo_diagram.agentic_system.render_engine.shared.canvas",
-    "evo_diagram.agentic_system.common.arrow_utils",
+    "evodesign.agentic_system.capabilities",
+    "evodesign.agentic_system.structure_workflow",
+    "evodesign.agentic_system.styling_workflow",
+    "evodesign.agentic_system.layout_workflow",
+    "evodesign.agentic_system.unified_workflow",
+    "evodesign.agentic_system.verifier_workflow",
+    "evodesign.agentic_system.refiner_workflow",
+    "evodesign.agentic_system.render_workflow",
+    "evodesign.agentic_system._legacy.vlm_refiner",
+    "evodesign.agentic_system.generation_stage.layout.tools.legacy.baseline_validator",
+    "evodesign.agentic_system.generation_stage.layout.tools.legacy.dagre_client",
+    "evodesign.agentic_system.render_engine.excalidraw.render",
+    "evodesign.agentic_system.render_engine.tldraw.render",
+    "evodesign.agentic_system.render_engine.shared.canvas",
+    "evodesign.agentic_system.common.arrow_utils",
 ]
 
 
@@ -460,27 +460,27 @@ def test_old_module_not_importable(module_path):
 # ── Key symbols ──────────────────────────────────────────────────────────────
 
 KEY_SYMBOLS = [
-    ("evo_diagram.canvas_environment", "CanvasEnvironment"),
-    ("evo_diagram.canvas_environment", "render_manifest"),
-    ("evo_diagram.canvas_environment", "render_png_result"),
-    ("evo_diagram.canvas_environment", "validate_manifest"),
-    ("evo_diagram.agentic_system.workflow", "Text2DiagramWorkflow"),
-    ("evo_diagram.agentic_system.workflow", "WorkflowState"),
-    ("evo_diagram.agentic_system.generation_stage.structure.workflow", "StructureWorkflow"),
-    ("evo_diagram.agentic_system.generation_stage.styling.workflow", "StylingWorkflow"),
-    ("evo_diagram.agentic_system.generation_stage.layout.workflow", "LayoutWorkflow"),
-    ("evo_diagram.agentic_system.generation_stage.unified.workflow", "UnifiedGeneratorWorkflow"),
-    ("evo_diagram.agentic_system.generation_stage.unified.sidecar", "validate_semantic_sidecar"),
-    ("evo_diagram.agentic_system.verification_stage.workflow", "VerifierWorkflow"),
-    ("evo_diagram.agentic_system.iterative_workflow", "IterativeRefinerWorkflow"),
-    ("evo_diagram.agentic_system.render_engine.workflow", "RenderWorkflow"),
-    ("evo_diagram.agentic_system.render_engine", "render_png_result"),
-    ("evo_diagram.agentic_system.render_engine.service", "render_manifest"),
-    ("evo_diagram.agentic_system.render_engine.service", "render_png_result"),
-    ("evo_diagram.agentic_system.render_engine.service", "RenderPngResult"),
-    ("evo_diagram.agentic_system.render_engine.service", "RenderResult"),
-    ("evo_diagram.agentic_system.verification_stage.checks.finding", "Finding"),
-    ("evo_diagram.agentic_system.verification_stage.checks.finding", "Severity"),
+    ("evodesign.canvas_environment", "CanvasEnvironment"),
+    ("evodesign.canvas_environment", "render_manifest"),
+    ("evodesign.canvas_environment", "render_png_result"),
+    ("evodesign.canvas_environment", "validate_manifest"),
+    ("evodesign.agentic_system.workflow", "Text2DiagramWorkflow"),
+    ("evodesign.agentic_system.workflow", "WorkflowState"),
+    ("evodesign.agentic_system.generation_stage.structure.workflow", "StructureWorkflow"),
+    ("evodesign.agentic_system.generation_stage.styling.workflow", "StylingWorkflow"),
+    ("evodesign.agentic_system.generation_stage.layout.workflow", "LayoutWorkflow"),
+    ("evodesign.agentic_system.generation_stage.unified.workflow", "UnifiedGeneratorWorkflow"),
+    ("evodesign.agentic_system.generation_stage.unified.sidecar", "validate_semantic_sidecar"),
+    ("evodesign.agentic_system.verification_stage.workflow", "VerifierWorkflow"),
+    ("evodesign.agentic_system.iterative_workflow", "IterativeRefinerWorkflow"),
+    ("evodesign.agentic_system.render_engine.workflow", "RenderWorkflow"),
+    ("evodesign.agentic_system.render_engine", "render_png_result"),
+    ("evodesign.agentic_system.render_engine.service", "render_manifest"),
+    ("evodesign.agentic_system.render_engine.service", "render_png_result"),
+    ("evodesign.agentic_system.render_engine.service", "RenderPngResult"),
+    ("evodesign.agentic_system.render_engine.service", "RenderResult"),
+    ("evodesign.agentic_system.verification_stage.checks.finding", "Finding"),
+    ("evodesign.agentic_system.verification_stage.checks.finding", "Severity"),
 ]
 
 LIBRARY_ONLY_WORKFLOWS = [
@@ -510,7 +510,7 @@ def test_agentic_system_canvas_calls_go_through_facade():
             stripped = line.strip()
             if stripped.startswith("#"):
                 continue
-            if "evo_diagram.agentic_system.render_engine" in stripped or "from ...render_engine" in stripped:
+            if "evodesign.agentic_system.render_engine" in stripped or "from ...render_engine" in stripped:
                 violations.append(f"{py_file.relative_to(AGENTIC_DIR)}:{i}: {stripped}")
     assert not violations, "Canvas runtime imports should use canvas_environment:\n" + "\n".join(violations)
 
@@ -527,7 +527,7 @@ def test_library_workflows_do_not_define_debug_cli_blocks(rel_path):
         comparison = ast.dump(node.test)
         assert "__main__" not in comparison, (
             f"{rel_path} should stay import-only; use "
-            "evo_diagram.agentic_system.main for runnable CLI behavior."
+            "evodesign.agentic_system.main for runnable CLI behavior."
         )
 
 
@@ -610,14 +610,14 @@ def test_refiner_public_controls_do_not_expose_transitional_knobs():
         text = file_path.read_text(encoding="utf-8")
         for term in forbidden_terms:
             if term in text:
-                violations.append(f"{file_path.relative_to(EVO_DIAGRAM_DIR.parent)}: {term}")
+                violations.append(f"{file_path.relative_to(EVODESIGN_DIR.parent)}: {term}")
 
     assert not violations, "Transitional refiner controls found:\n" + "\n".join(violations)
 
 
 def test_knowledge_evolution_dataset_schema_does_not_normalize_legacy_fields():
     """Knowledge evolution datasets should use the current content/content_area/query contract."""
-    schemas_file = EVO_DIAGRAM_DIR / "knowledge_evolution" / "schemas.py"
+    schemas_file = EVODESIGN_DIR / "knowledge_evolution" / "schemas.py"
     text = schemas_file.read_text(encoding="utf-8")
     forbidden_terms = (
         "model_validator",

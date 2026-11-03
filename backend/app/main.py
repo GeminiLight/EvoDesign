@@ -1,4 +1,4 @@
-"""ASGI entrypoint for EvoDiagram API."""
+"""ASGI entrypoint for EvoDesign API."""
 
 from app.application import create_app
 from app.config import get_settings

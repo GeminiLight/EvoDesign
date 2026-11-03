@@ -19,7 +19,7 @@ import {
 import { DEFAULT_CANVAS_LIBRARY, normalizeCanvasLibraryOrNull } from '../contracts/canvas';
 import type { RecentCanvasLibrary } from '../types/app';
 
-export const GUEST_IMPORT_COMPLETED_EVENT = 'evodiagram:guest-import-completed';
+export const GUEST_IMPORT_COMPLETED_EVENT = 'evodesign:guest-import-completed';
 
 type ImportedProjectState = {
   version?: number;

@@ -238,7 +238,7 @@ def test_unknown_missing_policy_is_rejected():
 
 
 def test_not_applicable_metric_is_excluded_only_for_that_metric(tmp_path):
-    method_dir = tmp_path / "scores" / "evodiagram" / "evodiagram" / "gpt-x"
+    method_dir = tmp_path / "scores" / "evodesign" / "evodesign" / "gpt-x"
     write_result(
         method_dir,
         "s1",
@@ -315,14 +315,14 @@ def test_dimension_stats_report_std_and_confidence_interval(tmp_path):
 
 def test_paired_comparison_reports_wilcoxon_and_bootstrap_ci(tmp_path):
     baseline_dir = tmp_path / "scores" / "baseline" / "mermaid" / "gpt-x"
-    evo_dir = tmp_path / "scores" / "evodiagram" / "evodiagram" / "gpt-x"
+    evo_dir = tmp_path / "scores" / "evodesign" / "evodesign" / "gpt-x"
     for index in range(1, 13):
         write_result(baseline_dir, f"s{index}", {m: 2 for m in DIMENSION_OF})
         write_result(evo_dir, f"s{index}", {m: 4 for m in DIMENSION_OF})
 
     analyzer = EvaluationAnalyzer(bootstrap_resamples=500, seed=5)
     results = analyzer.analyze_multiple_methods(str(tmp_path / "scores"))
-    comparisons = analyzer.compare_methods(results, "evodiagram/evodiagram/gpt-x")
+    comparisons = analyzer.compare_methods(results, "evodesign/evodesign/gpt-x")
 
     content = [c for c in comparisons if c["metric"] == "content_dimension"]
     assert len(content) == 1

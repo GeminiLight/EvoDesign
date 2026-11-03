@@ -10,7 +10,7 @@ from typing import Any, Optional
 
 from langchain_core.language_models import BaseChatModel
 
-from evo_diagram.core.base_agent import BaseAgent
+from evodesign.core.base_agent import BaseAgent
 
 from baselines.programmic.mermaid.prompts import SYSTEM_PROMPT, TASK_PROMPT
 
@@ -71,9 +71,9 @@ class MermaidAgent(BaseAgent):
 
 if __name__ == "__main__":
     import os
-    from evo_diagram.utils.env_loader import ensure_env_loaded
+    from evodesign.utils.env_loader import ensure_env_loaded
     from dotenv import load_dotenv
-    from evo_diagram.core.llm_factory import LLMFactory
+    from evodesign.core.llm_factory import LLMFactory
     from baselines.llm_endpoint import require_llm_endpoint
     from pathlib import Path
 

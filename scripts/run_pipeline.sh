@@ -8,7 +8,7 @@ usage() {
   echo "Usage: $0 [generate|evaluate|all]"
   echo ""
   echo "Commands:"
-  echo "  generate  Run generation phase only (EvoDiagram + baselines)"
+  echo "  generate  Run generation phase only (EvoDesign + baselines)"
   echo "  evaluate  Run evaluation phase only"
   echo "  all       Run generation then evaluation (default)"
   echo ""
@@ -53,7 +53,7 @@ case "$CMD" in
     echo "  Pipeline: Generation Only"
     echo "========================================"
     echo ""
-    MODELS="${GENERATOR_MODELS:-${MODELS:-configured-model}}" "$PROJECT_ROOT/scripts/run_evodiagram.sh"
+    MODELS="${GENERATOR_MODELS:-${MODELS:-configured-model}}" "$PROJECT_ROOT/scripts/run_evodesign.sh"
     echo ""
     MODELS="${BASELINE_MODELS:-${MODELS:-${LLM_MODEL_NAME:-}}}" "$PROJECT_ROOT/scripts/run_baselines.sh"
     ;;
@@ -72,8 +72,8 @@ case "$CMD" in
     echo "========================================"
     echo ""
 
-    echo "[PHASE 1/3] EvoDiagram Generation"
-    MODELS="${GENERATOR_MODELS:-${MODELS:-configured-model}}" "$PROJECT_ROOT/scripts/run_evodiagram.sh"
+    echo "[PHASE 1/3] EvoDesign Generation"
+    MODELS="${GENERATOR_MODELS:-${MODELS:-configured-model}}" "$PROJECT_ROOT/scripts/run_evodesign.sh"
 
     echo ""
     echo "[PHASE 2/3] Baseline Generation"

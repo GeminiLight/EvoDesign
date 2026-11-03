@@ -26,7 +26,7 @@ async def main(args):
     root = Path(args.source_root or repo).resolve()
     output = Path(args.output).resolve()
     memory_template = Path(args.memory_template).resolve() if args.memory_template else None
-    if not (root / 'evo_diagram/agentic_system/tool_services/node_modules/playwright').exists():
+    if not (root / 'evodesign/agentic_system/tool_services/node_modules/playwright').exists():
         raise RuntimeError('Install renderer dependencies (or link node_modules into the source snapshot) before real-model testing.')
     sys.path[:0] = [str(root / 'backend'), str(root)]
     os.chdir(root)
@@ -71,7 +71,7 @@ async def main(args):
                               'input_text_chars': chars, 'error_type': type(error).__name__})
             write(self.path, self.rows)
     # Avoid measuring Python's first-time module import race as a model failure.
-    from evo_diagram.agentic_system.render_engine.shared import render_audit  # noqa: F401
+    from evodesign.agentic_system.render_engine.shared import render_audit  # noqa: F401
     cases = json.loads((repo / 'scripts/research/diagram_matrix_cases.json').read_text())
     output.mkdir(parents=True, exist_ok=True)
     limit = asyncio.Semaphore(args.concurrency)
@@ -101,7 +101,7 @@ async def main(args):
                           locked_nodes=[], current_schema=None, canvas_library='excalidraw', user_tier='free',
                           request_id=f'{args.variant}_{name}', enable_refiner=True, refiner_max_iterations=2,
                           enable_design_memory=True, design_memory_path=str(memory),
-                          design_memory_seed_path=str(root / 'evo_diagram/design_memory/seeds/web_strategies.json'),
+                          design_memory_seed_path=str(root / 'evodesign/design_memory/seeds/web_strategies.json'),
                           learn_design_memory=True, retain_artifacts=True, use_icons=icons,
                           diagram_type=case['diagram_type'])
             write(out / 'request.json', kwargs)

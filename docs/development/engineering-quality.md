@@ -95,7 +95,7 @@ The real Chroma/embedding check is deliberately outside `all` and CI. It can
 download an embedding model and use substantial local compute:
 
 ```sh
-./.venv/bin/python -m pytest evo_diagram/tests/design_memory/test_real_chroma_cosine.py -q
+./.venv/bin/python -m pytest evodesign/tests/design_memory/test_real_chroma_cosine.py -q
 ```
 
 ## Before opening a pull request

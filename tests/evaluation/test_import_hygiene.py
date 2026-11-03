@@ -13,7 +13,7 @@ def test_evaluation_imports_do_not_inject_real_repo_root(tmp_path):
     package_root = tmp_path / "packages"
     package_root.mkdir()
 
-    for package_name in ("evaluation", "evo_diagram"):
+    for package_name in ("evaluation", "evodesign"):
         target = repo_root / package_name
         link = package_root / package_name
         try:

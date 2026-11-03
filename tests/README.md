@@ -1,7 +1,7 @@
 # Repository Test Suite
 
 This directory is for tests that exercise repository-level boundaries rather
-than a single `evo_diagram` package module.
+than a single `evodesign` package module.
 
 Keep tests here when they cover:
 
@@ -13,7 +13,7 @@ Keep tests here when they cover:
 - repository documentation source-of-truth checks for live entrypoints
 
 Do not add package-local generation, refinement, render engine, verification, or
-knowledge evolution unit tests here. Put those under `evo_diagram/tests` so
+knowledge evolution unit tests here. Put those under `evodesign/tests` so
 package-mode imports are exercised directly.
 
 Run this suite with:
@@ -28,5 +28,5 @@ Run only the baseline contract subset with:
 ./scripts/check_quality.sh baselines
 ```
 
-This suite complements, but does not replace, `evo_diagram/tests`; algorithm
+This suite complements, but does not replace, `evodesign/tests`; algorithm
 package changes should still run the relevant package-local tests there.

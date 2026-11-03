@@ -273,7 +273,7 @@ if __name__ == "__main__":
     print("Examples completed!")
     print("=" * 60)
     print("\nTo render these diagrams:")
-    print("  1. Start render service: cd evo_diagram/agentic_system/tool_services && npm run dev")
+    print("  1. Start render service: cd evodesign/agentic_system/tool_services && npm run dev")
     print("  2. Use render_manifest_via_cli() to convert JSON to PNG")
     print("\nGenerated files:")
     print("  - output/example_auth_flow.json")

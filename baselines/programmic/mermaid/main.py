@@ -221,7 +221,7 @@ def main():
 
     # Load environment variables
     from dotenv import load_dotenv
-    from evo_diagram.utils.env_loader import ensure_env_loaded
+    from evodesign.utils.env_loader import ensure_env_loaded
     from baselines.llm_endpoint import require_llm_endpoint
 
     ensure_env_loaded()
@@ -232,8 +232,8 @@ def main():
     model_provider = os.getenv("LLM_MODEL_PROVIDER", "openai")
     base_url = require_llm_endpoint()
     api_key = os.getenv("LLM_API_KEY")
-    # Decoding/robustness defaults mirror the EvoDiagram generator
-    # (evo_diagram/agentic_system/main.py: max_tokens=16384, max_retries=6;
+    # Decoding/robustness defaults mirror the EvoDesign generator
+    # (evodesign/agentic_system/main.py: max_tokens=16384, max_retries=6;
     # configs/models.yaml: temperature=0) so both sides face the same
     # transient-failure and truncation risk.
     temperature = float(os.getenv("TEMPERATURE", "0"))
@@ -257,7 +257,7 @@ def main():
     print(f"Streaming: False", flush=True)
     print(f"Concurrency: {args.max_concurrent}", flush=True)
 
-    from evo_diagram.core.llm_factory import LLMFactory
+    from evodesign.core.llm_factory import LLMFactory
     from baselines.programmic.mermaid.mermaid_agent import MermaidAgent
 
     model = LLMFactory.create(

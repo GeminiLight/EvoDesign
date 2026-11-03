@@ -375,7 +375,7 @@ def main():
 
     # Load environment variables
     from dotenv import load_dotenv
-    from evo_diagram.utils.env_loader import ensure_env_loaded
+    from evodesign.utils.env_loader import ensure_env_loaded
     from baselines.llm_endpoint import require_llm_endpoint
 
     ensure_env_loaded()
@@ -386,7 +386,7 @@ def main():
     model_provider = os.getenv("LLM_MODEL_PROVIDER", "openai")
     base_url = require_llm_endpoint()
     api_key = os.getenv("LLM_API_KEY")
-    # Decoding/robustness defaults mirror the EvoDiagram generator and the
+    # Decoding/robustness defaults mirror the EvoDesign generator and the
     # mermaid baseline (max_tokens=16384, max_retries=6, timeout=300) so both
     # sides face the same transient-failure and truncation risk.
     temperature = float(os.getenv("TEMPERATURE", "0"))
@@ -410,7 +410,7 @@ def main():
     print(f"Streaming: False", flush=True)
     print(f"Concurrency: {args.max_concurrent}", flush=True)
 
-    from evo_diagram.core.llm_factory import LLMFactory
+    from evodesign.core.llm_factory import LLMFactory
     from baselines.programmic.tlkz.prompts import FIX_SYSTEM_PROMPT, FIX_TASK_PROMPT
     from baselines.programmic.tlkz.tlkz_agent import TlkzAgent
 

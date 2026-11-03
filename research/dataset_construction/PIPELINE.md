@@ -1,6 +1,6 @@
 # 数据集图片重建管线设计
 
-基于论文三阶段管线（`research/evo_diagram/sections/appendix/canvas-benchmark.tex`），
+基于论文三阶段管线（`research/evodesign/sections/appendix/canvas-benchmark.tex`），
 但按仓库数据的真实结构调整：检索单位为数据集中实际出现的
 `(diagram_type, vertical_domain)` 组合，而不是论文的 21×30 固定矩阵。
 

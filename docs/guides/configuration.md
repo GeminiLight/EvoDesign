@@ -1,5 +1,26 @@
 # Configuration
 
+## Package name migration
+
+The Python engine now lives in `evodesign/` and imports use `evodesign.*`.
+Update imports from `evo_diagram.*`, use `python -m evodesign.agentic_system.main`,
+and replace `scripts/run_evodiagram.sh` with `scripts/run_evodesign.sh`.
+After updating a checkout, reinstall it with `python -m pip install -e ".[backend,test]"`
+and restart running services. The standalone `evodesign` command remains owned by
+the lightweight `evodesign-cli` package; it does not require the engine.
+
+New research outputs and method labels use `evodesign`. Historical `evodiagram`
+method IDs and experiment/results paths remain readable, including score reports
+and `--skip-existing`, so upgrading does not require regenerating past runs.
+
+Compatibility identifiers are intentionally stable: browser `evodiagram_*`
+project/DNA/draft keys, `smartdiagram_*` language/theme keys, the OAuth state cookie,
+and the default SQLite filename/PostgreSQL database name. Existing `.env` files and user data are
+not rewritten; new installations can set `DB_NAME=evodesign` explicitly. Old
+public icon URLs remain aliases for the current artwork. Archived records and
+third-party notices retain their original names. There is no second legacy Python
+package or implicit `sys.modules` alias; external Python callers must update imports.
+
 Run `python scripts/setup_local.py` once. It creates root `.env` and `frontend/.env` with unique secrets and matching local guest tokens, without overwriting an existing configuration. Fill `LLM_MODEL_NAME`, `LLM_ENDPOINT_URL` and `LLM_API_KEY` in the root `.env` with your provider's values. Use a vision-capable model and an OpenAI-compatible chat-completions base URL, normally ending in `/v1`.
 
 The root `.env` is shared by the CLI and backend. Model roles for the research CLI are in `configs/settings.yaml`; providers and model aliases are in `configs/models.yaml`. `configured-model` resolves the three `LLM_*` values. No developer proxy or working API key is shipped. The backend also supports separate `REFINER_LLM_*` overrides; otherwise it reuses the generation configuration.
@@ -9,7 +30,7 @@ The default temperature is 1 in both `.env.example` (web) and `configs/models.ya
 ## Runtime features
 
 - Excalidraw is the default canvas. The optional TLDraw adapter is an advanced setting and carries its own upstream license; see [third-party notices](../../licenses/README.md).
-- New Excalidraw diagrams in the web workspace default to icons enabled. A manual toggle is remembered for future creations; saved scenes and recovered drafts preserve their own choices. The research CLI retains its explicit `--use-icons` / `--no-icons` flags and experiment presets. The curated Excalidraw catalog (74 filled Material icons plus 59 `outline_*` Lucide icons) is bundled and needs no remote icon service. For the broader legacy TLDraw icon assets, run `python evo_diagram/scripts/setup_icons.py --version 0.14.15`.
+- New Excalidraw diagrams in the web workspace default to icons enabled. A manual toggle is remembered for future creations; saved scenes and recovered drafts preserve their own choices. The research CLI retains its explicit `--use-icons` / `--no-icons` flags and experiment presets. The curated Excalidraw catalog (74 filled Material icons plus 59 `outline_*` Lucide icons) is bundled and needs no remote icon service. For the broader legacy TLDraw icon assets, run `python evodesign/scripts/setup_icons.py --version 0.14.15`.
 - Small Excalidraw architecture diagrams without named groups, labeled relations or self-loops can use uniform title/sublabel cards and shared-trunk routing. The tool executes the layout agent's `tier_plan`, preserves supplied palette colors and intentional partial icon coverage, and keeps native text/connector bindings for editing. The icon toggle remains available. Unsupported graphs and junctions that would imply extra dependencies retain their complete free-form layout. Explicit DNA and locked elements bypass automatic visual treatments. `EVODESIGN_ARCH_DESIGN_SYSTEM=0` disables architecture cards. TLDraw scenes are not affected. These Python render treatments do not run in the static browser edition.
 - Web refinement and design memory are enabled by default. Their settings are documented in `.env.example` and `backend/.env.example`.
 - The initial embedding download is separate from steady-state generation time.

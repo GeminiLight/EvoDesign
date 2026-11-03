@@ -37,7 +37,7 @@ def _load_openapi_schema() -> dict[str, Any]:
     from app.application import create_app
 
     settings = SimpleNamespace(
-        app_name="EvoDiagram API Contract",
+        app_name="EvoDesign API Contract",
         app_version="contract",
         debug=False,
         cors_origins_list=["http://localhost:5175"],

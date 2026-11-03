@@ -10,7 +10,7 @@ from typing import Optional
 from dotenv import load_dotenv
 from openai import OpenAI
 
-# Parity with the EvoDiagram generator (evo_diagram/agentic_system/main.py uses
+# Parity with the EvoDesign generator (evodesign/agentic_system/main.py uses
 # max_tokens=16384 / max_retries=6; configs/models.yaml pins temperature 0).
 LLM_MAX_RETRIES = 6
 LLM_MAX_TOKENS = 16384

@@ -24,7 +24,7 @@ def _registered_paths(app) -> set[str]:
 
 def _settings():
     return SimpleNamespace(
-        app_name="Test EvoDiagram API",
+        app_name="Test EvoDesign API",
         app_version="test",
         debug=False,
         cors_origins_list=["http://localhost:5175"],
@@ -91,7 +91,7 @@ def test_create_app_registers_core_routes_without_runtime_setup():
     )
     routes = _registered_paths(app)
 
-    assert app.title == "Test EvoDiagram API"
+    assert app.title == "Test EvoDesign API"
     assert "/health" in routes
     assert "/api/v1/auth/login" in routes
     assert "/api/v1/diagram/generate" in routes

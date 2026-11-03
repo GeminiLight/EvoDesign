@@ -71,10 +71,10 @@ def _execute(directory: Path, *, model: Any = None, retriever: Any = None,
         _write(directory / "status.json", {**status, "status": "running"})
         try:
             if learner is None:
-                from evo_diagram.design_memory.web_memory import learn_verified_refinement
+                from evodesign.design_memory.web_memory import learn_verified_refinement
                 learner = learn_verified_refinement
             if retriever is None:
-                from evo_diagram.agentic_system.workflow import _load_design_memory_retriever
+                from evodesign.agentic_system.workflow import _load_design_memory_retriever
                 retriever, error = _load_design_memory_retriever(job["memory_path"], job["embedding_model"])
                 if retriever is None:
                     raise RuntimeError(error or "Design memory unavailable")
@@ -116,7 +116,7 @@ async def enqueue_learning(*, memory_path: str, embedding_model: str, report_pat
                            request_id: str, diagram_type: str, before: dict, after: dict,
                            model: Any, retriever: Any, learner: Any) -> dict[str, Any]:
     """Durably queue post-delivery learning; the fsync'd writes run off the event loop."""
-    from evo_diagram.agentic_system.quality_policy import verified_learning_gain
+    from evodesign.agentic_system.quality_policy import verified_learning_gain
     if not verified_learning_gain(before, after):
         return {"status": "skipped", "saved_count": 0, "reason": "no_verified_gain"}
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", request_id):

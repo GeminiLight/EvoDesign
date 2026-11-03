@@ -60,7 +60,7 @@ def main():
         notices = checkout / 'static/licenses'
         shutil.copytree(ROOT / 'licenses', notices, dirs_exist_ok=True)
         for name in ['MATERIAL_ICONS_LICENSE.txt', 'LUCIDE_ICONS_LICENSE.txt']:
-            shutil.copyfile(ROOT / 'evo_diagram/agentic_system/common/assets' / name, notices / name)
+            shutil.copyfile(ROOT / 'evodesign/agentic_system/common/assets' / name, notices / name)
         for package in ['@dagrejs/dagre', 'lucide-react', '@tldraw/tldraw']:
             source = ROOT / 'frontend/node_modules' / package
             for name in ['LICENSE', 'LICENSE.md']:

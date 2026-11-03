@@ -18,7 +18,7 @@ _PROJECT_ROOT = os.path.abspath(os.path.join(_BASE_DIR, "..", "..", ".."))
 
 logger = logging.getLogger(__name__)
 
-from evo_diagram.core.experiment import get_experiment_id, get_baseline_output_dir
+from evodesign.core.experiment import get_experiment_id, get_baseline_output_dir
 
 from .utils import concatenate_paper_text, encode_image, get_image_dimensions
 from .file_util import write_object_to_file, write_string_to_file

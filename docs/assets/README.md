@@ -23,7 +23,7 @@ The earlier `../screenshots/studio-home.png` and dark `workspace-preview.png` re
 
 `method-overview.png` is a 2448 × 1192 PNG rendered directly from the authors' current one-page vector figure on 2026-10-29. No labels or diagram content were changed.
 
-- Author source in the local manuscript: `evo-diagram-paper/Eval Diagram Paper/evo_diagram/resources/evo-diagram.pdf` (not part of the public code release).
+- Author source in the local manuscript: `evodesign-paper/Eval Diagram Paper/evodesign/resources/evodesign.pdf` (not part of the public code release).
 - Caption and placement: Figure 2 of the maintained manuscript; four panels cover agentic canvas generation, verification and refinement, experience exploration, and design knowledge promotion.
 - Source render: PyMuPDF, scale 4, opaque RGB output.
 - The current arXiv v2 HTML has an earlier three-panel figure. The README therefore labels this image as coming from the maintained manuscript source, rather than claiming it is an exact reproduction of the arXiv v2 figure.
@@ -34,7 +34,7 @@ When the interface or paper figure changes, update the README image and this sou
 
 ## CanvasBench overview
 
-`canvasbench-overview.png` is a 2448 × 608 opaque PNG rendered directly at scale 4 from `evo-diagram-paper/Eval Diagram Paper/evo_diagram/resources/diagram-benchmark.pdf` on 2026-10-29. The current NeurIPS-template manuscript includes this exact file in `sections/benchmark.tex`; `sections/formulation.tex` includes the `evo-diagram.pdf` framework source used for `method-overview.png`. The website uses these maintained manuscript sources, rather than the older public arXiv v2 artwork. No figure content, labels or numerical values were changed. The source manuscript is not added to the public repository.
+`canvasbench-overview.png` is a 2448 × 608 opaque PNG rendered directly at scale 4 from `evodesign-paper/Eval Diagram Paper/evodesign/resources/diagram-benchmark.pdf` on 2026-10-29. The current NeurIPS-template manuscript includes this exact file in `sections/benchmark.tex`; `sections/formulation.tex` includes the `evodesign.pdf` framework source used for `method-overview.png`. The website uses these maintained manuscript sources, rather than the older public arXiv v2 artwork. No figure content, labels or numerical values were changed. The source manuscript is not added to the public repository.
 
 The same research-material licensing note as the method overview applies to this figure.
 

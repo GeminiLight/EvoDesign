@@ -111,13 +111,13 @@ def main():
         print(f"\n✓ You can evaluate {len(available)} data items:")
         print(f"\npython3 -m evaluation.run_evaluation \\")
         print(f"    --input-json {args.input_json} \\")
-        print(f"    --method evodiagram \\")
+        print(f"    --method evodesign \\")
         print(f"    --exp-id <experiment_id>")
 
         if len(available) <= 10:
             print(f"\nOr evaluate specific IDs:")
             for item in available[:3]:
-                print(f"python3 -m evaluation.run_evaluation --input-json {args.input_json} --method evodiagram --exp-id <experiment_id> --data-id {item['id']}")
+                print(f"python3 -m evaluation.run_evaluation --input-json {args.input_json} --method evodesign --exp-id <experiment_id> --data-id {item['id']}")
 
     if len(missing) > 0:
         print(f"\n✗ {len(missing)} data items need images generated first.")

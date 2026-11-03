@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from app.config import Settings, get_settings
-from app.core.evo_imports import ensure_evo_diagram_importable
+from app.core.evo_imports import ensure_evodesign_importable
 
 
 _DEFAULT_EXPLICIT_MODEL = "gpt-4.1-mini"
@@ -110,7 +110,7 @@ def create_backend_llm(
         max_tokens=max_tokens,
     )
 
-    ensure_evo_diagram_importable()
-    from evo_diagram.core.llm_factory import LLMFactory
+    ensure_evodesign_importable()
+    from evodesign.core.llm_factory import LLMFactory
 
     return LLMFactory.create(**config.as_factory_kwargs())

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Browser regression for the EvoDiagram frontend (playwright + chromium headless shell).
+ * Browser regression for the EvoDesign frontend (playwright + chromium headless shell).
  *
  * (a) storage disabled: `/` and `/workspace` must render their main structure
  *     with zero uncaught pageerrors when localStorage/sessionStorage methods

@@ -59,7 +59,7 @@ stability validation](layout-stability-20261024.md) for a real failure/recovery.
 Regression coverage:
 
 ```sh
-python -m pytest evo_diagram/tests/render_engine/test_node_icons.py
+python -m pytest evodesign/tests/render_engine/test_node_icons.py
 npm run test:icons --prefix frontend
 ```
 

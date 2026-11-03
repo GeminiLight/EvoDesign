@@ -15,10 +15,10 @@ from typing import Any
 
 from PIL import Image
 
-from evo_diagram.agentic_system.common.spec_utils import unwrap_structure_instantiation
-from evo_diagram.agentic_system.render_engine.shared.edge_crossing_detector import detect_crossings
-from evo_diagram.agentic_system.verification_stage.checks.aggregator import run_all_checks
-from evo_diagram.agentic_system.verification_stage.checks.finding import summarize_findings
+from evodesign.agentic_system.common.spec_utils import unwrap_structure_instantiation
+from evodesign.agentic_system.render_engine.shared.edge_crossing_detector import detect_crossings
+from evodesign.agentic_system.verification_stage.checks.aggregator import run_all_checks
+from evodesign.agentic_system.verification_stage.checks.finding import summarize_findings
 
 
 def inspect_run(run_dir: Path) -> dict[str, Any]:

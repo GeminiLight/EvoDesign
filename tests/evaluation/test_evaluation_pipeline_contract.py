@@ -72,8 +72,8 @@ def test_failed_sample_is_visible_in_the_aggregate(monkeypatch, tmp_path):
         / "experiments"
         / "exp1"
         / "outputs"
-        / "evodiagram"
-        / "evodiagram"
+        / "evodesign"
+        / "evodesign"
         / "model-a"
         / "s1"
         / "rendered_diagram.png"
@@ -87,7 +87,7 @@ def test_failed_sample_is_visible_in_the_aggregate(monkeypatch, tmp_path):
         data_item={"id": "s1", "content": "text"},
         evaluator=evaluator,
         metrics=["content_dimension"],
-        method="evodiagram/model-a",
+        method="evodesign/model-a",
         exp_id="exp1",
         run_signature=SIGNATURE,
     ) is True
@@ -97,7 +97,7 @@ def test_failed_sample_is_visible_in_the_aggregate(monkeypatch, tmp_path):
         data_item={"id": "s2", "content": "text"},
         evaluator=evaluator,
         metrics=["content_dimension"],
-        method="evodiagram/model-a",
+        method="evodesign/model-a",
         exp_id="exp1",
         run_signature=SIGNATURE,
     ) is False
@@ -131,8 +131,8 @@ def test_second_run_reuses_only_a_signature_matching_result(monkeypatch, tmp_pat
         / "experiments"
         / "exp1"
         / "outputs"
-        / "evodiagram"
-        / "evodiagram"
+        / "evodesign"
+        / "evodesign"
         / "model-a"
         / "s1"
         / "rendered_diagram.png"
@@ -145,7 +145,7 @@ def test_second_run_reuses_only_a_signature_matching_result(monkeypatch, tmp_pat
             data_item={"id": "s1", "content": "text"},
             evaluator=FakeEvaluator(score=score),
             metrics=["content_dimension"],
-            method="evodiagram/model-a",
+            method="evodesign/model-a",
             exp_id="exp1",
             run_signature=signature,
         )
@@ -155,8 +155,8 @@ def test_second_run_reuses_only_a_signature_matching_result(monkeypatch, tmp_pat
         / "experiments"
         / "exp1"
         / "scores"
-        / "evodiagram"
-        / "evodiagram"
+        / "evodesign"
+        / "evodesign"
         / "model-a"
         / "s1"
         / "s1.json"

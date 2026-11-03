@@ -10,7 +10,7 @@ from typing import Dict, Any, Optional
 
 from langchain_core.language_models import BaseChatModel
 
-from evo_diagram.core.base_agent import BaseAgent
+from evodesign.core.base_agent import BaseAgent
 from baselines.direct_llm.prompts import SYSTEM_PROMPT, TASK_PROMPT
 from baselines.direct_llm.excalidraw_prompts import EXCALIDRAW_SYSTEM_PROMPT, EXCALIDRAW_TASK_PROMPT
 from baselines.direct_llm.state import WorkflowState

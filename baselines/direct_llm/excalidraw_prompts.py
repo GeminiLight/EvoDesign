@@ -1,7 +1,7 @@
 """
 Excalidraw Prompts for Direct LLM Baseline
 
-Reference design principles from evo_diagram/agentic_system/common/task_prompts.py.
+Reference design principles from evodesign/agentic_system/common/task_prompts.py.
 The LLM outputs a SIMPLIFIED Excalidraw element list; the converter fills boilerplate.
 """
 

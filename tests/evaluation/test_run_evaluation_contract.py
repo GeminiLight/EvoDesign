@@ -212,7 +212,7 @@ def test_missing_generated_image_writes_missing_output_record(monkeypatch, tmp_p
         data_item={"id": "sample_1", "content": "some text", "diagram_type": "flow"},
         evaluator=None,
         metrics=["visual_dimension"],
-        method="evodiagram",
+        method="evodesign",
         exp_id="exp1",
         run_signature=SIGNATURE,
     )
@@ -220,7 +220,7 @@ def test_missing_generated_image_writes_missing_output_record(monkeypatch, tmp_p
     assert success is False
 
     output_dir = (
-        tmp_path / "experiments" / "exp1" / "scores" / "evodiagram" / "evodiagram" / "sample_1"
+        tmp_path / "experiments" / "exp1" / "scores" / "evodesign" / "evodesign" / "sample_1"
     )
     result_path = output_dir / "sample_1.json"
     assert result_path.exists(), "a missing generated image must still be recorded"
@@ -247,8 +247,8 @@ def test_ambiguous_submodel_aborts_the_item_without_writing(monkeypatch, tmp_pat
         / "experiments"
         / "exp1"
         / "outputs"
-        / "evodiagram"
-        / "evodiagram"
+        / "evodesign"
+        / "evodesign"
         / "model-a"
         / "sample_1"
         / "rendered_diagram.png"
@@ -260,7 +260,7 @@ def test_ambiguous_submodel_aborts_the_item_without_writing(monkeypatch, tmp_pat
         data_item={"id": "sample_1", "content": "text"},
         evaluator=None,
         metrics=["visual_dimension"],
-        method="evodiagram",
+        method="evodesign",
         exp_id="exp1",
         run_signature=SIGNATURE,
     )
@@ -326,7 +326,7 @@ def test_empty_settings_metric_list_falls_back_instead_of_producing_nothing():
 def test_select_items_needing_evaluation(monkeypatch, tmp_path):
     monkeypatch.setattr(path_resolver, "PROJECT_ROOT", tmp_path)
 
-    scores_root = tmp_path / "experiments" / "exp1" / "scores" / "evodiagram" / "evodiagram"
+    scores_root = tmp_path / "experiments" / "exp1" / "scores" / "evodesign" / "evodesign"
 
     good = scores_root / "sample_ok"
     good.mkdir(parents=True)
@@ -348,7 +348,7 @@ def test_select_items_needing_evaluation(monkeypatch, tmp_path):
     ]
 
     selected = run_evaluation.select_items_needing_evaluation(
-        items, "evodiagram", ["visual_dimension"], SIGNATURE, "exp1"
+        items, "evodesign", ["visual_dimension"], SIGNATURE, "exp1"
     )
 
     assert [item["id"] for item in selected] == [
@@ -362,17 +362,17 @@ def test_select_items_needing_evaluation(monkeypatch, tmp_path):
 
 
 def _patch_main_dependencies(monkeypatch, tmp_path, captured, judge_runs=1):
-    from evo_diagram.config.model_loader import ModelConfig
-    from evo_diagram.config.settings import AppSettings
-    from evo_diagram.core.llm_factory import LLMFactory
+    from evodesign.config.model_loader import ModelConfig
+    from evodesign.config.settings import AppSettings
+    from evodesign.core.llm_factory import LLMFactory
 
     monkeypatch.setattr(
         run_evaluation,
         "parse_args",
         lambda: SimpleNamespace(
             verbose=False,
-            method="evodiagram",
-            evodiagram_wo_refiner=False,
+            method="evodesign",
+            evodesign_wo_refiner=False,
             input_json=str(tmp_path / "data.json"),
             data_id=None,
             start=None,
@@ -400,7 +400,7 @@ def _patch_main_dependencies(monkeypatch, tmp_path, captured, judge_runs=1):
 
     monkeypatch.setattr(run_evaluation, "evaluate_single_data_item", _record_item)
     monkeypatch.setattr("dotenv.load_dotenv", lambda *args, **kwargs: None)
-    monkeypatch.setattr("evo_diagram.utils.env_loader.ensure_env_loaded", lambda: None)
+    monkeypatch.setattr("evodesign.utils.env_loader.ensure_env_loaded", lambda: None)
     monkeypatch.setattr(
         AppSettings,
         "get_default",

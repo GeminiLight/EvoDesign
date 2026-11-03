@@ -53,7 +53,7 @@ EvoDesign 是一个和你的 Agent 共用的开源图表工作台。生成架构
 | **设计经验库** | 检索 129 条内置种子经验，并通过反馈积累和演化知识 |
 | **研究工具** | 使用自己的数据运行基线方法、消融实验和评估 |
 
-默认画布为 Excalidraw，TLDraw 保留为可选适配器。图标可选，默认精选图标目录已随代码提供。项目和算法统一命名为 **EvoDesign**；Python 包名保留为 `evo_diagram`，以兼容已有调用。
+默认画布为 Excalidraw，TLDraw 保留为可选适配器。图标可选，默认精选图标目录已随代码提供。项目名称、Python 包（`evodesign`）和 CLI 命令统一使用 **EvoDesign** 命名。升级旧代码时请参阅[包名迁移说明](docs/guides/configuration.md#package-name-migration)。
 
 ## 在线体验
 
@@ -97,7 +97,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e ".[backend,test]"
 npm ci --prefix frontend
-npm ci --prefix evo_diagram/agentic_system/tool_services
+npm ci --prefix evodesign/agentic_system/tool_services
 python scripts/setup_local.py
 ```
 
@@ -109,7 +109,7 @@ python scripts/setup_local.py
 
 打开 **http://localhost:5175**。API 服务运行在 3010 端口，渲染服务运行在 3000 端口。使用 `./scripts/stop_service.sh` 停止服务。本地初始化会创建独立的密钥及匹配的访客配置，不会覆盖已有 `.env` 文件。服务商选择、可选功能和自行部署的边界见[配置说明（英文）](docs/guides/configuration.md)。
 
-渲染器导出图片需要 Playwright Chromium。若尚未安装，执行 `cd evo_diagram/agentic_system/tool_services && npx playwright install chromium`。Linux 可能还需要 `npx playwright install --with-deps chromium` 和 Canvas 原生依赖（`libcairo2-dev`、`libpango1.0-dev`、`libjpeg-dev`、`libgif-dev`、`librsvg2-dev`、`pkg-config`）。首次使用设计记忆时，可能会下载嵌入模型。
+渲染器导出图片需要 Playwright Chromium。若尚未安装，执行 `cd evodesign/agentic_system/tool_services && npx playwright install chromium`。Linux 可能还需要 `npx playwright install --with-deps chromium` 和 Canvas 原生依赖（`libcairo2-dev`、`libpango1.0-dev`、`libjpeg-dev`、`libgif-dev`、`librsvg2-dev`、`pkg-config`）。首次使用设计记忆时，可能会下载嵌入模型。
 
 ### 与你已有的 Agent 协作
 
@@ -130,9 +130,9 @@ evodesign document get --profile paper --json
 准备好 Python 环境、模型配置，并启动渲染服务后，运行：
 
 ```sh
-python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json
+python -m evodesign.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json
 # 研究 CLI 按需启用图标（网页新建图表默认开启）：
-python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json --use-icons
+python -m evodesign.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json --use-icons
 ```
 
 使用 `--help` 查看自定义输入、修复、消融实验和个人编辑学习等选项。[复现说明（英文）](research/reproducibility.md) 介绍模型与评审模型的配置、实验记录，以及当前维护版本与论文报告结果之间的区别。
@@ -162,7 +162,7 @@ python scripts/design_memory.py validate examples/design-memory/blue-violet.json
 ## 目录结构
 
 ```text
-evo_diagram/          核心智能体、修复、记忆与渲染服务
+evodesign/          核心智能体、修复、记忆与渲染服务
 backend/              FastAPI、项目、认证与个人 DNA
 frontend/             React 工作台与可编辑画布适配器
 cli/                  独立 Agent CLI，无需安装图表引擎

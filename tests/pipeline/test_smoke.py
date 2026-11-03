@@ -68,9 +68,9 @@ def _gen_mocks(canvas_library: str = "excalidraw"):
 
 
 def _render_result():
-    from evo_diagram.canvas_environment import RenderResult
-    png_path = Path("/tmp/evodiagram-test-render.png")
-    manifest_path = Path("/tmp/evodiagram-test-render.json")
+    from evodesign.canvas_environment import RenderResult
+    png_path = Path("/tmp/evodesign-test-render.png")
+    manifest_path = Path("/tmp/evodesign-test-render.json")
     png_path.write_bytes(b"png")
     manifest_path.write_text("{}", encoding="utf-8")
     return RenderResult(
@@ -89,8 +89,8 @@ def _verifier_state():
 class TestPipelineSmoke:
 
     def test_full_pipeline_runs(self):
-        from evo_diagram.agentic_system.workflow import Text2DiagramWorkflow
-        import evo_diagram.agentic_system.workflow as m
+        from evodesign.agentic_system.workflow import Text2DiagramWorkflow
+        import evodesign.agentic_system.workflow as m
 
         gen = _gen_mocks()
         vf = MagicMock(); vf.run.return_value = _verifier_state()
@@ -114,8 +114,8 @@ class TestPipelineSmoke:
         assert state.diagram_manifest == MOCK_MANIFEST
 
     def test_unconverged_refiner_artifacts_are_not_promoted(self, tmp_path):
-        from evo_diagram.agentic_system.workflow import Text2DiagramWorkflow
-        import evo_diagram.agentic_system.workflow as m
+        from evodesign.agentic_system.workflow import Text2DiagramWorkflow
+        import evodesign.agentic_system.workflow as m
 
         gen = _gen_mocks()
         vf = MagicMock(); vf.run.return_value = _verifier_state()
@@ -157,8 +157,8 @@ class TestPipelineSmoke:
         assert state.final_diagram_manifest == MOCK_MANIFEST
 
     def test_verification_only_mode(self):
-        from evo_diagram.agentic_system.workflow import Text2DiagramWorkflow
-        import evo_diagram.agentic_system.workflow as m
+        from evodesign.agentic_system.workflow import Text2DiagramWorkflow
+        import evodesign.agentic_system.workflow as m
 
         gen = _gen_mocks()
         vf = MagicMock(); vf.run.return_value = _verifier_state()
@@ -174,8 +174,8 @@ class TestPipelineSmoke:
         assert state.refined_diagram_manifest is None
 
     def test_oneshot_pipeline_uses_render_result_contract(self, tmp_path):
-        from evo_diagram.agentic_system.workflow import Text2DiagramWorkflow
-        import evo_diagram.agentic_system.workflow as m
+        from evodesign.agentic_system.workflow import Text2DiagramWorkflow
+        import evodesign.agentic_system.workflow as m
 
         gen = MagicMock()
         gen.run.return_value = {
@@ -218,8 +218,8 @@ class TestPipelineSmoke:
         assert Path(state.final_png_path).exists()
 
     def test_oneshot_render_failure_preserves_renderer_detail(self, tmp_path):
-        from evo_diagram.agentic_system.workflow import Text2DiagramWorkflow
-        import evo_diagram.agentic_system.workflow as m
+        from evodesign.agentic_system.workflow import Text2DiagramWorkflow
+        import evodesign.agentic_system.workflow as m
 
         gen = MagicMock()
         gen.run.return_value = {
@@ -251,7 +251,7 @@ class TestPipelineSmoke:
                 )
 
     def test_workflow_state_fields(self):
-        from evo_diagram.agentic_system.workflow import WorkflowState
+        from evodesign.agentic_system.workflow import WorkflowState
         s = WorkflowState(text_content="t", user_query="q")
         for f in [
             "structure_instantiation", "styling_instantiation", "layout_instantiation",
@@ -260,8 +260,8 @@ class TestPipelineSmoke:
             assert hasattr(s, f)
 
     def test_legacy_pipeline_mode_is_rejected(self):
-        from evo_diagram.agentic_system.workflow import Text2DiagramWorkflow
-        import evo_diagram.agentic_system.workflow as m
+        from evodesign.agentic_system.workflow import Text2DiagramWorkflow
+        import evodesign.agentic_system.workflow as m
 
         with patch.object(m, "create_generator", return_value=MagicMock()):
             with pytest.raises(ValueError, match="Unknown generation mode"):
@@ -272,7 +272,7 @@ class TestPipelineSmoke:
                 )
 
     def test_oneshot_rejects_non_excalidraw_canvas(self):
-        from evo_diagram.agentic_system.workflow import Text2DiagramWorkflow
+        from evodesign.agentic_system.workflow import Text2DiagramWorkflow
 
         with pytest.raises(ValueError, match="oneshot.*Excalidraw"):
             Text2DiagramWorkflow(
@@ -282,8 +282,8 @@ class TestPipelineSmoke:
             )
 
     def test_explicit_none_save_dir_uses_temp_work_dir(self):
-        from evo_diagram.agentic_system.workflow import Text2DiagramWorkflow
-        import evo_diagram.agentic_system.workflow as m
+        from evodesign.agentic_system.workflow import Text2DiagramWorkflow
+        import evodesign.agentic_system.workflow as m
 
         gen = _gen_mocks()
         vf = MagicMock(); vf.run.return_value = _verifier_state()
@@ -291,7 +291,7 @@ class TestPipelineSmoke:
 
         def fake_render_manifest(*, output_dir, **kwargs):
             seen["output_dir"] = output_dir
-            from evo_diagram.canvas_environment import RenderResult
+            from evodesign.canvas_environment import RenderResult
 
             out = Path(output_dir)
             out.mkdir(parents=True, exist_ok=True)
@@ -323,9 +323,9 @@ class TestPipelineSmoke:
         assert state.png_path is None
 
     def test_config_canvas_library_flows_to_generator_render_without_refiner(self):
-        from evo_diagram.agentic_system.config import AgenticSystemConfig
-        from evo_diagram.agentic_system.workflow import Text2DiagramWorkflow
-        import evo_diagram.agentic_system.workflow as m
+        from evodesign.agentic_system.config import AgenticSystemConfig
+        from evodesign.agentic_system.workflow import Text2DiagramWorkflow
+        import evodesign.agentic_system.workflow as m
 
         gen = _gen_mocks()
         vf = MagicMock(); vf.run.return_value = _verifier_state()
@@ -366,8 +366,8 @@ class TestPipelineSmoke:
         rf.run.assert_not_called()
 
     def test_direct_tldraw_refiner_request_is_rejected_at_initialization(self):
-        from evo_diagram.agentic_system.workflow import Text2DiagramWorkflow
-        import evo_diagram.agentic_system.workflow as m
+        from evodesign.agentic_system.workflow import Text2DiagramWorkflow
+        import evodesign.agentic_system.workflow as m
 
         gen = _gen_mocks()
 

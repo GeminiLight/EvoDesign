@@ -16,7 +16,7 @@ from app.services.workflow_engine_adapter import WorkflowEngineAdapter, Workflow
 
 
 class WorkflowGenerateService:
-    """Coordinate backend settings, LLM construction, and EvoDiagram engine calls."""
+    """Coordinate backend settings, LLM construction, and EvoDesign engine calls."""
 
     def __init__(
         self,

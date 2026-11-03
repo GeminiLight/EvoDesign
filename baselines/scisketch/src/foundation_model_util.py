@@ -55,8 +55,8 @@ def _pick_provider_config() -> tuple[str, str, str]:
 
 _API_KEY, _BASE_URL, _DEFAULT_MODEL = _pick_provider_config()
 
-# Parity with the EvoDiagram generator (max_tokens=16384, max_retries=6,
-# temperature=0); see evo_diagram/agentic_system/main.py.
+# Parity with the EvoDesign generator (max_tokens=16384, max_retries=6,
+# temperature=0); see evodesign/agentic_system/main.py.
 _MAX_RETRIES = int(_clean(os.getenv("LLM_MAX_RETRIES") or "") or 6)
 _MAX_TOKENS = int(_clean(os.getenv("LLM_MAX_TOKENS") or "") or 16384)
 

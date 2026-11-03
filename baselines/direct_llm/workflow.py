@@ -10,7 +10,7 @@ from typing import Dict, Any, Optional
 
 from langchain_core.language_models import BaseChatModel
 
-from evo_diagram.core.llm_factory import LLMFactory
+from evodesign.core.llm_factory import LLMFactory
 from baselines.direct_llm.diagram_generator import DiagramGenerator
 from baselines.direct_llm.prompts import SYSTEM_PROMPT, TASK_PROMPT
 from baselines.direct_llm.state import WorkflowState as WorkflowStateClass

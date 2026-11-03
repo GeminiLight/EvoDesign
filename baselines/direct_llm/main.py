@@ -54,7 +54,7 @@ def _create_baseline_workflow(config: Dict[str, Any]):
 
 def _get_render_funcs(canvas_library):
     """Lazy import render functions to avoid loading the full agentic_system chain."""
-    from evo_diagram.canvas_environment import render_canvas_file
+    from evodesign.canvas_environment import render_canvas_file
 
     def _render_file(input_path: str, output_path: str):
         return render_canvas_file(
@@ -72,7 +72,7 @@ def _resolve_named_model_config(model_name: Optional[str]) -> Dict[str, Any]:
         return {}
 
     try:
-        from evo_diagram.config.model_loader import ModelConfig
+        from evodesign.config.model_loader import ModelConfig
 
         cfg = ModelConfig.get_default()
         if model_name not in cfg.list_models():
@@ -424,7 +424,7 @@ def main():
 
     # Load environment variables
     from dotenv import load_dotenv
-    from evo_diagram.utils.env_loader import ensure_env_loaded
+    from evodesign.utils.env_loader import ensure_env_loaded
     from baselines.llm_endpoint import require_llm_endpoint
 
     ensure_env_loaded()
@@ -464,8 +464,8 @@ def main():
             or os.getenv("OPENAI_API_KEY")
             or os.getenv("ANTHROPIC_API_KEY")
         ),
-        # Parity with the EvoDiagram generator (max_tokens=16384, max_retries=6,
-        # temperature=0); see evo_diagram/agentic_system/main.py.
+        # Parity with the EvoDesign generator (max_tokens=16384, max_retries=6,
+        # temperature=0); see evodesign/agentic_system/main.py.
         "temperature": args.temperature if args.temperature is not None else float(os.getenv("LLM_TEMPERATURE", str(named_model_config.get("temperature", 0)))),
         "max_tokens": int(os.getenv("LLM_MAX_TOKENS", str(named_model_config.get("max_tokens", 16384)))),
         "max_retries": int(os.getenv("LLM_MAX_RETRIES", "6")),

@@ -13,17 +13,17 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
-from evo_diagram.agentic_system.render_engine.excalidraw.arrow_adder import (
+from evodesign.agentic_system.render_engine.excalidraw.arrow_adder import (
     add_excalidraw_arrows_to_manifest,
 )
-from evo_diagram.agentic_system.render_engine.excalidraw.converter import (
+from evodesign.agentic_system.render_engine.excalidraw.converter import (
     InstantiationToExcalidrawConverter,
 )
-from evo_diagram.agentic_system.render_engine.excalidraw.zorder_repair import repair_zorder
-from evo_diagram.agentic_system.render_engine.shared.edge_crossing_detector import (
+from evodesign.agentic_system.render_engine.excalidraw.zorder_repair import repair_zorder
+from evodesign.agentic_system.render_engine.shared.edge_crossing_detector import (
     detect_crossings,
 )
-from evo_diagram.canvas_environment import normalize_manifest, render_png_result
+from evodesign.canvas_environment import normalize_manifest, render_png_result
 
 
 def _crossing_flowchart() -> tuple[Dict[str, Any], Dict[str, Any]]:

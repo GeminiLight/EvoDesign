@@ -25,7 +25,7 @@ Usage:
     python run_evaluation.py --data-id example_001
 
     # Specify custom input JSON and method path
-    python -m evaluation.run_evaluation --input-json dataset/train/my_example.json --method evodiagram/gpt-5.2 --exp-id 2026-05-06
+    python -m evaluation.run_evaluation --input-json dataset/train/my_example.json --method evodesign/gpt-5.2 --exp-id 2026-05-06
 
     # Evaluate only specific metrics (dimension-level)
     python run_evaluation.py --metrics content_dimension visual_dimension
@@ -35,7 +35,7 @@ Usage:
 
     # Judge resampling: evaluate each (sample, metric) k independent times and
     # store the median (raw values/mean/std are kept in a judge_runs field)
-    python run_evaluation.py --method evodiagram --judge-runs 3
+    python run_evaluation.py --method evodesign --judge-runs 3
 
     # Skip already evaluated items (default behavior)
     python run_evaluation.py --method baselines/mermaid/gpt-5.5
@@ -96,7 +96,7 @@ logger = logging.getLogger(__name__)
 PROJECT_ROOT = str(Path(__file__).resolve().parents[1])
 
 # Default method name
-DEFAULT_METHOD = "evodiagram"
+DEFAULT_METHOD = "evodesign"
 
 # Default paths
 DEFAULT_INPUT_JSON = str(Path(__file__).resolve().parents[1] / "dataset" / "test" / "data.json")
@@ -141,7 +141,7 @@ Examples:
   python run_evaluation.py --data-id example_001
 
   # Specify input data and experiment paths
-  python -m evaluation.run_evaluation --input-json dataset/train/my.json --method evodiagram/gpt-5.2 --exp-id 2026-05-06
+  python -m evaluation.run_evaluation --input-json dataset/train/my.json --method evodesign/gpt-5.2 --exp-id 2026-05-06
 
   # Use explicit YAML configs
   python -m evaluation.run_evaluation --settings configs/settings.yaml --model-config configs/models.yaml
@@ -153,7 +153,7 @@ Examples:
   python run_evaluation.py --workers 4
 
   # Judge resampling: k independent judge runs per (sample, metric), median wins
-  python run_evaluation.py --method evodiagram --judge-runs 3
+  python run_evaluation.py --method evodesign --judge-runs 3
 
   # Evaluate the Mermaid baseline (stored under code_mermaid)
   python run_evaluation.py --method baselines/mermaid/gpt-5.5
@@ -187,7 +187,7 @@ Available metrics:
     parser.add_argument(
         "--method",
         default=DEFAULT_METHOD,
-        help=f"Method name for path resolution. Format: 'evodiagram' OR 'baselines/<type>/<model>' (e.g., baselines/mermaid/gpt-5.5, baselines/direct_llm/gpt-5.5) OR 'baselines_<type>_<model>' (default: {DEFAULT_METHOD})",
+        help=f"Method name for path resolution. Format: 'evodesign' OR 'baselines/<type>/<model>' (e.g., baselines/mermaid/gpt-5.5, baselines/direct_llm/gpt-5.5) OR 'baselines_<type>_<model>' (default: {DEFAULT_METHOD})",
     )
 
     parser.add_argument(
@@ -215,9 +215,9 @@ Available metrics:
     )
 
     parser.add_argument(
-        "--evodiagram_wo_refiner",
+        "--evodesign_wo_refiner",
         action="store_true",
-        help="Use evodiagram without refiner (reads from evodiagram_wo_refiner outputs, writes scores to evodiagram_wo_refiner/)",
+        help="Use evodesign without refiner (reads from evodesign_wo_refiner outputs, writes scores to evodesign_wo_refiner/)",
     )
 
     # === Evaluation configuration parameters ===
@@ -466,7 +466,7 @@ def find_generated_image_by_method(method: str, data_id: str, exp_id: str = None
     Find generated image for data ID using method-based path resolution.
 
     Args:
-        method: Method name (e.g., "evodiagram", "baselines_code_mermaid_deepseek-r1")
+        method: Method name (e.g., "evodesign", "baselines_code_mermaid_deepseek-r1")
         data_id: Data item ID
         exp_id: Optional experiment ID override
 
@@ -878,14 +878,14 @@ def main():
     print("DIAGRAM EVALUATION TOOL")
     print("=" * 80)
 
-    # Handle evodiagram_wo_refiner flag
+    # Handle evodesign_wo_refiner flag
     method = args.method
-    if args.evodiagram_wo_refiner:
-        if method != "evodiagram":
-            print(f"Warning: --evodiagram_wo_refiner flag only works with --method evodiagram, ignoring flag")
+    if args.evodesign_wo_refiner:
+        if method != "evodesign":
+            print(f"Warning: --evodesign_wo_refiner flag only works with --method evodesign, ignoring flag")
         else:
-            method = "evodiagram_wo_refiner"
-            print("\nUsing evodiagram without refiner (evodiagram_wo_refiner outputs)")
+            method = "evodesign_wo_refiner"
+            print("\nUsing evodesign without refiner (evodesign_wo_refiner outputs)")
 
     print(f"\nMethod: {method}")
 
@@ -929,10 +929,10 @@ def main():
     # settings.yaml `evaluation.default_metrics` is actually honoured.
     try:
         from dotenv import load_dotenv
-        from evo_diagram.utils.env_loader import ensure_env_loaded
-        from evo_diagram.config.settings import AppSettings
-        from evo_diagram.config.model_loader import ModelConfig
-        from evo_diagram.core.llm_factory import LLMFactory
+        from evodesign.utils.env_loader import ensure_env_loaded
+        from evodesign.config.settings import AppSettings
+        from evodesign.config.model_loader import ModelConfig
+        from evodesign.core.llm_factory import LLMFactory
 
         if args.settings:
             AppSettings.init(args.settings)

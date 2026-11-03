@@ -62,7 +62,7 @@ def test_mermaid_help_does_not_load_llm_stack():
     _run_help_import_boundary_check(
         "baselines.programmic.mermaid.main",
         (
-            "evo_diagram.core.llm_factory",
+            "evodesign.core.llm_factory",
             "baselines.programmic.mermaid.mermaid_agent",
         ),
     )
@@ -72,7 +72,7 @@ def test_tlkz_help_does_not_load_llm_stack():
     _run_help_import_boundary_check(
         "baselines.programmic.tlkz.main",
         (
-            "evo_diagram.core.llm_factory",
+            "evodesign.core.llm_factory",
             "baselines.programmic.tlkz.tlkz_agent",
         ),
     )

@@ -6,7 +6,7 @@ from typing import List, Literal, Mapping
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from evo_diagram.utils.env_loader import is_placeholder_secret
+from evodesign.utils.env_loader import is_placeholder_secret
 
 # Load the repository-root .env first so shared local secrets are available to
 # the backend. backend/.env remains supported for service-only overrides.
@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     db_type: DatabaseType = "sqlite"
     db_host: str = "localhost"
     db_port: int = 5432
-    db_name: str = "evodiagram"
+    db_name: str = "evodiagram"  # Existing SQLite files/PostgreSQL databases; override with DB_NAME.
     db_user: str = "postgres"
     db_password: str | None = None
 
@@ -117,7 +117,7 @@ class Settings(BaseSettings):
     auto_refine_max_iterations: int = Field(default=2, ge=1, le=3)
     design_memory_enabled: bool = True
     design_memory_path: str = str(_REPO_ENV_FILE.parent / "data" / "web-design-memory")
-    design_memory_seed_path: str = str(_REPO_ENV_FILE.parent / "evo_diagram" / "design_memory" / "seeds" / "web_strategies.json")
+    design_memory_seed_path: str = str(_REPO_ENV_FILE.parent / "evodesign" / "design_memory" / "seeds" / "web_strategies.json")
     design_memory_model: str = "Qwen/Qwen3-Embedding-0.6B"
     design_memory_top_k: int = Field(default=2, ge=1, le=5)
     design_memory_learning: bool = True

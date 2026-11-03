@@ -2,7 +2,7 @@ import copy
 
 import pytest
 
-from evo_diagram.canvas_environment import EditError, apply_operations, assert_preserves_locks
+from evodesign.canvas_environment import EditError, apply_operations, assert_preserves_locks
 
 
 def scene():

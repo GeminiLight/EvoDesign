@@ -17,11 +17,11 @@ The manuscript's result tables on the project website remain **manuscript-report
 5. Preserve generated artifacts, evaluation run signatures, failures, retry counts, token use and timing. Report embedding downloads and service startup separately from warmed generation latency.
 
 ```sh
-python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json
-python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json --use-icons
+python -m evodesign.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json
+python -m evodesign.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json --use-icons
 ```
 
-See `--help` for refinement, ablations (`--variant`), user memory and edit-learning inputs. `scripts/run_evodiagram.sh`, `scripts/run_baselines.sh`, `scripts/run_evaluation.sh` and `scripts/run_pipeline.sh` provide batch entry points; inspect their usage and set the dataset, sample range, model aliases and method list explicitly before starting a paid batch.
+See `--help` for refinement, ablations (`--variant`), user memory and edit-learning inputs. `scripts/run_evodesign.sh`, `scripts/run_baselines.sh`, `scripts/run_evaluation.sh` and `scripts/run_pipeline.sh` provide batch entry points; inspect their usage and set the dataset, sample range, model aliases and method list explicitly before starting a paid batch.
 
 ## Dataset availability
 

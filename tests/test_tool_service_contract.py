@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-TOOL_SERVICES = REPO_ROOT / "evo_diagram" / "agentic_system" / "tool_services"
+TOOL_SERVICES = REPO_ROOT / "evodesign" / "agentic_system" / "tool_services"
 RENDERER_ROUTES = {
     "/renderers/excalidraw": (
         TOOL_SERVICES
@@ -39,7 +39,7 @@ def _assert_wait_for_function_timeout_is_third_arg(source: str) -> None:
 
 def test_renderer_runtime_assets_are_package_data():
     pyproject = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    package_data = pyproject["tool"]["setuptools"]["package-data"]["evo_diagram"]
+    package_data = pyproject["tool"]["setuptools"]["package-data"]["evodesign"]
 
     assert "agentic_system/tool_services/scripts/*.ts" in package_data
     assert "agentic_system/tool_services/src/**/*.ts" in package_data
@@ -314,7 +314,7 @@ def test_text_width_route_and_cli_share_font_measurement_module():
     cli = (TOOL_SERVICES / "scripts/text-width-cli.ts").read_text(encoding="utf-8")
 
     assert "resolveFontsDir" in shared
-    assert "evo_diagram/resources/fonts" in shared
+    assert "evodesign/resources/fonts" in shared
     assert "TextWidthInputError" in shared
     assert "SUPPORTED_TEXT_WIDTH_FONTS" in shared
     assert "MAX_TEXT_WIDTH_TEXT_LENGTH = 10000" in shared
