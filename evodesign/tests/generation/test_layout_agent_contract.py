@@ -709,3 +709,15 @@ def test_layout_merge_backfills_edge_label_through_structure_wrapper():
     )
 
     assert merged["edge:n_start2n_done"]["label"] == {"text": "<18"}
+
+
+def test_layout_drops_an_undeclared_canvas_caption_only():
+    layout = {**_valid_layout(), 'title': {'x': 0, 'y': 0, 'w': 300, 'h': 30, 'label': {'text': 'Flow'}}}
+    merged = object.__new__(LayoutAgent)._merge_layout_with_styling(
+        layout, _styling(), structure_instantiation=_structure())
+    assert 'title' not in merged
+    assert 'title' in layout
+    layout['n_ghost'] = layout.pop('title')
+    with pytest.raises(LayoutValidationError, match="Unknown layout id 'n_ghost'"):
+        object.__new__(LayoutAgent)._merge_layout_with_styling(
+            layout, _styling(), structure_instantiation=_structure())

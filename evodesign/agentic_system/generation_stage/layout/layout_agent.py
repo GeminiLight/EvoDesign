@@ -32,7 +32,7 @@ from evodesign.agentic_system.common.layout_contract import (
     is_layout_edge_entry,
     validate_layout_instantiation,
 )
-from evodesign.agentic_system.common.semantic_ids import ICON_SUFFIX
+from evodesign.agentic_system.common.semantic_ids import ICON_SUFFIX, drop_canvas_decorations
 from evodesign.agentic_system.generation_stage.layout.prompts import (
     LAYOUT_TASK_PROMPT, COMPACT_FLOW_LAYOUT_TASK_PROMPT,
 )
@@ -195,6 +195,11 @@ class LayoutAgent(BaseAgent):
                     and group_id in layout_instantiation):
                 geometry = layout_instantiation.pop(group_id)
                 layout_instantiation.setdefault(background_id, geometry)
+        # A canvas caption Styling never declared has nothing to place.
+        layout_instantiation, decorations = drop_canvas_decorations(
+            layout_instantiation, set(styling_instantiation or {}))
+        if decorations:
+            logger.warning("Layout added undeclared canvas captions %s; dropping them.", decorations)
 
         validate_layout_instantiation(
             layout_instantiation,

@@ -631,3 +631,19 @@ def test_styling_still_injects_node_and_group_labels():
 
     assert injected["n_start"]["label"]["text"] == "Start"
     assert injected["g_lane:title"]["label"]["text"] == "Lane"
+
+
+def test_styling_drops_an_undeclared_canvas_caption_but_keeps_a_real_title_node():
+    styling = _valid_excalidraw_styling()
+    caption = {"shape": "text", "label": {"text": "Order Flow"}, "strokeColor": "#111111"}
+    validated = validate_styling_instantiation({**styling, "title": caption}, _structure())
+    assert "title" not in validated and set(validated) == set(styling)
+
+    structure = _structure()
+    structure["nodes"].append({"id": "title", "label": "Title", "class": "process"})
+    real = {"shape": "rectangle", "label": {"text": "Title"},
+            "strokeColor": "#111111", "backgroundColor": "#FFFFFF"}
+    assert validate_styling_instantiation({**styling, "title": real}, structure)["title"] == real
+
+    with pytest.raises(StylingValidationError, match="Unknown styling id 'legend_box'"):
+        validate_styling_instantiation({**styling, "legend_box": caption}, _structure())
