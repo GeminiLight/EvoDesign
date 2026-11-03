@@ -6,6 +6,13 @@ import pytest
 import yaml
 
 
+def test_historical_variant_ids_resolve_to_current_presets():
+    from evodesign.agentic_system.config import get_variant_preset, list_variant_presets
+
+    for name in list_variant_presets():
+        assert get_variant_preset(name.replace('evodesign', 'evodiagram', 1)) == get_variant_preset(name)
+
+
 @pytest.fixture(autouse=True)
 def _reset_settings_singleton():
     from evodesign.config.settings import AppSettings

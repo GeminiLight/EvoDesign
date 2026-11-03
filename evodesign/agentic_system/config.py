@@ -8,6 +8,7 @@ from evodesign.canvas_environment.capabilities import (
 )
 from evodesign.canvas_runtime import normalize_canvas_library
 from evodesign.config.settings import normalize_generation_mode
+from evodesign.core.experiment import canonical_method_name
 
 
 logger = logging.getLogger(__name__)
@@ -47,6 +48,7 @@ def list_variant_presets() -> tuple[str, ...]:
 
 def get_variant_preset(variant: str) -> dict:
     """Return the preset defaults for a given variant."""
+    variant = canonical_method_name(variant)
     if variant not in _VARIANT_PRESETS:
         supported = ", ".join(list_variant_presets())
         raise ValueError(f"Unknown variant: {variant!r}. Use one of: {supported}.")

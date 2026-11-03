@@ -19,7 +19,7 @@ from evodesign.utils.env_loader import ensure_env_loaded
 ensure_env_loaded()
 
 from evodesign.core.llm_factory import LLMFactory
-from evodesign.core.experiment import get_experiment_id, get_evodesign_output_dir
+from evodesign.core.experiment import canonical_method_name, get_experiment_id, get_evodesign_output_dir
 from evodesign.utils.path_manager import (
     DEFAULT_TEST_DATASET,
     EXAMPLES_DIR,
@@ -113,7 +113,7 @@ def parse_arguments():
     parser.add_argument("--ids", type=str, nargs="+")
     parser.add_argument("--tag", type=str, default=None,
                         help="Tag appended to output dir (e.g. 'v2' → .../id_v2)")
-    parser.add_argument("--variant", type=str, choices=list_variant_presets(), default=None,
+    parser.add_argument("--variant", type=canonical_method_name, choices=list_variant_presets(), default=None,
                         help="Experiment variant preset: evodesign, evodesign_wo_refiner, etc. "
                              "When omitted, runtime defaults come from settings.yaml and output paths "
                              "still use the evodesign variant name.")
