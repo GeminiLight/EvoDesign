@@ -8,9 +8,8 @@ import argparse
 import json
 import logging
 from copy import deepcopy
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
 from evodesign.agentic_system.common.icon_assets import (
@@ -23,6 +22,9 @@ from evodesign.agentic_system.common.node_icons import bundled_icons
 from evodesign.config.settings import AppSettings
 
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from langchain_core.tools import StructuredTool
 
 # Icons are served from tool_services at: http://localhost:3000/icons/material-design-icons/
 # Pattern: http://localhost:3000/icons/material-design-icons/{color}/{icon}.svg
@@ -106,8 +108,11 @@ def _icon_url_adder_impl(
     return add_icon_urls(styling_json, base_url=base_url)
 
 
-def make_icon_url_adder_tool() -> StructuredTool:
+def make_icon_url_adder_tool() -> "StructuredTool":
     """Create an instance of the icon URL adder tool."""
+    # Imported here so the render engine runs without langchain (browser build).
+    from langchain_core.tools import StructuredTool
+
     return StructuredTool.from_function(
         func=_icon_url_adder_impl,
         name="icon_url_adder",
@@ -116,8 +121,13 @@ def make_icon_url_adder_tool() -> StructuredTool:
     )
 
 
-# Export the tool instance for direct use
-icon_url_adder = make_icon_url_adder_tool()
+def __getattr__(name: str) -> Any:
+    # ``icon_url_adder`` stays importable for agent tooling, built on first use.
+    if name == "icon_url_adder":
+        tool = make_icon_url_adder_tool()
+        globals()[name] = tool
+        return tool
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def main():

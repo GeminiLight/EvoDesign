@@ -4,12 +4,15 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from langgraph.graph import END, StateGraph
+try:
+	from langgraph.graph import END, StateGraph
+except ImportError:  # the browser (Pyodide) build ships without langgraph
+	END = StateGraph = None
 
 from evodesign.canvas_runtime import normalize_canvas_library
 
 from .state import WorkflowState
-from .shared.icon_url_adder import icon_url_adder
+from .shared.icon_url_adder import add_icon_urls
 from .shared.render_audit import audit_layout_instantiation, audit_tldraw_manifest
 from .stages import (
 	ALIGN_GROUPS,
@@ -43,43 +46,62 @@ def _raise_on_blocking_render_audit(report: Any, *, canvas_library: str) -> None
 	)
 
 
+class _SequentialGraph:
+	"""Runs a linear chain of nodes in order; used when langgraph is absent."""
+
+	def __init__(self, nodes) -> None:
+		self._nodes = [node for _, node in nodes]
+
+	def invoke(self, state: WorkflowState) -> WorkflowState:
+		for node in self._nodes:
+			state = node(state)
+		return state
+
+
+def _linear_graph(nodes, *, sequential: bool = False):
+	"""Compile ``[(name, node), ...]`` as a chain, with langgraph when available."""
+	if sequential or StateGraph is None:
+		return _SequentialGraph(nodes)
+	workflow = StateGraph(WorkflowState)
+	for name, node in nodes:
+		workflow.add_node(name, node)
+	workflow.set_entry_point(nodes[0][0])
+	for (name, _), (next_name, _) in zip(nodes, nodes[1:]):
+		workflow.add_edge(name, next_name)
+	workflow.add_edge(nodes[-1][0], END)
+	return workflow.compile()
+
+
 class RenderWorkflow:
 	"""Sequential workflow that converts styling data, adds arrows, validates, and renders."""
 
-	def __init__(self, canvas_library: str = None) -> None:
+	def __init__(self, canvas_library: str = None, *, sequential: bool = False) -> None:
 		if canvas_library is None:
 			canvas_library = WorkflowState.model_fields["canvas_library"].default
 		self.canvas_library = normalize_canvas_library(canvas_library)
 
-		self._graph_builder = StateGraph(WorkflowState)
-		if self.canvas_library == "excalidraw":
-			self.graph = self._build_excalidraw_workflow()
-		else:
-			self.graph = self._build_tldraw_workflow()
+		nodes = (
+			self._excalidraw_nodes()
+			if self.canvas_library == "excalidraw"
+			else self._tldraw_nodes()
+		)
+		self.graph = _linear_graph(nodes, sequential=sequential)
 
 	# ==================================================================
 	# TLDraw workflow
 	# ==================================================================
-	def _build_tldraw_workflow(self):
-		workflow = self._graph_builder
-		workflow.add_node("add_icon_urls", self._run_icon_url_adder)
-		workflow.add_node("convert_snapshot", self._run_converter)
-		workflow.add_node("add_arrows", self._run_arrow_tool)
-		workflow.add_node("fit_groups", self._run_group_fitter)
-		workflow.add_node("validate_snapshot", self._run_validator)
-		workflow.set_entry_point("add_icon_urls")
-		workflow.add_edge("add_icon_urls", "convert_snapshot")
-		workflow.add_edge("convert_snapshot", "add_arrows")
-		workflow.add_edge("add_arrows", "fit_groups")
-		workflow.add_edge("fit_groups", "validate_snapshot")
-		workflow.add_edge("validate_snapshot", END)
-		return workflow.compile()
+	def _tldraw_nodes(self):
+		return [
+			("add_icon_urls", self._run_icon_url_adder),
+			("convert_snapshot", self._run_converter),
+			("add_arrows", self._run_arrow_tool),
+			("fit_groups", self._run_group_fitter),
+			("validate_snapshot", self._run_validator),
+		]
 
 	def _run_icon_url_adder(self, state: WorkflowState) -> WorkflowState:
 		"""Add icon URLs to styling_instantiation before conversion."""
-		updated_layout = icon_url_adder.invoke({
-			"styling_json": state.layout_instantiation
-		})
+		updated_layout = add_icon_urls(state.layout_instantiation)
 		state.layout_instantiation = updated_layout
 		logger.info("[RenderWorkflow] Icon URLs added to layout_instantiation")
 		return state
@@ -145,34 +167,22 @@ class RenderWorkflow:
 	# ==================================================================
 	# Excalidraw workflow
 	# ==================================================================
-	def _build_excalidraw_workflow(self):
-		workflow = self._graph_builder
-		workflow.add_node("excalidraw_add_icon_urls", self._run_excalidraw_icon_url_adder)
-		workflow.add_node("excalidraw_convert", self._run_excalidraw_converter)
-		workflow.add_node("excalidraw_size_fit", self._run_excalidraw_size_fit)
-		workflow.add_node("excalidraw_fit_groups", self._run_excalidraw_group_fitter)
-		workflow.add_node("excalidraw_align_groups", self._run_excalidraw_group_alignment)
-		workflow.add_node("excalidraw_arrows", self._run_excalidraw_arrow_adder)
-		workflow.add_node("excalidraw_zorder_repair", self._run_excalidraw_zorder_repair)
-		workflow.add_node("excalidraw_validate", self._run_excalidraw_validator)
-		workflow.set_entry_point("excalidraw_add_icon_urls")
-		workflow.add_edge("excalidraw_add_icon_urls", "excalidraw_convert")
-		workflow.add_edge("excalidraw_convert", "excalidraw_size_fit")
-		workflow.add_edge("excalidraw_size_fit", "excalidraw_fit_groups")
-		workflow.add_edge("excalidraw_fit_groups", "excalidraw_align_groups")
-		workflow.add_edge("excalidraw_align_groups", "excalidraw_arrows")
-		workflow.add_node("excalidraw_arch_design_system", self._run_excalidraw_arch_design_system)
-		workflow.add_edge("excalidraw_arrows", "excalidraw_arch_design_system")
-		workflow.add_edge("excalidraw_arch_design_system", "excalidraw_zorder_repair")
-		workflow.add_edge("excalidraw_zorder_repair", "excalidraw_validate")
-		workflow.add_edge("excalidraw_validate", END)
-		return workflow.compile()
+	def _excalidraw_nodes(self):
+		return [
+			("excalidraw_add_icon_urls", self._run_excalidraw_icon_url_adder),
+			("excalidraw_convert", self._run_excalidraw_converter),
+			("excalidraw_size_fit", self._run_excalidraw_size_fit),
+			("excalidraw_fit_groups", self._run_excalidraw_group_fitter),
+			("excalidraw_align_groups", self._run_excalidraw_group_alignment),
+			("excalidraw_arrows", self._run_excalidraw_arrow_adder),
+			("excalidraw_arch_design_system", self._run_excalidraw_arch_design_system),
+			("excalidraw_zorder_repair", self._run_excalidraw_zorder_repair),
+			("excalidraw_validate", self._run_excalidraw_validator),
+		]
 
 	def _run_excalidraw_icon_url_adder(self, state: WorkflowState) -> WorkflowState:
 		"""Add icon URLs to styling_instantiation before Excalidraw conversion."""
-		updated_layout = icon_url_adder.invoke({
-			"styling_json": state.layout_instantiation
-		})
+		updated_layout = add_icon_urls(state.layout_instantiation)
 		state.layout_instantiation = updated_layout
 		logger.info("[RenderWorkflow/Excalidraw] Icon URLs added to layout_instantiation")
 		return state

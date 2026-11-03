@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PIL import Image, UnidentifiedImageError
-
 
 def validate_png_file(output_file: Path, *, context: str) -> None:
     """Raise RuntimeError when output_file is missing, empty, or not a valid PNG."""
+    # Imported here: the browser build renders PNGs itself and ships no Pillow.
+    from PIL import Image, UnidentifiedImageError
+
     if not output_file.exists():
         raise RuntimeError(f"{context} did not create output file: {output_file}")
     if output_file.stat().st_size <= 0:
