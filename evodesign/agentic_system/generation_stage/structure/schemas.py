@@ -260,7 +260,56 @@ def validate_structure_semantic_ledger(
         )
 
     compare(fact_keys, explicit_edges, "fact_ledger")
-    compare(organizer_keys, structural_edges, "organizer_ledger")
+    compare(
+        organizer_keys - _organizer_claims_realized_by_groups(
+            organizer_keys - structural_edges, instantiation.get("groups")
+        ),
+        structural_edges,
+        "organizer_ledger",
+    )
+
+
+def _organizer_claims_realized_by_groups(
+    unmatched: Counter[tuple[str, str, str]],
+    groups: Any,
+) -> Counter[tuple[str, str, str]]:
+    """Return organizer claims already drawn as group containment.
+
+    An organizer entry such as ``(api, "grouped in", g_online)`` is presentation
+    structure. When ``api`` sits inside ``g_online`` (directly or through nested
+    groups) the container already draws that claim, and adding an edge would
+    duplicate it. Only claims with no matching structural edge are considered,
+    and only for the organizer ledger: source facts must always be edges.
+    """
+    parents: Dict[str, str] = {}
+    group_ids = set()
+    for group in groups or []:
+        if not isinstance(group, dict) or not isinstance(group.get("id"), str):
+            continue
+        group_ids.add(group["id"])
+        if isinstance(group.get("parent_group_id"), str):
+            parents.setdefault(group["id"], group["parent_group_id"])
+        for member in group.get("members") or []:
+            if isinstance(member, str):
+                parents.setdefault(member, group["id"])
+
+    def inside(member: str, group_id: str) -> bool:
+        seen = set()
+        current = parents.get(member)
+        while current is not None and current not in seen:
+            if current == group_id:
+                return True
+            seen.add(current)
+            current = parents.get(current)
+        return False
+
+    realized: Counter[tuple[str, str, str]] = Counter()
+    for (source, label, target), count in unmatched.items():
+        if (target in group_ids and inside(source, target)) or (
+            source in group_ids and inside(target, source)
+        ):
+            realized[(source, label, target)] = count
+    return realized
 
 
 _RELATION_TYPE_ALIASES = {

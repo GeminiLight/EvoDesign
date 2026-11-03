@@ -1119,3 +1119,54 @@ def test_structure_agent_requests_one_bounded_semantic_correction(repair_succeed
     assert len(calls) == 2
     assert 'failed validation' in calls[-1][-1]['content']
     assert 'without deleting facts' in calls[-1][-1]['content']
+
+
+def _grouping_spec(organizer, facts=()):
+    return {"semantic_typology": {"fact_ledger": list(facts), "organizer_ledger": list(organizer)}}
+
+
+def _grouped_instantiation(edges=()):
+    return {
+        "chart_type": "architecture",
+        "nodes": [{"id": "api", "label": "API", "class": "service"},
+                  {"id": "db", "label": "DB", "class": "store"}],
+        "edges": list(edges),
+        "groups": [{"id": "g_online", "label": "Online", "members": ["api"]},
+                   {"id": "g_data", "label": "Data", "members": ["db"], "parent_group_id": "g_platform"},
+                   {"id": "g_platform", "label": "Platform", "members": ["g_data"]}],
+    }
+
+
+def test_organizer_claim_drawn_as_group_containment_needs_no_edge():
+    specification = _grouping_spec([
+        {"source_id": "api", "label": "grouped in", "target_id": "g_online"},
+        {"source_id": "g_platform", "label": "contains", "target_id": "db"},
+    ])
+    validate_structure_semantic_ledger(specification, _grouped_instantiation())
+
+
+def test_organizer_claim_still_needs_edge_when_endpoint_is_not_a_member():
+    specification = _grouping_spec([
+        {"source_id": "db", "label": "grouped in", "target_id": "g_online"},
+    ])
+    with pytest.raises(StructureValidationError, match="missing edges"):
+        validate_structure_semantic_ledger(specification, _grouped_instantiation())
+
+
+def test_group_containment_never_satisfies_a_source_fact():
+    specification = _grouping_spec([], facts=[
+        {"subject_id": "api", "predicate": "runs in", "object_id": "g_online", "evidence": "api runs online"},
+    ])
+    with pytest.raises(StructureValidationError, match="missing edges"):
+        validate_structure_semantic_ledger(specification, _grouped_instantiation())
+
+
+def test_drawn_organizer_edge_is_matched_before_containment():
+    specification = _grouping_spec([
+        {"source_id": "api", "label": "grouped in", "target_id": "g_online"},
+    ])
+    edge = {"id": "e1", "source": "api", "target": "g_online", "relation": "grouped in",
+            "evidence_basis": "structural"}
+    validate_structure_semantic_ledger(specification, _grouped_instantiation([edge]))
+    with pytest.raises(StructureValidationError, match="unledgered"):
+        validate_structure_semantic_ledger(_grouping_spec([]), _grouped_instantiation([edge]))
