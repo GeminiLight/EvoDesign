@@ -6,7 +6,10 @@ import pytest
 import json
 
 from evodesign.agentic_system.generation_stage.structure.schemas import (
+    StructureLedgerOmission,
     StructureValidationError,
+    drop_unrealized_ledger_entries,
+    restore_structure_ledger_relations,
     validate_structure_semantic_ledger,
     validate_structure_instantiation,
 )
@@ -1170,3 +1173,98 @@ def test_drawn_organizer_edge_is_matched_before_containment():
     validate_structure_semantic_ledger(specification, _grouped_instantiation([edge]))
     with pytest.raises(StructureValidationError, match="unledgered"):
         validate_structure_semantic_ledger(_grouping_spec([]), _grouped_instantiation([edge]))
+
+
+def _fact(subject, predicate, obj):
+    return {"subject_id": subject, "predicate": predicate, "object_id": obj, "evidence": "source"}
+
+
+def _two_node_graph(edges):
+    return {
+        "chart_type": "architecture",
+        "nodes": [{"id": "a", "label": "A", "role": "client"},
+                  {"id": "b", "label": "B", "kind": "service"},
+                  {"id": "c", "label": "C", "class": "store", "role": "client"}],
+        "edges": edges,
+        "groups": [],
+    }
+
+
+def test_node_class_falls_back_to_role_or_kind_without_overriding_class():
+    nodes = validate_structure_instantiation(_two_node_graph([]))["nodes"]
+    assert [(n["class"], n.get("role"), n.get("kind")) for n in nodes] == [
+        ("client", "client", None), ("service", None, "service"), ("store", "client", None),
+    ]
+
+
+def test_untagged_edge_takes_its_unique_claim_and_keeps_its_label():
+    specification = _grouping_spec([], facts=[_fact("a", "calls through", "b")])
+    restored = restore_structure_ledger_relations(
+        specification, _two_node_graph([{"id": "e1", "source": "a", "target": "b", "label": "HTTPS"}]))
+    edge = restored["edges"][0]
+    assert (edge["evidence_basis"], edge["relation"], edge["label"]) == ("explicit", "calls through", "HTTPS")
+    validate_structure_semantic_ledger(specification, restored)
+
+
+def test_untagged_edge_is_left_alone_when_its_pair_is_ambiguous():
+    two_claims = _grouping_spec([], facts=[_fact("a", "reads", "b"), _fact("a", "writes", "b")])
+    restored = restore_structure_ledger_relations(
+        two_claims, _two_node_graph([{"id": "e1", "source": "a", "target": "b"}]))
+    assert "evidence_basis" not in restored["edges"][0]
+
+    one_claim = _grouping_spec([], facts=[_fact("a", "reads", "b")])
+    restored = restore_structure_ledger_relations(one_claim, _two_node_graph([
+        {"id": "e1", "source": "a", "target": "b"}, {"id": "e2", "source": "a", "target": "b"}]))
+    assert all("evidence_basis" not in edge for edge in restored["edges"])
+
+    authored = restore_structure_ledger_relations(one_claim, _two_node_graph([
+        {"id": "e1", "source": "a", "target": "b", "relation": "monitors"}]))
+    assert authored["edges"][0]["relation"] == "monitors"
+    assert "evidence_basis" not in authored["edges"][0]
+
+
+def test_missing_edge_alone_is_an_omission_but_an_extra_edge_is_not():
+    specification = _grouping_spec([], facts=[_fact("a", "calls", "b"), _fact("b", "Writes  To", "c")])
+    graph = _two_node_graph([{"id": "e1", "source": "a", "target": "b",
+                              "relation": "calls", "evidence_basis": "explicit"}])
+    with pytest.raises(StructureLedgerOmission) as caught:
+        validate_structure_semantic_ledger(specification, graph)
+    pruned = drop_unrealized_ledger_entries(specification, caught.value)
+    assert pruned["semantic_typology"]["fact_ledger"] == [_fact("a", "calls", "b")]
+    assert len(specification["semantic_typology"]["fact_ledger"]) == 2
+    validate_structure_semantic_ledger(pruned, graph)
+
+    invented = _two_node_graph([{"id": "e1", "source": "a", "target": "c",
+                                 "relation": "owns", "evidence_basis": "explicit"}])
+    with pytest.raises(StructureValidationError, match="unledgered") as caught:
+        validate_structure_semantic_ledger(specification, invented)
+    assert not isinstance(caught.value, StructureLedgerOmission)
+
+
+@pytest.mark.parametrize('second_edge, keeps_going', [
+    (None, True),
+    ({'id': 'edge:b2a', 'source': 'b', 'target': 'a', 'relation': 'owns', 'evidence_basis': 'explicit'}, False),
+])
+def test_structure_agent_keeps_a_corrected_graph_that_only_omits_claims(second_edge, keeps_going):
+    import copy
+    agent = object.__new__(StructureAgent)
+    agent._system_prompt = 'system'
+    agent._read_self_consistency_n = lambda: 1
+    specification = _grouping_spec([], facts=[_fact('a', 'calls', 'b'), _fact('a', 'audits', 'c')])
+    edges = [{'id': 'edge:a2b', 'source': 'a', 'target': 'b'}] + ([second_edge] if second_edge else [])
+    output = {'specification': specification, 'instantiation': _two_node_graph(edges)}
+    calls = []
+
+    def invoke(messages):
+        calls.append(messages)
+        return copy.deepcopy(output)
+    agent.invoke_with_history = invoke
+    state = WorkflowState(text_content='A calls B and audits C', user_query='architecture')
+    if keeps_going:
+        result = agent.run(state)
+        assert result.structure_specification['semantic_typology']['fact_ledger'] == [_fact('a', 'calls', 'b')]
+        assert result.structure_instantiation['edges'][0]['relation'] == 'calls'
+    else:
+        with pytest.raises(StructureValidationError, match='unledgered'):
+            agent.run(state)
+    assert len(calls) == 2
