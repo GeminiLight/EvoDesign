@@ -103,6 +103,7 @@ class Settings(BaseSettings):
     llm_temperature: float = 0.0
     llm_max_tokens: int = 16384
     llm_reasoning_effort: Literal["low", "medium", "high"] | None = None
+    llm_thinking: Literal["enabled", "disabled"] | None = None
 
     # Refiner LLM configuration (optional, for diagram optimization)
     refiner_llm_model_name: str | None = None

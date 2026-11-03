@@ -68,3 +68,20 @@ def test_from_config_does_not_forward_duplicate_aliases(captured_create):
 def test_from_config_rejects_unsupported_config_types():
     with pytest.raises(ValueError, match="Unsupported config type"):
         LLMFactory.from_config(object())
+
+
+def test_thinking_switch_becomes_request_body_field(monkeypatch):
+    seen = {}
+    monkeypatch.setattr("evodesign.core.llm_factory.init_chat_model", lambda **kw: seen.update(kw))
+    LLMFactory.create(model="glm", model_provider="openai", base_url="https://x.example/v4",
+                      api_key="k", thinking="Disabled", extra_body={"other": 1})
+    assert seen["extra_body"] == {"other": 1, "thinking": {"type": "disabled"}}
+    assert "thinking" not in seen
+
+    seen.clear()
+    LLMFactory.create(model="glm", model_provider="openai", base_url="https://x.example/v4", api_key="k")
+    assert "extra_body" not in seen
+
+    with pytest.raises(ValueError, match="thinking"):
+        LLMFactory.create(model="glm", model_provider="openai", base_url="https://x.example/v4",
+                          api_key="k", thinking="maybe")

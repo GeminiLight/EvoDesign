@@ -44,7 +44,12 @@ _MODEL_TO_FACTORY = {
     "timeout": "timeout",
     "max_retries": "max_retries",
     "reasoning_effort": "reasoning_effort",
+    "thinking": "thinking",
 }
+
+# Optional model keys whose ``$ENV`` reference may stay unset without a warning:
+# leaving them out keeps the provider's own default.
+_OPTIONAL_ENV_KEYS = {"thinking"}
 
 # YAML provider keys that map to LLMFactory.create() params.
 _PROVIDER_TO_FACTORY = {
@@ -276,6 +281,11 @@ class ModelConfig:
                 continue  # handled specially via protocol
             val = model_cfg.get(yaml_key)
             if val is not None:
+                if yaml_key in _OPTIONAL_ENV_KEYS:
+                    env_var = self._env_var_reference(val)
+                    val = os.getenv(env_var) if env_var else val
+                    if val is None or not str(val).strip():
+                        continue
                 resolved = overrides.get(factory_key, self._resolve_value(val) if yaml_key == "model_name" else val)
                 if yaml_key == "model_name" and (not isinstance(resolved, str) or not resolved.strip()):
                     raise ValueError("Model name is empty; set LLM_MODEL_NAME (or the model_name environment reference in models.yaml).")

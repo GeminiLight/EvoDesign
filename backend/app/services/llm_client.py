@@ -27,6 +27,7 @@ class BackendLLMConfig:
     temperature: float
     max_tokens: int
     reasoning_effort: str | None = None
+    thinking: str | None = None
 
     def as_factory_kwargs(self) -> dict[str, object]:
         kwargs: dict[str, object] = {
@@ -40,6 +41,8 @@ class BackendLLMConfig:
             kwargs["base_url"] = self.base_url
         if self.reasoning_effort:
             kwargs["reasoning_effort"] = self.reasoning_effort
+        if self.thinking:
+            kwargs["thinking"] = self.thinking
         return kwargs
 
 
@@ -69,6 +72,7 @@ def _explicit_backend_config(
         temperature=temperature,
         max_tokens=max_tokens,
         reasoning_effort=getattr(settings, "llm_reasoning_effort", None),
+        thinking=getattr(settings, "llm_thinking", None),
     )
 
 

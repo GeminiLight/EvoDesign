@@ -68,6 +68,20 @@ class TestModelConfig:
         assert params["api_key"] == "sk-custom-test"
         assert params["max_tokens"] == 16384
 
+    def test_thinking_switch_is_forwarded_only_when_set(self, monkeypatch, caplog):
+        monkeypatch.setenv("LLM_MODEL_NAME", "test-vision-model")
+        monkeypatch.setenv("LLM_ENDPOINT_URL", "https://api.custom.example/v1")
+        monkeypatch.setenv("LLM_API_KEY", "sk-custom-test")
+        monkeypatch.delenv("LLM_THINKING", raising=False)
+
+        with caplog.at_level("WARNING"):
+            params = ModelConfig(_DEFAULT_PATH).get_model_config("generator")
+        assert "thinking" not in params
+        assert "LLM_THINKING" not in caplog.text
+
+        monkeypatch.setenv("LLM_THINKING", "disabled")
+        assert ModelConfig(_DEFAULT_PATH).get_model_config("generator")["thinking"] == "disabled"
+
     def test_default_llm_roles_use_custom_endpoint_model(self, monkeypatch):
         monkeypatch.setenv("LLM_MODEL_NAME", "test-vision-model")
         monkeypatch.setenv("LLM_ENDPOINT_URL", "https://api.custom.example/v1")
