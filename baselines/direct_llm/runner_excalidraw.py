@@ -25,8 +25,8 @@ from baselines.direct_llm.excalidraw_assembler import assemble_excalidraw_scene
 from baselines.direct_llm.prompts_excalidraw import SYSTEM_PROMPT, TASK_PROMPT
 from baselines.direct_llm.state import WorkflowState
 
-from evo_diagram.canvas_environment import render_canvas_file
-from evo_diagram.core.llm_factory import LLMFactory
+from evodesign.canvas_environment import render_canvas_file
+from evodesign.core.llm_factory import LLMFactory
 
 
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ def _build_model(model_config: Dict[str, Any]):
         temperature=model_config.get("temperature", 0.0),
         # Without an explicit max_tokens the provider default (commonly 4096)
         # truncates large scenes, so complex samples fail JSON parsing more
-        # often than simple ones. Mirror the EvoDiagram generator instead.
+        # often than simple ones. Mirror the EvoDesign generator instead.
         max_tokens=model_config.get("max_tokens", 16384),
         max_retries=model_config.get("max_retries", 6),
     )

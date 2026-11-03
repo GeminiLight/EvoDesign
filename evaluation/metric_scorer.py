@@ -9,7 +9,7 @@ import logging
 from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
 
-from evo_diagram.core.base_agent import BaseAgent
+from evodesign.core.base_agent import BaseAgent
 from langchain_core.language_models import BaseChatModel
 
 from evaluation.analysis import stats
@@ -595,8 +595,8 @@ class MetricScorer(BaseAgent):
 if __name__ == "__main__":
     """Test the MetricScorer"""
     import os
-    from evo_diagram.utils.env_loader import ensure_env_loaded
-    from evo_diagram.core.llm_factory import LLMFactory
+    from evodesign.utils.env_loader import ensure_env_loaded
+    from evodesign.core.llm_factory import LLMFactory
 
     # Load environment variables from project root
     ensure_env_loaded()

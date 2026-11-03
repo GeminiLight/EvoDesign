@@ -67,7 +67,10 @@ def test_conflict_preserves_proposal_id_and_exit_code():
 
 
 def test_imports_do_not_load_engine_or_backend():
-    script = 'import evodesign_cli.main,sys; assert not any(n.startswith(("evo_diagram", "app.", "torch", "langchain")) for n in sys.modules)'
+    script = (
+        'import evodesign_cli.main,sys\n'
+        'assert not any(n in {"evodesign", "app"} or n.startswith(("evodesign.", "app.", "torch", "langchain")) for n in sys.modules)\n'
+    )
     result = subprocess.run([sys.executable, '-c', script], text=True, capture_output=True,
         env={**os.environ, 'PYTHONPATH': str(Path(__file__).resolve().parents[1] / 'src')})
     assert result.returncode == 0, result.stderr

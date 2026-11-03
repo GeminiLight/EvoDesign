@@ -57,10 +57,10 @@ start_backend() {
         else
             python_bin="python3"
         fi
-        # backend/app/config.py imports evo_diagram.utils.env_loader, but the
+        # backend/app/config.py imports evodesign.utils.env_loader, but the
         # package lives at the repo root and is not installed into backend/venv.
         # Running uvicorn from backend/ therefore fails with
-        # "ModuleNotFoundError: No module named 'evo_diagram'" unless the repo
+        # "ModuleNotFoundError: No module named 'evodesign'" unless the repo
         # root is on the path. Prepend it, keeping any existing PYTHONPATH.
         export PYTHONPATH="$PROJECT_ROOT${PYTHONPATH:+:$PYTHONPATH}"
         # The Vite dev proxy connects from loopback; trust X-Forwarded-For only
@@ -81,7 +81,7 @@ start_renderer() {
     fi
     echo -e "${GREEN}[Renderer]${NC} Starting on port 3000..."
     (
-        cd "$PROJECT_ROOT/evo_diagram/agentic_system/tool_services"
+        cd "$PROJECT_ROOT/evodesign/agentic_system/tool_services"
         if [ ! -d "node_modules" ]; then
             echo "[Renderer] Installing dependencies..."
             npm ci

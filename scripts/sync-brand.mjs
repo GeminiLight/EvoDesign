@@ -52,7 +52,7 @@ const files = new Map([
   // Keep old public URLs functional, but never keep old artwork behind them.
   ['frontend/public/evodiagram.svg', svg('0 0 512 512', icon(false))],
   ['frontend/public/evodiagram-dark.svg', svg('0 0 512 512', icon(true))],
-  ['evo_diagram/agentic_system/tool_services/src/app/icon.svg', svg(brand.viewBox, symbol())],
+  ['evodesign/agentic_system/tool_services/src/app/icon.svg', svg(brand.viewBox, symbol())],
 ]);
 
 // The dev repository has no paper website; avoid creating a second one there.
@@ -74,7 +74,7 @@ console.log(`Updated ${files.size} brand assets from the selected C concept.`);
 
 // Raster exports use the renderer's existing Sharp dependency; no extra package.
 if (process.argv.includes('--raster')) {
-  const require = createRequire(resolve(root, 'evo_diagram/agentic_system/tool_services/package.json'));
+  const require = createRequire(resolve(root, 'evodesign/agentic_system/tool_services/package.json'));
   const sharp = require('sharp');
   const raster = async (source, width) => sharp(Buffer.from(source)).resize(width).png().toBuffer();
   const iconSvg = files.get('frontend/public/brand/evodesign-icon.svg');
@@ -100,7 +100,7 @@ if (process.argv.includes('--raster')) {
   }
   const favicon = Buffer.concat([directory, ...images]);
   outputs.set('frontend/public/favicon.ico', favicon);
-  outputs.set('evo_diagram/agentic_system/tool_services/src/app/favicon.ico', favicon);
+  outputs.set('evodesign/agentic_system/tool_services/src/app/favicon.ico', favicon);
   if (files.has('docs/assets/studio-logo.svg')) {
     outputs.set('docs/assets/social-preview.png', outputs.get('frontend/public/brand/evodesign-social.png'));
     outputs.set('docs/assets/apple-touch-icon.png', outputs.get('frontend/public/brand/apple-touch-icon.png'));

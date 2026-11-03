@@ -6,7 +6,7 @@ from typing import get_type_hints
 
 import pytest
 
-from evo_diagram.canvas_environment import (
+from evodesign.canvas_environment import (
     CANVAS_DEFAULT_VIEWPORT_HEIGHT,
     CANVAS_DEFAULT_VIEWPORT_WIDTH,
     CANVAS_MAX_X,
@@ -21,9 +21,9 @@ from evo_diagram.canvas_environment import (
     repair_manifest_zorder,
     validate_png_file,
 )
-from evo_diagram.canvas_environment import _render_engine_adapter
-from evo_diagram.canvas_environment import rendering
-from evo_diagram.canvas_environment import validation
+from evodesign.canvas_environment import _render_engine_adapter
+from evodesign.canvas_environment import rendering
+from evodesign.canvas_environment import validation
 
 
 def test_canvas_environment_rejects_unknown_canvas_library():

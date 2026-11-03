@@ -6,7 +6,7 @@ under the canonical ``experiments/<exp_id>/scores`` layout. Historical
 ``results/evaluations`` files are used only as a read fallback.
 
 Layout it expects:
-    experiments/<exp_id>/scores/evodiagram/evodiagram/<model>/<data_id>/<data_id>.json
+    experiments/<exp_id>/scores/evodesign/evodesign/<model>/<data_id>/<data_id>.json
     experiments/<exp_id>/scores/baseline/direct_llm/<model>/<data_id>/<data_id>.json
     experiments/<exp_id>/scores/baseline/code_mermaid/<model>/<data_id>/<data_id>.json
 
@@ -36,7 +36,7 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from evo_diagram.core.experiment import get_experiment_id  # noqa: E402
+from evodesign.core.experiment import canonical_method_name, get_experiment_id, legacy_method_name, resolve_existing_artifact  # noqa: E402
 from evaluation.path_resolver import parse_method_paths  # noqa: E402
 from scripts.research.build_test_subset import sample_diagram_type  # noqa: E402
 
@@ -60,11 +60,11 @@ class MethodDefinition:
 
 
 _METHOD_DEFINITIONS: Dict[str, MethodDefinition] = {
-    "evodiagram": MethodDefinition(
-        key="evodiagram",
-        label="evodiagram",
-        evaluation_method_template="evodiagram/{model}",
-        legacy_eval_template="results/evaluations/evodiagram/{data_id}",
+    "evodesign": MethodDefinition(
+        key="evodesign",
+        label="evodesign",
+        evaluation_method_template="evodesign/{model}",
+        legacy_eval_template="results/evaluations/evodesign/{data_id}",
     ),
     "direct_llm_excalidraw": MethodDefinition(
         key="direct_llm_excalidraw",
@@ -80,7 +80,7 @@ _METHOD_DEFINITIONS: Dict[str, MethodDefinition] = {
     ),
 }
 
-_DEFAULT_METHOD_KEYS = ("evodiagram", "direct_llm_excalidraw", "mermaid")
+_DEFAULT_METHOD_KEYS = ("evodesign", "direct_llm_excalidraw", "mermaid")
 
 _DIMENSIONS = ["content_dimension", "visual_dimension", "cognitive_dimension"]
 
@@ -114,6 +114,7 @@ def _resolve_methods(
     method_keys = list(configured_methods or _DEFAULT_METHOD_KEYS)
     methods: List[MethodDefinition] = []
     for key in method_keys:
+        key = canonical_method_name(key)
         if key not in _METHOD_DEFINITIONS:
             raise ValueError(f"unknown research method: {key}")
         methods.append(_METHOD_DEFINITIONS[key])
@@ -131,10 +132,12 @@ def _load_eval_json(
     """Locate and load the per-(method, sample) eval JSON, or return None."""
     eval_method = method.evaluation_method(model_segment)
     _, score_dir, _ = parse_method_paths(eval_method, data_id, exp_id=exp_id)
-    candidate = score_dir / f"{data_id}.json"
+    candidate = resolve_existing_artifact(score_dir / f"{data_id}.json")
     if not candidate.exists():
         legacy_candidate = method.legacy_eval_dir(model, model_segment, data_id) / f"{data_id}.json"
         candidate = legacy_candidate
+        if not candidate.exists() and method.key == "evodesign":
+            candidate = _REPO_ROOT / "results" / "evaluations" / legacy_method_name(method.key) / data_id / f"{data_id}.json"
     if not candidate.exists():
         return None
     try:
@@ -367,23 +370,23 @@ def aggregate(
         cells = [_fmt(_mean(method_avgs[label])) for label in method_labels]
         lines.append(f"| {t} | " + " | ".join(cells) + " |")
 
-    # ---- 4. Head-to-head deltas (evodiagram vs each baseline) -------------
-    baseline_labels = [label for label in method_labels if label != "evodiagram"]
-    if "evodiagram" in method_labels and baseline_labels:
+    # ---- 4. Head-to-head deltas (evodesign vs each baseline) -------------
+    baseline_labels = [label for label in method_labels if label != "evodesign"]
+    if "evodesign" in method_labels and baseline_labels:
         def _fmt_delta(x):
             return f"{x:+.2f}" if isinstance(x, (int, float)) else "—"
 
         lines.append("")
-        lines.append("## 4. Head-to-head: evodiagram - baseline (per sample, avg)")
+        lines.append("## 4. Head-to-head: evodesign - baseline (per sample, avg)")
         lines.append("")
-        lines.append("Positive = evodiagram wins. Mean shown at the bottom.")
+        lines.append("Positive = evodesign wins. Mean shown at the bottom.")
         lines.append("")
         lines.append("| data_id | " + " | ".join(f"Δ vs {label}" for label in baseline_labels) + " |")
         lines.append("|---|" + "|".join(["---:"] * len(baseline_labels)) + "|")
         deltas_by_label: Dict[str, List[float]] = {label: [] for label in baseline_labels}
         for s in samples:
             did = s["id"]
-            evo = avg_grid.get((did, "evodiagram"))
+            evo = avg_grid.get((did, "evodesign"))
             row_deltas: List[Optional[float]] = []
             for label in baseline_labels:
                 baseline_value = avg_grid.get((did, label))
@@ -404,7 +407,7 @@ def aggregate(
             mean_delta = _mean(values)
             wins = sum(1 for x in values if x > 0)
             summary_cells.append(
-                f"{_fmt_delta(mean_delta)} (evodiagram wins {wins}/{len(values)})"
+                f"{_fmt_delta(mean_delta)} (evodesign wins {wins}/{len(values)})"
             )
         lines.append("| **mean** | " + " | ".join(summary_cells) + " |")
 

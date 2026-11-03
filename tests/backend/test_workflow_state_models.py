@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from evo_diagram.agentic_system.generation_stage.structure.state import WorkflowState
-from evo_diagram.agentic_system.refinement_stage.reports.refiner_report import build_refiner_report
-from evo_diagram.agentic_system.refinement_stage.state import VerifierRefinerState
-from evo_diagram.agentic_system.verification_stage.checks.finding import Finding, Severity
-from evo_diagram.agentic_system.verification_stage.reports.report_builder import build_report
-from evo_diagram.agentic_system.verification_stage.state import VerifierState
+from evodesign.agentic_system.generation_stage.structure.state import WorkflowState
+from evodesign.agentic_system.refinement_stage.reports.refiner_report import build_refiner_report
+from evodesign.agentic_system.refinement_stage.state import VerifierRefinerState
+from evodesign.agentic_system.verification_stage.checks.finding import Finding, Severity
+from evodesign.agentic_system.verification_stage.reports.report_builder import build_report
+from evodesign.agentic_system.verification_stage.state import VerifierState
 
 
 def _assert_utc_z_timestamp(value: str) -> None:

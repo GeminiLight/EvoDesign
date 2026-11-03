@@ -348,8 +348,8 @@ def _make_generated_image(tmp_path):
         / "experiments"
         / "exp1"
         / "outputs"
-        / "evodiagram"
-        / "evodiagram"
+        / "evodesign"
+        / "evodesign"
         / "model-a"
         / "s1"
         / "rendered_diagram.png"
@@ -365,8 +365,8 @@ def _result_path(tmp_path):
         / "experiments"
         / "exp1"
         / "scores"
-        / "evodiagram"
-        / "evodiagram"
+        / "evodesign"
+        / "evodesign"
         / "model-a"
         / "s1"
         / "s1.json"
@@ -426,7 +426,7 @@ def _run_item(evaluator, judge_runs, signature):
         data_item={"id": "s1", "content": "text"},
         evaluator=evaluator,
         metrics=[METRIC],
-        method="evodiagram/model-a",
+        method="evodesign/model-a",
         exp_id="exp1",
         run_signature=signature,
         judge_runs=judge_runs,
@@ -532,7 +532,7 @@ def _write_scored_result(method_dir, data_id, score, judge_runs=None):
 
 
 def test_analysis_reports_judge_retest_variance(tmp_path):
-    method_dir = tmp_path / "scores" / "evodiagram" / "evodiagram" / "kimi-k3"
+    method_dir = tmp_path / "scores" / "evodesign" / "evodesign" / "kimi-k3"
     _write_scored_result(
         method_dir,
         "s1",
@@ -566,7 +566,7 @@ def test_analysis_reports_judge_retest_variance(tmp_path):
 
 
 def test_analysis_recomputes_std_when_the_field_is_missing(tmp_path):
-    method_dir = tmp_path / "scores" / "evodiagram" / "evodiagram" / "kimi-k3"
+    method_dir = tmp_path / "scores" / "evodesign" / "evodesign" / "kimi-k3"
     _write_scored_result(
         method_dir,
         "s1",
@@ -583,7 +583,7 @@ def test_analysis_recomputes_std_when_the_field_is_missing(tmp_path):
 
 
 def test_analysis_output_is_unchanged_without_judge_runs(tmp_path):
-    method_dir = tmp_path / "scores" / "evodiagram" / "evodiagram" / "kimi-k3"
+    method_dir = tmp_path / "scores" / "evodesign" / "evodesign" / "kimi-k3"
     _write_scored_result(method_dir, "s1", 4)
     _write_scored_result(method_dir, "s2", 5)
 

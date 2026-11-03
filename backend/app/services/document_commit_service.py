@@ -78,7 +78,7 @@ async def commit_document(
         )
     previous = copy.deepcopy(project.latest_schema or {})
     if source in {'AI_GEN', 'AGENT'} and (canvas_library or project.canvas_engine) == 'excalidraw':
-        from evo_diagram.canvas_environment import assert_preserves_locks
+        from evodesign.canvas_environment import assert_preserves_locks
         assert_preserves_locks(previous, schema)
     result = await db.execute(update(Project).where(
         Project.project_id == project.project_id, Project.user_id == project.user_id,

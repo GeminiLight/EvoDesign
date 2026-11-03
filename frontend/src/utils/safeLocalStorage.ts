@@ -6,6 +6,8 @@
  * `window.localStorage` throws a SecurityError. Startup-time reads run inside
  * `useState` initializers at the root of the app, so an unguarded throw there
  * takes down the whole render tree and the user gets a blank page.
+ * Persisted evodiagram_* and smartdiagram_* keys remain stable compatibility
+ * identifiers, so a package/brand rename never hides projects, DNA or settings.
  */
 
 const canUseLocalStorage = (): boolean => {

@@ -148,15 +148,15 @@ def test_create_backend_llm_prepares_engine_imports_lazily(monkeypatch):
             create_calls.append(kwargs)
             return "fake-model"
 
-    core_module = ModuleType("evo_diagram.core")
-    factory_module = ModuleType("evo_diagram.core.llm_factory")
+    core_module = ModuleType("evodesign.core")
+    factory_module = ModuleType("evodesign.core.llm_factory")
     factory_module.LLMFactory = FakeLLMFactory
 
-    monkeypatch.setitem(sys.modules, "evo_diagram.core", core_module)
-    monkeypatch.setitem(sys.modules, "evo_diagram.core.llm_factory", factory_module)
+    monkeypatch.setitem(sys.modules, "evodesign.core", core_module)
+    monkeypatch.setitem(sys.modules, "evodesign.core.llm_factory", factory_module)
     monkeypatch.setattr(
         llm_client,
-        "ensure_evo_diagram_importable",
+        "ensure_evodesign_importable",
         lambda: ensure_calls.append(True),
     )
 
@@ -171,7 +171,7 @@ def test_create_backend_llm_missing_api_key_fails_before_engine_import(monkeypat
     ensure_calls = []
     monkeypatch.setattr(
         llm_client,
-        "ensure_evo_diagram_importable",
+        "ensure_evodesign_importable",
         lambda: ensure_calls.append(True),
     )
 

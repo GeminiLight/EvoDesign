@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 from PIL import Image
 
 _DIAG_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-from evo_diagram.core.experiment import get_experiment_id, get_baseline_output_dir
+from evodesign.core.experiment import get_experiment_id, get_baseline_output_dir
 
 class DiagramAgentEvaluator:
     def __init__(self, use_gpt4o: bool = True, output_dir: Optional[str] = None):
@@ -23,7 +23,7 @@ class DiagramAgentEvaluator:
     def evaluate_on_canvasbench(self, canvasbench_data: list) -> dict:
         """
         canvasbench_data: list of {"query": str, "content": str, "image": str, "type": str}
-        返回与 EvoDiagram 相同的 9 维评估指标
+        返回与 EvoDesign 相同的 9 维评估指标
         """
         results = []
 
@@ -68,7 +68,7 @@ def _compose_generation_input(query: str, content: str) -> str:
     ``query or content`` short-circuited on the query, and every dataset item
     has a non-empty query, so the source content never reached the model while
     the judge still scored content fidelity against it. Other baselines
-    (baselines/scisketch/src/custom_main.py, evo_diagram/agentic_system/main.py)
+    (baselines/scisketch/src/custom_main.py, evodesign/agentic_system/main.py)
     consume both fields.
     """
     q = (query or "").strip()

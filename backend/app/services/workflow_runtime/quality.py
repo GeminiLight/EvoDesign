@@ -1,6 +1,6 @@
 """Backend access to the shared engine quality and user-constraint contracts."""
-from evo_diagram.agentic_system.common.design_constraints import build_design_constraints
-from evo_diagram.agentic_system.quality_policy import (
+from evodesign.agentic_system.common.design_constraints import build_design_constraints
+from evodesign.agentic_system.quality_policy import (
     quality_regressed,
     quality_status,
     quality_summary,

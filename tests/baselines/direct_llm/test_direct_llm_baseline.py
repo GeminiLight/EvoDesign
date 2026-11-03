@@ -88,7 +88,7 @@ def test_process_dataset_outputs_are_grouped_by_sample_id(monkeypatch, tmp_path)
 
 def test_resolve_named_model_config_uses_public_model_loader(monkeypatch):
     from baselines.direct_llm import main as direct_main
-    from evo_diagram.config.model_loader import ModelConfig
+    from evodesign.config.model_loader import ModelConfig
 
     class FakeModelConfig:
         def list_models(self):
@@ -124,7 +124,7 @@ def test_resolve_named_model_config_uses_public_model_loader(monkeypatch):
 
 def test_resolve_named_model_config_fails_fast_for_broken_declared_model(monkeypatch):
     from baselines.direct_llm import main as direct_main
-    from evo_diagram.config.model_loader import ModelConfig
+    from evodesign.config.model_loader import ModelConfig
 
     class FakeModelConfig:
         def list_models(self):

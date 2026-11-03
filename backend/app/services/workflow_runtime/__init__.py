@@ -1,4 +1,4 @@
-"""Runtime helpers for backend-to-EvoDiagram workflow integration."""
+"""Runtime helpers for backend-to-EvoDesign workflow integration."""
 
 from app.services.workflow_runtime.events import (
     RefineCompletion,

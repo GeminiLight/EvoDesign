@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from evo_diagram.user_memory.extractors.dna_extractor import (
+from evodesign.user_memory.extractors.dna_extractor import (
     DnaImageExtractor,
     DnaRuleExtractionError,
 )

@@ -7,7 +7,7 @@ import argparse
 from typing import Optional
 
 from dotenv import load_dotenv
-from evo_diagram.utils.env_loader import ensure_env_loaded
+from evodesign.utils.env_loader import ensure_env_loaded
 
 from baselines.pixel.prompts import IMAGE_GENERATOR_PROMPT
 
@@ -51,7 +51,7 @@ class GeminiImageGenerator:
         except ImportError:
             logger.error(
                 "google-genai is required for Gemini image generation. "
-                "Install the baseline extras with `pip install 'evo-diagram[baselines]'`."
+                "Install the baseline extras with `pip install 'evodesign[baselines]'`."
             )
             raise
         except Exception as e:

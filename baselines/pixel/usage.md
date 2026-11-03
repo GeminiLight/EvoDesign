@@ -44,7 +44,7 @@ python -m baselines.pixel.apimart_image_generator \
 | `--resolution` | 部分模型支持的分辨率，例如 `1K`、`2K`、`4K` |
 | `--image-urls` | 参考图片 URL 列表 |
 
-当前 `apimart_image_generator.py` 没有数据集批处理 CLI。如果需要批量跑 Apimart，应先补一个真实脚本并接入 `evo_diagram.core.experiment.get_baseline_output_dir()`，不要复用已经不存在的旧命令名。
+当前 `apimart_image_generator.py` 没有数据集批处理 CLI。如果需要批量跑 Apimart，应先补一个真实脚本并接入 `evodesign.core.experiment.get_baseline_output_dir()`，不要复用已经不存在的旧命令名。
 
 ## Gemini 单图生成
 

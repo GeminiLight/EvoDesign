@@ -1,12 +1,12 @@
 """
-Round orchestrator for the EvoDiagram research loop.
+Round orchestrator for the EvoDesign research loop.
 
 Reads a samples.json (built by build_test_subset.py), runs three methods on
 each sample, and writes the rendered PNGs to the canonical experiments layout
 expected by `evaluation/path_resolver.py` so that `evaluation.run_evaluation`
 can score them without further plumbing:
 
-    experiments/<exp_id>/outputs/evodiagram/evodiagram/<model>/<data_id>/rendered_diagram.png
+    experiments/<exp_id>/outputs/evodesign/evodesign/<model>/<data_id>/rendered_diagram.png
     experiments/<exp_id>/outputs/baseline/direct_llm/<model>/<data_id>/render.png
     experiments/<exp_id>/outputs/baseline/code_mermaid/<model>/<data_id>/render.png
 
@@ -27,7 +27,7 @@ Usage
     -m scripts.research.run_round \\
         --samples results/research/round0_baseline/samples.json \\
         --round-dir results/research/round0_baseline \\
-        --methods evodiagram direct_llm_excalidraw mermaid \\
+        --methods evodesign direct_llm_excalidraw mermaid \\
         --model-tag gpt-5.5 \\
         --limit 1                    # pilot first; drop --limit for full run
 
@@ -52,9 +52,11 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from evo_diagram.core.experiment import (  # noqa: E402
+from evodesign.core.experiment import (  # noqa: E402
     get_baseline_output_dir,
-    get_evodiagram_output_dir,
+    get_evodesign_output_dir,
+    canonical_method_name,
+    resolve_existing_artifact,
     get_experiment_id,
 )
 from scripts.research.build_test_subset import sample_diagram_type  # noqa: E402
@@ -88,7 +90,7 @@ def _llm_config_from_env() -> Dict[str, Any]:
 
 
 def _ensure_env() -> None:
-    from evo_diagram.utils.env_loader import ensure_env_loaded
+    from evodesign.utils.env_loader import ensure_env_loaded
 
     ensure_env_loaded()
 
@@ -103,20 +105,20 @@ def _model_segment(model_tag: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _run_evodiagram(
+def _run_evodesign(
     sample: Dict[str, Any],
     dataset_path: Path,
     model_tag: str,
     exp_id: str | None = None,
 ) -> Dict[str, Any]:
-    """Invoke the evodiagram CLI for a single sample id."""
+    """Invoke the evodesign CLI for a single sample id."""
     data_id = sample["id"]
     resolved_exp_id = exp_id or get_experiment_id()
     model_id = _model_segment(model_tag)
     cmd = [
         sys.executable,
         "-m",
-        "evo_diagram.agentic_system.main",
+        "evodesign.agentic_system.main",
         "--ids",
         data_id,
         "--dataset-path",
@@ -144,13 +146,13 @@ def _run_evodiagram(
     elapsed = time.time() - started
 
     output_path = (
-        get_evodiagram_output_dir("evodiagram", model_id, resolved_exp_id)
+        get_evodesign_output_dir("evodesign", model_id, resolved_exp_id)
         / data_id
         / "rendered_diagram.png"
     )
     rendered = output_path.exists()
     return {
-        "method": "evodiagram",
+        "method": "evodesign",
         "data_id": data_id,
         "elapsed_s": round(elapsed, 2),
         "exit_code": proc.returncode,
@@ -214,7 +216,7 @@ def _run_mermaid(
     exp_id: str | None = None,
 ) -> Dict[str, Any]:
     """Run the mermaid baseline: LLM emits Mermaid code -> Kroki -> PNG."""
-    from evo_diagram.core.llm_factory import LLMFactory
+    from evodesign.core.llm_factory import LLMFactory
 
     # Local imports avoid relying on `baselines.programmic.mermaid` package init
     sys.path.insert(0, str(_REPO_ROOT / "baselines" / "programmic" / "mermaid"))
@@ -288,7 +290,7 @@ def _run_mermaid(
 
 
 _METHOD_DISPATCH = {
-    "evodiagram": _run_evodiagram,
+    "evodesign": _run_evodesign,
     "direct_llm_excalidraw": _run_direct_llm_excalidraw,
     "mermaid": _run_mermaid,
 }
@@ -301,7 +303,8 @@ def main() -> None:
     parser.add_argument(
         "--methods",
         nargs="+",
-        default=["evodiagram", "direct_llm_excalidraw", "mermaid"],
+        type=canonical_method_name,
+        default=["evodesign", "direct_llm_excalidraw", "mermaid"],
         choices=list(_METHOD_DISPATCH),
     )
     parser.add_argument("--model-tag", default="gpt-5.5")
@@ -313,7 +316,7 @@ def main() -> None:
     parser.add_argument(
         "--dataset-path",
         default="dataset/test/data.json",
-        help="Original dataset path for evodiagram CLI's --dataset-path argument",
+        help="Original dataset path for evodesign CLI's --dataset-path argument",
     )
     parser.add_argument(
         "--limit",
@@ -390,7 +393,7 @@ def main() -> None:
 
             runner = _METHOD_DISPATCH[method]
             try:
-                if method == "evodiagram":
+                if method == "evodesign":
                     res = runner(
                         sample,
                         dataset_path=dataset_path,
@@ -433,9 +436,10 @@ def main() -> None:
 def _expected_png(method: str, data_id: str, model_tag: str, exp_id: str | None = None) -> Path:
     resolved_exp_id = exp_id or get_experiment_id()
     model_id = _model_segment(model_tag)
-    if method == "evodiagram":
-        return (
-            get_evodiagram_output_dir("evodiagram", model_id, resolved_exp_id)
+    method = canonical_method_name(method)
+    if method == "evodesign":
+        return resolve_existing_artifact(
+            get_evodesign_output_dir("evodesign", model_id, resolved_exp_id)
             / data_id
             / "rendered_diagram.png"
         )

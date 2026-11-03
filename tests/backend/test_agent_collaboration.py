@@ -156,7 +156,7 @@ async def test_long_generation_preserves_result_without_overwriting_newer_docume
 
 @pytest.mark.asyncio
 async def test_automatic_commit_rechecks_the_original_shared_selection(workspace):
-    from evo_diagram.canvas_environment import apply_operations
+    from evodesign.canvas_environment import apply_operations
     db, project, owner = workspace
     project.latest_schema = apply_operations({'elements': []}, [
         {'op': 'add_node', 'id': 'selected', 'x': 0, 'y': 0,

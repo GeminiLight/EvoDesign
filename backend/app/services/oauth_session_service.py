@@ -46,6 +46,7 @@ OAUTH_TOKEN_VALIDATION_FAILED_MESSAGE = "Token validation failed"
 OAUTH_PROVIDER_UNAVAILABLE_DETAIL = "OAuth provider is not configured."
 INVALID_OAUTH_CODE_DETAIL = "Invalid or expired OAuth code."
 OAUTH_TOKEN_VALIDATION_DETAIL = "OAuth token validation failed."
+# Stable cookie name keeps in-flight OAuth attempts valid across the rename.
 OAUTH_STATE_COOKIE_NAME = "evodiagram_oauth_state"
 # Matches where the auth router is mounted (/api + /v1 + /auth).
 OAUTH_STATE_COOKIE_PATH = "/api/v1/auth"
@@ -58,7 +59,7 @@ OAUTH_STATE_COOKIE_MAX_ENTRIES = 3
 # The callback hands the browser that completed the login an httpOnly cookie
 # bound to its exchange code; /auth/exchange requires it, so a ?code= link
 # planted in another browser (login CSRF) cannot sign that browser in.
-OAUTH_EXCHANGE_COOKIE_NAME = "evodiagram_oauth_exchange"
+OAUTH_EXCHANGE_COOKIE_NAME = "evodesign_oauth_exchange"
 
 
 class OAuthClient(Protocol):

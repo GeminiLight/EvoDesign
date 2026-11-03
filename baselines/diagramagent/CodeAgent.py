@@ -5,7 +5,7 @@ from typing import Optional
 from dotenv import load_dotenv
 from openai import OpenAI
 
-# Parity with the EvoDiagram generator (evo_diagram/agentic_system/main.py uses
+# Parity with the EvoDesign generator (evodesign/agentic_system/main.py uses
 # max_tokens=16384 / max_retries=6; configs/models.yaml pins temperature 0).
 LLM_MAX_RETRIES = 6
 LLM_MAX_TOKENS = 16384
@@ -19,7 +19,7 @@ class CodeAgent:
         self.llm_api_key, self.llm_base_url = self._pick_llm_endpoint()
         self.llm_model = (os.getenv("ELYSIVER_MODEL") or os.getenv("OPENAI_MODEL") or "gpt-4o-mini").strip()
         # This agent does not inherit BaseAgent, so the retry/decoding settings
-        # EvoDiagram gets for free have to be set here explicitly.
+        # EvoDesign gets for free have to be set here explicitly.
         self.client = OpenAI(
             api_key=self.llm_api_key,
             base_url=self.llm_base_url,

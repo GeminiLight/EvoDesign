@@ -5,10 +5,10 @@ import pytest
 
 from app.services.workflow_runtime.refiner import _should_run_refiner
 from app.services.workflow_runtime.quality import quality_regressed
-from evo_diagram.agentic_system.quality_policy import quality_status, quality_summary
-from evo_diagram.agentic_system.workflow import _refinement_regression_reason
-from evo_diagram.agentic_system.verification_stage.critic.critic_agent import _coerce_critique
-from evo_diagram.agentic_system.common.design_constraints import build_design_constraints
+from evodesign.agentic_system.quality_policy import quality_status, quality_summary
+from evodesign.agentic_system.workflow import _refinement_regression_reason
+from evodesign.agentic_system.verification_stage.critic.critic_agent import _coerce_critique
+from evodesign.agentic_system.common.design_constraints import build_design_constraints
 
 
 def state(score, **counts):
@@ -35,8 +35,8 @@ def test_a_clean_draft_does_not_trigger_another_model_call():
 
 
 def test_low_score_no_op_is_not_reported_as_resolved():
-    from evo_diagram.agentic_system.iterative_workflow import _mark_convergence
-    from evo_diagram.agentic_system.refinement_stage.state import VerifierRefinerState, IterationLog
+    from evodesign.agentic_system.iterative_workflow import _mark_convergence
+    from evodesign.agentic_system.refinement_stage.state import VerifierRefinerState, IterationLog
     candidate = VerifierRefinerState(manifest_path="unused", image_path="unused",
         initial_report={"subjective": {"overall_score": 6}})
     _mark_convergence(candidate, log=IterationLog(iteration=1, findings_before={}),
@@ -59,7 +59,7 @@ def test_constraint_violations_survive_parsing_and_block_adoption():
 
 
 def test_refinement_receives_authoritative_partial_icon_coverage_and_dna():
-    from evo_diagram.agentic_system.refinement_stage.agent.prompts import build_refiner_user_prompt
+    from evodesign.agentic_system.refinement_stage.agent.prompts import build_refiner_user_prompt
     constraints = build_design_constraints(source_text="Keep both feedback loops",
         requirements="No icon on Publish", design_expertise="Use blue and violet",
         use_icons=True, locked_nodes=["n1"])
@@ -69,8 +69,8 @@ def test_refinement_receives_authoritative_partial_icon_coverage_and_dna():
 
 
 def test_locked_node_and_bound_text_reject_a_conflicting_edit_batch(monkeypatch):
-    from evo_diagram.agentic_system import iterative_workflow as iw
-    from evo_diagram.agentic_system.refinement_stage.state import VerifierRefinerState, IterationLog, EditOp
+    from evodesign.agentic_system import iterative_workflow as iw
+    from evodesign.agentic_system.refinement_stage.state import VerifierRefinerState, IterationLog, EditOp
     manifest = {"elements": [{"id": "node", "type": "rectangle", "x": 10, "y": 20,
                                "width": 100, "height": 50}], "_meta": {"id_map": {"n1": "node"}}}
     candidate = VerifierRefinerState(manifest_path="unused", image_path="unused", manifest=manifest,
@@ -84,7 +84,7 @@ def test_locked_node_and_bound_text_reject_a_conflicting_edit_batch(monkeypatch)
 
 
 def test_explicit_diagram_type_skips_router_and_keeps_validation():
-    from evo_diagram.agentic_system.generation_stage.workflow import PipelineGeneratorWorkflow
+    from evodesign.agentic_system.generation_stage.workflow import PipelineGeneratorWorkflow
     generator = object.__new__(PipelineGeneratorWorkflow)
     generator._router = SimpleNamespace(run=lambda *a: pytest.fail("Known type must not call Router"))
     diagram_type, _ = generator.resolve_generation_context("A to B", "flow", "flow")
@@ -94,8 +94,8 @@ def test_explicit_diagram_type_skips_router_and_keeps_validation():
 
 
 def test_prepared_geometry_repair_preserves_locked_elements_without_proposals(monkeypatch):
-    from evo_diagram.agentic_system import iterative_workflow as iw
-    from evo_diagram.agentic_system.refinement_stage.state import VerifierRefinerState, IterationLog
+    from evodesign.agentic_system import iterative_workflow as iw
+    from evodesign.agentic_system.refinement_stage.state import VerifierRefinerState, IterationLog
     candidate = VerifierRefinerState(manifest_path="unused", image_path="unused",
         manifest={"elements": [{"id": "n", "type": "rectangle", "x": 10}]},
         design_constraints=build_design_constraints(locked_nodes=["n"]))
@@ -108,7 +108,7 @@ def test_prepared_geometry_repair_preserves_locked_elements_without_proposals(mo
 
 
 def test_learning_requires_verified_gain_and_accepts_corrected_user_constraints():
-    from evo_diagram.agentic_system.quality_policy import verified_learning_gain
+    from evodesign.agentic_system.quality_policy import verified_learning_gain
     before = {"score": 9, "findings": {}, "constraint_violations": ["wrong colors"]}
     after = {"score": 9, "findings": {}, "constraint_violations": []}
     assert verified_learning_gain(before, after)
@@ -117,7 +117,7 @@ def test_learning_requires_verified_gain_and_accepts_corrected_user_constraints(
 
 
 def test_incomplete_objective_checks_cannot_be_marked_passed_or_learned():
-    from evo_diagram.agentic_system.quality_policy import verified_learning_gain
+    from evodesign.agentic_system.quality_policy import verified_learning_gain
     broken = state(9)
     broken.has_blocking_errors = True
     summary = quality_summary(broken)

@@ -53,7 +53,7 @@ Try the [browser edition](https://evodesign.aurax.live/) with the shared GLM-5.3
 | **Design expertise** | Retrieve reusable strategies from 129 bundled seed entries and evolve knowledge through feedback |
 | **Research tooling** | Run baseline adapters, ablations and evaluation with your own data |
 
-Excalidraw is the default canvas. TLDraw remains an optional adapter. Icons are optional and the default curated catalog is bundled. The Python import path `evo_diagram` is retained for compatibility; the project and algorithm are **EvoDesign**.
+Excalidraw is the default canvas. TLDraw remains an optional adapter. Icons are optional and the default curated catalog is bundled. The project, Python package (`evodesign`) and CLI command use the **EvoDesign** name. See the [package migration notes](docs/guides/configuration.md#package-name-migration) when upgrading an older checkout.
 
 ## Try it online
 
@@ -95,7 +95,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e ".[backend,test]"
 npm ci --prefix frontend
-npm ci --prefix evo_diagram/agentic_system/tool_services
+npm ci --prefix evodesign/agentic_system/tool_services
 python scripts/setup_local.py
 ```
 
@@ -107,7 +107,7 @@ Fill **`LLM_MODEL_NAME`**, **`LLM_ENDPOINT_URL`** and **`LLM_API_KEY`** in the g
 
 Open **http://localhost:5175**. The API is on port 3010 and rendering service on 3000. Stop with `./scripts/stop_service.sh`. The local setup creates unique secrets and matching guest configuration. Existing `.env` files are never overwritten. See [configuration](docs/guides/configuration.md) for provider selection, optional features and hosted deployment boundaries.
 
-The renderer needs Playwright Chromium for image export. On a machine without it, run `cd evo_diagram/agentic_system/tool_services && npx playwright install chromium`. Linux may need `npx playwright install --with-deps chromium` and native Canvas libraries (`libcairo2-dev`, `libpango1.0-dev`, `libjpeg-dev`, `libgif-dev`, `librsvg2-dev`, `pkg-config`). The first design-memory run may download its embedding model.
+The renderer needs Playwright Chromium for image export. On a machine without it, run `cd evodesign/agentic_system/tool_services && npx playwright install chromium`. Linux may need `npx playwright install --with-deps chromium` and native Canvas libraries (`libcairo2-dev`, `libpango1.0-dev`, `libjpeg-dev`, `libgif-dev`, `librsvg2-dev`, `pkg-config`). The first design-memory run may download its embedding model.
 
 ### Work with your existing Agent
 
@@ -128,9 +128,9 @@ This v1 uses the backend edition; browser-local projects, MCP and TLDraw editing
 With the Python environment, model configuration and renderer running:
 
 ```sh
-python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json
+python -m evodesign.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json
 # For the research CLI, enable icons explicitly (new web diagrams default on):
-python -m evo_diagram.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json --use-icons
+python -m evodesign.agentic_system.main --example 1 --dataset-path examples/diagrams/quickstart.json --use-icons
 ```
 
 Use `--help` for custom input, refinement, ablations and personal edit-learning options. [Reproducibility notes](research/reproducibility.md) explain model/judge configuration, experiment records and the distinction between this maintained release and the manuscript's reported scores.
@@ -154,7 +154,7 @@ The repository includes the implementation, evaluation tools and baseline adapte
 ## Repository map
 
 ```text
-evo_diagram/          Core agents, refinement, memory and renderer service
+evodesign/          Core agents, refinement, memory and renderer service
 backend/              FastAPI, projects, authentication and personal DNA
 frontend/             React workspace and editable canvas adapters
 cli/                  Standalone Agent CLI (no engine installation required)

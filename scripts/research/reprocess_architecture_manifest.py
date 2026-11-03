@@ -13,16 +13,16 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
-from evo_diagram.agentic_system.render_engine.excalidraw.architecture_style_normalizer import (
+from evodesign.agentic_system.render_engine.excalidraw.architecture_style_normalizer import (
     normalize_architecture_style,
 )
-from evo_diagram.agentic_system.render_engine.excalidraw.arrow_adder import (
+from evodesign.agentic_system.render_engine.excalidraw.arrow_adder import (
     rebuild_excalidraw_arrows,
 )
-from evo_diagram.agentic_system.render_engine.excalidraw.layered_layout_compactor import (
+from evodesign.agentic_system.render_engine.excalidraw.layered_layout_compactor import (
     compact_architecture_layout,
 )
-from evo_diagram.canvas_environment import normalize_manifest, render_png_result
+from evodesign.canvas_environment import normalize_manifest, render_png_result
 
 
 def _load_manifest(path: Path) -> Dict[str, Any]:

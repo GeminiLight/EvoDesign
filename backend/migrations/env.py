@@ -1,4 +1,4 @@
-"""Alembic environment for the EvoDiagram backend (async engines).
+"""Alembic environment for the EvoDesign backend (async engines).
 
 The database URL is resolved from application settings (app.config), so
 migrations always target the same database as the running service. Both
@@ -19,9 +19,9 @@ from sqlalchemy.ext.asyncio import async_engine_from_config, create_async_engine
 
 from alembic import context
 
-# Make `app` (backend/) and `evo_diagram` (repo root) importable no matter
+# Make `app` (backend/) and `evodesign` (repo root) importable no matter
 # which directory alembic was invoked from. app.config transitively imports
-# evo_diagram.utils.env_loader.
+# evodesign.utils.env_loader.
 _BACKEND_ROOT = Path(__file__).resolve().parents[1]
 _REPO_ROOT = _BACKEND_ROOT.parent
 for _path in (str(_BACKEND_ROOT), str(_REPO_ROOT)):

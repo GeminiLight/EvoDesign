@@ -33,7 +33,7 @@ jobs:
       - name: Verify installed CLI without engine dependencies
         run: |
           evodesign --version
-          python -I -c "import importlib.util, evodesign_cli.main; assert importlib.util.find_spec('evo_diagram') is None"
+          python -I -c "import importlib.util, evodesign_cli.main; assert importlib.util.find_spec('evodesign') is None"
           python -m pytest -c cli/pyproject.toml cli/tests
 
   python:
@@ -150,10 +150,10 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: evo_diagram/agentic_system/tool_services/package-lock.json
+          cache-dependency-path: evodesign/agentic_system/tool_services/package-lock.json
 
       - name: Install renderer dependencies
-        run: npm ci --prefix evo_diagram/agentic_system/tool_services
+        run: npm ci --prefix evodesign/agentic_system/tool_services
 
       - name: Run renderer quality gate
         run: ./scripts/check_quality.sh renderer

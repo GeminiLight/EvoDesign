@@ -374,7 +374,7 @@ class Settings(BaseSettings):
     db_type: str = "sqlite"  # sqlite 或 postgres
     db_host: str = "localhost"
     db_port: int = 5432
-    db_name: str = "evodiagram"
+    db_name: str = "evodesign"
     db_user: str = "postgres"
     db_password: str | None = None
 
@@ -494,7 +494,7 @@ alembic upgrade head
 
 1. **SQLite 数据导出**
    ```bash
-   sqlite3 evodiagram.db .dump > backup.sql
+   sqlite3 evodesign.db .dump > backup.sql
    ```
 
 2. **PostgreSQL 数据导入**

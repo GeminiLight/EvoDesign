@@ -50,7 +50,7 @@ Skill、CLI、Web 共用同一份正式文档，不分别维护三份图。Skill
 | `agent_artifact_service.py` | 私有 PNG 缓存的受限回收，不跟随符号链接 |
 | `document_commit_service.py` | 所有正式文档写入共用的版本条件更新与快照处理 |
 | `schema_service.py` / `diagram_persistence_service.py` | 人工保存与原有生成接入同一提交边界 |
-| `evo_diagram/canvas_environment/editing.py` | 六类确定性 Excalidraw 操作及锁定保护，经公共 facade 暴露 |
+| `evodesign/canvas_environment/editing.py` | 六类确定性 Excalidraw 操作及锁定保护，经公共 facade 暴露 |
 | `frontend/src/services/agentApi.ts` | Web 的协作 API、超时、身份变化与私有 PNG 请求 |
 | `useRemoteDocument.ts` / `remoteDocumentPolicy.ts` | 轻量轮询、历史视图与草稿保护、显式采用 |
 | `AgentConnectPage.tsx` / `AgentConnectionPanel.tsx` | 项目批准、连接、候选、真实预览、检查点与草稿比较 |

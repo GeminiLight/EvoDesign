@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Protocol, Sequence
 
 from app.core.exceptions import PublicErrorMixin
-from app.core.evo_imports import ensure_evo_diagram_importable
+from app.core.evo_imports import ensure_evodesign_importable
 
 
 DNA_IMAGE_INVALID_DETAIL = "Uploaded image is invalid"
@@ -102,8 +102,8 @@ ExtractorFactory = Callable[[], DnaRuleExtractor]
 
 def _default_extractor_factory() -> DnaRuleExtractor:
     try:
-        ensure_evo_diagram_importable()
-        from evo_diagram.user_memory.extractors.dna_extractor import (
+        ensure_evodesign_importable()
+        from evodesign.user_memory.extractors.dna_extractor import (
             DnaImageExtractor,
             DnaRuleExtractionError,
         )

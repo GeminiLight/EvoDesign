@@ -125,7 +125,7 @@ def _should_run_refiner(
     if getattr(workflow, "always_refine", False):
         return True
 
-    from evo_diagram.agentic_system.quality_policy import should_refine
+    from evodesign.agentic_system.quality_policy import should_refine
     return should_refine(verifier_state)
 
 

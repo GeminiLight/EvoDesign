@@ -1,6 +1,6 @@
 # Dataset Construction
 
-按论文 CanvasBench 管线（`research/evo_diagram/sections/appendix/canvas-benchmark.tex`）重建数据集图片。
+按论文 CanvasBench 管线（`research/evodesign/sections/appendix/canvas-benchmark.tex`）重建数据集图片。
 
 ## 背景
 

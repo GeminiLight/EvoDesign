@@ -81,7 +81,7 @@ EXPECTED_V1_ROUTES: tuple[RouteContract, ...] = (
 
 def _settings():
     return SimpleNamespace(
-        app_name="Test EvoDiagram API",
+        app_name="Test EvoDesign API",
         app_version="test",
         debug=False,
         cors_origins_list=["http://localhost:5175"],

@@ -10,7 +10,7 @@
 # variable where noted. CLI --settings can select an alternate file.
 #
 # Usage:
-#   python -m evo_diagram.agentic_system.main --example 1 --settings configs/settings.yaml
+#   python -m evodesign.agentic_system.main --example 1 --settings configs/settings.yaml
 # ============================================================================
 
 experiment:

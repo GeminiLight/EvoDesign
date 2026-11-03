@@ -8,7 +8,7 @@ from typing import Any, Callable, Mapping, Protocol
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from evo_diagram.canvas_environment import EditError
+from evodesign.canvas_environment import EditError
 
 from app.core.exceptions import (
     LOWERCASE_PROJECT_NOT_FOUND_DETAIL,

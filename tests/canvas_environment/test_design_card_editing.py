@@ -3,9 +3,9 @@ import copy
 
 import pytest
 
-from evo_diagram.canvas_environment.editing import EditError, apply_operations, assert_preserves_locks
-from evo_diagram.agentic_system.render_engine.excalidraw.architecture_design_system import apply_architecture_design_system
-from evo_diagram.tests.render_engine.test_architecture_design_system import manifest, structure
+from evodesign.canvas_environment.editing import EditError, apply_operations, assert_preserves_locks
+from evodesign.agentic_system.render_engine.excalidraw.architecture_design_system import apply_architecture_design_system
+from evodesign.tests.render_engine.test_architecture_design_system import manifest, structure
 
 
 def card_scene():

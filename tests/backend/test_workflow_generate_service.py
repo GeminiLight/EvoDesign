@@ -578,7 +578,7 @@ def test_sync_generation_prefers_final_manifest(monkeypatch):
                 layout_instantiation={"blocks": [{"id": "n1"}]},
             )
 
-    monkeypatch.setattr("evo_diagram.agentic_system.workflow.Text2DiagramWorkflow", FakeWorkflow)
+    monkeypatch.setattr("evodesign.agentic_system.workflow.Text2DiagramWorkflow", FakeWorkflow)
 
     service = WorkflowGenerateService()
     monkeypatch.setattr(service, "_create_llm", lambda: object())
@@ -1586,10 +1586,10 @@ async def test_streaming_generation_uses_current_pipeline_modules(monkeypatch, t
             manifest_path=str(tmp_path / "diagram.json"),
         )
 
-    monkeypatch.setattr("evo_diagram.agentic_system.workflow.Text2DiagramWorkflow", FakeWorkflow)
-    monkeypatch.setattr("evo_diagram.canvas_environment.render_manifest", fake_render_manifest)
+    monkeypatch.setattr("evodesign.agentic_system.workflow.Text2DiagramWorkflow", FakeWorkflow)
+    monkeypatch.setattr("evodesign.canvas_environment.render_manifest", fake_render_manifest)
     monkeypatch.setattr(
-        "evo_diagram.agentic_system.verification_stage.workflow.VerifierWorkflow",
+        "evodesign.agentic_system.verification_stage.workflow.VerifierWorkflow",
         FakeVerifierWorkflow,
     )
 
@@ -1696,14 +1696,14 @@ async def test_streaming_generation_refiner_uses_current_workflow(monkeypatch, t
             manifest_path=str(tmp_path / "diagram.json"),
         )
 
-    monkeypatch.setattr("evo_diagram.agentic_system.workflow.Text2DiagramWorkflow", FakeWorkflow)
-    monkeypatch.setattr("evo_diagram.canvas_environment.render_manifest", fake_render_manifest)
+    monkeypatch.setattr("evodesign.agentic_system.workflow.Text2DiagramWorkflow", FakeWorkflow)
+    monkeypatch.setattr("evodesign.canvas_environment.render_manifest", fake_render_manifest)
     monkeypatch.setattr(
-        "evo_diagram.agentic_system.verification_stage.workflow.VerifierWorkflow",
+        "evodesign.agentic_system.verification_stage.workflow.VerifierWorkflow",
         FakeVerifierWorkflow,
     )
     monkeypatch.setattr(
-        "evo_diagram.agentic_system.iterative_workflow.IterativeRefinerWorkflow",
+        "evodesign.agentic_system.iterative_workflow.IterativeRefinerWorkflow",
         FakeIterativeRefinerWorkflow,
     )
 
@@ -1878,14 +1878,14 @@ async def test_streaming_generation_skips_refiner_when_verification_passes(
             manifest_path=str(tmp_path / "diagram.json"),
         )
 
-    monkeypatch.setattr("evo_diagram.agentic_system.workflow.Text2DiagramWorkflow", FakeWorkflow)
-    monkeypatch.setattr("evo_diagram.canvas_environment.render_manifest", fake_render_manifest)
+    monkeypatch.setattr("evodesign.agentic_system.workflow.Text2DiagramWorkflow", FakeWorkflow)
+    monkeypatch.setattr("evodesign.canvas_environment.render_manifest", fake_render_manifest)
     monkeypatch.setattr(
-        "evo_diagram.agentic_system.verification_stage.workflow.VerifierWorkflow",
+        "evodesign.agentic_system.verification_stage.workflow.VerifierWorkflow",
         FakeVerifierWorkflow,
     )
     monkeypatch.setattr(
-        "evo_diagram.agentic_system.iterative_workflow.IterativeRefinerWorkflow",
+        "evodesign.agentic_system.iterative_workflow.IterativeRefinerWorkflow",
         UnexpectedIterativeRefinerWorkflow,
     )
 
@@ -1983,14 +1983,14 @@ async def test_streaming_generation_reports_refiner_failure_as_degraded_terminal
             manifest_path=str(tmp_path / "diagram.json"),
         )
 
-    monkeypatch.setattr("evo_diagram.agentic_system.workflow.Text2DiagramWorkflow", FakeWorkflow)
-    monkeypatch.setattr("evo_diagram.canvas_environment.render_manifest", fake_render_manifest)
+    monkeypatch.setattr("evodesign.agentic_system.workflow.Text2DiagramWorkflow", FakeWorkflow)
+    monkeypatch.setattr("evodesign.canvas_environment.render_manifest", fake_render_manifest)
     monkeypatch.setattr(
-        "evo_diagram.agentic_system.verification_stage.workflow.VerifierWorkflow",
+        "evodesign.agentic_system.verification_stage.workflow.VerifierWorkflow",
         FakeVerifierWorkflow,
     )
     monkeypatch.setattr(
-        "evo_diagram.agentic_system.iterative_workflow.IterativeRefinerWorkflow",
+        "evodesign.agentic_system.iterative_workflow.IterativeRefinerWorkflow",
         FailingIterativeRefinerWorkflow,
     )
 
@@ -2289,7 +2289,7 @@ async def test_streaming_generation_hides_stage_exception_details(monkeypatch, t
     async def direct_to_thread(func, /, *args, **kwargs):
         return func(*args, **kwargs)
 
-    monkeypatch.setattr("evo_diagram.agentic_system.workflow.Text2DiagramWorkflow", FakeWorkflow)
+    monkeypatch.setattr("evodesign.agentic_system.workflow.Text2DiagramWorkflow", FakeWorkflow)
     monkeypatch.setattr("app.services.workflow_engine_adapter.asyncio.to_thread", direct_to_thread)
 
     service = WorkflowGenerateService()
@@ -2362,8 +2362,8 @@ async def test_streaming_generation_reports_render_stage_failures(monkeypatch, t
     async def direct_to_thread(func, /, *args, **kwargs):
         return func(*args, **kwargs)
 
-    monkeypatch.setattr("evo_diagram.agentic_system.workflow.Text2DiagramWorkflow", FakeWorkflow)
-    monkeypatch.setattr("evo_diagram.canvas_environment.render_manifest", fail_render_manifest)
+    monkeypatch.setattr("evodesign.agentic_system.workflow.Text2DiagramWorkflow", FakeWorkflow)
+    monkeypatch.setattr("evodesign.canvas_environment.render_manifest", fail_render_manifest)
     monkeypatch.setattr("app.services.workflow_engine_adapter.asyncio.to_thread", direct_to_thread)
 
     service = WorkflowGenerateService()

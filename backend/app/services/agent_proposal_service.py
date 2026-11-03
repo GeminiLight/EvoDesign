@@ -117,7 +117,7 @@ async def create_proposal(db: AsyncSession, actor: AgentActor, project_id: str, 
         locked.extend(context['locked_ids'])
     if body.scope.kind == 'elements' and not body.scope.element_ids:
         raise AgentError('scope_violation', 'An empty selection is not a whole-project edit', 422)
-    from evo_diagram.canvas_environment import apply_operations, EditError
+    from evodesign.canvas_environment import apply_operations, EditError
     try:
         candidate, changed = apply_operations(project.latest_schema or {'elements': []}, body.operations,
             scope=body.scope.element_ids if body.scope.kind == 'elements' else None, locked=locked)
@@ -143,7 +143,7 @@ async def create_proposal(db: AsyncSession, actor: AgentActor, project_id: str, 
 
 
 def render_candidate(schema: dict, output: Path) -> dict:
-    from evo_diagram.canvas_environment import audit_manifest, render_png_result, validate_manifest
+    from evodesign.canvas_environment import audit_manifest, render_png_result, validate_manifest
     validation = validate_manifest(schema, 'excalidraw')
     if not validation.get('is_valid'):
         raise AgentError('invalid_scene', 'Candidate failed structure validation', 422)
@@ -212,7 +212,7 @@ async def prepare_preview(db: AsyncSession, proposal: AgentProposal) -> AgentPro
 
 
 async def commit_proposal(db: AsyncSession, actor: AgentActor, project_id: str, proposal_id: str) -> AgentProposal:
-    from evo_diagram.canvas_environment import EditError
+    from evodesign.canvas_environment import EditError
     actor.require_project(project_id)
     if actor.connection:
         fence = await db.execute(update(AgentConnection).where(
@@ -285,7 +285,7 @@ async def restore_proposal(db: AsyncSession, actor: AgentActor, project_id: str,
     constraints = await effective_constraints(db, project)
     old_elements = {e['id']: e for e in (project.latest_schema or {}).get('elements', [])}
     new_elements = {e['id']: e for e in snapshot.schema_blob.get('elements', [])}
-    from evo_diagram.canvas_environment import assert_preserves_locks, EditError
+    from evodesign.canvas_environment import assert_preserves_locks, EditError
     try:
         assert_preserves_locks(project.latest_schema or {}, snapshot.schema_blob)
     except EditError as exc:

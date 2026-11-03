@@ -1,11 +1,11 @@
-"""Lazy EvoDiagram engine port for backend workflow integration."""
+"""Lazy EvoDesign engine port for backend workflow integration."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any, Protocol
 
-from app.core.evo_imports import ensure_evo_diagram_importable
+from app.core.evo_imports import ensure_evodesign_importable
 
 
 @dataclass(frozen=True)
@@ -22,7 +22,7 @@ class StreamingEngineDependencies:
 
 
 class WorkflowEnginePort(Protocol):
-    """Backend-facing contract for loading EvoDiagram workflow primitives."""
+    """Backend-facing contract for loading EvoDesign workflow primitives."""
 
     def load_text_workflow_cls(self) -> Any:
         """Return the synchronous text-to-diagram workflow class."""
@@ -33,8 +33,8 @@ class WorkflowEnginePort(Protocol):
         ...
 
 
-class EvoDiagramWorkflowEnginePort:
-    """Production engine port backed by the local EvoDiagram package.
+class EvoDesignWorkflowEnginePort:
+    """Production engine port backed by the local EvoDesign package.
 
     Imports stay inside method bodies so importing backend services does not
     eagerly import the agentic engine, mutate ``sys.path``, or require model
@@ -42,19 +42,19 @@ class EvoDiagramWorkflowEnginePort:
     """
 
     def load_text_workflow_cls(self) -> Any:
-        ensure_evo_diagram_importable()
-        from evo_diagram.agentic_system.workflow import Text2DiagramWorkflow
+        ensure_evodesign_importable()
+        from evodesign.agentic_system.workflow import Text2DiagramWorkflow
 
         return Text2DiagramWorkflow
 
     def load_streaming_dependencies(self) -> StreamingEngineDependencies:
-        ensure_evo_diagram_importable()
-        from evo_diagram.agentic_system.iterative_workflow import IterativeRefinerWorkflow
-        from evo_diagram.agentic_system.verification_stage.checks.finding import Severity
-        from evo_diagram.agentic_system.verification_stage.workflow import VerifierWorkflow
-        from evo_diagram.agentic_system.workflow import Text2DiagramWorkflow
-        from evo_diagram.canvas_environment import render_manifest
-        from evo_diagram.design_memory.web_memory import prepare_web_memory, learn_verified_refinement
+        ensure_evodesign_importable()
+        from evodesign.agentic_system.iterative_workflow import IterativeRefinerWorkflow
+        from evodesign.agentic_system.verification_stage.checks.finding import Severity
+        from evodesign.agentic_system.verification_stage.workflow import VerifierWorkflow
+        from evodesign.agentic_system.workflow import Text2DiagramWorkflow
+        from evodesign.canvas_environment import render_manifest
+        from evodesign.design_memory.web_memory import prepare_web_memory, learn_verified_refinement
 
         return StreamingEngineDependencies(
             workflow_cls=Text2DiagramWorkflow,
@@ -68,7 +68,7 @@ class EvoDiagramWorkflowEnginePort:
 
 
 __all__ = [
-    "EvoDiagramWorkflowEnginePort",
+    "EvoDesignWorkflowEnginePort",
     "StreamingEngineDependencies",
     "WorkflowEnginePort",
 ]

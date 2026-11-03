@@ -56,7 +56,7 @@ printf '%s\\n' '---' >> "$CAPTURE_ARGS"
     return bin_dir, capture_path
 
 
-def _run_evodiagram_with_fake_python(
+def _run_evodesign_with_fake_python(
     tmp_path: Path,
     env_overrides: dict[str, str],
     *,
@@ -70,7 +70,7 @@ def _run_evodiagram_with_fake_python(
     env["PYTHON_BIN"] = "python3"
 
     result = subprocess.run(
-        ["bash", "scripts/run_evodiagram.sh"],
+        ["bash", "scripts/run_evodesign.sh"],
         cwd=REPO_ROOT,
         env=env,
         check=check,
@@ -213,8 +213,8 @@ def test_run_evaluation_requires_explicit_generated_methods():
     assert "Set METHODS" in result.stderr
 
 
-def test_run_evodiagram_wo_refiner_does_not_reference_legacy_env_or_refiner_iters(tmp_path):
-    result, args = _run_evodiagram_with_fake_python(
+def test_run_evodesign_wo_refiner_does_not_reference_legacy_env_or_refiner_iters(tmp_path):
+    result, args = _run_evodesign_with_fake_python(
         tmp_path,
         {
             "MODELS": "unit-model",
@@ -226,20 +226,20 @@ def test_run_evodiagram_wo_refiner_does_not_reference_legacy_env_or_refiner_iter
         },
     )
 
-    assert "[INFO] Variant:   evodiagram_wo_refiner" in result.stdout
+    assert "[INFO] Variant:   evodesign_wo_refiner" in result.stdout
     assert "[INFO] Refiner:   disabled by variant" in result.stdout
     assert "[INFO] Mode:" not in result.stdout
     assert "--variant" in args
-    assert args[args.index("--variant") + 1] == "evodiagram_wo_refiner"
+    assert args[args.index("--variant") + 1] == "evodesign_wo_refiner"
     assert "--refiner-iterations" not in args
     assert args[args.index("--dataset-path") + 1] == str(REPO_ROOT / "dataset/test/data.json")
 
 
-def test_run_evodiagram_custom_uses_settings_and_preserves_absolute_dataset_path(tmp_path):
+def test_run_evodesign_custom_uses_settings_and_preserves_absolute_dataset_path(tmp_path):
     dataset_path = tmp_path / "data.json"
     dataset_path.write_text("[]", encoding="utf-8")
 
-    result, args = _run_evodiagram_with_fake_python(
+    result, args = _run_evodesign_with_fake_python(
         tmp_path,
         {
             "MODELS": "unit-model",
@@ -260,11 +260,11 @@ def test_run_evodiagram_custom_uses_settings_and_preserves_absolute_dataset_path
     assert "--no-verifier" in args
 
 
-def test_run_evodiagram_defaults_to_explicit_all_mode(tmp_path):
+def test_run_evodesign_defaults_to_explicit_all_mode(tmp_path):
     dataset_path = tmp_path / "data.json"
     dataset_path.write_text("[]", encoding="utf-8")
 
-    result, args = _run_evodiagram_with_fake_python(
+    result, args = _run_evodesign_with_fake_python(
         tmp_path,
         {
             "MODELS": "unit-model",
@@ -279,8 +279,8 @@ def test_run_evodiagram_defaults_to_explicit_all_mode(tmp_path):
     assert "--end" not in args
 
 
-def test_run_evodiagram_rejects_unpaired_range(tmp_path):
-    result, args = _run_evodiagram_with_fake_python(
+def test_run_evodesign_rejects_unpaired_range(tmp_path):
+    result, args = _run_evodesign_with_fake_python(
         tmp_path,
         {
             "MODELS": "unit-model",
@@ -322,7 +322,7 @@ def test_research_subset_reports_types_and_preserves_selected_records(tmp_path):
     ]
 
 
-def test_research_run_round_uses_package_mode_evodiagram_entrypoint(monkeypatch, tmp_path):
+def test_research_run_round_uses_package_mode_evodesign_entrypoint(monkeypatch, tmp_path):
     from scripts.research import run_round
 
     captured = {}
@@ -338,17 +338,17 @@ def test_research_run_round_uses_package_mode_evodiagram_entrypoint(monkeypatch,
 
     monkeypatch.setattr(run_round.subprocess, "run", fake_run)
 
-    result = run_round._run_evodiagram(
+    result = run_round._run_evodesign(
         {"id": "sample-1"},
         dataset_path=tmp_path / "dataset.json",
         model_tag="step-3.7-flash",
         exp_id="unit-exp",
     )
 
-    assert captured["cmd"][:3] == [run_round.sys.executable, "-m", "evo_diagram.agentic_system.main"]
+    assert captured["cmd"][:3] == [run_round.sys.executable, "-m", "evodesign.agentic_system.main"]
     assert captured["cwd"] == run_round._REPO_ROOT
     assert str(run_round._REPO_ROOT) == captured["env"]["PYTHONPATH"].split(os.pathsep)[0]
-    assert str(run_round._REPO_ROOT / "evo_diagram") not in captured["env"]["PYTHONPATH"].split(os.pathsep)
+    assert str(run_round._REPO_ROOT / "evodesign") not in captured["env"]["PYTHONPATH"].split(os.pathsep)
     assert captured["env"]["EVO_EXPERIMENT_ID"] == "unit-exp"
     assert result["exit_code"] == 0
 
@@ -359,7 +359,7 @@ def test_research_run_round_expected_png_uses_experiments_layout():
     model_tag = "provider/model:tag"
 
     assert run_round._expected_png(
-        "evodiagram",
+        "evodesign",
         "sample-1",
         model_tag,
         "exp-42",
@@ -367,8 +367,8 @@ def test_research_run_round_expected_png_uses_experiments_layout():
         "experiments",
         "exp-42",
         "outputs",
-        "evodiagram",
-        "evodiagram",
+        "evodesign",
+        "evodesign",
         "provider_model_tag",
         "sample-1",
         "rendered_diagram.png",
@@ -465,17 +465,17 @@ def test_research_aggregate_reads_experiments_scores_and_dynamic_round_config(mo
             "exp_id": "exp-42",
             "model_tag": "provider/model:tag",
             "model_segment": model_segment,
-            "methods": ["evodiagram", "direct_llm_excalidraw", "mermaid"],
+            "methods": ["evodesign", "direct_llm_excalidraw", "mermaid"],
         },
     )
 
     score_roots = {
-        "evodiagram": tmp_path
+        "evodesign": tmp_path
         / "experiments"
         / "exp-42"
         / "scores"
-        / "evodiagram"
-        / "evodiagram"
+        / "evodesign"
+        / "evodesign"
         / model_segment,
         "direct_llm": tmp_path
         / "experiments"
@@ -494,7 +494,7 @@ def test_research_aggregate_reads_experiments_scores_and_dynamic_round_config(mo
     }
     for data_id in ("sample-a", "sample-b"):
         _write_json(
-            score_roots["evodiagram"] / data_id / f"{data_id}.json",
+            score_roots["evodesign"] / data_id / f"{data_id}.json",
             _eval_payload(content=5, visual=4, cognitive=3, avg=4),
         )
         _write_json(
@@ -511,7 +511,7 @@ def test_research_aggregate_reads_experiments_scores_and_dynamic_round_config(mo
         tmp_path
         / "results"
         / "evaluations"
-        / "evodiagram"
+        / "evodesign"
         / "sample-a"
         / "sample-a.json",
         _eval_payload(content=1, visual=1, cognitive=1, avg=1),
@@ -525,11 +525,11 @@ def test_research_aggregate_reads_experiments_scores_and_dynamic_round_config(mo
     scores_csv = (round_dir / "scores.csv").read_text(encoding="utf-8")
     breakdown = (round_dir / "breakdown.md").read_text(encoding="utf-8")
 
-    assert "sample-a,flow,evodiagram,5,4,3,4" in scores_csv
-    assert "sample-b,sequence,evodiagram,5,4,3,4" in scores_csv
-    assert "| sequence | `sample-b` | 4.00 | 3.00 | 2.00 | evodiagram |" in breakdown
+    assert "sample-a,flow,evodesign,5,4,3,4" in scores_csv
+    assert "sample-b,sequence,evodesign,5,4,3,4" in scores_csv
+    assert "| sequence | `sample-b` | 4.00 | 3.00 | 2.00 | evodesign |" in breakdown
     assert "| sequence | 4.00 | 3.00 | 2.00 |" in breakdown
-    assert "sample-a,flow,evodiagram,1,1,1,1" not in scores_csv
+    assert "sample-a,flow,evodesign,1,1,1,1" not in scores_csv
     assert "# round_custom — 2 samples" in breakdown
     assert "- **Experiment**: `exp-42`" in breakdown
     assert "- **Total scored pairs**: 6 expected, 6 present" in breakdown
@@ -539,8 +539,8 @@ def test_research_aggregate_reads_experiments_scores_and_dynamic_round_config(mo
     assert "Round 1 Pilot" not in breakdown
 
 
-def test_research_runners_use_package_qualified_evodiagram_imports():
-    run_evodiagram = (REPO_ROOT / "scripts" / "run_evodiagram.sh").read_text(
+def test_research_runners_use_package_qualified_evodesign_imports():
+    run_evodesign = (REPO_ROOT / "scripts" / "run_evodesign.sh").read_text(
         encoding="utf-8"
     )
     run_baselines = (REPO_ROOT / "scripts" / "run_baselines.sh").read_text(
@@ -550,13 +550,13 @@ def test_research_runners_use_package_qualified_evodiagram_imports():
         encoding="utf-8"
     )
 
-    for script in (run_evodiagram, run_baselines):
-        assert "$PROJECT_ROOT/evo_diagram" not in script
+    for script in (run_evodesign, run_baselines):
+        assert "$PROJECT_ROOT/evodesign" not in script
         assert 'PYTHONPATH="$PROJECT_ROOT${PYTHONPATH:+:$PYTHONPATH}"' in script
 
-    assert '"evo_diagram.agentic_system.main"' in run_round
+    assert '"evodesign.agentic_system.main"' in run_round
     assert '"agentic_system.main"' not in run_round
-    assert '_EVO_DIAGRAM = _REPO_ROOT / "evo_diagram"' not in run_round
+    assert '_EVODESIGN = _REPO_ROOT / "evodesign"' not in run_round
 
 
 def test_domain_knowledge_compare_scripts_have_side_effect_free_help():
@@ -565,7 +565,7 @@ def test_domain_knowledge_compare_scripts_have_side_effect_free_help():
         "compare_domain_knowledge_parallel.py",
     ):
         result = subprocess.run(
-            [sys.executable, str(REPO_ROOT / "evo_diagram" / "scripts" / script_name), "--help"],
+            [sys.executable, str(REPO_ROOT / "evodesign" / "scripts" / script_name), "--help"],
             cwd=REPO_ROOT,
             text=True,
             capture_output=True,
@@ -579,10 +579,10 @@ def test_domain_knowledge_compare_scripts_have_side_effect_free_help():
 
 def test_domain_knowledge_compare_scripts_use_repo_root_defaults_and_worker_models():
     serial = (
-        REPO_ROOT / "evo_diagram" / "scripts" / "compare_domain_knowledge.py"
+        REPO_ROOT / "evodesign" / "scripts" / "compare_domain_knowledge.py"
     ).read_text(encoding="utf-8")
     parallel = (
-        REPO_ROOT / "evo_diagram" / "scripts" / "compare_domain_knowledge_parallel.py"
+        REPO_ROOT / "evodesign" / "scripts" / "compare_domain_knowledge_parallel.py"
     ).read_text(encoding="utf-8")
 
     for source in (serial, parallel):
@@ -596,7 +596,7 @@ def test_domain_knowledge_compare_scripts_use_repo_root_defaults_and_worker_mode
 
 
 def test_domain_knowledge_compare_detects_missing_mode_outputs():
-    from evo_diagram.scripts.compare_domain_knowledge import has_missing_outputs
+    from evodesign.scripts.compare_domain_knowledge import has_missing_outputs
 
     assert has_missing_outputs(
         [{"default_png": "/tmp/default.png", "full_png": "/tmp/full.png"}]
@@ -799,7 +799,7 @@ def test_run_baselines_defaults_to_batch_capable_module_entrypoints():
         encoding="utf-8"
     )
 
-    assert not (REPO_ROOT / "evo_diagram" / "scripts" / "process_baseline.py").exists()
+    assert not (REPO_ROOT / "evodesign" / "scripts" / "process_baseline.py").exists()
     assert 'PYTHON_BIN="${PYTHON_BIN:-python3}"' in run_baselines
     assert 'ALGORITHMS_CSV="${ALGORITHMS:-mermaid,direct_llm}"' in run_baselines
     assert '"$PYTHON_BIN" -u -m baselines.programmic.mermaid.main' in run_baselines
@@ -927,10 +927,10 @@ def test_quality_script_and_ci_include_engine_evaluation_and_user_memory_gates()
     ).read_text(encoding="utf-8")
 
     assert "run_engine()" in check_quality
-    assert "--ignore=evo_diagram/tests/design_memory/test_real_chroma_cosine.py" in check_quality
+    assert "--ignore=evodesign/tests/design_memory/test_real_chroma_cosine.py" in check_quality
     assert "npm run test:editor" in check_quality
     assert "scripts/generate_frontend_api_contract.py --check" in check_quality
-    assert '"$PY" -m pytest tests/pipeline evo_diagram/tests' in check_quality
+    assert '"$PY" -m pytest tests/pipeline evodesign/tests' in check_quality
     assert "tests/test_scripts.py" in check_quality
     assert "engine)" in check_quality
     assert "Run engine quality gate" in quality_workflow
@@ -950,7 +950,7 @@ def test_quality_script_and_ci_include_engine_evaluation_and_user_memory_gates()
     assert "./scripts/check_quality.sh evaluation" in quality_workflow
 
     assert "run_user_memory()" in check_quality
-    assert '"$PY" -m pytest evo_diagram/tests/user_memory' in check_quality
+    assert '"$PY" -m pytest evodesign/tests/user_memory' in check_quality
     assert "user-memory)" in check_quality
     assert "Run user memory quality gate" in quality_workflow
     assert "./scripts/check_quality.sh user-memory" in quality_workflow
@@ -987,3 +987,25 @@ def test_service_launcher_uses_project_python_not_global_uvicorn(tmp_path, root_
         # Trust X-Forwarded-For only from the loopback Vite proxy.
         '--proxy-headers', '--forwarded-allow-ips', '127.0.0.1,::1',
     ]
+
+
+def test_package_rename_preserves_old_round_scores_and_skip_existing(monkeypatch, tmp_path):
+    from evaluation import path_resolver
+    from evodesign.core import experiment
+    from scripts.research import aggregate_round, run_round
+
+    monkeypatch.setattr(path_resolver, 'PROJECT_ROOT', tmp_path)
+    monkeypatch.setattr(experiment, '_PROJECT_ROOT', tmp_path)
+    monkeypatch.setattr(aggregate_round, '_REPO_ROOT', tmp_path)
+    old_score = tmp_path / 'experiments' / 'past' / 'scores' / 'evodiagram' / 'evodiagram' / 'model' / 'sample' / 'sample.json'
+    old_image = tmp_path / 'experiments' / 'past' / 'outputs' / 'evodiagram' / 'evodiagram' / 'model' / 'sample' / 'rendered_diagram.png'
+    old_score.parent.mkdir(parents=True)
+    old_image.parent.mkdir(parents=True)
+    record = {'images': {'sample': {'average_score': 4, 'scores': {'content': 4}}}}
+    old_score.write_text(json.dumps(record))
+    old_image.touch()
+    methods = aggregate_round._resolve_methods(['evodiagram'])
+    assert methods[0].key == 'evodesign'
+    assert aggregate_round._load_eval_json(methods[0], 'sample', model='model', model_segment='model', exp_id='past') == record
+    assert run_round._expected_png('evodiagram', 'sample', 'model', 'past') == old_image
+    assert experiment.get_evodesign_output_dir('evodiagram', 'model', 'past') == tmp_path / 'experiments' / 'past' / 'outputs' / 'evodesign' / 'evodesign' / 'model'

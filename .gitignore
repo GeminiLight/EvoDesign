@@ -12,7 +12,9 @@ __pycache__/
 # Runtime state and local source archives never belong in the public release.
 .release-audit/
 EvoDesign-dev-integrated/
+EvoDesign-dev/
 EvoDiagram-dev/
+evodesign-paper/
 evo-diagram-paper/
 output/
 .env-*
@@ -52,9 +54,9 @@ htmlcov/
 .claude/
 .agents/
 # Optional generated icon variants; the curated default catalog is committed.
-/evo_diagram/resources/icons/
-/evo_diagram/agentic_system/tool_services/public/icons/material-design-icons/*/
-/evo_diagram/resources/figures/
+/evodesign/resources/icons/
+/evodesign/agentic_system/tool_services/public/icons/material-design-icons/*/
+/evodesign/resources/figures/
 
 # Research datasets are intentionally deferred from the code release.
 /dataset/
@@ -66,8 +68,8 @@ htmlcov/
 !/examples/agent_cli/
 /examples/agent_cli/*
 !/examples/agent_cli/quickstart.py
-/evo_diagram/data/
-/evo_diagram/results/
+/evodesign/data/
+/evodesign/results/
 
 .vercel/
 frontend/.browser-qa/

@@ -57,7 +57,7 @@ def test_backend_boundary_modules_import_without_runtime_secrets():
             "import app.api.v1.endpoints.dna",
         ]
     )
-    result = _run_import_probe(code, pythonpath="backend:evo_diagram:.")
+    result = _run_import_probe(code, pythonpath="backend:evodesign:.")
 
     assert result.returncode == 0, result.stderr
 
@@ -85,17 +85,17 @@ def test_workflow_engine_adapter_init_does_not_import_engine_internals():
             "import sys",
             "before = list(sys.path)",
             "import app.services.workflow_engine_adapter as adapter",
-            "adapter.WorkflowEngineAdapter(results_dir='/tmp/evodiagram-test')",
+            "adapter.WorkflowEngineAdapter(results_dir='/tmp/evodesign-test')",
             "after = list(sys.path)",
             "assert after == before, (before, after)",
             "for name in (",
-            "    'evo_diagram.agentic_system.workflow',",
-            "    'evo_diagram.agentic_system.generation_stage.structure.state',",
-            "    'evo_diagram.agentic_system.generation_stage.styling.state',",
-            "    'evo_diagram.agentic_system.generation_stage.layout.state',",
-            "    'evo_diagram.agentic_system.verification_stage.workflow',",
-            "    'evo_diagram.agentic_system.iterative_workflow',",
-            "    'evo_diagram.canvas_environment',",
+            "    'evodesign.agentic_system.workflow',",
+            "    'evodesign.agentic_system.generation_stage.structure.state',",
+            "    'evodesign.agentic_system.generation_stage.styling.state',",
+            "    'evodesign.agentic_system.generation_stage.layout.state',",
+            "    'evodesign.agentic_system.verification_stage.workflow',",
+            "    'evodesign.agentic_system.iterative_workflow',",
+            "    'evodesign.canvas_environment',",
             "):",
             "    assert name not in sys.modules, name",
         ]
@@ -110,18 +110,18 @@ def test_workflow_engine_port_init_does_not_import_engine_internals():
         [
             "import sys",
             "before = list(sys.path)",
-            "from app.services.workflow_engine_port import EvoDiagramWorkflowEnginePort",
-            "EvoDiagramWorkflowEnginePort()",
+            "from app.services.workflow_engine_port import EvoDesignWorkflowEnginePort",
+            "EvoDesignWorkflowEnginePort()",
             "after = list(sys.path)",
             "assert after == before, (before, after)",
             "for name in (",
-            "    'evo_diagram.agentic_system.workflow',",
-            "    'evo_diagram.agentic_system.generation_stage.structure.state',",
-            "    'evo_diagram.agentic_system.generation_stage.styling.state',",
-            "    'evo_diagram.agentic_system.generation_stage.layout.state',",
-            "    'evo_diagram.agentic_system.verification_stage.workflow',",
-            "    'evo_diagram.agentic_system.iterative_workflow',",
-            "    'evo_diagram.canvas_environment',",
+            "    'evodesign.agentic_system.workflow',",
+            "    'evodesign.agentic_system.generation_stage.structure.state',",
+            "    'evodesign.agentic_system.generation_stage.styling.state',",
+            "    'evodesign.agentic_system.generation_stage.layout.state',",
+            "    'evodesign.agentic_system.verification_stage.workflow',",
+            "    'evodesign.agentic_system.iterative_workflow',",
+            "    'evodesign.canvas_environment',",
             "):",
             "    assert name not in sys.modules, name",
         ]
@@ -138,10 +138,10 @@ def test_workflow_engine_adapter_keeps_engine_imports_in_port_module():
         ROOT / "backend" / "app" / "services" / "workflow_engine_port.py"
     ).read_text(encoding="utf-8")
 
-    assert "evo_diagram.agentic_system" not in adapter_source
-    assert "from evo_diagram.canvas_environment" not in adapter_source
-    assert "evo_diagram.agentic_system.workflow" in port_source
-    assert "from evo_diagram.canvas_environment" in port_source
+    assert "evodesign.agentic_system" not in adapter_source
+    assert "from evodesign.canvas_environment" not in adapter_source
+    assert "evodesign.agentic_system.workflow" in port_source
+    assert "from evodesign.canvas_environment" in port_source
 
 
 def test_backend_canvas_capabilities_match_engine_contract():
@@ -152,7 +152,7 @@ def test_backend_canvas_capabilities_match_engine_contract():
             "    SUPPORTED_REFINER_CANVAS_LIBRARIES,",
             "    canvas_library_supports_refiner,",
             ")",
-            "from evo_diagram.canvas_environment.capabilities import (",
+            "from evodesign.canvas_environment.capabilities import (",
             "    get_canvas_capabilities,",
             ")",
             "engine_libraries = tuple(SUPPORTED_CANVAS_LIBRARIES)",
@@ -213,19 +213,19 @@ def test_workflow_engine_adapter_uses_public_engine_api_methods():
     )
 
 
-def test_evodiagram_import_helper_prefers_package_imports_before_path_fallback():
+def test_evodesign_import_helper_prefers_package_imports_before_path_fallback():
     code = "\n".join(
         [
             "import sys",
-            "from app.core.evo_imports import REPO_ROOT, ensure_evo_diagram_importable",
+            "from app.core.evo_imports import REPO_ROOT, ensure_evodesign_importable",
             "before = list(sys.path)",
-            "ensure_evo_diagram_importable()",
+            "ensure_evodesign_importable()",
             "after = list(sys.path)",
-            "assert str(REPO_ROOT / 'evo_diagram') not in after[:2], after",
+            "assert str(REPO_ROOT / 'evodesign') not in after[:2], after",
             "assert after == before, (before, after)",
-            "import evo_diagram.agentic_system.workflow",
-            "import evo_diagram.canvas_environment",
-            "import evo_diagram.core.llm_factory",
+            "import evodesign.agentic_system.workflow",
+            "import evodesign.canvas_environment",
+            "import evodesign.core.llm_factory",
         ]
     )
     result = _run_import_probe(code, pythonpath="backend:.")
@@ -233,17 +233,17 @@ def test_evodiagram_import_helper_prefers_package_imports_before_path_fallback()
     assert result.returncode == 0, result.stderr
 
 
-def test_evodiagram_import_helper_uses_checkout_package_root_when_package_missing():
+def test_evodesign_import_helper_uses_checkout_package_root_when_package_missing():
     code = "\n".join(
         [
             "import sys",
-            "from app.core.evo_imports import REPO_ROOT, ensure_evo_diagram_importable",
-            "ensure_evo_diagram_importable()",
+            "from app.core.evo_imports import REPO_ROOT, ensure_evodesign_importable",
+            "ensure_evodesign_importable()",
             "assert str(REPO_ROOT) in sys.path[:2], sys.path[:4]",
-            "assert str(REPO_ROOT / 'evo_diagram') not in sys.path[:4], sys.path[:4]",
-            "import evo_diagram.agentic_system.workflow",
-            "import evo_diagram.canvas_environment",
-            "import evo_diagram.core.llm_factory",
+            "assert str(REPO_ROOT / 'evodesign') not in sys.path[:4], sys.path[:4]",
+            "import evodesign.agentic_system.workflow",
+            "import evodesign.canvas_environment",
+            "import evodesign.core.llm_factory",
         ]
     )
     result = _run_import_probe(code, pythonpath=".", cwd=os.path.join(os.getcwd(), "backend"))
@@ -251,7 +251,7 @@ def test_evodiagram_import_helper_uses_checkout_package_root_when_package_missin
     assert result.returncode == 0, result.stderr
 
 
-def test_evodiagram_import_helper_reports_all_failed_resolution_stages(
+def test_evodesign_import_helper_reports_all_failed_resolution_stages(
     monkeypatch,
     tmp_path,
 ):
@@ -260,31 +260,31 @@ def test_evodiagram_import_helper_reports_all_failed_resolution_stages(
 
     def fail_engine_modules():
         calls.append("engine")
-        raise ModuleNotFoundError("missing evo_diagram package", name="evo_diagram")
+        raise ModuleNotFoundError("missing evodesign package", name="evodesign")
 
     monkeypatch.setattr(evo_imports, "_import_engine_modules", fail_engine_modules)
     monkeypatch.setattr(evo_imports, "REPO_ROOT", tmp_path / "repo")
 
     try:
-        with pytest.raises(evo_imports.EvoDiagramImportError) as exc_info:
-            evo_imports.ensure_evo_diagram_importable()
+        with pytest.raises(evo_imports.EvoDesignImportError) as exc_info:
+            evo_imports.ensure_evodesign_importable()
     finally:
         sys.path[:] = before_path
 
     assert calls == ["engine", "engine"]
     assert [attempt.stage for attempt in exc_info.value.attempts] == [
-        "evo_diagram package",
+        "evodesign package",
         "source checkout package path",
     ]
     assert [attempt.error.name for attempt in exc_info.value.attempts] == [
-        "evo_diagram",
-        "evo_diagram",
+        "evodesign",
+        "evodesign",
     ]
     assert exc_info.value.__cause__ is exc_info.value.attempts[-1].error
-    assert "missing evo_diagram package" in str(exc_info.value)
+    assert "missing evodesign package" in str(exc_info.value)
 
 
-def test_evodiagram_import_helper_reports_source_checkout_verification_failures(
+def test_evodesign_import_helper_reports_source_checkout_verification_failures(
     monkeypatch,
     tmp_path,
 ):
@@ -292,8 +292,8 @@ def test_evodiagram_import_helper_reports_source_checkout_verification_failures(
     calls: list[str] = []
     failures = iter(
         [
-            ModuleNotFoundError("missing installed package", name="evo_diagram"),
-            ModuleNotFoundError("missing checkout module", name="evo_diagram.canvas_environment"),
+            ModuleNotFoundError("missing installed package", name="evodesign"),
+            ModuleNotFoundError("missing checkout module", name="evodesign.canvas_environment"),
         ]
     )
 
@@ -305,23 +305,23 @@ def test_evodiagram_import_helper_reports_source_checkout_verification_failures(
     monkeypatch.setattr(evo_imports, "REPO_ROOT", tmp_path / "repo")
 
     try:
-        with pytest.raises(evo_imports.EvoDiagramImportError) as exc_info:
-            evo_imports.ensure_evo_diagram_importable()
+        with pytest.raises(evo_imports.EvoDesignImportError) as exc_info:
+            evo_imports.ensure_evodesign_importable()
     finally:
         sys.path[:] = before_path
 
     assert calls == ["engine", "engine"]
     assert [attempt.stage for attempt in exc_info.value.attempts] == [
-        "evo_diagram package",
+        "evodesign package",
         "source checkout package path",
     ]
     assert [attempt.error.name for attempt in exc_info.value.attempts] == [
-        "evo_diagram",
-        "evo_diagram.canvas_environment",
+        "evodesign",
+        "evodesign.canvas_environment",
     ]
 
 
-def test_evodiagram_import_helper_stops_on_non_engine_dependency_failures(
+def test_evodesign_import_helper_stops_on_non_engine_dependency_failures(
     monkeypatch,
     tmp_path,
 ):
@@ -343,13 +343,13 @@ def test_evodiagram_import_helper_stops_on_non_engine_dependency_failures(
     monkeypatch.setattr(evo_imports, "REPO_ROOT", tmp_path / "repo")
 
     try:
-        with pytest.raises(evo_imports.EvoDiagramImportError) as exc_info:
-            evo_imports.ensure_evo_diagram_importable()
+        with pytest.raises(evo_imports.EvoDesignImportError) as exc_info:
+            evo_imports.ensure_evodesign_importable()
     finally:
         sys.path[:] = before_path
 
     assert calls == ["engine"]
-    assert [attempt.stage for attempt in exc_info.value.attempts] == ["evo_diagram package"]
+    assert [attempt.stage for attempt in exc_info.value.attempts] == ["evodesign package"]
     assert exc_info.value.attempts[0].error.name == "missing_dependency"
     assert str(tmp_path / "repo") not in sys.path
 
@@ -368,7 +368,7 @@ def test_import_engine_modules_annotates_required_module_failures(monkeypatch):
         evo_imports._import_engine_modules()
 
     assert exc_info.value.name == "missing_dependency"
-    assert "evo_diagram.agentic_system.workflow" in str(exc_info.value)
+    assert "evodesign.agentic_system.workflow" in str(exc_info.value)
     assert exc_info.value.__cause__.name == "missing_dependency"
 
 

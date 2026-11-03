@@ -78,7 +78,7 @@ def test_memory_rejects_remote_plaintext_before_sending_token():
 
 
 def test_environment_model_name_fails_clearly_when_missing(monkeypatch):
-    from evo_diagram.config.model_loader import ModelConfig, _DEFAULT_PATH
+    from evodesign.config.model_loader import ModelConfig, _DEFAULT_PATH
     monkeypatch.delenv("LLM_MODEL_NAME", raising=False)
     monkeypatch.setenv("LLM_API_KEY", "test-config-key")
     with pytest.raises(ValueError, match="LLM_MODEL_NAME"):

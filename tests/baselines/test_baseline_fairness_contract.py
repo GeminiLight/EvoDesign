@@ -1,8 +1,8 @@
-"""Contracts that keep the baselines comparable to EvoDiagram.
+"""Contracts that keep the baselines comparable to EvoDesign.
 
 Each test here guards one of the comparison-fairness defects found in the
 2026-09 baseline audit: the model must receive the same inputs and run under
-the same decoding/robustness settings as the EvoDiagram generator.
+the same decoding/robustness settings as the EvoDesign generator.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ import inspect
 
 import pytest
 
-from evo_diagram.core.base_agent import _render_template
+from evodesign.core.base_agent import _render_template
 
 
 # --- 1. Mermaid: the user intent must reach the model -----------------------

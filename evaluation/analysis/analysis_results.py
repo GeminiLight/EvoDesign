@@ -702,13 +702,13 @@ Examples:
   python analysis_results.py experiments/2026-05-06/scores \\
       --dataset dataset/test/data.json --missing-policy zero
 
-  # Paired Wilcoxon signed-rank tests against EvoDiagram
+  # Paired Wilcoxon signed-rank tests against EvoDesign
   python analysis_results.py experiments/2026-05-06/scores \\
-      --dataset dataset/test/data.json --compare-to evodiagram/evodiagram/gpt-5.2
+      --dataset dataset/test/data.json --compare-to evodesign/evodesign/gpt-5.2
 
   # Restrict to explicit method directories (no discovery)
   python analysis_results.py experiments/2026-05-06/scores \\
-      --method baseline/code_mermaid/gpt-5.2 --method evodiagram/evodiagram/gpt-5.2
+      --method baseline/code_mermaid/gpt-5.2 --method evodesign/evodesign/gpt-5.2
         '''
     )
 

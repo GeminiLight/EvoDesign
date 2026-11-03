@@ -108,10 +108,14 @@ evobase-diagramagent = "baselines.diagramagent.DiagramAgentEvaluator:main"
 evobase-scisketch = "baselines.scisketch.src.custom_main:main"
 
 [tool.setuptools.packages.find]
-include = ["evo_diagram*", "backend*", "evaluation*", "baselines*"]
+include = ["evodesign*", "backend*", "evaluation*", "baselines*"]
+exclude = ["*.node_modules", "*.node_modules.*"]
+
+[tool.setuptools.exclude-package-data]
+"*" = ["**/node_modules/**", "**/.next/**", "**/__pycache__/**"]
 
 [tool.setuptools.package-data]
-evo_diagram = [
+evodesign = [
     "**/*.yaml",
     "**/*.json",
     "**/*.txt",
@@ -130,4 +134,4 @@ evo_diagram = [
 
 [tool.pytest.ini_options]
 pythonpath = ["backend", "."]
-testpaths = ["evo_diagram/tests", "tests"]
+testpaths = ["evodesign/tests", "tests"]

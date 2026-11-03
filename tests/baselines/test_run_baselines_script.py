@@ -96,7 +96,7 @@ def test_scisketch_receives_the_model_environment_variable(tmp_path):
 
 
 def _configured_generator_temperature() -> str:
-    """The temperature EvoDiagram's generator role decodes at, from configs."""
+    """The temperature EvoDesign's generator role decodes at, from configs."""
     import yaml
 
     settings = yaml.safe_load(
@@ -111,9 +111,9 @@ def _configured_generator_temperature() -> str:
 
 @pytest.mark.skipif(not Path("/bin/bash").exists(), reason="needs /bin/bash")
 @pytest.mark.parametrize("algo", ["mermaid", "direct_llm"])
-def test_llm_baselines_decode_at_the_evodiagram_temperature(tmp_path, algo):
+def test_llm_baselines_decode_at_the_evodesign_temperature(tmp_path, algo):
     # A repository .env LLM_TEMPERATURE would otherwise win and leave the
-    # baseline decoding at a different temperature than EvoDiagram. The
+    # baseline decoding at a different temperature than EvoDesign. The
     # expected value tracks configs/models.yaml rather than being hardcoded:
     # kimi k3 only accepts temperature=1, so pinning baselines to 0 would
     # itself be the fairness bug whenever that model is the generator.

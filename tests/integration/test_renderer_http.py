@@ -8,8 +8,8 @@ import urllib.request
 import pytest
 from PIL import Image, ImageChops
 
-from evo_diagram.agentic_system.render_engine.excalidraw.converter import InstantiationToExcalidrawConverter
-from evo_diagram.agentic_system.render_engine.tldraw.converter import InstantiationToTldrawConverter
+from evodesign.agentic_system.render_engine.excalidraw.converter import InstantiationToExcalidrawConverter
+from evodesign.agentic_system.render_engine.tldraw.converter import InstantiationToTldrawConverter
 
 SERVICE = os.getenv("RENDERER_SMOKE_URL", "")
 pytestmark = pytest.mark.skipif(not SERVICE, reason="Set RENDERER_SMOKE_URL to a running renderer service")
