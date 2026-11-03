@@ -196,10 +196,12 @@ class VerifierCriticAgent:
         delay = self.retry_delay_seconds
         for attempt in range(1, self.max_retries + 1):
             charge_llm_run_budget()  # outside try: an exhausted run budget is final
+            answered = False
             try:
                 response = self.model.invoke(messages)
                 if response is None or not getattr(response, "content", None):
                     raise ValueError("VLM returned an empty response")
+                answered = True
                 raw = response.content
                 if isinstance(raw, list):
                     # Some langchain backends wrap multimodal as parts list.
@@ -237,7 +239,9 @@ class VerifierCriticAgent:
                 # Auth / bad request / exhausted quota cannot succeed on retry.
                 if _is_permanent_http_error(exc):
                     break
-                if attempt < self.max_retries:
+                # A malformed answer is resampled at once; only transport
+                # failures (no answer yet) back off.
+                if attempt < self.max_retries and not answered:
                     time.sleep(delay)
                     delay *= 2
 
