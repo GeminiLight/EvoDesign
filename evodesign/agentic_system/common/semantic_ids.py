@@ -27,6 +27,34 @@ COMPANION_ID_SUFFIXES = (
     ICON_SUFFIX,
 )
 
+# Canvas-level captions that Styling or Layout sometimes add on their own.
+# They are not part of the semantic graph and carry no relation, so dropping
+# one never removes or invents a claim.
+CANVAS_DECORATION_IDS = frozenset({
+    "title", "subtitle", "caption", "heading",
+    "diagram_title", "main_title", "canvas_title",
+})
+
+
+def drop_canvas_decorations(
+    entries: Dict[str, Any], known_ids: set[str],
+) -> tuple[Dict[str, Any], list[str]]:
+    """Remove stand-alone canvas captions that no upstream stage declared.
+
+    An id is dropped only when it is one of ``CANVAS_DECORATION_IDS`` and is
+    not a real upstream id (a Structure node may legitimately be ``title``).
+    Every other unknown id is left for the caller's strict validation.
+    ``entries`` itself is returned when nothing is dropped.
+    """
+    dropped = [
+        key for key in entries
+        if isinstance(key, str) and key.strip().lower() in CANVAS_DECORATION_IDS
+        and key not in known_ids
+    ]
+    if not dropped:
+        return entries, []
+    return {key: value for key, value in entries.items() if key not in dropped}, dropped
+
 
 @dataclass(frozen=True)
 class GroupIdMap:

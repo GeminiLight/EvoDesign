@@ -189,3 +189,10 @@ def test_reasoning_effort_is_only_sent_when_configured():
     assert 'reasoning_effort' not in config.as_factory_kwargs()
     config = resolve_backend_llm_config(settings=_settings(llm_api_key='sk-test', llm_reasoning_effort='low'))
     assert config.as_factory_kwargs()['reasoning_effort'] == 'low'
+
+
+def test_thinking_switch_is_only_sent_when_configured():
+    config = resolve_backend_llm_config(settings=_settings(llm_api_key='sk-test'))
+    assert 'thinking' not in config.as_factory_kwargs()
+    config = resolve_backend_llm_config(settings=_settings(llm_api_key='sk-test', llm_thinking='disabled'))
+    assert config.as_factory_kwargs()['thinking'] == 'disabled'

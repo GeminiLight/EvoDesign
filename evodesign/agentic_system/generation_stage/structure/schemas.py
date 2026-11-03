@@ -78,6 +78,48 @@ class StructureValidationError(ValueError):
     """Raised when Structure output violates the graph contract."""
 
 
+class StructureLedgerOmission(StructureValidationError):
+    """Ledger entries have no edge, and no edge is missing from the ledger.
+
+    The diagram omits claims it listed but asserts nothing false, so callers
+    may drop the unrealized entries instead of discarding the whole output.
+    """
+
+    def __init__(self, message: str, *, ledger_name: str,
+                 missing: list[tuple[str, str, str]]) -> None:
+        super().__init__(message)
+        self.ledger_name = ledger_name
+        self.missing = missing
+
+
+_LEDGER_FIELDS = {
+    "fact_ledger": ("subject_id", "predicate", "object_id"),
+    "organizer_ledger": ("source_id", "label", "target_id"),
+}
+
+
+def drop_unrealized_ledger_entries(
+    specification: Dict[str, Any], omission: StructureLedgerOmission,
+) -> Dict[str, Any]:
+    """Return ``specification`` without the ledger entries ``omission`` names."""
+    typology = dict(specification.get("semantic_typology") or {})
+    source_field, label_field, target_field = _LEDGER_FIELDS[omission.ledger_name]
+    pending = Counter(omission.missing)
+    kept = []
+    for entry in typology.get(omission.ledger_name) or []:
+        key = (
+            str(entry.get(source_field)),
+            " ".join(str(entry.get(label_field) or "").strip().lower().split()),
+            str(entry.get(target_field)),
+        ) if isinstance(entry, dict) else None
+        if key is not None and pending[key] > 0:
+            pending[key] -= 1
+            continue
+        kept.append(entry)
+    typology[omission.ledger_name] = kept
+    return {**specification, "semantic_typology": typology}
+
+
 def restore_structure_ledger_relations(
     specification: Any, instantiation: Dict[str, Any],
 ) -> Dict[str, Any]:
@@ -117,6 +159,31 @@ def restore_structure_ledger_relations(
         matches = ledger_claims.get(key, [])
         if not edge.get("evidence_basis") and key[2] and len(matches) == 1:
             edge["evidence_basis"] = matches[0]
+    # An edge emitted with neither evidence_basis nor relation is still the
+    # drawing of a claim when its directed pair is unique on both sides: one
+    # edge for the pair, one claim for the pair across both ledgers.
+    claims_by_pair: Dict[tuple[str, str], list[tuple[str, str]]] = {}
+    for basis, name, source, target, predicate in (
+        ("explicit", "fact_ledger", "subject_id", "object_id", "predicate"),
+        ("structural", "organizer_ledger", "source_id", "target_id", "label"),
+    ):
+        for entry in typology.get(name) if isinstance(typology.get(name), list) else []:
+            if isinstance(entry, dict) and all(
+                isinstance(entry.get(key), str) and entry[key].strip()
+                for key in (source, target, predicate)
+            ):
+                claims_by_pair.setdefault((entry[source], entry[target]), []).append(
+                    (basis, entry[predicate]))
+    edges_by_pair = Counter((edge.get("source"), edge.get("target")) for edge in edges)
+    tagged_pairs = {(edge.get("source"), edge.get("target")) for edge in edges
+                    if edge.get("evidence_basis")}
+    for edge in edges:
+        pair = (edge.get("source"), edge.get("target"))
+        matches = claims_by_pair.get(pair, [])
+        if (not edge.get("evidence_basis") and not edge.get("relation")
+                and edges_by_pair[pair] == 1 and pair not in tagged_pairs
+                and len(matches) == 1):
+            edge["evidence_basis"], edge["relation"] = matches[0]
     for basis, name, source, target, predicate in (
         ("explicit", "fact_ledger", "subject_id", "object_id", "predicate"),
         ("structural", "organizer_ledger", "source_id", "target_id", "label"),
@@ -253,14 +320,66 @@ def validate_structure_semantic_ledger(
             details.append(f"missing edges for {missing!r}")
         if unledgered:
             details.append(f"unledgered edges {unledgered!r}")
-        raise StructureValidationError(
+        message = (
             f"Structure {ledger_name} does not match the relation graph: "
             + "; ".join(details)
             + "."
         )
+        if not unledgered:
+            raise StructureLedgerOmission(message, ledger_name=ledger_name, missing=missing)
+        raise StructureValidationError(message)
 
     compare(fact_keys, explicit_edges, "fact_ledger")
-    compare(organizer_keys, structural_edges, "organizer_ledger")
+    compare(
+        organizer_keys - _organizer_claims_realized_by_groups(
+            organizer_keys - structural_edges, instantiation.get("groups")
+        ),
+        structural_edges,
+        "organizer_ledger",
+    )
+
+
+def _organizer_claims_realized_by_groups(
+    unmatched: Counter[tuple[str, str, str]],
+    groups: Any,
+) -> Counter[tuple[str, str, str]]:
+    """Return organizer claims already drawn as group containment.
+
+    An organizer entry such as ``(api, "grouped in", g_online)`` is presentation
+    structure. When ``api`` sits inside ``g_online`` (directly or through nested
+    groups) the container already draws that claim, and adding an edge would
+    duplicate it. Only claims with no matching structural edge are considered,
+    and only for the organizer ledger: source facts must always be edges.
+    """
+    parents: Dict[str, str] = {}
+    group_ids = set()
+    for group in groups or []:
+        if not isinstance(group, dict) or not isinstance(group.get("id"), str):
+            continue
+        group_ids.add(group["id"])
+        if isinstance(group.get("parent_group_id"), str):
+            parents.setdefault(group["id"], group["parent_group_id"])
+        for member in group.get("members") or []:
+            if isinstance(member, str):
+                parents.setdefault(member, group["id"])
+
+    def inside(member: str, group_id: str) -> bool:
+        seen = set()
+        current = parents.get(member)
+        while current is not None and current not in seen:
+            if current == group_id:
+                return True
+            seen.add(current)
+            current = parents.get(current)
+        return False
+
+    realized: Counter[tuple[str, str, str]] = Counter()
+    for (source, label, target), count in unmatched.items():
+        if (target in group_ids and inside(source, target)) or (
+            source in group_ids and inside(target, source)
+        ):
+            realized[(source, label, target)] = count
+    return realized
 
 
 _RELATION_TYPE_ALIASES = {
@@ -459,6 +578,14 @@ def _canonicalize_nodes(value: Any) -> Any:
                 f"{class_values!r}."
             )
         canonical_class = class_values[0] if class_values else None
+        if canonical_class is None:
+            # Some models name the semantic class `role` or `kind`; the
+            # renderer already reads both. Keep the original field as well.
+            canonical_class = next(
+                (normalized[key] for key in ("role", "kind")
+                 if isinstance(normalized.get(key), str) and normalized[key].strip()),
+                None,
+            )
         if canonical_class is not None:
             normalized["class"] = canonical_class
         normalized.pop("type", None)

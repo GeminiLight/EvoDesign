@@ -28,10 +28,12 @@ from evodesign.agentic_system.common.spec_utils import (
 )
 from evodesign.agentic_system.generation_stage.structure.prompts import STRUCTURE_TASK_PROMPT
 from evodesign.agentic_system.generation_stage.structure.schemas import (
+    StructureLedgerOmission,
     StructureValidationError,
+    drop_unrealized_ledger_entries,
     restore_structure_ledger_relations,
-    validate_structure_semantic_ledger,
     validate_structure_instantiation,
+    validate_structure_semantic_ledger,
 )
 from evodesign.agentic_system.generation_stage.structure.state import WorkflowState
 from evodesign.core.base_agent import BaseAgent, _render_template
@@ -72,6 +74,33 @@ class StructureAgent(BaseAgent):
             task_prompt=STRUCTURE_TASK_PROMPT,
             **kwargs,
         )
+
+    @staticmethod
+    def _drop_omitted_claims(
+        specification: Any, instantiation: dict, exc: StructureValidationError,
+    ) -> Optional[dict]:
+        """Keep a corrected structure that only omits listed claims.
+
+        After the correction turn, a ledger entry that still has no edge is a
+        claim the diagram leaves out. Dropping the entry keeps the ledger an
+        honest record of what is drawn. An edge outside the ledger is a claim
+        the source may not support, so that case still fails.
+        Returns the pruned specification, or None when it cannot be kept.
+        """
+        for _ in range(len(("fact_ledger", "organizer_ledger"))):
+            if not isinstance(exc, StructureLedgerOmission) or not isinstance(specification, dict):
+                return None
+            logger.warning(
+                "[StructureAgent] Diagram omits %d %s claim(s); dropping them from the ledger: %s",
+                len(exc.missing), exc.ledger_name, exc.missing,
+            )
+            specification = drop_unrealized_ledger_entries(specification, exc)
+            try:
+                validate_structure_semantic_ledger(specification, instantiation)
+                return specification
+            except StructureValidationError as next_exc:
+                exc = next_exc
+        return None
 
     def _read_self_consistency_n(self) -> int:
         """Read self-consistency sample count from settings; default 1 (single-shot)."""
@@ -136,6 +165,9 @@ class StructureAgent(BaseAgent):
                 break
             except StructureValidationError as exc:
                 if attempt == 1:
+                    specification = self._drop_omitted_claims(specification, instantiation, exc)
+                    if specification is not None:
+                        break
                     state.add_error(str(exc))
                     raise
                 logger.warning("Structure contract failed; requesting one correction: %s", exc)

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from typing import Any, Dict, Optional
 
@@ -11,10 +12,13 @@ from evodesign.agentic_system.common.semantic_ids import (
     TITLE_SUFFIX,
     companion_base_id,
     companion_id,
+    drop_canvas_decorations,
 )
 from evodesign.agentic_system.common.spec_utils import unwrap_structure_instantiation
 from evodesign.agentic_system.common.tldraw_utils import TLDrawColorValidator, TLDrawFillValidator, TLDrawShapeValidator
 from evodesign.canvas_runtime import normalize_canvas_library
+
+logger = logging.getLogger(__name__)
 
 
 class StylingValidationError(ValueError):
@@ -59,6 +63,9 @@ def validate_styling_instantiation(
     allowed_ids = _allowed_styling_ids(node_ids, group_ids, edge_ids)
     canvas = _normalise_canvas(canvas_library)
     group_shells: set[str] = set()
+    instantiation, decorations = drop_canvas_decorations(instantiation, allowed_ids)
+    if decorations:
+        logger.warning("Styling added undeclared canvas captions %s; dropping them.", decorations)
 
     for element_id, element_data in instantiation.items():
         if not isinstance(element_id, str) or not element_id.strip():

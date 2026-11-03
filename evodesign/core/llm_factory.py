@@ -77,12 +77,27 @@ class LLMFactory:
                 non-zero value here multiplies with it, so only set it for
                 clients used outside ``BaseAgent``.
             max_tokens: Maximum tokens in response
+            thinking: Optional ``"enabled"``/``"disabled"`` sent as the
+                ``thinking`` request field (passed through ``**kwargs``).
+                Unset keeps the provider default.
             **kwargs: Additional parameters passed to init_chat_model
                       (e.g., streaming=True, top_p=0.95)
 
         Raises:
             ValueError: If no model name is provided
         """
+        thinking = kwargs.pop("thinking", None)
+        if thinking is not None and str(thinking).strip():
+            mode = str(thinking).strip().lower()
+            if mode not in ("enabled", "disabled"):
+                raise ValueError(
+                    f"thinking must be 'enabled' or 'disabled', got {thinking!r}."
+                )
+            # GLM, DeepSeek and other OpenAI-compatible APIs read this body field.
+            extra_body = dict(kwargs.get("extra_body") or {})
+            extra_body["thinking"] = {"type": mode}
+            kwargs["extra_body"] = extra_body
+
         if model is None or not str(model).strip():
             raise ValueError(
                 "LLMFactory.create requires a model name. Configure model_name "

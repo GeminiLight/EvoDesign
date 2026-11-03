@@ -21,6 +21,8 @@ models:
     temperature: 1
     max_tokens: 16384
     timeout: 600
+    # Optional: enabled/disabled for APIs with a thinking switch (GLM, DeepSeek).
+    thinking: $LLM_THINKING
   step-3.7-flash:
     provider: stepfun
     model_name: step-3.7-flash
