@@ -75,9 +75,11 @@ EvoDesign 是一个和你的 Agent 共用的开源图表工作台。生成架构
 
 EvoDesign 围绕一份 **diagram manifest（图表清单）** 组织生成和反馈。它是一种由可编辑对象组成的画布表示：智能体可以更新它，用户也能直接在画布上修改。
 
+### 整体架构
+
 ![EvoDesign 方法总览：协同画布生成、诊断验证与局部修复、经验探索，以及将策略、准则和原则分层纳入设计经验记忆](docs/assets/method-overview.png)
 
-*方法图直接导出自当前维护的论文稿件。[查看高清原图](docs/assets/method-overview.png) · [阅读论文](https://arxiv.org/abs/2604.09568)。*
+*整体架构图直接导出自当前维护的论文稿件。[查看高清原图](docs/assets/method-overview.png) · [阅读论文](https://arxiv.org/abs/2604.09568)。*
 
 1. **生成可编辑图表。** 结构、样式和布局智能体将原文与用户要求转换为画布清单，并参考检索到的设计经验。
 2. **验证并局部修复。** 渲染图表，检查几何缺陷与视觉质量，应用局部编辑后再次验证。
@@ -148,6 +150,12 @@ python scripts/design_memory.py validate examples/design-memory/blue-violet.json
 ## 研究与复现
 
 [论文 **EvoDesign: Agentic Editable Diagram Creation via Design Expertise Evolution**](https://arxiv.org/abs/2604.09568) 介绍了完整方法，并通过 CanvasBench 从内容、视觉和认知三个维度进行评估。
+
+### CanvasBench
+
+![CanvasBench 总览：图像与网页收集、可渲染性验证和人工审核、描述与用户查询合成、图表类型分布，以及内容完整性、视觉呈现和认知效用评估](docs/assets/canvasbench-overview.png)
+
+*CanvasBench 构建与评估图直接导出自当前维护的论文稿件。[查看高清原图](docs/assets/canvasbench-overview.png) · [阅读论文](https://arxiv.org/abs/2604.09568)。*
 
 仓库包含实现、评估工具和基线适配器。**训练和测试数据集将单独发布。** 仓库附带的单任务快速示例用于试用软件，不用于基准评估。项目网站展示的是论文报告的研究结果；当前维护版本不代表已重新复现完整实验。研究使用请参考[复现说明（英文）](research/reproducibility.md)。
 
