@@ -9,6 +9,7 @@ try:
 except ImportError:  # the browser (Pyodide) build ships without langgraph
 	END = StateGraph = None
 
+from evodesign.agentic_system.common.semantic_ids import ensure_no_integer_like_semantic_ids
 from evodesign.canvas_runtime import normalize_canvas_library
 
 from .state import WorkflowState
@@ -321,6 +322,7 @@ class RenderWorkflow:
 	def run(self, state: WorkflowState) -> WorkflowState:
 		"""Run all stages and return the completed state."""
 		logger.info(f"Starting render workflow (canvas_library={self.canvas_library})...")
+		ensure_no_integer_like_semantic_ids(state.structure_instantiation, state.layout_instantiation)
 		result_dict = self.graph.invoke(state)
 		result = WorkflowState(**result_dict) if isinstance(result_dict, dict) else result_dict
 		logger.info("Render workflow finished.")

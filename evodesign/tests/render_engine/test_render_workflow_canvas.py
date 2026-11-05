@@ -46,6 +46,25 @@ def test_render_workflow_run_invokes_graph_and_returns_state():
     assert result.diagram_manifest == {"document": {"id": "doc"}}
 
 
+def test_render_workflow_run_rejects_integer_like_semantic_ids():
+    from evodesign.agentic_system.render_engine.state import WorkflowState
+    from evodesign.agentic_system.render_engine.workflow import RenderWorkflow
+
+    class FailingGraph:
+        def invoke(self, state):
+            raise AssertionError("the graph must not run")
+
+    workflow = RenderWorkflow(canvas_library="excalidraw")
+    workflow.graph = FailingGraph()
+    state = WorkflowState(
+        structure_instantiation={"nodes": [{"id": "n_a"}, {"id": "1"}]},
+        layout_instantiation={"n_a": {}, "1": {}},
+    )
+
+    with pytest.raises(ValueError, match=r"must not be bare integers \(got '1'\)"):
+        workflow.run(state)
+
+
 def test_render_service_passes_normalized_canvas_to_workflow_state(monkeypatch, tmp_path):
     from evodesign.agentic_system.render_engine import service
 

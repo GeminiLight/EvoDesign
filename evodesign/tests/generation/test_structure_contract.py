@@ -1268,3 +1268,19 @@ def test_structure_agent_keeps_a_corrected_graph_that_only_omits_claims(second_e
         with pytest.raises(StructureValidationError, match='unledgered'):
             agent.run(state)
     assert len(calls) == 2
+
+
+@pytest.mark.parametrize("category", ["nodes", "groups"])
+def test_structure_validator_rejects_integer_like_ids(category):
+    instantiation = {
+        "chart_type": "flowchart",
+        "nodes": [
+            {"id": "n_start", "label": "Start", "class": "terminator"},
+            {"id": "1" if category == "nodes" else "n_done", "label": "Done", "class": "process"},
+        ],
+        "edges": [],
+        "groups": [{"id": "2", "label": "Lane", "members": ["n_start"]}] if category == "groups" else [],
+    }
+
+    with pytest.raises(StructureValidationError, match="must not be a bare integer"):
+        validate_structure_instantiation(instantiation)

@@ -7,6 +7,7 @@ from evodesign.agentic_system.common.diagram_types import (
     DiagramTypeValidationError,
     normalize_supported_diagram_type,
 )
+from evodesign.agentic_system.common.semantic_ids import is_integer_like_id
 
 
 class GraphNode(BaseModel):
@@ -925,6 +926,11 @@ def _collect_unique_ids(items: Sequence[Dict[str, Any]], category: str) -> set[s
             raise StructureValidationError(f"{category.title()} at index {index} has no non-empty string id.")
         if item_id in seen:
             raise StructureValidationError(f"Duplicate {category} id {item_id!r}.")
+        if is_integer_like_id(item_id):
+            raise StructureValidationError(
+                f"{category.title()} id {item_id!r} must not be a bare integer; "
+                "use a descriptive snake_case id."
+            )
         seen.add(item_id)
     return seen
 

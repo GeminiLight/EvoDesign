@@ -282,96 +282,31 @@ def compute_waypoints(
 
     start_vertical = start_side in ("top", "bottom")
 
+    def at(along: float, across: float) -> Dict[str, float]:
+        """A point by its coordinate along the start face's travel axis."""
+        if start_vertical:
+            return {"x": across, "y": along}
+        return {"x": along, "y": across}
+
+    travel, cross = ("y", "x") if start_vertical else ("x", "y")
+
     # ---------- Aligned pairs: straight or Z-shape ----------
     if (start_side, end_side) in ALIGNED_PAIRS:
-        if start_vertical:
-            # top↔bottom pair: travel along y axis
-            if abs(start["x"] - end["x"]) < alignment_tol:
-                return [start, end], 0.0, 0.0
-            mid_y = _bounded_midpoint(
-                start["y"], end["y"], stagger_index, stagger_total, stagger_spacing
-            )
-            return (
-                [
-                    start,
-                    {"x": start["x"], "y": mid_y},
-                    {"x": end["x"], "y": mid_y},
-                    end,
-                ],
-                0.0,
-                0.0,
-            )
-        # left↔right pair: travel along x axis
-        if abs(start["y"] - end["y"]) < alignment_tol:
+        if abs(start[cross] - end[cross]) < alignment_tol:
             return [start, end], 0.0, 0.0
-        mid_x = _bounded_midpoint(
-            start["x"], end["x"], stagger_index, stagger_total, stagger_spacing
+        mid = _bounded_midpoint(
+            start[travel], end[travel], stagger_index, stagger_total, stagger_spacing
         )
-        return (
-            [
-                start,
-                {"x": mid_x, "y": start["y"]},
-                {"x": mid_x, "y": end["y"]},
-                end,
-            ],
-            0.0,
-            0.0,
-        )
+        return [start, at(mid, start[cross]), at(mid, end[cross]), end], 0.0, 0.0
 
     # ---------- Same-face pair: U-shape ----------
     if start_side == end_side:
-        if start_side == "top":
-            detour_y = min(start["y"], end["y"]) - offset
-            detour_y += _stagger_delta(stagger_index, stagger_total, stagger_spacing)
-            return (
-                [
-                    start,
-                    {"x": start["x"], "y": detour_y},
-                    {"x": end["x"], "y": detour_y},
-                    end,
-                ],
-                0.0,
-                0.0,
-            )
-        if start_side == "bottom":
-            detour_y = max(start["y"], end["y"]) + offset
-            detour_y += _stagger_delta(stagger_index, stagger_total, stagger_spacing)
-            return (
-                [
-                    start,
-                    {"x": start["x"], "y": detour_y},
-                    {"x": end["x"], "y": detour_y},
-                    end,
-                ],
-                0.0,
-                0.0,
-            )
-        if start_side == "left":
-            detour_x = min(start["x"], end["x"]) - offset
-            detour_x += _stagger_delta(stagger_index, stagger_total, stagger_spacing)
-            return (
-                [
-                    start,
-                    {"x": detour_x, "y": start["y"]},
-                    {"x": detour_x, "y": end["y"]},
-                    end,
-                ],
-                0.0,
-                0.0,
-            )
-        # start_side == "right"
-        detour_x = max(start["x"], end["x"]) + offset
-        detour_x += _stagger_delta(stagger_index, stagger_total, stagger_spacing)
-        return (
-            [
-                start,
-                {"x": detour_x, "y": start["y"]},
-                {"x": detour_x, "y": end["y"]},
-                end,
-            ],
-            0.0,
-            0.0,
-        )
+        if start_side in ("top", "left"):
+            detour = min(start[travel], end[travel]) - offset
+        else:
+            detour = max(start[travel], end[travel]) + offset
+        detour += _stagger_delta(stagger_index, stagger_total, stagger_spacing)
+        return [start, at(detour, start[cross]), at(detour, end[cross]), end], 0.0, 0.0
 
     # ---------- Perpendicular pair: L-shape ----------
     # Build the cheapest candidate (3-point pivot, or 4-point detour when

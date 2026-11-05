@@ -177,6 +177,55 @@ def reverse_base_id_map(id_map: Mapping[str, Any]) -> Dict[str, str]:
     return reverse
 
 
+# A JS object moves keys that look like array indices ("0", "7", ...) ahead of
+# all other keys, in ascending order, so a semantic id of that shape would
+# reorder every id-keyed dict in the TypeScript render engine and change the
+# output. Such ids are rejected at Structure and at the render entry.
+_ARRAY_INDEX_LIMIT = 2**32 - 1
+
+
+def is_integer_like_id(value: Any) -> bool:
+    """Whether ``value`` is a string JS would treat as an array index."""
+    return (
+        isinstance(value, str)
+        and value.isascii()
+        and value.isdigit()
+        and (value == "0" or not value.startswith("0"))
+        and int(value) < _ARRAY_INDEX_LIMIT
+    )
+
+
+def integer_like_semantic_ids(
+    structure: Optional[Mapping[str, Any]], layout: Optional[Mapping[str, Any]],
+) -> list[str]:
+    """Integer-like Structure ids and Layout keys, in first-seen order."""
+    found: list[str] = []
+    if isinstance(structure, Mapping):
+        for category in ("nodes", "edges", "groups"):
+            items = structure.get(category)
+            for item in items if isinstance(items, list) else []:
+                item_id = item.get("id") if isinstance(item, Mapping) else None
+                if is_integer_like_id(item_id) and item_id not in found:
+                    found.append(item_id)
+    if isinstance(layout, Mapping):
+        for key in layout:
+            if is_integer_like_id(key) and key not in found:
+                found.append(key)
+    return found
+
+
+def ensure_no_integer_like_semantic_ids(
+    structure: Optional[Mapping[str, Any]], layout: Optional[Mapping[str, Any]],
+) -> None:
+    found = integer_like_semantic_ids(structure, layout)
+    if found:
+        raise ValueError(
+            "Semantic ids must not be bare integers (got "
+            + ", ".join(repr(item) for item in found)
+            + "); use descriptive ids such as 'n_login'."
+        )
+
+
 __all__ = [
     "BACKGROUND_SUFFIX",
     "TITLE_SUFFIX",
@@ -194,4 +243,7 @@ __all__ = [
     "group_frame_render_id",
     "reverse_id_map",
     "reverse_base_id_map",
+    "is_integer_like_id",
+    "integer_like_semantic_ids",
+    "ensure_no_integer_like_semantic_ids",
 ]
