@@ -1,0 +1,34 @@
+{
+  "name": "@evodesign/render-engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TypeScript port of evodesign/agentic_system/render_engine (Excalidraw path), verified against Python fixtures.",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "fixtures": "cd ../.. && PYTHONPATH=. .venv/bin/python packages/render-engine/tools/export_fixtures.py",
+    "parity": "vitest run test/parity/functions.test.ts",
+    "parity:stages": "tsx tools/parity-stages.ts",
+    "render": "tsx tools/render.ts",
+    "ledger": "tsx tools/ledger.ts",
+    "test": "vitest run",
+    "parity:runs": "tsx tools/parity-runs.ts",
+    "record:runs": "cd ../.. && PYTHONPATH=. .venv/bin/python packages/render-engine/tools/record_runs.py",
+    "fixtures:phase2": "cd ../.. && PYTHONPATH=. .venv/bin/python packages/render-engine/tools/export_fixtures.py --phase2"
+  },
+  "dependencies": {
+    "@langchain/core": "1.2.20",
+    "@langchain/langgraph": "1.5.1",
+    "@langchain/openai": "1.6.3",
+    "langchain": "1.5.18",
+    "playwright": "1.58.2",
+    "pngjs": "7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "@types/pngjs": "6.0.5",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

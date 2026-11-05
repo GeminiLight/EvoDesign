@@ -1,0 +1,165 @@
+{
+  "chart_type": "concept_map",
+  "nodes": [
+    {
+      "id": "machine_learning",
+      "label": "机器学习",
+      "class": "core_concept",
+      "branch_id": null
+    },
+    {
+      "id": "supervised",
+      "label": "监督学习",
+      "class": "branch_anchor",
+      "branch_id": "supervised"
+    },
+    {
+      "id": "unsupervised",
+      "label": "无监督学习",
+      "class": "branch_anchor",
+      "branch_id": "unsupervised"
+    },
+    {
+      "id": "reinforcement",
+      "label": "强化学习",
+      "class": "branch_anchor",
+      "branch_id": "reinforcement"
+    },
+    {
+      "id": "classification",
+      "label": "分类",
+      "class": "concept",
+      "branch_id": "supervised"
+    },
+    {
+      "id": "regression",
+      "label": "回归",
+      "class": "concept",
+      "branch_id": "supervised"
+    },
+    {
+      "id": "clustering",
+      "label": "聚类",
+      "class": "concept",
+      "branch_id": "unsupervised"
+    },
+    {
+      "id": "dim_reduction",
+      "label": "降维",
+      "class": "concept",
+      "branch_id": "unsupervised"
+    },
+    {
+      "id": "agent",
+      "label": "智能体",
+      "class": "concept",
+      "branch_id": "reinforcement"
+    },
+    {
+      "id": "reward",
+      "label": "奖励信号",
+      "class": "concept",
+      "branch_id": "reinforcement"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:machine_learning2supervised",
+      "source": "machine_learning",
+      "target": "supervised",
+      "label": "organized into",
+      "relation_type": "hierarchy",
+      "directionality": "directed",
+      "evidence_basis": "structural"
+    },
+    {
+      "id": "edge:machine_learning2unsupervised",
+      "source": "machine_learning",
+      "target": "unsupervised",
+      "label": "organized into",
+      "relation_type": "hierarchy",
+      "directionality": "directed",
+      "evidence_basis": "structural"
+    },
+    {
+      "id": "edge:machine_learning2reinforcement",
+      "source": "machine_learning",
+      "target": "reinforcement",
+      "label": "organized into",
+      "relation_type": "hierarchy",
+      "directionality": "directed",
+      "evidence_basis": "structural"
+    },
+    {
+      "id": "edge:supervised2classification",
+      "source": "supervised",
+      "target": "classification",
+      "label": "包括",
+      "relation_type": "composition",
+      "directionality": "directed",
+      "evidence_basis": "explicit",
+      "evidence": "监督学习包括分类"
+    },
+    {
+      "id": "edge:supervised2regression",
+      "source": "supervised",
+      "target": "regression",
+      "label": "包括",
+      "relation_type": "composition",
+      "directionality": "directed",
+      "evidence_basis": "explicit",
+      "evidence": "监督学习包括回归"
+    },
+    {
+      "id": "edge:unsupervised2clustering",
+      "source": "unsupervised",
+      "target": "clustering",
+      "label": "包括",
+      "relation_type": "composition",
+      "directionality": "directed",
+      "evidence_basis": "explicit",
+      "evidence": "无监督学习包括聚类"
+    },
+    {
+      "id": "edge:unsupervised2dim_reduction",
+      "source": "unsupervised",
+      "target": "dim_reduction",
+      "label": "包括",
+      "relation_type": "composition",
+      "directionality": "directed",
+      "evidence_basis": "explicit",
+      "evidence": "无监督学习包括降维"
+    },
+    {
+      "id": "edge:reinforcement2agent",
+      "source": "reinforcement",
+      "target": "agent",
+      "label": "训练",
+      "relation_type": "composition",
+      "directionality": "directed",
+      "evidence_basis": "explicit",
+      "evidence": "强化学习训练智能体"
+    },
+    {
+      "id": "edge:reward2agent",
+      "source": "reward",
+      "target": "agent",
+      "label": "引导",
+      "relation_type": "causal",
+      "directionality": "directed",
+      "evidence_basis": "explicit",
+      "evidence": "奖励信号引导智能体的行为"
+    },
+    {
+      "id": "edge:dim_reduction2clustering",
+      "source": "dim_reduction",
+      "target": "clustering",
+      "label": "常用于",
+      "relation_type": "dependency",
+      "directionality": "directed",
+      "evidence_basis": "explicit",
+      "evidence": "降维常用于聚类之前的预处理"
+    }
+  ],
+  "groups": []
+}

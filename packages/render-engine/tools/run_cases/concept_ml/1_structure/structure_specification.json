@@ -1,0 +1,22 @@
+{
+  "diagram_paradigm": {
+    "chart_type": "concept_map",
+    "confidence": "high",
+    "primary_organizer": "radial",
+    "recognition_signal": "一个核心概念向三个学习范式分支展开，分支下列出具体任务。"
+  },
+  "semantic_typology": {
+    "entities": [
+      "machine_learning",
+      "supervised",
+      "unsupervised",
+      "reinforcement",
+      "classification",
+      "regression",
+      "clustering",
+      "dim_reduction",
+      "agent",
+      "reward"
+    ]
+  }
+}
