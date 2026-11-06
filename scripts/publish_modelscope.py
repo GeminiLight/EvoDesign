@@ -66,7 +66,7 @@ def main():
             for name in ['LICENSE', 'LICENSE.md']:
                 if (source / name).is_file():
                     shutil.copyfile(source / name, notices / f'{package.replace("/", "-")}-{name}')
-        for name in ['api/model.mjs', 'shared/diagram-prompts.mjs', 'shared/edge-identity.mjs', 'deploy/modelscope/server.mjs', 'LICENSE']:
+        for name in ['api/model.mjs', 'shared/diagram-prompts.mjs', 'shared/edge-identity.mjs', 'shared/model-runs.mjs', 'deploy/modelscope/server.mjs', 'LICENSE']:
             target = checkout / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / name, target)

@@ -382,4 +382,3 @@ export function _assign_port_ranks(plans: EdgePlan[]): PortTotals {
   }
   return totals;
 }
-

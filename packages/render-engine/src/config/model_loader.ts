@@ -9,9 +9,9 @@
 //
 // Python's ``**overrides`` keyword arguments become a trailing object.
 
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, readFileSync } from '../py/fs.ts';
+import { dirname, join, resolve } from '../py/path.ts';
+import { getPlatform } from '../py/platform.ts';
 import { KeyError, ValueError } from '../py/errors.ts';
 import { getEnv } from '../py/env.ts';
 import { getLogger } from '../py/logging.ts';
@@ -24,9 +24,9 @@ import { AppSettings, FileNotFoundError } from './settings.ts';
 
 const logger = getLogger('evodesign.config.model_loader');
 
-export let _PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
+export let _PROJECT_ROOT = getPlatform().repoRoot;
 // ``importlib.resources.files("evodesign.config.defaults")`` — the installed package, not _PROJECT_ROOT.
-const _PACKAGED_DEFAULTS_DIR = join(resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..'), 'evodesign', 'config', 'defaults');
+const _PACKAGED_DEFAULTS_DIR = join(getPlatform().repoRoot, 'evodesign', 'config', 'defaults');
 
 /** Test hook: Python tests monkeypatch ``_PROJECT_ROOT``. */
 export function _set_project_root(path: string): void {

@@ -11,9 +11,9 @@
 // shadows the variable). python-dotenv is replaced by ``_parse_dotenv``
 // below (the subset of python-dotenv's grammar that `.env.example` uses).
 
-import { existsSync, readFileSync, statSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, readFileSync, statSync } from '../py/fs.ts';
+import { dirname, join, resolve } from '../py/path.ts';
+import { getPlatform } from '../py/platform.ts';
 import { getEnv, setEnv } from '../py/env.ts';
 import { pyStrip } from '../py/str.ts';
 
@@ -35,7 +35,7 @@ export const _PLACEHOLDER_SECRET_VALUES = new Set([
 
 // evodesign root: parent of utils/ (this file lives in
 // packages/render-engine/src/utils/, the Python one in evodesign/utils/).
-const _REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
+const _REPO_ROOT = getPlatform().repoRoot;
 const _EVO_ROOT = join(_REPO_ROOT, 'evodesign');
 
 /**

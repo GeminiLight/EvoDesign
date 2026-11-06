@@ -1,0 +1,459 @@
+{
+ "generated": "2026-11-06T13:34:06.799Z",
+ "cases": [
+  {
+   "case": "big_en_aes__web_refine",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 16,
+    "matched": 16
+   },
+   "seconds": 25.023
+  },
+  {
+   "case": "cy_flywheel_ty2__web",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 14
+   },
+   "seconds": 9.23
+  },
+  {
+   "case": "dp_k8s_ty1__web_dna",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 14
+   },
+   "seconds": 10.462
+  },
+  {
+   "case": "ecommerce_aes__web_unified",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 0,
+    "matched": 0,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 2,
+    "matched": 2
+   },
+   "seconds": 0.007
+  },
+  {
+   "case": "flow_h1__web_router",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 1,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 14
+   },
+   "seconds": 13.636
+  },
+  {
+   "case": "flow_x1__web",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 14
+   },
+   "seconds": 7.609
+  },
+  {
+   "case": "flow_x2__web_unified_router",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 0,
+    "matched": 0,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 2,
+    "matched": 2
+   },
+   "seconds": 0.004
+  },
+  {
+   "case": "hcai_demo__web_refine",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 16,
+    "matched": 16
+   },
+   "seconds": 13.44
+  },
+  {
+   "case": "kb_sprint_ty1__web_norefine",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 14
+   },
+   "seconds": 3.814
+  },
+  {
+   "case": "ls_web_ty2__web_nocritic_norefine",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 14
+   },
+   "seconds": 4.006
+  },
+  {
+   "case": "paper_full_f2__web",
+   "ok": false,
+   "firstDivergence": {
+    "kind": "llm",
+    "where": "LLM call 2 (LayoutAgent)",
+    "diffs": [
+     "$.request.messages[4].content: strings differ at char 3297: expected \"User requirements\\\",\\\"icon\\\":\\\"outline_file_text\\\",\\\"backgroundCol\", got \"User requirements\\\",\\\"backgroundColor\\\":\\\"#D7E3EA\\\",\\\"strokeColor\\\"\""
+    ]
+   },
+   "llm": {
+    "expected": 4,
+    "matched": 2,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 7
+   },
+   "seconds": 0.038
+  },
+  {
+   "case": "plain_ecommerce__web_icons",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 14
+   },
+   "seconds": 5.794
+  },
+  {
+   "case": "quickstart_service__web_router",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 1,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 14
+   },
+   "seconds": 3.214
+  },
+  {
+   "case": "sm_course_ty1__web_nocritic",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 14
+   },
+   "seconds": 3.942
+  },
+  {
+   "case": "t_class_tz__web_refine_resolved",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 6,
+    "matched": 6,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 18,
+    "matched": 18
+   },
+   "seconds": 12.724
+  },
+  {
+   "case": "t_er_ty__web",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 14
+   },
+   "seconds": 5.499
+  },
+  {
+   "case": "t_er_tz__web_refine_regress",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 6,
+    "matched": 6,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 18,
+    "matched": 18
+   },
+   "seconds": 14.789
+  },
+  {
+   "case": "t_fishbone_ty__web_styling_llm_error",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 2,
+    "matched": 2,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 6,
+    "matched": 6
+   },
+   "seconds": 0.027
+  },
+  {
+   "case": "t_funnel_ty__web_repair",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 9,
+    "matched": 9,
+    "unverifiedCallers": 2,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 14
+   },
+   "seconds": 3.683
+  },
+  {
+   "case": "t_matrix_ty__web_layout_error",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 7,
+    "matched": 7,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 8,
+    "matched": 8
+   },
+   "seconds": 0.017
+  },
+  {
+   "case": "t_mindmap_ty__web_router",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 1,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 14
+   },
+   "seconds": 10.323
+  },
+  {
+   "case": "t_orgchart_ty__web",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 14
+   },
+   "seconds": 4.937
+  },
+  {
+   "case": "t_sequence_tz__web",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 14
+   },
+   "seconds": 7.326
+  },
+  {
+   "case": "t_state_tz__web_locked",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 14
+   },
+   "seconds": 3.344
+  },
+  {
+   "case": "t_state_tz__web_refine_unresolved",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 16,
+    "matched": 16
+   },
+   "seconds": 9.73
+  },
+  {
+   "case": "t_swimlane_ty__web",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 14,
+    "matched": 14
+   },
+   "seconds": 5.638
+  },
+  {
+   "case": "t_swot_ty__web_refine_llm_error",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 7,
+    "matched": 7,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 16,
+    "matched": 16
+   },
+   "seconds": 24.725
+  },
+  {
+   "case": "t_timeline_ty__web_structure_error",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "events": {
+    "expected": 4,
+    "matched": 4
+   },
+   "seconds": 0.009
+  }
+ ]
+}

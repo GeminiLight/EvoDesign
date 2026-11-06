@@ -6,6 +6,7 @@
 // below mirror evodesign/tests/common/test_semantic_ids.py.
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { setImmediate as yieldEventLoop } from 'node:timers/promises';
 import { describe, expect, it } from 'vitest';
 import { compare } from '../harness/compare.ts';
 import { FIXTURES } from '../harness/fixtures.ts';
@@ -74,7 +75,8 @@ describe('render entry', () => {
     expect(() => renderExcalidrawManifest(JSON.parse(text) as Dict)).toThrow("must not be bare integers (got '1')");
   });
 
-  it.each(files)('%s still renders through run() exactly like Python', (file) => {
+  it.each(files)('%s still renders through run() exactly like Python', async (file) => {
+    await yieldEventLoop();
     const fixture = load(file);
     if (fixture.error) return;
     const expected = fixture.snapshots[fixture.snapshots.length - 1].diagram_manifest;

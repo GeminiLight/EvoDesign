@@ -16,8 +16,8 @@
 // into a ``UnifiedWorkflowState``, like Python LangGraph with a pydantic schema.
 // ``set_entry_point(x)`` → ``addEdge(START, x)``.
 
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { dirname } from 'node:path';
+import { mkdirSync, writeFileSync } from '../../py/fs.ts';
+import { dirname } from '../../py/path.ts';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { END, START } from '@langchain/langgraph';
 import {

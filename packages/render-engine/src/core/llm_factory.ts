@@ -23,6 +23,7 @@ import { getLogger } from '../py/logging.ts';
 import { pyRepr, pyStr, pyStrip } from '../py/str.ts';
 import { isDict, truthy } from '../py/truthy.ts';
 import { ModelConfig } from '../config/model_loader.ts';
+import { createOpenAIChatModel } from '../models/openai_chat.ts';
 
 const logger = getLogger('evodesign.core.llm_factory');
 
@@ -100,10 +101,19 @@ export function _init_chat_model_fields(config_kwargs: Record<string, unknown>):
   return { model: pyStr(config_kwargs.model), fields };
 }
 
-/** ``langchain.chat_models.init_chat_model(**config_kwargs)`` (the substitution point). */
+/**
+ * ``langchain.chat_models.init_chat_model(**config_kwargs)`` (the substitution point).
+ * ``model_provider`` openai builds ``models/openai_chat.EvoChatOpenAI`` (WP30:
+ * HTTP-level parity with langchain-openai; ``http_client`` may be a fetch
+ * function); other providers go through LangChain.js ``initChatModel``.
+ */
 export async function init_chat_model(config_kwargs: Record<string, unknown>): Promise<BaseChatModel> {
   if (_chat_model_factory) {
     return _chat_model_factory({ ...config_kwargs }, _ROLE);
+  }
+  if (typeof config_kwargs.model_provider === 'string' && config_kwargs.model_provider.toLowerCase() === 'openai') {
+    // WP30: request body, headers and errors aligned with langchain-openai.
+    return createOpenAIChatModel(config_kwargs) as unknown as BaseChatModel;
   }
   const { model, fields } = _init_chat_model_fields(config_kwargs);
   return (await initChatModel(model, fields)) as unknown as BaseChatModel;

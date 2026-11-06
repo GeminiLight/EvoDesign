@@ -19,9 +19,9 @@
 // ``__init__``/``run``; the pipeline modules are imported statically here
 // (no cycle).
 
+import { existsSync, mkdirSync, writeFileSync } from '../py/fs.ts';
+import { join } from '../py/path.ts';
 import { withPyFloats } from '../py/float_marks.ts';
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { normalize_canvas_library } from '../canvas_runtime.ts';
 import { normalize_generation_mode } from '../config/settings.ts';
@@ -771,4 +771,3 @@ export function create_generator(
     full_domain_knowledge,
   );
 }
-

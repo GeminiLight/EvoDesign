@@ -12,8 +12,8 @@
 // LangChain.js may run handlers in the background, so this handler sets
 // ``awaitHandlers`` (``_awaitHandler: true``) to keep that ordering.
 
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { mkdirSync, writeFileSync } from '../../py/fs.ts';
+import { join } from '../../py/path.ts';
 import { BaseCallbackHandler } from '@langchain/core/callbacks/base';
 import type { Serialized } from '@langchain/core/load/serializable';
 import type { BaseMessage } from '@langchain/core/messages';

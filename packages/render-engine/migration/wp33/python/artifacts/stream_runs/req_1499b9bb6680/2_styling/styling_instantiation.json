@@ -1,0 +1,107 @@
+{
+  "submit_order": {
+    "shape": "ellipse",
+    "strokeColor": "#9E4F61",
+    "backgroundColor": "#F3D6D8",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "strokeStyle": "solid",
+    "roughness": 0,
+    "label": {
+      "fontSize": 17,
+      "fontFamily": 2,
+      "strokeColor": "#1E1E1E",
+      "text": "Submit order"
+    }
+  },
+  "authorize_payment": {
+    "shape": "rectangle",
+    "strokeColor": "#8A6A2F",
+    "backgroundColor": "#F1E4C7",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "strokeStyle": "solid",
+    "roughness": 0,
+    "label": {
+      "fontSize": 17,
+      "fontFamily": 2,
+      "strokeColor": "#1E1E1E",
+      "text": "Authorize payment"
+    }
+  },
+  "payment_succeeds": {
+    "shape": "diamond",
+    "strokeColor": "#5967A8",
+    "backgroundColor": "#D8DBF0",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "strokeStyle": "solid",
+    "roughness": 0,
+    "label": {
+      "fontSize": 18,
+      "fontFamily": 2,
+      "strokeColor": "#1E1E1E",
+      "text": "Payment succeeds?"
+    }
+  },
+  "request_retry": {
+    "shape": "ellipse",
+    "strokeColor": "#9E4F61",
+    "backgroundColor": "#F3D6D8",
+    "fillStyle": "solid",
+    "strokeWidth": 1,
+    "strokeStyle": "solid",
+    "roughness": 0,
+    "label": {
+      "fontSize": 16,
+      "fontFamily": 2,
+      "strokeColor": "#1E1E1E",
+      "text": "Ask customer to retry"
+    }
+  },
+  "ship_parcel": {
+    "shape": "rectangle",
+    "strokeColor": "#56765A",
+    "backgroundColor": "#D8E6D1",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "strokeStyle": "solid",
+    "roughness": 0,
+    "label": {
+      "fontSize": 17,
+      "fontFamily": 2,
+      "strokeColor": "#1E1E1E",
+      "text": "Warehouse ships parcel"
+    }
+  },
+  "receive_confirmation": {
+    "shape": "ellipse",
+    "strokeColor": "#56765A",
+    "backgroundColor": "#D8E6D1",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "strokeStyle": "solid",
+    "roughness": 0,
+    "label": {
+      "fontSize": 18,
+      "fontFamily": 2,
+      "strokeColor": "#1E1E1E",
+      "text": "Customer receives confirmation"
+    }
+  },
+  "edge:submit_order2authorize_payment": {
+    "strokeColor": "#24313A"
+  },
+  "edge:authorize_payment2payment_succeeds": {
+    "strokeColor": "#24313A"
+  },
+  "edge:payment_succeeds2request_retry": {
+    "strokeColor": "#24313A"
+  },
+  "edge:payment_succeeds2ship_parcel": {
+    "strokeColor": "#24313A"
+  },
+  "edge:ship_parcel2receive_confirmation": {
+    "strokeColor": "#24313A"
+  }
+}

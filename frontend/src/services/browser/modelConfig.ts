@@ -8,6 +8,7 @@ export interface BrowserModelConfig {
   apiKey: string;
   rememberKey: boolean;
   refine: boolean;
+  supportsVision?: boolean;
   reasoningEffort?: 'low' | 'medium' | 'high';
 }
 
@@ -38,6 +39,7 @@ export function loadCustomModelConfig(): BrowserModelConfig {
       apiKey: saved.rememberKey === true && typeof saved.apiKey === 'string' ? saved.apiKey
         : session.baseUrl === baseUrl && typeof session.apiKey === 'string' ? session.apiKey : '',
       rememberKey: saved.rememberKey === true, refine: saved.refine !== false,
+      supportsVision: saved.supportsVision !== false,
       reasoningEffort: ['low', 'medium', 'high'].includes(saved.reasoningEffort) ? saved.reasoningEffort : undefined,
     };
   } catch {
@@ -52,6 +54,7 @@ export function loadModelConfig(): BrowserModelConfig {
     if (saved.source === 'custom' || (saved.source !== 'hosted' && custom.model)) return custom;
     if (saved.source === 'hosted' || getHostedModel().status === 'available') return {
       ...emptyModelConfig, source: 'hosted', baseUrl: '/api/model', model: getHostedModel().model, refine: saved.refine !== false,
+      supportsVision: false,
     };
   } catch { /* Storage may be disabled. */ }
   return custom;
@@ -106,7 +109,7 @@ function waitForRetry(seconds: number, signal: AbortSignal): Promise<void> {
 
 async function requestCompletion(
   config: BrowserModelConfig, system: string, user: string, signal: AbortSignal | undefined,
-  maxTokens: number, timeoutMs: number, onWait?: (seconds: number) => void, task: 'diagram' | 'edit' | 'check' = 'diagram',
+  maxTokens: number, timeoutMs: number, onWait?: (seconds: number) => void, task: 'edit' | 'check' = 'edit',
 ): Promise<Completion> {
   if (!config.model.trim()) throw new Error('Configure your model in Model settings first.');
   const controller = new AbortController();
@@ -169,7 +172,7 @@ async function requestCompletion(
 }
 
 export async function callBrowserModel(
-  config: BrowserModelConfig, system: string, user: string, signal?: AbortSignal, maxTokens = 8192, onWait?: (seconds: number) => void, task: 'diagram' | 'edit' = 'diagram',
+  config: BrowserModelConfig, system: string, user: string, signal?: AbortSignal, maxTokens = 8192, onWait?: (seconds: number) => void, task: 'edit' = 'edit',
 ): Promise<string> {
   const choice = await requestCompletion(config, system, user, signal, maxTokens, 180_000, onWait, task);
   // Reasoning models may exhaust their output budget before producing any text.

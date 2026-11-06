@@ -1,0 +1,38 @@
+{
+  "visual_paradigm": {
+    "chart_type": "flowchart",
+    "design": "Clean process spine with a prominent decision and a secondary retry branch.",
+    "invariants": [
+      "Preserve all six nodes and five edges with their exact IDs, labels and roles.",
+      "Retain Yes and No decision labels and no retry loop.",
+      "No groups or icons."
+    ]
+  },
+  "shape_and_icon_system": {
+    "start_and_end": "ellipse",
+    "process": "rectangle",
+    "decision": "diamond",
+    "icons": "disabled"
+  },
+  "color_and_stroke_system": {
+    "palette_name": "blush_sage",
+    "canvas": "#FAF8F5",
+    "family_assignments": {
+      "submit_order": "blush",
+      "authorize_payment": "sand",
+      "payment_succeeds": "indigo",
+      "request_retry": "blush",
+      "ship_parcel": "sage",
+      "receive_confirmation": "sage"
+    },
+    "stroke_system": "Solid paired family strokes; primary nodes use width 2 and the muted endpoint uses width 1.",
+    "edge_system": "Uniform dark directional connectors preserve branch readability."
+  },
+  "typography_and_hierarchy": {
+    "font_family": "Helvetica / fontFamily 2",
+    "node_labels": "17px regular; primary decision and final outcome 18px; muted retry endpoint 16px.",
+    "edge_labels": "13px with dark text.",
+    "line_height": 1.2,
+    "text_color": "#1E1E1E"
+  }
+}

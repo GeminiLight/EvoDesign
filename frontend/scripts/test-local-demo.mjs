@@ -49,7 +49,7 @@ test('foreign Host and oversized bodies never reach the handler', async () => {
       req.on('error', reject); req.end();
     });
     assert.equal(status, 403);
-    assert.equal((await fetch(`${base}/api/model`, { method: 'POST', body: 'x'.repeat(100001) })).status, 413);
+    assert.equal((await fetch(`${base}/api/model`, { method: 'POST', body: 'x'.repeat(8_000_001) })).status, 413);
     assert.equal(count, 0);
   });
 });

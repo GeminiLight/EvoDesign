@@ -1,5 +1,5 @@
 // Ported from evodesign/core/base_agent.py — keep in sync.
-// server-only (AsyncLocalStorage for the ContextVar budgets; LangChain.js)
+// AsyncLocalStorage (host platform async context, WP27) for the ContextVar budgets; LangChain.js
 //
 // Translation notes
 // -----------------
@@ -17,7 +17,7 @@
 //   names (prototype chain), ``status``/``status_code`` and Node socket error
 //   codes; see ``_class_names``.
 
-import { AsyncLocalStorage } from 'node:async_hooks';
+import { getPlatform } from '../py/platform.ts';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { AIMessage, HumanMessage, SystemMessage, type BaseMessage } from '@langchain/core/messages';
 import { createAgent } from 'langchain';
@@ -352,7 +352,7 @@ export class LLMRunBudget {
   }
 }
 
-export const _RUN_BUDGET = new AsyncLocalStorage<LLMRunBudget | null>();
+export const _RUN_BUDGET = getPlatform().createAsyncContext<LLMRunBudget | null>();
 
 /**
  * Cap every BaseAgent request made inside ``body`` (and the concurrent
@@ -483,7 +483,7 @@ export class _CallBudget {
   }
 }
 
-export const _CALL_BUDGET = new AsyncLocalStorage<_CallBudget | null>();
+export const _CALL_BUDGET = getPlatform().createAsyncContext<_CallBudget | null>();
 
 // Unbound method forms (``_CallBudget.check(self, ...)``) for the parity harness.
 export function _CallBudget_check(self: _CallBudget, charge = false): null {
@@ -930,4 +930,3 @@ export abstract class BaseAgent {
   /** Execute the agent logic. Subclasses must implement this. */
   abstract run(state: unknown): unknown;
 }
-

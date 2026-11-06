@@ -26,7 +26,7 @@
 // * ``deepcopy`` of model output keeps the integral-float marks
 //   (ISSUES.md WP17-1) so the repair turn's ``json.dumps`` prints ``64.0``.
 
-import { dirname, join } from 'node:path';
+import { dirname, join } from '../../py/path.ts';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { BaseMessage } from '@langchain/core/messages';
 import { EVODESIGN_SKILL_SYSTEM_PROMPT } from '../../common/skill_loader.ts';

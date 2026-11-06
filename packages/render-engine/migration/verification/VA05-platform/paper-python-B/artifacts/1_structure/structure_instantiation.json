@@ -1,0 +1,179 @@
+{
+ "chart_type": "architecture",
+ "nodes": [
+  {
+   "id": "input_content",
+   "label": "Input Content",
+   "class": "input",
+   "sublabel": "Source content / User requirements",
+   "role": "client",
+   "icon": "outline_file_text"
+  },
+  {
+   "id": "structure_agent",
+   "label": "Structure Agent",
+   "class": "agent",
+   "sublabel": "Semantic topology / Structure specification",
+   "role": "service",
+   "icon": "outline_git_branch"
+  },
+  {
+   "id": "style_agent",
+   "label": "Style Agent",
+   "class": "agent",
+   "sublabel": "Visual encodings / Styling specification",
+   "role": "service",
+   "icon": "outline_layers"
+  },
+  {
+   "id": "layout_agent",
+   "label": "Layout Agent",
+   "class": "agent",
+   "sublabel": "Geometry / Routing / Layout specification",
+   "role": "service",
+   "icon": "outline_waypoints"
+  },
+  {
+   "id": "canvas_render_engine",
+   "label": "Canvas Render Engine",
+   "class": "render_engine",
+   "sublabel": "Canvas schema / Deterministic rendering",
+   "role": "service",
+   "icon": "outline_app_window"
+  },
+  {
+   "id": "diagram_refiner",
+   "label": "Diagram Refiner",
+   "class": "agent",
+   "sublabel": "Visual diagnosis / Tool-augmented correction",
+   "role": "service",
+   "icon": "outline_search"
+  },
+  {
+   "id": "editable_diagram",
+   "label": "Editable Diagram",
+   "class": "output",
+   "sublabel": "Object-level editing / Direct UI operations",
+   "role": "client",
+   "icon": "outline_monitor"
+  },
+  {
+   "id": "hybrid_experience_search",
+   "label": "Hybrid Experience Search",
+   "class": "experience_search",
+   "sublabel": "Vertical refinement / Horizontal comparison",
+   "role": "worker",
+   "icon": "outline_split"
+  },
+  {
+   "id": "knowledge_distiller",
+   "label": "Knowledge Distiller",
+   "class": "knowledge_distiller",
+   "sublabel": "Summarization / Aggregation / Abstraction",
+   "role": "worker",
+   "icon": "outline_workflow"
+  },
+  {
+   "id": "design_expertise_memory",
+   "label": "Design Expertise Memory",
+   "class": "memory",
+   "sublabel": "Sample strategies / Guidelines / Principles",
+   "role": "database",
+   "icon": "outline_brain"
+  }
+ ],
+ "edges": [
+  {
+   "id": "edge:input_content2structure_agent",
+   "source": "input_content",
+   "target": "structure_agent",
+   "relation": "provides content and requirements to",
+   "evidence_basis": "explicit"
+  },
+  {
+   "id": "edge:structure_agent2style_agent",
+   "source": "structure_agent",
+   "target": "style_agent",
+   "relation": "provides semantic topology to",
+   "evidence_basis": "explicit"
+  },
+  {
+   "id": "edge:style_agent2layout_agent",
+   "source": "style_agent",
+   "target": "layout_agent",
+   "relation": "provides styled semantic elements to",
+   "evidence_basis": "explicit"
+  },
+  {
+   "id": "edge:layout_agent2canvas_render_engine",
+   "source": "layout_agent",
+   "target": "canvas_render_engine",
+   "relation": "provides the completed manifest for rendering by",
+   "evidence_basis": "explicit"
+  },
+  {
+   "id": "edge:canvas_render_engine2diagram_refiner",
+   "source": "canvas_render_engine",
+   "target": "diagram_refiner",
+   "relation": "provides the rendered canvas for diagnosis by",
+   "evidence_basis": "explicit"
+  },
+  {
+   "id": "edge:diagram_refiner2canvas_render_engine",
+   "source": "diagram_refiner",
+   "target": "canvas_render_engine",
+   "relation": "applies canvas corrections through",
+   "evidence_basis": "explicit"
+  },
+  {
+   "id": "edge:canvas_render_engine2editable_diagram",
+   "source": "canvas_render_engine",
+   "target": "editable_diagram",
+   "relation": "renders",
+   "evidence_basis": "explicit"
+  },
+  {
+   "id": "edge:diagram_refiner2hybrid_experience_search",
+   "source": "diagram_refiner",
+   "target": "hybrid_experience_search",
+   "relation": "contributes refinement traces to",
+   "evidence_basis": "explicit"
+  },
+  {
+   "id": "edge:hybrid_experience_search2knowledge_distiller",
+   "source": "hybrid_experience_search",
+   "target": "knowledge_distiller",
+   "relation": "supplies collected execution traces to",
+   "evidence_basis": "explicit"
+  },
+  {
+   "id": "edge:knowledge_distiller2design_expertise_memory",
+   "source": "knowledge_distiller",
+   "target": "design_expertise_memory",
+   "relation": "incrementally updates",
+   "evidence_basis": "explicit"
+  },
+  {
+   "id": "edge:design_expertise_memory2structure_agent",
+   "source": "design_expertise_memory",
+   "target": "structure_agent",
+   "relation": "supplies retrieved design heuristics to",
+   "evidence_basis": "explicit"
+  },
+  {
+   "id": "edge:design_expertise_memory2style_agent",
+   "source": "design_expertise_memory",
+   "target": "style_agent",
+   "relation": "supplies retrieved design heuristics to",
+   "evidence_basis": "explicit"
+  },
+  {
+   "id": "edge:design_expertise_memory2layout_agent",
+   "source": "design_expertise_memory",
+   "target": "layout_agent",
+   "relation": "supplies retrieved design heuristics to",
+   "evidence_basis": "explicit"
+  }
+ ],
+ "groups": []
+}

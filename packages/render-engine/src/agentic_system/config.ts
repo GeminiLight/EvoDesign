@@ -21,7 +21,7 @@ interface CapabilitiesModule {
   require_refiner_capability: (canvas_library: string, mode: string) => void;
 }
 const CAPABILITIES_PATH = '../canvas_environment/capabilities.ts';
-const capabilities = (await import(/* @vite-ignore */ new URL(CAPABILITIES_PATH, import.meta.url).href).catch(() => null)) as CapabilitiesModule | null;
+const capabilities = (await import('../canvas_environment/capabilities.ts').catch(() => null)) as CapabilitiesModule | null;
 
 function require_generation_capability(canvas_library: string, mode: string): void {
   if (!capabilities) throw new RuntimeError('canvas_environment/capabilities.ts is not ported yet (WP14)');

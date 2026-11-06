@@ -1,0 +1,22 @@
+{
+  "sent_content": [
+    {
+      "type": "reasoning",
+      "text": null
+    },
+    {
+      "type": "text",
+      "text": "[]"
+    }
+  ],
+  "received_content": [
+    {
+      "type": "reasoning",
+      "text": null
+    },
+    {
+      "type": "text",
+      "text": "[]"
+    }
+  ]
+}

@@ -28,7 +28,8 @@
 // (WP23). Python imports it lazily inside ``main``; TS does the same with a
 // dynamic import, so this module loads without it.
 
-import { existsSync, readFileSync, realpathSync } from 'node:fs';
+import { realpathSync } from 'node:fs';
+import { existsSync, readFileSync } from '../py/fs.ts';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { VALID_CANVAS_LIBRARIES, normalize_canvas_library } from '../canvas_runtime.ts';

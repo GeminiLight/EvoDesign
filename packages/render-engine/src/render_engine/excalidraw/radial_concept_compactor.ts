@@ -2319,4 +2319,3 @@ export function compact_concept_map_layout(manifest: any, structure_instantiatio
 }
 
 export const __all__ = ['compact_concept_map_layout'];
-

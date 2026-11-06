@@ -4,7 +4,7 @@
 // Public rendering facade for EvoDesign canvas runtimes. Rendering is async
 // in TS (Node playwright); call order is unchanged.
 
-import { readFileSync, existsSync } from 'node:fs';
+import { existsSync, readFileSync } from '../py/fs.ts';
 import {
   CANVAS_DEFAULT_VIEWPORT_HEIGHT,
   CANVAS_DEFAULT_VIEWPORT_WIDTH,

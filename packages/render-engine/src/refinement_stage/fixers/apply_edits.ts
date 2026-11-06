@@ -99,7 +99,7 @@ class _LocalEditApplyOutcome extends BaseModel {
 
 async function _load_state(): Promise<{ EditOp?: EditOpClass; EditApplyOutcome?: EditApplyOutcomeClass } | null> {
   try {
-    return (await import(/* @vite-ignore */ new URL('../state.ts', import.meta.url).href)) as {
+    return (await import('../state.ts')) as {
       EditOp?: EditOpClass;
       EditApplyOutcome?: EditApplyOutcomeClass;
     };

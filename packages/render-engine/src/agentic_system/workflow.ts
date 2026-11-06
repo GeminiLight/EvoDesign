@@ -20,10 +20,9 @@
 //   disabled with a warning, design memory degrades with a recorded error.
 //   With the features off (the default for recorded runs) neither is touched.
 
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, tmpdir, writeFileSync } from '../py/fs.ts';
+import { dirname, isAbsolute, join, relative, resolve } from '../py/path.ts';
 import { withPyFloats } from '../py/float_marks.ts';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { dirname, join, relative, resolve, isAbsolute } from 'node:path';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
 import { require_generation_capability, require_refiner_capability } from '../canvas_environment/capabilities.ts';

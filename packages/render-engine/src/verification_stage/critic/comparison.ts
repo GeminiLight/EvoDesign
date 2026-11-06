@@ -6,8 +6,8 @@
 // Async: the model call (and, when `model` is null, the default critic model
 // creation) is awaited. COMPARISON_PROMPT is the Python literal value.
 
-import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readFileSync } from '../../py/fs.ts';
+import { sha256Hex } from '../../py/hash.ts';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { image_to_data_url } from '../../utils/io_utils.ts';
@@ -39,7 +39,7 @@ export async function compare_rendered_diagrams(
 ): Promise<Dict> {
   const paths: Record<string, string> = { original: original_path, candidate: candidate_path };
   const hashes: Record<string, string> = Object.fromEntries(
-    Object.entries(paths).map(([name, path]) => [name, createHash('sha256').update(readFileSync(path)).digest('hex')]),
+    Object.entries(paths).map(([name, path]) => [name, sha256Hex(readFileSync(path))]),
   );
   if (hashes.original === hashes.candidate) {
     return {

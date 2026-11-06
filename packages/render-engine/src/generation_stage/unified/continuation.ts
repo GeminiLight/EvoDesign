@@ -6,8 +6,8 @@
 // String positions are Python indices (code points): the scene text may hold
 // CJK text or emoji, and the prefix lengths/sha256 are recorded in artifacts.
 
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { mkdirSync, writeFileSync } from '../../py/fs.ts';
+import { join } from '../../py/path.ts';
 import { AIMessage, HumanMessage } from '@langchain/core/messages';
 import { LLMResponseError, _is_retryable_exception, _sleep } from '../../core/base_agent.ts';
 import { get_text_from_response } from '../../utils/llm_output.ts';

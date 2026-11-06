@@ -17,11 +17,10 @@
 // ``WorkflowState(**channel_values)``: dict/list fields shallow-copied), so the
 // per-node snapshots and the copy semantics match Python.
 
+import { mkdirSync, mkdtempSync, tmpdir, writeFileSync } from '../py/fs.ts';
+import { dirname, join } from '../py/path.ts';
 import { withPyFloats } from '../py/float_marks.ts';
 import { pyDeepcopy } from '../py/float_marks.ts';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
 import {
   CANVAS_DEFAULT_VIEWPORT_HEIGHT,
   CANVAS_DEFAULT_VIEWPORT_WIDTH,

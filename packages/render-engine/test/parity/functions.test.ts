@@ -14,6 +14,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { compare } from '../harness/compare.ts';
+import { installPytestFiles } from '../harness/pytest_files.ts';
 import { PACKAGE_ROOT, bindArguments, listFunctionFixtures, loadVectors, signatureOf, type Vector } from '../harness/fixtures.ts';
 
 interface ModuleEntry { python: string | null; ts: string; wp: string }
@@ -52,7 +53,7 @@ for (const entry of selected) {
     const report: Record<string, unknown> = {};
 
     for (const func of listFunctionFixtures(pythonModule)) {
-      it(func, () => {
+      it(func, async () => {
         const adapter = adapters[func] ?? {};
         const vectors = loadVectors(pythonModule, func);
         const outcome = { vectors: vectors.length, passed: 0, failed: 0, skipped: 0, tolerated: 0, keyOrder: 0, failures: [] as unknown[], skip: adapter.skip ?? null, missing: false };
@@ -71,6 +72,11 @@ for (const entry of selected) {
           expect.fail(`${entry.ts} does not export ${exportName}${params ? '' : ' (no Python signature)'}`);
         }
         for (const vector of vectors) {
+          // Large vector groups can occupy the worker for over a minute.
+          // Drain Vitest's status RPC replies between independent vectors.
+          await yieldEventLoop();
+          const restoreFiles = installPytestFiles(pythonModule, func, vector, vectors);
+          try {
           const record = (problems: string[]) => {
             outcome.failed += 1;
             if (outcome.failures.length < MAX_REPORTED_FAILURES) {
@@ -106,6 +112,7 @@ for (const entry of selected) {
           else outcome.passed += 1;
           outcome.tolerated += tolerated;
           outcome.keyOrder += result.keyOrder.length;
+          } finally { restoreFiles(); }
         }
         expect(outcome.failures, JSON.stringify(outcome.failures, null, 1).slice(0, 4000)).toEqual([]);
       });
@@ -124,3 +131,4 @@ if (!selected.length) {
     expect(true).toBe(true);
   });
 }
+import { setImmediate as yieldEventLoop } from 'node:timers/promises';

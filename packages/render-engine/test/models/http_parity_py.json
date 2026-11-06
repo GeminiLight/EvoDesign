@@ -1,0 +1,1549 @@
+{
+ "versions": {
+  "langchain-openai": "1.7.3",
+  "openai": "3.42.0",
+  "langchain-core": "1.7.3",
+  "langchain": "1.4.7"
+ },
+ "requests": [
+  {
+   "tag": "production_default",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600.0",
+      "content-length": "378"
+     },
+     "body": {
+      "model": "configured-model",
+      "stream": true,
+      "messages": [
+       {
+        "content": "sys 中文",
+        "role": "system"
+       },
+       {
+        "content": [
+         {
+          "type": "text",
+          "text": "hi"
+         },
+         {
+          "type": "image_url",
+          "image_url": {
+           "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+           "detail": "high"
+          }
+         }
+        ],
+        "role": "user"
+       }
+      ],
+      "max_completion_tokens": 16384,
+      "temperature": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "tag": "cassette_shape",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600.0",
+      "content-length": "376"
+     },
+     "body": {
+      "model": "cassette-model",
+      "stream": true,
+      "messages": [
+       {
+        "content": "sys 中文",
+        "role": "system"
+       },
+       {
+        "content": [
+         {
+          "type": "text",
+          "text": "hi"
+         },
+         {
+          "type": "image_url",
+          "image_url": {
+           "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+           "detail": "high"
+          }
+         }
+        ],
+        "role": "user"
+       }
+      ],
+      "max_completion_tokens": 16384,
+      "temperature": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "tag": "defaults",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "334"
+     },
+     "body": {
+      "model": "m1",
+      "stream": true,
+      "messages": [
+       {
+        "content": "sys 中文",
+        "role": "system"
+       },
+       {
+        "content": [
+         {
+          "type": "text",
+          "text": "hi"
+         },
+         {
+          "type": "image_url",
+          "image_url": {
+           "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+           "detail": "high"
+          }
+         }
+        ],
+        "role": "user"
+       }
+      ],
+      "temperature": 0.0
+     }
+    }
+   ]
+  },
+  {
+   "tag": "nostream",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-raw-response": "true",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "363"
+     },
+     "body": {
+      "model": "m2",
+      "stream": false,
+      "messages": [
+       {
+        "content": "sys 中文",
+        "role": "system"
+       },
+       {
+        "content": [
+         {
+          "type": "text",
+          "text": "hi"
+         },
+         {
+          "type": "image_url",
+          "image_url": {
+           "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+           "detail": "high"
+          }
+         }
+        ],
+        "role": "user"
+       }
+      ],
+      "max_completion_tokens": 100,
+      "temperature": 0.3
+     }
+    }
+   ]
+  },
+  {
+   "tag": "thinking_on",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/api/paas/v4/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "369"
+     },
+     "body": {
+      "model": "glm-4.6",
+      "stream": true,
+      "messages": [
+       {
+        "content": "sys 中文",
+        "role": "system"
+       },
+       {
+        "content": [
+         {
+          "type": "text",
+          "text": "hi"
+         },
+         {
+          "type": "image_url",
+          "image_url": {
+           "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+           "detail": "high"
+          }
+         }
+        ],
+        "role": "user"
+       }
+      ],
+      "temperature": 0.0,
+      "thinking": {
+       "type": "enabled"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "tag": "thinking_off",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "405"
+     },
+     "body": {
+      "model": "deepseek-chat",
+      "stream": true,
+      "messages": [
+       {
+        "content": "sys 中文",
+        "role": "system"
+       },
+       {
+        "content": [
+         {
+          "type": "text",
+          "text": "hi"
+         },
+         {
+          "type": "image_url",
+          "image_url": {
+           "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+           "detail": "high"
+          }
+         }
+        ],
+        "role": "user"
+       }
+      ],
+      "max_completion_tokens": 2048,
+      "temperature": 0.0,
+      "thinking": {
+       "type": "disabled"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "tag": "reasoning_effort",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "360"
+     },
+     "body": {
+      "model": "m5",
+      "stream": true,
+      "messages": [
+       {
+        "content": "sys 中文",
+        "role": "system"
+       },
+       {
+        "content": [
+         {
+          "type": "text",
+          "text": "hi"
+         },
+         {
+          "type": "image_url",
+          "image_url": {
+           "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+           "detail": "high"
+          }
+         }
+        ],
+        "role": "user"
+       }
+      ],
+      "reasoning_effort": "high",
+      "temperature": 0.0
+     }
+    }
+   ]
+  },
+  {
+   "tag": "reasoning_effort_o_series",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "396"
+     },
+     "body": {
+      "model": "o3-mini",
+      "stream": true,
+      "messages": [
+       {
+        "content": "sys 中文",
+        "role": "developer"
+       },
+       {
+        "content": [
+         {
+          "type": "text",
+          "text": "hi"
+         },
+         {
+          "type": "image_url",
+          "image_url": {
+           "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+           "detail": "high"
+          }
+         }
+        ],
+        "role": "user"
+       }
+      ],
+      "max_completion_tokens": 4096,
+      "reasoning_effort": "low",
+      "temperature": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "tag": "extra_body",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "356"
+     },
+     "body": {
+      "model": "m6",
+      "stream": true,
+      "messages": [
+       {
+        "content": "sys 中文",
+        "role": "system"
+       },
+       {
+        "content": [
+         {
+          "type": "text",
+          "text": "hi"
+         },
+         {
+          "type": "image_url",
+          "image_url": {
+           "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+           "detail": "high"
+          }
+         }
+        ],
+        "role": "user"
+       }
+      ],
+      "temperature": 0.0,
+      "top_p": 0.9,
+      "top_k": 5
+     }
+    }
+   ]
+  },
+  {
+   "tag": "extra_body_thinking_merge",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "375"
+     },
+     "body": {
+      "model": "m6b",
+      "stream": true,
+      "messages": [
+       {
+        "content": "sys 中文",
+        "role": "system"
+       },
+       {
+        "content": [
+         {
+          "type": "text",
+          "text": "hi"
+         },
+         {
+          "type": "image_url",
+          "image_url": {
+           "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+           "detail": "high"
+          }
+         }
+        ],
+        "role": "user"
+       }
+      ],
+      "temperature": 0.0,
+      "top_k": 5,
+      "thinking": {
+       "type": "enabled"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "tag": "nvidia",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://integrate.api.nvidia.com/v1/chat/completions",
+     "headers": {
+      "host": "integrate.api.nvidia.com",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "352"
+     },
+     "body": {
+      "model": "minimax/minimax-m2.1",
+      "stream": true,
+      "messages": [
+       {
+        "content": "sys 中文",
+        "role": "system"
+       },
+       {
+        "content": [
+         {
+          "type": "text",
+          "text": "hi"
+         },
+         {
+          "type": "image_url",
+          "image_url": {
+           "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+           "detail": "high"
+          }
+         }
+        ],
+        "role": "user"
+       }
+      ],
+      "temperature": 0.0
+     }
+    }
+   ]
+  },
+  {
+   "tag": "local_nokey",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "http://127.0.0.1:11434/v1/chat/completions",
+     "headers": {
+      "host": "127.0.0.1:11434",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer dummy-key-for-local-openai-endpoint",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "334"
+     },
+     "body": {
+      "model": "m8",
+      "stream": true,
+      "messages": [
+       {
+        "content": "sys 中文",
+        "role": "system"
+       },
+       {
+        "content": [
+         {
+          "type": "text",
+          "text": "hi"
+         },
+         {
+          "type": "image_url",
+          "image_url": {
+           "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+           "detail": "high"
+          }
+         }
+        ],
+        "role": "user"
+       }
+      ],
+      "temperature": 0.0
+     }
+    }
+   ]
+  },
+  {
+   "tag": "pinned_chat_completions",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "334"
+     },
+     "body": {
+      "model": "m9",
+      "stream": true,
+      "messages": [
+       {
+        "content": "sys 中文",
+        "role": "system"
+       },
+       {
+        "content": [
+         {
+          "type": "text",
+          "text": "hi"
+         },
+         {
+          "type": "image_url",
+          "image_url": {
+           "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+           "detail": "high"
+          }
+         }
+        ],
+        "role": "user"
+       }
+      ],
+      "temperature": 0.0
+     }
+    }
+   ]
+  },
+  {
+   "tag": "text_only",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "190"
+     },
+     "body": {
+      "model": "m10",
+      "stream": true,
+      "messages": [
+       {
+        "content": "Return JSON only.",
+        "role": "system"
+       },
+       {
+        "content": "只要 JSON：{\"a\": 1}",
+        "role": "user"
+       }
+      ],
+      "max_completion_tokens": 8192,
+      "temperature": 0.0
+     }
+    }
+   ]
+  },
+  {
+   "tag": "history",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "281"
+     },
+     "body": {
+      "model": "m11",
+      "stream": true,
+      "messages": [
+       {
+        "content": "sys",
+        "role": "system"
+       },
+       {
+        "content": "first",
+        "role": "user"
+       },
+       {
+        "content": "{\"a\": 1",
+        "role": "assistant"
+       },
+       {
+        "content": "Your previous response could not be parsed as JSON.",
+        "role": "user"
+       }
+      ],
+      "max_completion_tokens": 16384,
+      "temperature": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "tag": "tools",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "334"
+     },
+     "body": {
+      "model": "m12",
+      "stream": true,
+      "messages": [
+       {
+        "content": "Weather in Paris?",
+        "role": "user"
+       }
+      ],
+      "max_completion_tokens": 16384,
+      "temperature": 1.0,
+      "tools": [
+       {
+        "type": "function",
+        "function": {
+         "name": "get_weather",
+         "description": "Get the weather for a city",
+         "parameters": {
+          "type": "object",
+          "properties": {
+           "city": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "city"
+          ]
+         }
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "tag": "tools_nostream",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-raw-response": "true",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "306"
+     },
+     "body": {
+      "model": "m12b",
+      "stream": false,
+      "messages": [
+       {
+        "content": "Weather in Paris?",
+        "role": "user"
+       }
+      ],
+      "temperature": 0.0,
+      "tools": [
+       {
+        "type": "function",
+        "function": {
+         "name": "get_weather",
+         "description": "Get the weather for a city",
+         "parameters": {
+          "type": "object",
+          "properties": {
+           "city": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "city"
+          ]
+         }
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "tag": "tool_choice_named",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "372"
+     },
+     "body": {
+      "model": "m13",
+      "stream": true,
+      "messages": [
+       {
+        "content": "Weather in Paris?",
+        "role": "user"
+       }
+      ],
+      "temperature": 0.0,
+      "tool_choice": {
+       "type": "function",
+       "function": {
+        "name": "get_weather"
+       }
+      },
+      "tools": [
+       {
+        "type": "function",
+        "function": {
+         "name": "get_weather",
+         "description": "Get the weather for a city",
+         "parameters": {
+          "type": "object",
+          "properties": {
+           "city": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "city"
+          ]
+         }
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "tag": "tool_roundtrip",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "582"
+     },
+     "body": {
+      "model": "m14",
+      "stream": true,
+      "messages": [
+       {
+        "content": "Weather in Paris?",
+        "role": "user"
+       },
+       {
+        "content": null,
+        "role": "assistant",
+        "tool_calls": [
+         {
+          "type": "function",
+          "id": "call_1",
+          "function": {
+           "name": "get_weather",
+           "arguments": "{\"city\": \"Paris\"}"
+          }
+         }
+        ]
+       },
+       {
+        "content": "sunny",
+        "role": "tool",
+        "tool_call_id": "call_1"
+       },
+       {
+        "content": "thanks",
+        "role": "user"
+       }
+      ],
+      "max_completion_tokens": 16384,
+      "temperature": 1.0,
+      "tools": [
+       {
+        "type": "function",
+        "function": {
+         "name": "get_weather",
+         "description": "Get the weather for a city",
+         "parameters": {
+          "type": "object",
+          "properties": {
+           "city": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "city"
+          ]
+         }
+        }
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "tag": "json_mode",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-helper-method": "chat.completions.stream",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "232"
+     },
+     "body": {
+      "model": "m15",
+      "stream": true,
+      "messages": [
+       {
+        "content": "Return JSON only.",
+        "role": "system"
+       },
+       {
+        "content": "只要 JSON：{\"a\": 1}",
+        "role": "user"
+       }
+      ],
+      "max_completion_tokens": 16384,
+      "response_format": {
+       "type": "json_object"
+      },
+      "temperature": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "tag": "json_mode_nostream",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-helper-method": "chat.completions.parse",
+      "x-stainless-raw-response": "true",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "1200.0",
+      "content-length": "204"
+     },
+     "body": {
+      "model": "m15b",
+      "stream": false,
+      "messages": [
+       {
+        "content": "Return JSON only.",
+        "role": "system"
+       },
+       {
+        "content": "只要 JSON：{\"a\": 1}",
+        "role": "user"
+       }
+      ],
+      "response_format": {
+       "type": "json_object"
+      },
+      "temperature": 0.0
+     }
+    }
+   ]
+  },
+  {
+   "tag": "agent_vision",
+   "requests": [
+    {
+     "method": "POST",
+     "url": "https://llm.example.test/v1/chat/completions",
+     "headers": {
+      "host": "llm.example.test",
+      "accept-encoding": "gzip, deflate, zstd",
+      "connection": "keep-alive",
+      "authorization": "Bearer k-test",
+      "accept": "application/json",
+      "content-type": "application/json",
+      "user-agent": "EvoDesign/diagnostic",
+      "x-stainless-lang": "python",
+      "x-stainless-package-version": "3.42.0",
+      "x-stainless-os": "MacOS",
+      "x-stainless-arch": "arm64",
+      "x-stainless-runtime": "CPython",
+      "x-stainless-runtime-version": "3.11.9",
+      "x-stainless-async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600.0",
+      "content-length": "349"
+     },
+     "body": {
+      "model": "m16",
+      "stream": true,
+      "messages": [
+       {
+        "content": "sys 中文",
+        "role": "system"
+       },
+       {
+        "content": [
+         {
+          "type": "text",
+          "text": "hi"
+         },
+         {
+          "type": "image_url",
+          "image_url": {
+           "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+          }
+         }
+        ],
+        "role": "user"
+       }
+      ],
+      "max_completion_tokens": 16384,
+      "temperature": 1.0
+     }
+    }
+   ]
+  }
+ ],
+ "retries": [
+  {
+   "tag": "ok",
+   "outcome": {
+    "ok": true,
+    "content": "ok"
+   },
+   "requests": 1,
+   "sleeps": []
+  },
+  {
+   "tag": "rate_limit_then_ok",
+   "outcome": {
+    "ok": true,
+    "content": "ok"
+   },
+   "requests": 2,
+   "sleeps": [
+    4.0
+   ]
+  },
+  {
+   "tag": "quota_exhausted",
+   "outcome": {
+    "ok": false,
+    "type": "OpenAIRateLimitError",
+    "retryable": false,
+    "permanent": true,
+    "quota": true,
+    "status": 429
+   },
+   "requests": 1,
+   "sleeps": []
+  },
+  {
+   "tag": "s503_then_ok",
+   "outcome": {
+    "ok": true,
+    "content": "ok"
+   },
+   "requests": 2,
+   "sleeps": [
+    4.0
+   ]
+  },
+  {
+   "tag": "s500_always",
+   "outcome": {
+    "ok": false,
+    "type": "OpenAIAPIError",
+    "retryable": true,
+    "permanent": false,
+    "quota": false,
+    "status": 500
+   },
+   "requests": 5,
+   "sleeps": [
+    4.0,
+    4.0,
+    8.0,
+    16.0
+   ]
+  },
+  {
+   "tag": "s502_html_then_ok",
+   "outcome": {
+    "ok": true,
+    "content": "ok"
+   },
+   "requests": 2,
+   "sleeps": [
+    4.0
+   ]
+  },
+  {
+   "tag": "s408_then_ok",
+   "outcome": {
+    "ok": true,
+    "content": "ok"
+   },
+   "requests": 2,
+   "sleeps": [
+    4.0
+   ]
+  },
+  {
+   "tag": "s409_then_ok",
+   "outcome": {
+    "ok": true,
+    "content": "ok"
+   },
+   "requests": 2,
+   "sleeps": [
+    4.0
+   ]
+  },
+  {
+   "tag": "s401",
+   "outcome": {
+    "ok": false,
+    "type": "OpenAIAuthenticationError",
+    "retryable": false,
+    "permanent": true,
+    "quota": false,
+    "status": 401
+   },
+   "requests": 1,
+   "sleeps": []
+  },
+  {
+   "tag": "s403",
+   "outcome": {
+    "ok": false,
+    "type": "OpenAIPermissionDeniedError",
+    "retryable": false,
+    "permanent": true,
+    "quota": false,
+    "status": 403
+   },
+   "requests": 1,
+   "sleeps": []
+  },
+  {
+   "tag": "s400",
+   "outcome": {
+    "ok": false,
+    "type": "OpenAIInvalidRequestError",
+    "retryable": false,
+    "permanent": true,
+    "quota": false,
+    "status": 400
+   },
+   "requests": 1,
+   "sleeps": []
+  },
+  {
+   "tag": "s404",
+   "outcome": {
+    "ok": false,
+    "type": "OpenAIModelNotFoundError",
+    "retryable": false,
+    "permanent": true,
+    "quota": false,
+    "status": 404
+   },
+   "requests": 1,
+   "sleeps": []
+  },
+  {
+   "tag": "s422",
+   "outcome": {
+    "ok": false,
+    "type": "UnprocessableEntityError",
+    "retryable": false,
+    "permanent": true,
+    "quota": false,
+    "status": 422
+   },
+   "requests": 1,
+   "sleeps": []
+  },
+  {
+   "tag": "timeout_stream",
+   "outcome": {
+    "ok": false,
+    "type": "OpenAITimeoutError",
+    "retryable": false,
+    "permanent": false,
+    "quota": false,
+    "status": null
+   },
+   "requests": 1,
+   "sleeps": []
+  },
+  {
+   "tag": "timeout_nostream",
+   "outcome": {
+    "ok": false,
+    "type": "OpenAITimeoutError",
+    "retryable": false,
+    "permanent": false,
+    "quota": false,
+    "status": null
+   },
+   "requests": 1,
+   "sleeps": []
+  },
+  {
+   "tag": "connect_refused",
+   "outcome": {
+    "ok": false,
+    "type": "OpenAIConnectionError",
+    "retryable": false,
+    "permanent": false,
+    "quota": false,
+    "status": null
+   },
+   "requests": 1,
+   "sleeps": []
+  },
+  {
+   "tag": "empty_stream_then_ok",
+   "outcome": {
+    "ok": true,
+    "content": "ok"
+   },
+   "requests": 2,
+   "sleeps": [
+    4.0
+   ]
+  },
+  {
+   "tag": "empty_stream_always",
+   "outcome": {
+    "ok": false,
+    "type": "ValueError",
+    "retryable": true,
+    "permanent": false,
+    "quota": false,
+    "status": null
+   },
+   "requests": 3,
+   "sleeps": [
+    4.0,
+    4.0
+   ]
+  },
+  {
+   "tag": "bad_sse_then_ok",
+   "outcome": {
+    "ok": true,
+    "content": "ok"
+   },
+   "requests": 2,
+   "sleeps": [
+    4.0
+   ]
+  },
+  {
+   "tag": "error_in_stream_then_ok",
+   "outcome": {
+    "ok": true,
+    "content": "ok"
+   },
+   "requests": 2,
+   "sleeps": [
+    4.0
+   ]
+  },
+  {
+   "tag": "null_choices_nostream",
+   "outcome": {
+    "ok": false,
+    "type": "TypeError",
+    "retryable": false,
+    "permanent": false,
+    "quota": false,
+    "status": null
+   },
+   "requests": 1,
+   "sleeps": []
+  },
+  {
+   "tag": "s503_nostream_then_ok",
+   "outcome": {
+    "ok": true,
+    "content": "ok"
+   },
+   "requests": 2,
+   "sleeps": [
+    4.0
+   ]
+  },
+  {
+   "tag": "s429_attempts_2",
+   "outcome": {
+    "ok": false,
+    "type": "OpenAIRateLimitError",
+    "retryable": true,
+    "permanent": false,
+    "quota": false,
+    "status": 429
+   },
+   "requests": 2,
+   "sleeps": [
+    4.0
+   ]
+  }
+ ]
+}

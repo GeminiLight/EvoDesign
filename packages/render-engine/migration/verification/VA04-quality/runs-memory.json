@@ -1,0 +1,1096 @@
+{
+ "generated": "2026-11-06T13:35:12.606Z",
+ "until": null,
+ "runs": [
+  {
+   "run": "big_en_aes__refine",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 27,
+    "matched": 27
+   },
+   "artifacts": {
+    "expected": 20,
+    "matched": 20
+   },
+   "until": null,
+   "seconds": 31.633,
+   "memory": {
+    "files": 21,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "concept_ml__multi",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 6.348,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "cy_flywheel_ty2__multi",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 11.603,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "dg_pkgs_ty1__noverify",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 20,
+    "matched": 20
+   },
+   "artifacts": {
+    "expected": 11,
+    "matched": 11
+   },
+   "until": null,
+   "seconds": 6.261,
+   "memory": {
+    "files": 12,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "dp_k8s_ty1__multi",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 13.259,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "ecommerce_aes__unified",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 2,
+    "matched": 2,
+    "unverifiedCallers": 1,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 12,
+    "matched": 12
+   },
+   "artifacts": {
+    "expected": 12,
+    "matched": 12
+   },
+   "until": null,
+   "seconds": 9.668,
+   "memory": {
+    "files": 13,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "flow_h1__router",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 1,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 7.237,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "flow_leave_aes__compact",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 7.918,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "flow_x1__multi",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 10.321,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "flow_x2__unified_router",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 2,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 12,
+    "matched": 12
+   },
+   "artifacts": {
+    "expected": 12,
+    "matched": 12
+   },
+   "until": null,
+   "seconds": 11.416,
+   "memory": {
+    "files": 13,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "hcai_demo__refine",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 27,
+    "matched": 27
+   },
+   "artifacts": {
+    "expected": 19,
+    "matched": 19
+   },
+   "until": null,
+   "seconds": 13.965,
+   "memory": {
+    "files": 20,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "iot_aes__unified_refine",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 1,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 15,
+    "matched": 15
+   },
+   "artifacts": {
+    "expected": 18,
+    "matched": 18
+   },
+   "until": null,
+   "seconds": 13.323,
+   "memory": {
+    "files": 19,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "kb_sprint_ty1__multi",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 5.526,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "ls_web_ty2__multi",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 7.14,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "ne_saas_ty1__refine",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 6,
+    "matched": 6,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 32,
+    "matched": 32
+   },
+   "artifacts": {
+    "expected": 20,
+    "matched": 20
+   },
+   "until": null,
+   "seconds": 9.954,
+   "memory": {
+    "files": 21,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "paper_full_f2__multi",
+   "fs": "memory",
+   "ok": false,
+   "firstDivergence": {
+    "kind": "snapshot",
+    "where": "snapshot 1 graph:styling (evodesign.agentic_system.generation_stage.styling.state.WorkflowState)",
+    "diffs": [
+     "$.conversation_history[4].content: expected \"{\\\"specification\\\":{\\\"visual_paradigm\\\":{\\\"chart_type\\\":\\\"architecture\\\",\\\"recognition_anchor\\\":\\\"Role-based compone..., got \"{\\\"specification\\\":{\\\"visual_paradigm\\\":{\\\"chart_type\\\":\\\"architecture\\\",\\\"recognition_anchor\\\":\\\"Role-based compone...",
+     "$.styling_instantiation.input_content: missing key \"icon\" (expected \"outline_file_text\")",
+     "$.styling_instantiation.structure_agent: missing key \"icon\" (expected \"outline_git_branch\")",
+     "$.styling_instantiation.style_agent: missing key \"icon\" (expected \"outline_layers\")",
+     "$.styling_instantiation.layout_agent: missing key \"icon\" (expected \"outline_waypoints\")",
+     "$.styling_instantiation.canvas_render_engine: missing key \"icon\" (expected \"outline_app_window\")",
+     "$.styling_instantiation.diagram_refiner: missing key \"icon\" (expected \"outline_search\")",
+     "$.styling_instantiation.editable_diagram: missing key \"icon\" (expected \"outline_monitor\")"
+    ]
+   },
+   "llm": {
+    "expected": 4,
+    "matched": 2,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 1
+   },
+   "artifacts": null,
+   "until": null,
+   "seconds": 0.038,
+   "memory": {
+    "files": 6,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "paper_method_x2__refine",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 6,
+    "matched": 6,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 32,
+    "matched": 32
+   },
+   "artifacts": {
+    "expected": 20,
+    "matched": 20
+   },
+   "until": null,
+   "seconds": 17.346,
+   "memory": {
+    "files": 21,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "plain_ecommerce__icons",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 8.534,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "quickstart_service__router",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 1,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 4.173,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "rag_aes__unified_stream",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 2,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 12,
+    "matched": 12
+   },
+   "artifacts": {
+    "expected": 15,
+    "matched": 15
+   },
+   "until": null,
+   "seconds": 4.367,
+   "memory": {
+    "files": 16,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "sm_course_ty1__nocritic",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 4.72,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "t_class_tz__refine_forced",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 6,
+    "matched": 6,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 32,
+    "matched": 32
+   },
+   "artifacts": {
+    "expected": 20,
+    "matched": 20
+   },
+   "until": null,
+   "seconds": 11.934,
+   "memory": {
+    "files": 21,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "t_er_ty__multi",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 4.328,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "t_er_tz__refine_regress",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 6,
+    "matched": 6,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 32,
+    "matched": 32
+   },
+   "artifacts": {
+    "expected": 20,
+    "matched": 20
+   },
+   "until": null,
+   "seconds": 12.012,
+   "memory": {
+    "files": 21,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "t_fishbone_ty__multi",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 5.234,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "t_funnel_ty__repair",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 9,
+    "matched": 9,
+    "unverifiedCallers": 2,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 2.545,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "t_matrix_ty__multi",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 5.073,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "t_mindmap_ty__router",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 1,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 10.405,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "t_orgchart_ty__multi",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 3.015,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "t_orgchart_ty__unified_repair",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 2,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 13,
+    "matched": 13
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 2.77,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "t_sequence_tz__multi",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 3.405,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "t_state_tz__multi",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 2.44,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "t_state_tz__refine_multi",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 27,
+    "matched": 27
+   },
+   "artifacts": {
+    "expected": 19,
+    "matched": 19
+   },
+   "until": null,
+   "seconds": 5.192,
+   "memory": {
+    "files": 20,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "t_swimlane_ty__multi",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 4.363,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "t_swot_ty__refine",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 7,
+    "matched": 7,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 32,
+    "matched": 32
+   },
+   "artifacts": {
+    "expected": 20,
+    "matched": 20
+   },
+   "until": null,
+   "seconds": 9.358,
+   "memory": {
+    "files": 21,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  },
+  {
+   "run": "t_timeline_ty__repair",
+   "fs": "memory",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 2.853,
+   "memory": {
+    "files": 14,
+    "misses": [
+     "/Users/zhanyi/Code/EvoDesign/data",
+     "/Users/zhanyi/Code/EvoDesign/data/knowledge",
+     "/Users/zhanyi/Code/EvoDesign/data/user_preferences"
+    ]
+   }
+  }
+ ]
+}

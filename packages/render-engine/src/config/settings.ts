@@ -13,24 +13,22 @@
 // Each YAML value can be overridden by its corresponding env var
 // (``_ENV_OVERRIDES``). If the env var is set, it takes precedence.
 
-import { existsSync, realpathSync } from 'node:fs';
-import { homedir } from 'node:os';
-import { dirname, isAbsolute, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, homedir, readFileSync, realpathSync } from '../py/fs.ts';
+import { dirname, isAbsolute, join, resolve } from '../py/path.ts';
+import { getPlatform } from '../py/platform.ts';
 import { ValueError } from '../py/errors.ts';
 import { getEnv } from '../py/env.ts';
 import { getLogger } from '../py/logging.ts';
 import { pyRepr, pyStr, pyStrip } from '../py/str.ts';
 import { isDict, truthy } from '../py/truthy.ts';
 import { yamlSafeLoad } from '../py/yaml.ts';
-import { readFileSync } from 'node:fs';
 
 const logger = getLogger('evodesign.config.settings');
 
 // Path(__file__).resolve().parents[2] — the repository root.
-export let _PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
+export let _PROJECT_ROOT = getPlatform().repoRoot;
 // ``importlib.resources.files("evodesign.config.defaults")`` — the installed package, not _PROJECT_ROOT.
-const _PACKAGED_DEFAULTS_DIR = join(resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..'), 'evodesign', 'config', 'defaults');
+const _PACKAGED_DEFAULTS_DIR = join(getPlatform().repoRoot, 'evodesign', 'config', 'defaults');
 
 /** Test hook: Python tests monkeypatch ``_PROJECT_ROOT``. */
 export function _set_project_root(path: string): void {

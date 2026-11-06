@@ -16,9 +16,9 @@
 //     2. settings.yaml -> experiment.id ("exp" or empty → date)
 //     3. Auto-generated date (YYYY-MM-DD)
 
-import { existsSync, mkdirSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, mkdirSync } from '../py/fs.ts';
+import { dirname, join, resolve } from '../py/path.ts';
+import { getPlatform } from '../py/platform.ts';
 import { ValueError } from '../py/errors.ts';
 import { getEnv } from '../py/env.ts';
 import { pyStr, pyStrip } from '../py/str.ts';
@@ -26,7 +26,7 @@ import { truthy } from '../py/truthy.ts';
 import { safe_join_under, safe_path_segment } from '../utils/path_manager.ts';
 import { AppSettings } from '../config/settings.ts';
 
-export let _PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
+export let _PROJECT_ROOT = getPlatform().repoRoot;
 
 /** Test hook: Python tests monkeypatch ``experiment._PROJECT_ROOT``. */
 export function _set_project_root(path: string): void {
@@ -204,4 +204,3 @@ export function ensure_experiment_dirs(exp_id: string | null = null): Record<str
   }
   return dirs;
 }
-

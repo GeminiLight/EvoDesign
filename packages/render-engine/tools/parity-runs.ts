@@ -7,7 +7,12 @@
 //   result    — process_example()'s return value differs
 //   error     — the TS pipeline threw before any comparable divergence
 //
-// Usage: npm run parity:runs [-- --case <substring>]... [--until <node>]
+// Usage: npm run parity:runs [-- --case <substring>]... [--until <node>] [--fs node|memory]
+//   --fs memory (PHASE3_PLAN.md WP27) runs the pipeline on a MemoryFS: the work
+//   directory is a deterministic pseudo path (/tmp/evodesign-run-00000001),
+//   evodesign/agentic_system is mounted read-only from the asset provider, the
+//   repository config files the pipeline reads are seeded (MEMORY_SEED_FILES),
+//   and artifacts are read back from memory. Nothing is written to disk.
 //   --until stops comparing after the first snapshot of that node (workflow
 //   phase or graph node name); artifacts/result are then not compared.
 // Writes reports/runs.json.
@@ -36,11 +41,13 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
+import { AGENTIC_SYSTEM_ROOT, getAssetProvider } from '../src/py/assets.ts';
+import { MemoryFS, setFS, type RuntimeFS } from '../src/py/fs.ts';
 import { CassetteSession } from '../test/harness/cassette.ts';
 import { compare } from '../test/harness/compare.ts';
 import { PACKAGE_ROOT } from '../test/harness/fixtures.ts';
 import {
-  Normalizer, RUNS, expectedValue, instrumentSnapshots, loadRun, pngInfo, setSnapshotSink, sha256, toPlain,
+  Normalizer, REPO_ROOT, RUNS, expectedValue, instrumentSnapshots, loadRun, pngInfo, setSnapshotSink, sha256, toPlain,
   type RecordedRun, type RunInput,
 } from '../test/harness/runs.ts';
 
@@ -55,6 +62,7 @@ interface Divergence {
 
 interface RunReport {
   run: string;
+  fs: 'node' | 'memory';
   ok: boolean;
   firstDivergence: Divergence | null;
   llm: { expected: number; matched: number; unverifiedCallers: number; toleratedImages: string[] };
@@ -62,6 +70,8 @@ interface RunReport {
   artifacts: { expected: number; matched: number } | null;
   until: string | null;
   seconds: number;
+  /** --fs memory: files the run left in memory and paths it probed that did not exist (outside the work dir). */
+  memory?: { files: number; misses: string[] };
 }
 
 type Pipeline = (input: RunInput, options: Record<string, unknown>) => Promise<Record<string, unknown>>;
@@ -70,7 +80,42 @@ const argv = process.argv.slice(2);
 const options = (name: string) => argv.flatMap((arg, i) => (arg === `--${name}` && argv[i + 1] ? [argv[i + 1]] : []));
 const caseFilters = options('case');
 const until = options('until')[0] ?? null;
+const fsMode = (options('fs')[0] ?? 'node') as 'node' | 'memory';
+if (fsMode !== 'node' && fsMode !== 'memory') throw new Error(`--fs must be node or memory, got ${fsMode}`);
 const rendererUrl = process.env.EXCALIDRAW_RENDER_URL ?? DEFAULT_RENDER_URL;
+
+/**
+ * Repository files outside evodesign/agentic_system that the pipeline reads
+ * (config defaults; found with MemoryFS.misses). In the browser these come
+ * from the caller instead (WP31); here they are copied in so the memory run
+ * reads exactly what the disk run reads. Missing ones are skipped (the
+ * pipeline then sees them missing, as on disk).
+ */
+const MEMORY_SEED_FILES = [
+  'configs/settings.yaml',
+  'configs/models.yaml',
+  'evodesign/config/defaults/settings.yaml',
+  'evodesign/config/defaults/models.yaml',
+];
+
+/** A fresh MemoryFS for one run (see --fs memory). */
+function createMemoryFS(): MemoryFS {
+  const memory = new MemoryFS({ cwd: '/workspace', tmpdir: '/tmp', homedir: '/home/user' });
+  const assets = getAssetProvider();
+  memory.mount(AGENTIC_SYSTEM_ROOT, {
+    readText: (path) => assets.readText(path),
+    exists: (path) => assets.exists(path),
+    isDir: (path) => assets.isDir(path),
+    list: (path) => assets.list(path),
+  });
+  const seed: Record<string, string> = {};
+  for (const rel of MEMORY_SEED_FILES) {
+    const file = join(REPO_ROOT, rel);
+    if (existsSync(file)) seed[file] = readFileSync(file, 'utf-8');
+  }
+  memory.seed(seed);
+  return memory;
+}
 if (rendererUrl.includes(':3000')) throw new Error('refusing to use the port-3000 renderer; use 3001');
 
 const runNames = existsSync(RUNS)
@@ -103,7 +148,7 @@ async function replay(run: RecordedRun): Promise<RunReport> {
   const started = Date.now();
   const session = new CassetteSession(run.dir);
   const report: RunReport = {
-    run: run.name, ok: false, firstDivergence: null,
+    run: run.name, fs: fsMode, ok: false, firstDivergence: null,
     llm: { expected: session.entries.length, matched: 0, unverifiedCallers: 0, toleratedImages: [] },
     snapshots: { expected: run.snapshots.length, matched: 0 },
     artifacts: null, until, seconds: 0,
@@ -115,11 +160,14 @@ async function replay(run: RecordedRun): Promise<RunReport> {
 
   let clock = 0;
   session.clock = () => clock++;
-  const workDir = mkdtempSync(join(tmpdir(), 'evodesign-run-'));
+  const memory = fsMode === 'memory' ? createMemoryFS() : null;
+  const io: RunIO = memory ? memoryIO(memory) : nodeIO();
+  const workDir = io.mkdtemp(join(io.tmpdir(), 'evodesign-run-'));
   const outputDir = join(workDir, 'out');
-  mkdirSync(outputDir);
+  io.mkdir(outputDir);
   const datasetPath = join(workDir, 'dataset.json');
-  writeFileSync(datasetPath, JSON.stringify([run.input.item], null, 2));
+  io.write(datasetPath, JSON.stringify([run.input.item], null, 2));
+  if (memory) setFS(memory);
   const normalizer = new Normalizer(workDir);
 
   let snapshotDivergence: (Divergence & { order: number }) | null = null;
@@ -161,6 +209,7 @@ async function replay(run: RecordedRun): Promise<RunReport> {
     thrown = error;
   } finally {
     setSnapshotSink(null);
+    if (memory) setFS(null);
   }
 
   report.llm.matched = session.calls.length;
@@ -183,7 +232,7 @@ async function replay(run: RecordedRun): Promise<RunReport> {
   } else if (!stopped && session.calls.length < session.entries.length) {
     report.firstDivergence = { kind: 'llm', where: `LLM call ${session.calls.length}`, diffs: ['missing: the TS run made fewer LLM calls'] };
   } else if (!stopped) {
-    const artifacts = compareArtifacts(run, outputDir, normalizer);
+    const artifacts = compareArtifacts(run, outputDir, normalizer, io);
     report.artifacts = { expected: run.artifacts.length, matched: artifacts.matched };
     if (artifacts.divergence) report.firstDivergence = artifacts.divergence;
     else {
@@ -193,18 +242,24 @@ async function replay(run: RecordedRun): Promise<RunReport> {
   }
   report.ok = report.firstDivergence === null;
   report.seconds = (Date.now() - started) / 1000;
-  rmSync(workDir, { recursive: true, force: true });
+  if (memory) {
+    report.memory = {
+      files: memory.files(workDir).length,
+      misses: [...memory.misses].filter((path) => !path.startsWith(workDir)).sort(),
+    };
+  }
+  io.remove(workDir);
   return report;
 }
 
-function compareArtifacts(run: RecordedRun, outputDir: string, normalizer: Normalizer): { matched: number; divergence: Divergence | null } {
-  const produced = listFiles(outputDir);
+function compareArtifacts(run: RecordedRun, outputDir: string, normalizer: Normalizer, io: RunIO): { matched: number; divergence: Divergence | null } {
+  const produced = io.listFiles(outputDir);
   const expected = new Map(run.artifacts.map((entry) => [entry.path, entry]));
   let matched = 0;
   for (const entry of run.artifacts) {
     const file = join(outputDir, entry.path);
-    if (!existsSync(file)) return { matched, divergence: { kind: 'artifact', where: entry.path, diffs: ['missing: the TS run did not write this file'] } };
-    const actual = readFileSync(file);
+    if (!io.exists(file)) return { matched, divergence: { kind: 'artifact', where: entry.path, diffs: ['missing: the TS run did not write this file'] } };
+    const actual = io.read(file);
     const recorded = join(run.dir, 'artifacts', entry.path);
     let diffs: string[] = [];
     if (entry.kind === 'json') {
@@ -250,4 +305,44 @@ function listFiles(root: string): string[] {
   };
   if (existsSync(root)) walk(root);
   return out.sort();
+}
+
+/** File access of the replay itself (where the work directory lives). */
+interface RunIO {
+  tmpdir(): string;
+  mkdtemp(prefix: string): string;
+  mkdir(path: string): void;
+  write(path: string, text: string): void;
+  exists(path: string): boolean;
+  read(path: string): Buffer;
+  listFiles(root: string): string[];
+  remove(path: string): void;
+}
+
+/** Function declaration (hoisted): replay() runs from top-level await above. */
+function nodeIO(): RunIO {
+  return {
+    tmpdir: () => tmpdir(),
+    mkdtemp: (prefix) => mkdtempSync(prefix),
+    mkdir: (path) => mkdirSync(path),
+    write: (path, text) => writeFileSync(path, text),
+    exists: (path) => existsSync(path),
+    read: (path) => readFileSync(path),
+    listFiles,
+    remove: (path) => rmSync(path, { recursive: true, force: true }),
+  };
+}
+
+function memoryIO(fs: MemoryFS): RunIO {
+  const runtime: RuntimeFS = fs;
+  return {
+    tmpdir: () => runtime.tmpdir(),
+    mkdtemp: (prefix) => runtime.mkdtemp(prefix),
+    mkdir: (path) => runtime.mkdirp(path, { recursive: false }),
+    write: (path, text) => runtime.writeText(path, text),
+    exists: (path) => runtime.exists(path),
+    read: (path) => Buffer.from(runtime.readBytes(path)),
+    listFiles: (root) => fs.files(root).map((path) => relative(root, path)).sort(),
+    remove: (path) => runtime.remove(path, { recursive: true, force: true }),
+  };
 }

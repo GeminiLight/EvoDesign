@@ -18,7 +18,7 @@
 // re-validated into a ``VerifierState`` instance, like Python LangGraph with a
 // pydantic schema. ``_node_run_subjective_critic`` and ``run`` are async.
 
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from '../py/fs.ts';
 import { END, START } from '@langchain/langgraph';
 import { validate_png_file } from '../canvas_environment/index.ts';
 import { run_all_checks } from './checks/aggregator.ts';

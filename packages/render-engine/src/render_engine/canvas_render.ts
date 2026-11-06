@@ -16,9 +16,11 @@
 // Everything that launches the renderer is async (``render``, ``render_canvas``);
 // call order is unchanged. ``smart_crop`` (post-process) stays synchronous.
 
-import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, isAbsolute, join, resolve } from 'node:path';
+import { latin1Decode, utf8Decode, utf8EncodeLossy } from '../py/bytes.ts';
+import { cwd, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from '../py/fs.ts';
+import { dirname, isAbsolute, join, resolve } from '../py/path.ts';
+import { getPlatform } from '../py/platform.ts';
+import { getPngRenderer } from './png_renderer.ts';
 import { normalize_canvas_library } from '../canvas_runtime.ts';
 import { getEnv } from '../py/env.ts';
 import { PyTypeError, RuntimeError, ValueError } from '../py/errors.ts';
@@ -74,13 +76,13 @@ export class PyTimeoutError extends Error {
 export interface CompletedProcess {
   args: string[];
   returncode: number;
-  stdout: Buffer | null;
-  stderr: Buffer | null;
+  stdout: Uint8Array | null;
+  stderr: Uint8Array | null;
 }
 
 /** ``subprocess.TimeoutExpired`` */
 export class TimeoutExpired extends Error {
-  constructor(public cmd: string[], public timeout: number, public output: Buffer | null = null, public stderr: Buffer | null = null) {
+  constructor(public cmd: string[], public timeout: number, public output: Uint8Array | null = null, public stderr: Uint8Array | null = null) {
     super(`Command '${cmd.join(' ')}' timed out after ${timeout} seconds`);
     this.name = 'TimeoutExpired';
   }
@@ -90,8 +92,8 @@ export function _decode_process_output(value: unknown): string {
   if (value === null || value === undefined) {
     return '';
   }
-  if (Buffer.isBuffer(value) || value instanceof Uint8Array) {
-    return Buffer.from(value).toString('utf-8');
+  if (value instanceof Uint8Array) {
+    return utf8Decode(value);
   }
   return String(value);
 }
@@ -286,40 +288,19 @@ export function _ensure_rendered_output(output_file: string, completed: Complete
 // ---------------------------------------------------------------------------
 
 export interface RunOptions {
-  input: Buffer;
+  input: Uint8Array;
   cwd: string;
   /** seconds */
   timeout: number;
 }
 
 /** Spawn ``cmd`` like ``subprocess.run(cmd, input=..., stdout=PIPE, stderr=PIPE, check=False, cwd=..., timeout=...)``. */
-function _spawn(cmd: string[], options: RunOptions): Promise<CompletedProcess> {
-  return new Promise((resolvePromise, reject) => {
-    const child = spawn(cmd[0], cmd.slice(1), { cwd: options.cwd, stdio: ['pipe', 'pipe', 'pipe'] });
-    const out: Buffer[] = [];
-    const err: Buffer[] = [];
-    let timedOut = false;
-    const timer = setTimeout(() => {
-      timedOut = true;
-      child.kill('SIGKILL');
-    }, options.timeout * 1000);
-    child.stdout.on('data', (chunk: Buffer) => out.push(chunk));
-    child.stderr.on('data', (chunk: Buffer) => err.push(chunk));
-    child.on('error', (error) => {
-      clearTimeout(timer);
-      reject(error);
-    });
-    child.on('close', (code) => {
-      clearTimeout(timer);
-      if (timedOut) {
-        reject(new TimeoutExpired(cmd, options.timeout, Buffer.concat(out), Buffer.concat(err)));
-        return;
-      }
-      resolvePromise({ args: cmd, returncode: code ?? 1, stdout: Buffer.concat(out), stderr: Buffer.concat(err) });
-    });
-    child.stdin.on('error', () => {});
-    child.stdin.end(options.input);
-  });
+async function _spawn(cmd: string[], options: RunOptions): Promise<CompletedProcess> {
+  const spawn = getPlatform().spawn;
+  if (!spawn) throw new Error(`Cannot run subprocess on this platform: ${cmd.join(' ')}`);
+  const result = await spawn(cmd, { input: options.input, cwd: options.cwd, timeoutSeconds: options.timeout });
+  if (result.timedOut) throw new TimeoutExpired(cmd, options.timeout, result.stdout, result.stderr);
+  return { args: cmd, returncode: result.returncode, stdout: result.stdout, stderr: result.stderr };
 }
 
 /**
@@ -333,25 +314,25 @@ export const subprocess = {
     if (inProcess === null) {
       return _spawn(cmd, options);
     }
-    let timer: NodeJS.Timeout | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
     const stdout: string[] = [];
     const stderr: string[] = [];
-    const work = _run_excalidraw_cli(inProcess, options.input.toString('utf-8'), stdout, stderr);
+    const work = _run_excalidraw_cli(inProcess, utf8Decode(options.input), stdout, stderr);
     const timeout = new Promise<'timeout'>((resolveTimeout) => {
       timer = setTimeout(() => resolveTimeout('timeout'), options.timeout * 1000);
-      timer.unref();
+      (timer as { unref?: () => void }).unref?.();
     });
     const winner = await Promise.race([work, timeout]);
     if (timer) clearTimeout(timer);
     if (winner === 'timeout') {
       work.catch(() => {});
-      throw new TimeoutExpired(cmd, options.timeout, Buffer.from(stdout.join(''), 'utf-8'), Buffer.from(stderr.join(''), 'utf-8'));
+      throw new TimeoutExpired(cmd, options.timeout, utf8EncodeLossy(stdout.join('')), utf8EncodeLossy(stderr.join('')));
     }
     return {
       args: cmd,
       returncode: winner,
-      stdout: Buffer.from(stdout.join(''), 'utf-8'),
-      stderr: Buffer.from(stderr.join(''), 'utf-8'),
+      stdout: utf8EncodeLossy(stdout.join('')),
+      stderr: utf8EncodeLossy(stderr.join('')),
     };
   },
 };
@@ -508,144 +489,35 @@ function _cli_normalize_scene(scene: unknown): Dict {
   throw new Error('Scene JSON must be a list of elements or an object with "elements".');
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-async function _cli_render(options: _CliOptions, scene: unknown, stderr: string[]): Promise<Buffer> {
-  const { chromium } = await import('playwright');
-  const browser = await chromium.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-  });
-  const context = await browser.newContext({ deviceScaleFactor: 2 });
-  const page = await context.newPage();
-  try {
-    // The script does not await setViewportSize; neither do we (errors surface on goto).
-    page.setViewportSize({ width: options.viewportWidth, height: options.viewportHeight }).catch(() => {});
-    await page.goto(options.url, { waitUntil: 'load', timeout: options.timeoutMs });
-  } catch (error) {
-    await page.close().catch(() => {});
-    await context.close().catch(() => {});
-    await browser.close().catch(() => {});
-    throw error;
-  }
-  const normalized = _cli_normalize_scene(scene);
-
-  const consoleErrors: string[] = [];
-  const pageErrors: string[] = [];
-  const requestErrors: string[] = [];
-  const handleConsole = (msg: any) => {
-    if (msg.type() === 'error') consoleErrors.push(msg.text());
-  };
-  const handlePageError = (error: Error) => {
-    pageErrors.push(error.message);
-  };
-  const handleCrash = () => {
-    pageErrors.push('Page rendering process crashed.');
-  };
-  const handleRequestFailed = (request: any) => {
-    const failure = request.failure?.();
-    const reason = failure?.errorText ? ` (${failure.errorText})` : '';
-    requestErrors.push(`${request.url()}${reason}`);
-  };
-  page.on('console', handleConsole);
-  page.on('pageerror', handlePageError);
-  page.on('crash', handleCrash);
-  page.on('requestfailed', handleRequestFailed);
-
-  try {
-    if (!Number.isFinite(options.exportScale) || options.exportScale <= 0) {
-      throw new Error(`Invalid export scale: ${options.exportScale}`);
-    }
-    if (!Number.isFinite(options.margin) || options.margin < 0) {
-      throw new Error(`Invalid margin: ${options.margin}`);
-    }
-
-    await page.waitForFunction(() => typeof (globalThis as any).loadExcalidrawScene === 'function', null, { timeout: options.timeoutMs });
-
-    const apiReady = page.waitForFunction(() => Boolean((globalThis as any).__excalidrawAPI), null, { timeout: options.timeoutMs });
-    const earlyError = page.waitForFunction(() => (globalThis as any).__renderStatus === 'error', null, { timeout: options.timeoutMs });
-    apiReady.catch(() => {});
-    earlyError.catch(() => {});
-
-    let apiRace: 'ready' | 'error';
-    try {
-      apiRace = await Promise.race([apiReady.then(() => 'ready' as const), earlyError.then(() => 'error' as const)]);
-    } catch (error) {
-      const combined = [...consoleErrors, ...pageErrors, ...requestErrors].join('; ');
-      if (combined.length > 0) {
-        throw new Error(`Client setup failed (resource errors): ${combined}`);
-      }
-      throw error;
-    }
-    if (apiRace === 'error') {
-      const errorMessage = await page.evaluate(() => (globalThis as any).__renderError || 'Unknown render error');
-      throw new Error(`Client setup failed: ${String(errorMessage).trim()}`);
-    }
-
-    await page.evaluate(({ exportScale, margin }) => {
-      (globalThis as any).__exportScale = exportScale;
-      (globalThis as any).__exportMargin = margin;
-    }, { exportScale: options.exportScale, margin: options.margin });
-
-    await page.evaluate((sceneData) => {
-      const win = globalThis as unknown as { loadExcalidrawScene?: (data: unknown) => void };
-      if (typeof win.loadExcalidrawScene === 'function') {
-        win.loadExcalidrawScene(sceneData);
-      }
-    }, normalized);
-
-    const timeoutMs = options.timeoutMs ?? 15000;
-    let timeoutHandle: NodeJS.Timeout | null = null;
-    const ready = page.waitForFunction(() => (globalThis as any).__renderStatus === 'ready', null, { timeout: timeoutMs }).then(() => 'success');
-    const failed = page.waitForFunction(() => (globalThis as any).__renderStatus === 'error', null, { timeout: timeoutMs }).then(() => 'error');
-    ready.catch(() => {});
-    failed.catch(() => {});
-    const raceWinner = await Promise.race([
-      ready,
-      failed,
-      new Promise((resolveTimeout) => {
-        timeoutHandle = setTimeout(() => resolveTimeout('timeout'), timeoutMs);
-        timeoutHandle.unref();
-      }),
-    ]);
-    if (timeoutHandle) clearTimeout(timeoutHandle);
-
-    if (raceWinner === 'timeout') {
-      if (consoleErrors.length > 0 || pageErrors.length > 0) {
-        throw new Error(`Render failed (page errors): ${[...consoleErrors, ...pageErrors].join('; ')}`);
-      }
-      throw new Error('Render timeout: after injecting data the page did not render or report an error.');
-    }
-    if (raceWinner === 'error') {
-      const errorMessage = await page.evaluate(() => (globalThis as any).__renderError || 'Unknown render error');
-      throw new Error(`Client render failed: ${String(errorMessage).trim()}`);
-    }
-    if (raceWinner !== 'success') {
-      throw raceWinner as unknown as Error;
-    }
-
-    const base64Data = await page.evaluate(() => (globalThis as any).__exportedImageData);
-    if (!base64Data || typeof base64Data !== 'string') {
-      throw new Error('No exported image data found after successful render.');
-    }
-    const base64Content = base64Data.replace(/^data:[^;]+;base64,/, '');
-    const buffer = Buffer.from(base64Content, 'base64');
-
-    if (consoleErrors.length > 0) {
+/**
+ * ``render-excalidraw.ts`` page driver. An installed ``PngRenderer``
+ * (png_renderer.ts, WP28) takes precedence; otherwise the platform hook
+ * renders (playwright under Node, src/node/excalidraw_page.ts).
+ */
+async function _cli_render(options: _CliOptions, scene: unknown, stderr: string[]): Promise<Uint8Array> {
+  const renderer = getPngRenderer();
+  if (renderer) {
+    const result = await renderer.render({
+      scene: _cli_normalize_scene(scene),
+      options: {
+        url: options.url,
+        viewportWidth: options.viewportWidth,
+        viewportHeight: options.viewportHeight,
+        timeoutMs: options.timeoutMs,
+        exportScale: options.exportScale,
+        margin: options.margin,
+      },
+    });
+    if (result.warnings.length > 0) {
       stderr.push('[render-excalidraw] Browser console emitted errors:\n');
-      for (const entry of consoleErrors) stderr.push(`  ${entry}\n`);
+      for (const entry of result.warnings) stderr.push(`  ${entry}\n`);
     }
-    return buffer;
-  } finally {
-    page.off('console', handleConsole);
-    page.off('pageerror', handlePageError);
-    page.off('crash', handleCrash);
-    page.off('requestfailed', handleRequestFailed);
-    await page.close().catch(() => {});
-    await context.close().catch(() => {});
-    await browser.close().catch(() => {});
+    return result.png;
   }
+  const render = getPlatform().renderExcalidrawPage;
+  if (!render) throw new Error('No in-process Excalidraw renderer on this platform (install one with setPngRenderer).');
+  return render(options, scene, _cli_normalize_scene, stderr);
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 /** ``main()`` of render-excalidraw.ts with ``argv``/stdin given; returns the exit code. */
 export async function _run_excalidraw_cli(argv: string[], stdinText: string, stdout: string[], stderr: string[]): Promise<number> {
@@ -658,10 +530,10 @@ export async function _run_excalidraw_cli(argv: string[], stdinText: string, std
     _cli_validate_options(options);
     const scene = options.scenePath === null
       ? JSON.parse(stdinText)
-      : JSON.parse((await import('node:fs/promises').then((fs) => fs.readFile(options.scenePath!, 'utf-8'))));
+      : JSON.parse(readFileSync(options.scenePath!, 'utf-8'));
     const buffer = await _cli_render(options, scene, stderr);
     if (options.outputPath === '-') {
-      stdout.push(buffer.toString('latin1'));
+      stdout.push(latin1Decode(buffer));
       return 0;
     }
     const parent = dirname(options.outputPath);
@@ -704,7 +576,9 @@ export abstract class CanvasRenderBase {
       candidate = resolve(base_dir, candidate);
     }
 
-    if (!existsSync(candidate)) {
+    // With a PngRenderer installed the default Excalidraw script runs in
+    // process, so it need not exist on the (possibly in-memory) file system.
+    if (!existsSync(candidate) && !(getPngRenderer() && _in_process_excalidraw_argv([...this.default_runner, candidate]) !== null)) {
       throw new FileNotFoundError(`Renderer script not found at: ${candidate}`);
     }
 
@@ -752,7 +626,7 @@ export abstract class CanvasRenderBase {
 
     let output_file = output_path;
     if (!isAbsolute(output_file)) {
-      output_file = join(process.cwd(), output_file);
+      output_file = join(cwd(), output_file);
     }
     mkdirSync(dirname(output_file), { recursive: true });
 
@@ -765,7 +639,7 @@ export abstract class CanvasRenderBase {
     const python_timeout = _subprocess_timeout_seconds(timeout_ms);
     let completed: CompletedProcess;
     try {
-      completed = await subprocess.run(cmd, { input: Buffer.from(payload, 'utf-8'), cwd: workdir, timeout: python_timeout });
+      completed = await subprocess.run(cmd, { input: utf8EncodeLossy(payload), cwd: workdir, timeout: python_timeout });
     } catch (exc) {
       if (!(exc instanceof TimeoutExpired)) throw exc;
       const stdout = _tail(_decode_process_output(exc.output));

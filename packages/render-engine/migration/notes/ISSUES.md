@@ -70,3 +70,53 @@
 - **遗留**：
   - 标记只覆盖录制样例和阶段样例实际走到的代码路径，这些路径已经逐一核对过。没走到的分支如果新写入整数值浮点，值不受影响，只会让 JSON 文本里的 `120.0` 变成 `120`；如果这个值被哈希，也会影响哈希。
   - 新代码写 manifest 数值时，要用 `markF/assignF/pyUpdate`；复制时用 `pyDeepcopy`/`pyDictCopy`，不要用 `structuredClone` 或 `{...}`。
+
+## WP27-1：函数向量依赖 pytest 临时目录，被 pytest 轮转删除后 3 条向量失败（环境问题）
+
+- **当前状态**：已由 WP34-1 的文件字节快照与 MemoryFS 回放解决；下文保留最初调查记录。
+
+- **登记者**：WP27。**未修改**（fixtures 归 WP12/录制工具所有）。
+- **现象**：`npx vitest run` 中 `test/parity/functions.test.ts` 有 3 条失败：
+  - `refinement_stage.__main__._infer_canvas_library_from_manifest`（期望 `tldraw`，得到 `excalidraw`）
+  - `iterative_workflow._input_fingerprint`
+  - `iterative_workflow._node_load_inputs`
+- **根因**：这些向量的参数是 pytest 的 `tmp_path` 绝对路径（`/private/var/folders/.../pytest-of-zhanyi/pytest-103/...`），函数在 TS 侧会去读这些文件。pytest 只保留最近 3 个 `pytest-N` 目录；同一台机器上有人再跑 pytest（当前已到 `pytest-108`），`pytest-103` 被删除，文件不存在，TS 走了"文件不存在"分支。与 WP27 的改动无关（NodeFS 直接调用 `node:fs`，读不存在的文件在改动前后行为一致）。
+- **可能的处理**：录制时把 `__path__` 指向的文件内容一起存进 fixtures，回放前在临时目录（或 MemoryFS）里还原；或在 `export_fixtures.py` 中把 `tmp_path` 改到仓库内的固定目录。
+
+## WP27-2：浏览器运行的后续事项（交给 WP28 / WP29 / WP31）
+
+- **登记者**：WP27。WP27 只负责"没有 node 内置模块"，以下几点不影响 esbuild 检查，但浏览器里真正运行时需要处理：
+  - 4 处 `await import(new URL('<相对路径>.ts', import.meta.url).href)`（为绕开循环依赖的可选/延迟导入）：`common/domain_knowledge_loader.ts`、`agentic_system/config.ts`、`verification_stage/reports/report_builder.ts`、`refinement_stage/fixers/apply_edits.ts`。打包后这些 URL 指向不存在的 `.ts`，前两处有 `.catch(() => null)` 兜底（行为会变成"模块不存在"），后两处会抛错。WP31 需要改成打包器能识别的静态/动态导入。
+  - 浏览器平台的 `AsyncContext`（`src/py/platform_browser.ts`）是单线程替身：`run` 在同步部分和返回的 promise 结束前保持 store。严格嵌套时正确；同一个 context 上有并发、交错的 `run`（例如并行节点各自开 `_CALL_BUDGET`）时会互相看到对方的 store。WP29/WP31 需确认流水线在 Worker 中的并发形态，必要时改为显式传参。
+  - `canvas_render.CanvasRenderBase._resolve_script_path` 会检查 `tool_services/scripts/render-excalidraw.ts` 是否存在；浏览器资源包（WP31）如果不包含它，渲染会在调用渲染器之前就报 FileNotFoundError。WP28 接入 `PngRenderer` 时一并处理。
+  - 浏览器平台下 `spawn` / `renderExcalidrawPage` 为 null（调用时报错），由 WP28 通过 `setPlatform({ renderExcalidrawPage })` 或新的 `PngRenderer` 接口接管。
+
+## WP26-1：`tools/parity-runs.ts` 当前版本启动即报 `ReferenceError: Cannot access 'nodeIO' before initialization`
+
+- **当前状态**：已解决。`nodeIO` 改为可提升的函数声明，磁盘完整回放 36/36 通过；下文保留最初调查记录。
+
+- **登记者**：WP26（只登记，未修改，该文件属于 WP27 正在进行的 `--fs memory` 改动，文件时间 2026-11-05 15:41）。
+- **现象**：`npm run parity:runs` 在第一个样例就退出：`replay()`（第 164 行）用到 `nodeIO`，但 `const nodeIO` 声明在模块末尾（第 322 行），而顶层 `for … await replay(…)` 循环（第 133 行）先于它执行，触发 TDZ。
+- **验证**：把 `nodeIO` 的声明挪到循环之前（临时拷贝，跑完已删除），`parity:runs` 结果为 36/36，说明流水线本身没有问题。
+- **建议修复**：把 `const nodeIO` 移到顶层循环之前，或改成函数声明。
+- **另**：`npx vitest run` 有 3 个函数向量失败，原因见 WP27-1（pytest 临时目录被轮转删除），与 WP26 无关。
+
+
+## WP34-1：修复 pytest 临时文件依赖（解决 WP27-1）
+
+- `tools/wp34/capture_runtime_inputs.py` 在原有 Python 测试的三个函数入口捕获文件字节，不改 Python 实现或期望结果。原测试 145/145 通过。
+- 文件字节保存在 `test/fixtures/runtime_inputs.json`，按函数、测试目录名、调用次序索引。
+- `test/harness/pytest_files.ts` 用一次性的 MemoryFS 覆盖录制路径；保留原始路径字符串，使指纹与错误文本仍可精确比较。每条向量结束恢复 FS。CLI 的内容读取也改走 RuntimeFS。
+- `iterative_workflow` 26/26 已通过；完整函数对照随 WP34 一并复跑。
+
+## WP31-1：本机默认 Node 版本低于 Vite 要求
+
+- 默认 Node 20.11.1 缺少 `crypto.hash`，带 Worker 的 Vite 构建会失败。
+- 使用 Codex 自带 Node 24.22.1 后构建通过；这是本机工具版本问题。验收脚本和构建要求 Node >=22.12。
+- 浏览器包不包含 Node 内置模块。
+
+## WP34-2：同步回放占用事件循环，触发 Vitest 状态 RPC 超时
+
+- 全量运行的 1194 项断言全部通过，但 Vitest 记录两次 `Timeout calling "onTaskUpdate"` 并以失败退出；单 worker 同样复现。
+- 大组函数向量会连续执行数十秒（箭头渲染组超过一分钟），整数 ID 回放也连续同步运行，Worker 无法及时消费状态回复。
+- 函数测试在每条向量之前、整数 ID 测试在每个独立用例之前 `await setImmediate()`，让状态回复得到处理。生产逻辑、向量、断言和阈值均未调整；最终复跑结果见 `PHASE3_REPORT.md`。

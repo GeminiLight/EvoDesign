@@ -342,7 +342,7 @@ interface ColorfulModule {
   render_palette_card: (palette_key: string) => string;
 }
 const COLORFUL_PATH = '../generation_stage/styling/colorful.ts';
-const colorful = (await import(/* @vite-ignore */ new URL(COLORFUL_PATH, import.meta.url).href).catch(() => null)) as ColorfulModule | null;
+const colorful = (await import('../generation_stage/styling/colorful.ts').catch(() => null)) as ColorfulModule | null;
 
 /**
  * Return the formatted palette card for the given ``palette_key``.

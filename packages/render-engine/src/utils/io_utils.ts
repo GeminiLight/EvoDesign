@@ -11,10 +11,11 @@
 // differ from PIL's encoder; the decoded pixels are what the critic sees and
 // what the cassette compares (PHASE2_PLAN.md appendix C).
 import { withPyFloats } from '../py/float_marks.ts';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, extname } from 'node:path';
-import { deflateSync, inflateSync } from 'node:zlib';
-import { PNG } from 'pngjs';
+import { decode as decodePng } from 'fast-png';
+import { bytesToBase64, concatBytes, latin1Decode, readUInt32BE, writeUInt32BE } from '../py/bytes.ts';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from '../py/fs.ts';
+import { dirname, extname } from '../py/path.ts';
+import { deflate, inflate } from '../py/zlib.ts';
 import { ValueError } from '../py/errors.ts';
 import { pyJsonDumps } from '../py/json.ts';
 import { pyJsonLoadsExact } from '../py/json_decoder.ts';
@@ -92,14 +93,14 @@ export function image_to_data_url(image_path: string, max_edge: number | null = 
     const image = openImage(image_path);
     if (Math.max(image.width, image.height) > max_edge) {
       const thumb = thumbnail(image, [max_edge, max_edge]);
-      return 'data:image/png;base64,' + encodePng(thumb).toString('base64');
+      return 'data:image/png;base64,' + bytesToBase64(encodePng(thumb));
     }
   }
   let mime_type = guess_type(image_path);
   if (mime_type === null) {
     mime_type = 'application/octet-stream';
   }
-  const b64 = readFileSync(image_path).toString('base64');
+  const b64 = bytesToBase64(readFileSync(image_path));
   return `data:${mime_type};base64,${b64}`;
 }
 
@@ -122,7 +123,7 @@ const BANDS: Record<Mode, number> = { L: 1, LA: 2, RGB: 3, RGBA: 4 };
 function openImage(path: string): Raster {
   const bytes = readFileSync(path);
   const signature = '89504e470d0a1a0a';
-  if (bytes.subarray(0, 8).toString('hex') !== signature) {
+  if (Array.from(bytes.subarray(0, 8), (b) => b.toString(16).padStart(2, '0')).join('') !== signature) {
     throw new OSError(`cannot identify image file '${path}'`);
   }
   const bitDepth = bytes[24];
@@ -136,18 +137,14 @@ function openImage(path: string): Raster {
   }
   const bands = BANDS[mode];
   if (bytes[28] === 0) {
-    const width = bytes.readUInt32BE(16);
-    const height = bytes.readUInt32BE(20);
+    const width = readUInt32BE(bytes, 16);
+    const height = readUInt32BE(bytes, 20);
     return { mode, width, height, bands, data: decodeNonInterlaced8(bytes, width, height, bands) };
   }
-  // Adam7-interlaced: let pngjs de-interlace (rare; Pillow decodes to the same pixels).
-  const png = PNG.sync.read(bytes);
-  const data = new Uint8Array(png.width * png.height * bands);
-  const pick = mode === 'L' ? [0] : mode === 'LA' ? [0, 3] : mode === 'RGB' ? [0, 1, 2] : [0, 1, 2, 3];
-  for (let i = 0, o = 0; i < png.data.length; i += 4) {
-    for (const c of pick) data[o++] = png.data[i + c];
-  }
-  return { mode, width: png.width, height: png.height, bands, data };
+  // Adam7-interlaced: let fast-png de-interlace (rare; Pillow decodes to the same pixels).
+  // 8-bit gray / gray+alpha / RGB / RGBA decode to exactly ``bands`` interleaved channels.
+  const png = decodePng(bytes);
+  return { mode, width: png.width, height: png.height, bands, data: Uint8Array.from(png.data as Uint8Array) };
 }
 
 function paeth(a: number, b: number, c: number): number {
@@ -160,19 +157,19 @@ function paeth(a: number, b: number, c: number): number {
 
 /**
  * Decode the IDAT stream of a non-interlaced 8-bit PNG straight into
- * ``bands`` interleaved channels (pngjs would expand to RGBA first, which
+ * ``bands`` interleaved channels (a generic decoder would expand to RGBA first, which
  * dominated the run time on 4x exports).
  */
-function decodeNonInterlaced8(bytes: Buffer, width: number, height: number, bands: number): Uint8Array {
-  const idat: Buffer[] = [];
+function decodeNonInterlaced8(bytes: Uint8Array, width: number, height: number, bands: number): Uint8Array {
+  const idat: Uint8Array[] = [];
   for (let pos = 8; pos + 8 <= bytes.length;) {
-    const length = bytes.readUInt32BE(pos);
-    const type = bytes.toString('latin1', pos + 4, pos + 8);
+    const length = readUInt32BE(bytes, pos);
+    const type = latin1Decode(bytes, pos + 4, pos + 8);
     if (type === 'IDAT') idat.push(bytes.subarray(pos + 8, pos + 8 + length));
     if (type === 'IEND') break;
     pos += 12 + length;
   }
-  const raw = inflateSync(Buffer.concat(idat));
+  const raw = inflate(concatBytes(idat));
   const stride = width * bands;
   if (raw.length < (stride + 1) * height) throw new OSError('image file is truncated');
   const out = new Uint8Array(stride * height);
@@ -228,14 +225,14 @@ const CRC_TABLE = (() => {
   return table;
 })();
 
-function pngChunk(type: string, body: Buffer): Buffer {
-  const chunk = Buffer.alloc(12 + body.length);
-  chunk.writeUInt32BE(body.length, 0);
-  chunk.write(type, 4, 'latin1');
-  body.copy(chunk, 8);
+function pngChunk(type: string, body: Uint8Array): Uint8Array {
+  const chunk = new Uint8Array(12 + body.length);
+  writeUInt32BE(chunk, body.length, 0);
+  for (let i = 0; i < 4; i += 1) chunk[4 + i] = type.charCodeAt(i) & 0xff;
+  chunk.set(body, 8);
   let crc = -1;
   for (let i = 4; i < 8 + body.length; i += 1) crc = CRC_TABLE[(crc ^ chunk[i]) & 255] ^ (crc >>> 8);
-  chunk.writeUInt32BE((crc ^ -1) >>> 0, 8 + body.length);
+  writeUInt32BE(chunk, (crc ^ -1) >>> 0, 8 + body.length);
   return chunk;
 }
 
@@ -245,10 +242,10 @@ function pngChunk(type: string, body: Buffer): Buffer {
  * of absolute differences). The bytes differ from Pillow's encoder; the
  * pixels are identical (PHASE2_PLAN.md appendix C).
  */
-function encodePng(image: Raster): Buffer {
+function encodePng(image: Raster): Uint8Array {
   const { width, height, bands, data } = image;
   const stride = width * bands;
-  const raw = Buffer.alloc((stride + 1) * height);
+  const raw = new Uint8Array((stride + 1) * height);
   // Row above the first row is all zeros (PNG spec).
   const zeros = new Uint8Array(stride);
   for (let y = 0; y < height; y += 1) {
@@ -290,16 +287,16 @@ function encodePng(image: Raster): Buffer {
       raw[o + 1 + i] = v & 255;
     }
   }
-  const header = Buffer.alloc(13);
-  header.writeUInt32BE(width, 0);
-  header.writeUInt32BE(height, 4);
+  const header = new Uint8Array(13);
+  writeUInt32BE(header, width, 0);
+  writeUInt32BE(header, height, 4);
   header[8] = 8;
   header[9] = { L: 0, LA: 4, RGB: 2, RGBA: 6 }[image.mode];
-  return Buffer.concat([
-    Buffer.from('89504e470d0a1a0a', 'hex'),
+  return concatBytes([
+    Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
     pngChunk('IHDR', header),
-    pngChunk('IDAT', deflateSync(raw, { level: 6 })),
-    pngChunk('IEND', Buffer.alloc(0)),
+    pngChunk('IDAT', deflate(raw, 6)),
+    pngChunk('IEND', new Uint8Array(0)),
   ]);
 }
 

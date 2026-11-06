@@ -2,7 +2,7 @@
 // server-only (reads and writes image files)
 //
 // Python runs the crop with OpenCV + numpy. The TS port works on decoded
-// pixels (pngjs) and reproduces the OpenCV operations it uses bit for bit:
+// pixels (fast-png) and reproduces the OpenCV operations it uses bit for bit:
 //
 //   cv2.imread(path)            IMREAD_COLOR: 8-bit, 3 channels. Alpha is
 //                               stripped (not composited), grey is replicated,
@@ -24,9 +24,10 @@
 // ``smart_crop`` is a LangChain ``@tool`` in Python and is only called as
 // ``smart_crop.invoke(input={...})``; the TS export keeps that calling form.
 
-import { readFileSync, writeFileSync } from 'node:fs';
-import { deflateSync } from 'node:zlib';
-import { PNG } from 'pngjs';
+import { concatBytes, writeUInt32BE } from '../../py/bytes.ts';
+import { readFileSync, writeFileSync } from '../../py/fs.ts';
+import { deflate } from '../../py/zlib.ts';
+import { decode as decodePng } from 'fast-png';
 import { IndexError } from '../../py/errors.ts';
 import { getLogger } from '../../py/logging.ts';
 
@@ -49,27 +50,39 @@ interface BgrImage {
 
 /** ``cv2.imread(path)`` (IMREAD_COLOR) for PNG files; null when unreadable. */
 function _imread(path: string): BgrImage | null {
-  let bytes: Buffer;
+  let bytes: Uint8Array;
   try {
     bytes = readFileSync(path);
   } catch {
     return null;
   }
-  let png: PNG;
+  let png: ReturnType<typeof decodePng>;
   try {
-    // skipRescale keeps 16-bit samples as-is (Uint16Array) so the high byte can be taken.
-    png = PNG.sync.read(bytes, { skipRescale: true } as Parameters<typeof PNG.sync.read>[1]);
+    png = decodePng(bytes);
   } catch {
     return null;
   }
-  const { width, height } = png;
-  const src = png.data as unknown as ArrayLike<number>;
-  const sixteen = (png as unknown as { depth?: number }).depth === 16 || !(png.data instanceof Uint8Array);
+  const { width, height, channels, depth, palette } = png;
+  const src = png.data as ArrayLike<number>;
+  // 16-bit samples: the high byte (cv2 IMREAD_COLOR converts to 8-bit); 1/2/4-bit gray is scaled to 0..255.
+  const sample = depth === 16
+    ? (v: number) => v >> 8
+    : depth < 8 && !palette ? (v: number) => Math.round((v * 255) / ((1 << depth) - 1)) : (v: number) => v;
   const data = new Uint8Array(width * height * 3);
-  for (let i = 0, j = 0; j < data.length; i += 4, j += 3) {
-    const r = sixteen ? src[i] >> 8 : src[i];
-    const g = sixteen ? src[i + 1] >> 8 : src[i + 1];
-    const b = sixteen ? src[i + 2] >> 8 : src[i + 2];
+  for (let p = 0, j = 0; j < data.length; p += 1, j += 3) {
+    let r: number;
+    let g: number;
+    let b: number;
+    if (palette) {
+      const entry = palette[src[p]] ?? [0, 0, 0];
+      [r, g, b] = entry;
+    } else if (channels >= 3) {
+      r = sample(src[p * channels]);
+      g = sample(src[p * channels + 1]);
+      b = sample(src[p * channels + 2]);
+    } else {
+      r = g = b = sample(src[p * channels]);
+    }
     data[j] = b;
     data[j + 1] = g;
     data[j + 2] = r;
@@ -202,23 +215,23 @@ const CRC_TABLE = (() => {
   return table;
 })();
 
-function _png_chunk(type: string, body: Buffer): Buffer {
-  const head = Buffer.alloc(8);
-  head.writeUInt32BE(body.length, 0);
-  head.write(type, 4, 'latin1');
+function _png_chunk(type: string, body: Uint8Array): Uint8Array {
+  const head = new Uint8Array(8);
+  writeUInt32BE(head, body.length, 0);
+  for (let i = 0; i < 4; i += 1) head[4 + i] = type.charCodeAt(i) & 0xff;
   let c = 0xffffffff;
   for (let i = 4; i < 8; i += 1) c = CRC_TABLE[(c ^ head[i]) & 0xff] ^ (c >>> 8);
   for (let i = 0; i < body.length; i += 1) c = CRC_TABLE[(c ^ body[i]) & 0xff] ^ (c >>> 8);
-  const crc = Buffer.alloc(4);
-  crc.writeUInt32BE((c ^ 0xffffffff) >>> 0, 0);
-  return Buffer.concat([head, body, crc]);
+  const crc = new Uint8Array(4);
+  writeUInt32BE(crc, (c ^ 0xffffffff) >>> 0, 0);
+  return concatBytes([head, body, crc]);
 }
 
 /** ``cv2.imwrite(path, img)`` for a 3-channel image: an 8-bit RGB PNG. */
 function _imwrite_png(path: string, img: BgrImage): boolean {
   if (img.width === 0 || img.height === 0) return false; // cv2 rejects empty images
   const stride = img.width * 3;
-  const raw = Buffer.alloc((stride + 1) * img.height);
+  const raw = new Uint8Array((stride + 1) * img.height);
   const rgbRow = new Uint8Array(stride);
   const prevRow = new Uint8Array(stride);
   for (let y = 0; y < img.height; y += 1) {
@@ -234,16 +247,16 @@ function _imwrite_png(path: string, img: BgrImage): boolean {
     for (let i = 0; i < stride; i += 1) raw[out + 1 + i] = (rgbRow[i] - prevRow[i]) & 0xff;
     prevRow.set(rgbRow);
   }
-  const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(img.width, 0);
-  ihdr.writeUInt32BE(img.height, 4);
+  const ihdr = new Uint8Array(13);
+  writeUInt32BE(ihdr, img.width, 0);
+  writeUInt32BE(ihdr, img.height, 4);
   ihdr[8] = 8; // bit depth
   ihdr[9] = 2; // colour type RGB
-  const png = Buffer.concat([
-    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+  const png = concatBytes([
+    Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
     _png_chunk('IHDR', ihdr),
-    _png_chunk('IDAT', deflateSync(raw, { level: 6 })),
-    _png_chunk('IEND', Buffer.alloc(0)),
+    _png_chunk('IDAT', deflate(raw, 6)),
+    _png_chunk('IEND', new Uint8Array(0)),
   ]);
   writeFileSync(path, png);
   return true;

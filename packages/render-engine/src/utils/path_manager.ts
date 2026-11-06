@@ -6,16 +6,16 @@
 // Paths are strings (Python ``Path`` objects); ``Path.resolve()`` is
 // ``_path_resolve`` from config/settings.ts.
 
-import { mkdirSync } from 'node:fs';
-import { dirname, join, relative, resolve, isAbsolute } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { mkdirSync } from '../py/fs.ts';
+import { dirname, isAbsolute, join, relative, resolve } from '../py/path.ts';
+import { getPlatform } from '../py/platform.ts';
 import { ValueError } from '../py/errors.ts';
 import { pyRepr, pyStrip } from '../py/str.ts';
 import { cpCompare } from '../py/sort.ts';
 import { _path_resolve } from '../config/settings.ts';
 
 // Package root (``evodesign/``) and repository root.
-export const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
+export const REPO_ROOT = getPlatform().repoRoot;
 export const PACKAGE_ROOT = join(REPO_ROOT, 'evodesign');
 
 // Common directories

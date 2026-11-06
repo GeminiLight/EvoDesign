@@ -225,9 +225,15 @@ export function BrowserModelSettings() {
               <label className="relative flex min-h-11 cursor-pointer items-center gap-3">
                 <input type="checkbox" role="switch" checked={config.refine} onChange={event => updateConfig({ refine: event.target.checked })} aria-describedby="browser-model-review-hint" className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0" />
                 <span aria-hidden="true" className="studio-switch" />
-                <span className="text-xs text-slate-600 dark:text-slate-300">{zh ? '生成后评审' : 'Review after generation'}<span id="browser-model-review-hint" className="mt-1 block text-[11px] text-slate-500 dark:text-slate-400">{zh ? '额外调用一次模型' : 'One extra model call'}</span></span>
+                <span className="text-xs text-slate-600 dark:text-slate-300">{zh ? '自动修复' : 'Automatic refinement'}<span id="browser-model-review-hint" className="mt-1 block text-[11px] text-slate-500 dark:text-slate-400">{zh ? '检查后按需修复，可能多次调用模型' : 'Refines after checking when needed; may use several model calls'}</span></span>
               </label>
+              {isHosted && <p className="text-[11px] leading-5 text-slate-500 dark:text-slate-400">{zh ? '共享演示执行图形规则检查，暂不启用看图评审。' : 'The shared demo runs diagram checks with visual review disabled.'}</p>}
               {!isHosted && <>
+              <label className="relative flex min-h-11 cursor-pointer items-center gap-3">
+                <input type="checkbox" role="switch" checked={config.supportsVision !== false} onChange={event => updateConfig({ supportsVision: event.target.checked })} className="peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0" />
+                <span aria-hidden="true" className="studio-switch" />
+                <span className="text-xs text-slate-600 dark:text-slate-300">{zh ? '模型支持图片输入' : 'Model accepts images'}<span className="mt-1 block text-[11px] text-slate-500 dark:text-slate-400">{zh ? '纯文本模型请关闭；仍会执行图形规则检查' : 'Turn off for text-only models; diagram checks still run'}</span></span>
+              </label>
               <div className="flex items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-300"><span>{zh ? '推理强度' : 'Reasoning effort'}</span>
                 <ChoiceSelect label={zh ? '推理强度' : 'Reasoning effort'} value={config.reasoningEffort || ''} placement="below" menuWidth={168} align="end"
                   options={[{ value: '', label: zh ? '服务商默认' : 'Provider default' }, { value: 'low', label: zh ? '低' : 'Low' }, { value: 'medium', label: zh ? '中' : 'Medium' }, { value: 'high', label: zh ? '高' : 'High' }]}

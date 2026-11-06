@@ -35,8 +35,8 @@
 // Everything that renders or calls the model is async; the call order is the
 // Python one. Keyword-only parameters are positional in declaration order.
 
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from '../py/fs.ts';
 import { isF, markF, withPyFloats } from '../py/float_marks.ts';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { END, START } from '@langchain/langgraph';
 
 import { objective_rank, needs_refinement } from './quality_policy.ts';

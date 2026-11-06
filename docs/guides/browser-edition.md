@@ -20,19 +20,19 @@ not clear either address's stored data.
 | | Browser edition | Full local edition |
 | --- | --- | --- |
 | Setup | Shared demo or your own API settings | Python, Node.js and model configuration |
-| Generation | Model-generated graph plan + local Dagre layout; dedicated sequence layout | Python structure, styling, layout and rendering agents |
-| Review | Optional second model call for semantic content review | Verification and optional visual refinement |
+| Generation | TypeScript structure, styling, layout and rendering pipeline in a Web Worker | Python structure, styling, layout and rendering agents |
+| Review | Geometric checks, visual review for vision models and optional refinement | Verification and optional visual refinement |
 | Editing | Native Excalidraw tools; selected-object AI text, color, size, position or deletion edits | Full workspace and backend editing pipeline |
 | Memory | Locally managed preferences included in prompts | Personal memory plus retrieval and expertise evolution |
 | Storage | This browser only; no account or cross-device sync | Local backend or your own hosted database |
 
-Browser diagrams are limited to 60 nodes and 120 connections. AI edits update existing selected objects and bound labels; use canvas tools to add new objects. The online edition is a lightweight product path, **not a reproduction of the paper's full pipeline or evaluation**. It does not assign visual quality scores or claim automatic expertise learning.
+Browser generation now runs the migrated structure, styling, layout, rendering, verification and optional refinement stages in a fresh Web Worker. Excalidraw export stays on the main thread; cancelling generation terminates the Worker. Text-only models skip image-based review, while geometric checks still run. AI edits update existing selected objects and bound labels; use canvas tools to add new objects. Accounts, server persistence, memory retrieval and automatic expertise learning remain outside the browser pipeline. This migration does not reproduce the paper's evaluation or guarantee identical diagrams across fresh model calls. The [migration verification report](../../packages/render-engine/migration/ALGORITHM_VERIFICATION_REPORT.md) records remaining algorithm differences.
 
 ## Shared demo and privacy
 
-The default demo sends diagram content through `/api/model` on the current deployment (Vercel or ModelScope) to BigModel's general API using `glm-5.3-flash`. The function supplies fixed diagram/edit prompts, bounds requests and output, and keeps the shared credential on the server. It is not a general API or CORS proxy. The application does not archive model request bodies or completions on the server. Projects, editable scenes and personal design preferences stay in your browser.
+The default demo sends diagram content through `/api/model` on the current deployment (Vercel or ModelScope) to BigModel's general API using `glm-5.3-flash`. The browser runs the pipeline prompts. A signed token from `/api/model/run` binds its bounded Chat Completions calls to one generation; the server fixes the provider/model and keeps the shared credential on the server. Local edits retain their fixed server prompt. The endpoint is not a general API or CORS proxy. The application does not archive model request bodies or completions on the server. Projects, editable scenes and personal design preferences stay in your browser.
 
-The shared service reserves a conservative token allowance before each call, with independent daily, concurrent and visitor limits. Its Redis namespace stores only counters, short-lived request leases and daily hashes of visitor IPs; it stores no prompts, raw IPs or diagrams. Generating with review uses two requests; an edit uses one. Connection checks use the status endpoint and do not reserve an inference allowance. If the demo is busy or reaches its allowance, retry later or switch to your own model. Turning off review reduces calls. There is no automatic switch from your own provider to the shared service.
+The shared service reserves a conservative token allowance before each call, with independent daily, concurrent and visitor limits. Its Redis namespace stores counters, short-lived run/request leases and daily hashes of visitor IPs; it stores no prompts, raw IPs or diagrams. A generation token expires after 15 minutes and allows up to 40 model calls and 400,000 reserved tokens. Stage retries, routing and refinement affect the actual call count; an edit uses one call. Connection checks use the status endpoint and do not reserve an inference allowance. If the demo is busy or reaches its allowance, retry later or switch to your own model. The shared demo is configured as text-only and skips visual review. There is no automatic switch from your own provider to the shared service.
 
 ## Your own model: keys and provider compatibility
 
@@ -42,7 +42,7 @@ The shared service reserves a conservative token allowance before each call, wit
 - Your provider must allow cross-origin browser requests (**CORS**) from the app's origin, including `Authorization` and `Content-Type` headers. OpenAI-compatible protocol support alone does not guarantee this. Some coding-plan endpoints only support their approved clients.
 - A network/CORS error cannot be fixed by changing an API key. Use an endpoint that permits browser access, select the shared demo, or run the full local edition.
 - HTTPS endpoints are required. Loopback HTTP endpoints are allowed for local development, subject to the browser's local-network permissions. Redirects are rejected to avoid forwarding credentials to another destination.
-- Usage is billed by your provider. Generating with review uses two model calls; local editing uses one. “Test connection” also makes a small model call.
+- Usage is billed by your provider. Generation makes multiple model calls for its stages, retries and optional refinement; local editing uses one. “Check connection” only reads model metadata.
 
 ### Tested browser connection options
 
@@ -50,7 +50,7 @@ The shared service reserves a conservative token allowance before each call, wit
 
 For a key-free experiment, the [Pollinations Classic API](https://github.com/pollinations/pollinations/blob/master/APIDOCS.md) exposes `https://text.pollinations.ai/v1` with model `openai-fast`. Its anonymous service is best effort, has a small output budget and a per-IP cooldown. Use **Advanced model options → Reasoning effort → Low** for this model; the default reasoning consumed the output budget in our complex-diagram test. Send only non-sensitive examples to this public experimental service. Availability and limits can change.
 
-Reasoning effort is optional and omitted by default. Only set it for a provider/model that supports `reasoning_effort`. A successful connection check confirms reachability, not diagram quality or sufficient quota. When the provider returns an explicit `Retry-After` of up to 60 seconds with a rate-limit response, the app waits and retries once; cancellation interrupts the wait. Other failures are shown without automatic retries.
+Reasoning effort is optional and omitted by default. Only set it for a provider/model that supports `reasoning_effort`. A successful connection check confirms reachability, not diagram quality or sufficient quota. Generation follows the migrated transport and JSON retry policies. The local edit path retries once when the provider returns an explicit `Retry-After` of up to 60 seconds; cancellation interrupts the wait.
 
 Kimi Coding's endpoints did not allow browser cross-origin requests in our check. A working key in a coding client does not make that endpoint usable directly from the public website. The [six-case validation record](../archive/validation/browser-validation-2026-10-27.md) distinguishes four direct-browser workflows from two Kimi workflows tested with a temporary local development connection, and documents provider outages and measured timings.
 
@@ -66,6 +66,8 @@ npm --prefix frontend run dev:browser
 npm --prefix frontend run build:browser
 ```
 
+Installing the frontend also installs and builds the sibling `packages/render-engine` package through its `prepare` script. Use Node >=22.12.
+
 The local browser dev server also mounts `/api/model`. Put `DEMO_GLM_API_KEY`
 in a **repository-root `.env.local`** and restart the dev server to enable
 GLM-5.3-Flash locally. Optional `DEMO_GLM_BASE_URL` selects the BigModel general
@@ -73,7 +75,7 @@ API (`https://open.bigmodel.cn/api/paas/v4`, default) or your authorized Coding
 API (`https://open.bigmodel.cn/api/coding/paas/v4`). Other destinations are rejected.
 These values stay on the server and are never exposed through `VITE_*` or
 bundled in the page. Only loopback connections can use this local endpoint.
-The same fixed diagram/edit prompts and input/output limits are reused.
+The same signed generation-token and bounded model-request routes are reused; edits retain the fixed edit prompt.
 Local token, concurrency and visitor counters need no Redis and reset when the
 dev server restarts; the deployed service keeps its distributed Redis budget.
 Existing custom-model settings remain available; select the default demo in
@@ -82,7 +84,7 @@ proxy already specified by your shell's `HTTPS_PROXY`/`HTTP_PROXY` settings.
 
 Deploy `frontend/dist` to a static host with SPA fallback. The repository-root `vercel.json` builds this edition automatically. Import the public repository into Vercel with the **repository root** selected; the bundled icon catalog is shared with the engine outside `frontend/`.
 
-For a static host, custom-model mode works without server secrets; shared-demo discovery falls back gracefully when `/api/model` is absent. For the Vercel demo, configure `DEMO_GLM_API_KEY`, `DEMO_REDIS_URL` and `DEMO_REDIS_TOKEN` as server-only secrets. Optional controls are `DEMO_DAILY_TOKENS` (default 2,000,000 reserved tokens), `DEMO_CONCURRENCY` (4) and `DEMO_VISITOR_REQUESTS` (40 requests per IP per UTC day). Missing budget configuration disables the shared service rather than permitting unbounded requests. These reservations are an upper bound, not a provider billing report.
+For a static host, custom-model mode works without server secrets; shared-demo discovery falls back gracefully when `/api/model` is absent. For the Vercel demo, configure `DEMO_GLM_API_KEY`, `DEMO_REDIS_URL` and `DEMO_REDIS_TOKEN` as server-only secrets. Optional controls are `DEMO_DAILY_TOKENS` (default 2,000,000 reserved tokens), `DEMO_CONCURRENCY` (4) and `DEMO_VISITOR_REQUESTS` (40 generation starts or local edits per IP per UTC day). Missing budget configuration disables the shared service rather than permitting unbounded requests. These reservations are an upper bound, not a provider billing report.
 
 **Never put secrets in `VITE_*` variables or tracked files.** The function uses the general BigModel API endpoint, not Coding Plan quota. Ordinary `npm run dev` / `npm run build` still use the full backend mode; the `browser` build mode selects the browser adapter.
 
@@ -96,7 +98,7 @@ For a static host, custom-model mode works without server secrets; shared-demo d
 继续保留。两个域名的浏览器存储相互独立，原有项目、DNA 偏好和模型配置不会自动搬到新域名；
 需要继续编辑旧作品或导出可编辑备份时，请打开旧地址。换域名不会清除任一地址的数据。
 
-在线版使用模型生成结构、浏览器完成布局，是轻量体验路径。论文中的多智能体算法、视觉评审、自动经验学习和评测工具仍包含在完整本地版中。
+在线版现在在 Web Worker 中运行迁移后的结构、样式、布局、渲染、检查和按需修复流程。支持图片输入的自有模型可开启视觉评审；默认共享模型按纯文本模式跳过看图评审。账号、服务端持久化、设计记忆检索与自动经验学习仍不在浏览器流水线范围内；迁移核验报告保留已知差异，不能据此保证每次新生成的图都与旧版相同。
 
 ### Creation from Home
 

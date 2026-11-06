@@ -20,7 +20,8 @@
 //       ``OSError("truncated PNG file")``, short data ``OSError``, bad CRC
 //       ``SyntaxError`` → "corrupt PNG". IEND's own CRC is not checked.
 
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { bytesEqual, latin1Decode, latin1Encode, readUInt32BE } from '../../py/bytes.ts';
+import { existsSync, readFileSync, statSync } from '../../py/fs.ts';
 import { IndexError, RuntimeError, ValueError } from '../../py/errors.ts';
 import { pyRepr } from '../../py/str.ts';
 
@@ -28,7 +29,7 @@ class _PngSyntaxError extends Error {}
 class _PngOSError extends Error {}
 class _PngUnidentified extends Error {}
 
-const _MAGIC = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const _MAGIC = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const _CID_RE = /^[A-Za-z0-9_]{4}$/;
 
 const _CRC_TABLE = (() => {
@@ -48,8 +49,8 @@ function _crc32(bytes: Uint8Array, start: number, end: number, crc = 0): number 
 }
 
 /** Pillow's ``format`` for non-PNG files it can identify (by magic number); null = unidentified. */
-function _guess_other_format(bytes: Buffer): string | null {
-  const ascii = (start: number, end: number) => bytes.toString('latin1', start, end);
+function _guess_other_format(bytes: Uint8Array): string | null {
+  const ascii = (start: number, end: number) => latin1Decode(bytes, start, end);
   if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'JPEG';
   if (ascii(0, 6) === 'GIF87a' || ascii(0, 6) === 'GIF89a') return 'GIF';
   if (ascii(0, 2) === 'BM' && bytes.length >= 18) return 'BMP';
@@ -72,31 +73,31 @@ const _VALID_MODES = new Set([
 interface _Chunk { cid: string; pos: number; length: number }
 
 /** ``ChunkStream.read``: 8-byte header; ``struct.error`` when short, ``SyntaxError`` on a bad type. */
-function _read_chunk(bytes: Buffer, offset: number): _Chunk | 'struct' {
+function _read_chunk(bytes: Uint8Array, offset: number): _Chunk | 'struct' {
   if (offset + 8 > bytes.length) {
     // i32(s) on fewer than 4 bytes is struct.error; 4..7 bytes give a short cid
     if (offset + 4 > bytes.length) return 'struct';
-    const cid = bytes.toString('latin1', offset + 4, Math.min(bytes.length, offset + 8));
+    const cid = latin1Decode(bytes, offset + 4, Math.min(bytes.length, offset + 8));
     if (!_CID_RE.test(cid)) throw new _PngSyntaxError(`broken PNG file (chunk ${cid})`);
     return 'struct';
   }
-  const length = bytes.readUInt32BE(offset);
-  const cid = bytes.toString('latin1', offset + 4, offset + 8);
+  const length = readUInt32BE(bytes, offset);
+  const cid = latin1Decode(bytes, offset + 4, offset + 8);
   if (!_CID_RE.test(cid)) throw new _PngSyntaxError(`broken PNG file (chunk ${cid})`);
   return { cid, pos: offset + 8, length };
 }
 
 /** ``ChunkStream.crc`` — reads the 4-byte CRC after the data. */
-function _check_crc(bytes: Buffer, chunk: _Chunk): void {
+function _check_crc(bytes: Uint8Array, chunk: _Chunk): void {
   const end = chunk.pos + chunk.length;
   if (end + 4 > bytes.length) throw new _PngSyntaxError(`broken PNG file (incomplete checksum in ${chunk.cid})`);
-  const expected = _crc32(bytes, chunk.pos, end, _crc32(Buffer.from(chunk.cid, 'latin1'), 0, 4));
-  if (expected !== bytes.readUInt32BE(end)) throw new _PngSyntaxError(`broken PNG file (bad header checksum in ${chunk.cid})`);
+  const expected = _crc32(bytes, chunk.pos, end, _crc32(latin1Encode(chunk.cid), 0, 4));
+  if (expected !== readUInt32BE(bytes, end)) throw new _PngSyntaxError(`broken PNG file (bad header checksum in ${chunk.cid})`);
 }
 
 /** ``Image.open(path)`` + ``image.format`` + ``image.verify()`` for a PNG file. */
-function _open_and_verify(bytes: Buffer): string {
-  if (bytes.length < 8 || !bytes.subarray(0, 8).equals(_MAGIC)) {
+function _open_and_verify(bytes: Uint8Array): string {
+  if (bytes.length < 8 || !bytesEqual(bytes.subarray(0, 8), _MAGIC)) {
     const other = _guess_other_format(bytes);
     if (other === null) throw new _PngUnidentified();
     return other;
@@ -124,7 +125,7 @@ function _open_and_verify(bytes: Buffer): string {
       if (chunk.cid === 'IHDR') {
         // ValueError is not caught by Image.open nor by validate_png_file.
         if (chunk.length < 13) throw new ValueError('Truncated IHDR chunk');
-        sizeOk = bytes.readUInt32BE(chunk.pos) > 0 && bytes.readUInt32BE(chunk.pos + 4) > 0;
+        sizeOk = readUInt32BE(bytes, chunk.pos) > 0 && readUInt32BE(bytes, chunk.pos + 4) > 0;
         modeOk = _VALID_MODES.has(`${bytes[chunk.pos + 9]}:${bytes[chunk.pos + 8]}`);
         if (bytes[chunk.pos + 11]) throw new _PngSyntaxError('unknown filter category');
         haveHeader = true;

@@ -1,0 +1,22 @@
+[
+ {
+  "path": "1_structure/structure_instantiation.json",
+  "kind": "json",
+  "sha256": "dcda044a4b2da63b2b460cd83e0df7e39fd2dd2d6fd0a6960449b1f919634b93"
+ },
+ {
+  "path": "1_structure/structure_specification.json",
+  "kind": "json",
+  "sha256": "38a2c9bba25e0a33c3812548084b9c75688b0ceaca2fa1c9b2b2b667642bc718"
+ },
+ {
+  "path": "2_styling/styling_instantiation.json",
+  "kind": "json",
+  "sha256": "86fba7f4e8ea1ca9116d20f6ade73e84c55adc7fc86cc0b5a1c6194b161ca391"
+ },
+ {
+  "path": "2_styling/styling_specification.json",
+  "kind": "json",
+  "sha256": "0c54046bef15791a2c24a710534f26c7b1ab7b21882bbba425800d89cd01fea6"
+ }
+]

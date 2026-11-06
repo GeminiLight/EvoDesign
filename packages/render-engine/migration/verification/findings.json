@@ -1,0 +1,629 @@
+{
+  "created_at": "2026-11-06T13:49:05.580135+00:00",
+  "counts": {
+    "D/P1": 2,
+    "D/P2": 8,
+    "D/P3": 2,
+    "I/P2": 1,
+    "P/P2": 1,
+    "P/P3": 1,
+    "U/P2": 3,
+    "U/P3": 2
+  },
+  "findings": [
+    {
+      "id": "AUD-D01",
+      "classification": "D",
+      "severity": "P1",
+      "comparison": "A/B → C/D",
+      "status": "reproduced",
+      "title": "合法 __proto__ 节点在样式阶段报错或渲染时丢失",
+      "locations": [
+        {
+          "file": "packages/render-engine/src/generation_stage/styling/styling_agent.ts",
+          "line": 195
+        },
+        {
+          "file": "packages/render-engine/src/generation_stage/styling/styling_agent.ts",
+          "line": 206
+        },
+        {
+          "file": "evodesign/agentic_system/generation_stage/styling/styling_agent.py",
+          "line": 177
+        }
+      ],
+      "trigger": "Structure 包含合法字符串节点 id=__proto__，模型返回该 ID 的样式对象；无须开启图标。",
+      "before": "原始 A 和当前 B 均通过 Structure 和 Styling 校验，own 字典项保留。",
+      "after": "TS Structure 接受；processed[element_id]=copied 改变 processed 的原型，Object.keys(processed)=[]，validate_styling_instantiation 抛 StylingValidationError: Styling instantiation must be a JSON object; got Object.",
+      "commands": [
+        "export PATH=/Users/zhanyi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH",
+        "PYTHONPATH=. .venv/bin/python packages/render-engine/migration/verification/VA02-generation/repro-baseline.py",
+        "node packages/render-engine/node_modules/tsx/dist/cli.mjs packages/render-engine/migration/verification/VA02-generation/repro-prototype.ts"
+      ],
+      "evidence": [
+        "evidence/VA02-generation/baseline-diff.json",
+        "evidence/VA02-generation/prototype-ts.json",
+        "evidence/VA02-generation/probe-results.json"
+      ],
+      "impact": "有效模型输出在生成阶段中断；与 R 发现的 converter 普通对象语义键问题属于同一跨阶段根因。",
+      "recommendation": "所有 semantic-id map 使用 Map 或无原型字典并确保 deep-copy/validator/序列化兼容；禁止只修一个写入点。",
+      "source_ids": [
+        "G-D01",
+        "VA03-D01"
+      ],
+      "evidence_directory": "evidence/VA02-generation",
+      "secondary_reproduction": {
+        "id": "VA03-D01",
+        "classification": "D",
+        "severity": "P1",
+        "title": "合法 __proto__ 语义节点在 TS 渲染分类时被丢弃",
+        "python_location": "evodesign/agentic_system/render_engine/excalidraw/converter.py:657-668",
+        "ts_location": "packages/render-engine/src/render_engine/excalidraw/converter.ts:690-700,719",
+        "trigger": "quickstart-service 的首个节点和所有引用替换为 __proto__。Python/TS 的 validate_structure_instantiation 均接受，Python 9 阶段无异常。",
+        "before": "Python excalidraw_convert 生成20个元素，保留该节点与标签。",
+        "after": "TS excalidraw_convert 生成18个元素；从该阶段开始首个差异。",
+        "cause": "regular_elements 是普通 {}，赋值 regular_elements[\"__proto__\"]=element_data 修改原型，不形成可枚举自有键；Object.entries 随后省略此节点。",
+        "controls": [
+          "n_control",
+          "constructor",
+          "toString"
+        ],
+        "reproduction": "cd packages/render-engine; PYTHONPATH=../.. ../../.venv/bin/python migration/verification/VA03-render/gen_mutants.py; node node_modules/tsx/dist/cli.mjs migration/verification/VA03-render/compare_mutants.mts",
+        "evidence": [
+          "mutants-python.json",
+          "mutants-comparison.json",
+          "check_schema.mts"
+        ],
+        "impact": "有效节点及其标签丢失，随后关系/布局可能继续偏移。触发需使用特殊ID，常见描述性ID未受影响。",
+        "suggestion": "后续修复应将语义ID索引映射改为无原型对象或Map，并审查全流水线其它按ID赋值位置；若选择拒绝特殊ID，必须两端同步并记录为主动行为改变。"
+      },
+      "independent_confirmation": "主智能体复跑渲染mutant：Python20元素、TS18元素；两端schema均接受。"
+    },
+    {
+      "id": "AUD-D02",
+      "classification": "D",
+      "severity": "P1",
+      "comparison": "A/B/C → D",
+      "status": "reproduced",
+      "title": "浏览器并发自一致性样本共用调用预算，改变有效样本与多数票结果",
+      "locations": [
+        {
+          "file": "packages/render-engine/src/py/platform_browser.ts",
+          "line": 25
+        },
+        {
+          "file": "packages/render-engine/src/common/self_consistency.ts",
+          "line": 59
+        },
+        {
+          "file": "packages/render-engine/src/generation_stage/structure/structure_agent.ts",
+          "line": 148
+        },
+        {
+          "file": "packages/render-engine/src/core/base_agent.ts",
+          "line": 760
+        },
+        {
+          "file": "packages/render-engine/src/core/base_agent.ts",
+          "line": 664
+        }
+      ],
+      "trigger": "structure_self_consistency_n=3（默认1不触发）；每样本第一次返回坏JSON，修正请求遭遇一次可重试传输错误，接着提供有效响应。transport_attempts=2、json_retry_attempts=2。",
+      "before": "Python ContextVar 和 Node AsyncLocalStorage：每个样本请求3次，attempts=[3,3,3]，9请求，2:1选中 architecture，返回 sample1。",
+      "after": "相同请求/响应安排，production BrowserAsyncContext 下 attempts=[3,2,2]，7请求；两个样本因共用最后一个budget而提前失败，剩下 sample0 的 flowchart 胜出。",
+      "commands": [
+        "export PATH=/Users/zhanyi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH",
+        "PYTHONPATH=. .venv/bin/python packages/render-engine/migration/verification/VA02-generation/repro-budget.py",
+        "node packages/render-engine/node_modules/tsx/dist/cli.mjs packages/render-engine/migration/verification/VA02-generation/repro-budget.ts node",
+        "node packages/render-engine/node_modules/tsx/dist/cli.mjs packages/render-engine/migration/verification/VA02-generation/repro-budget.ts browser"
+      ],
+      "evidence": [
+        "evidence/VA02-generation/budget-python.json",
+        "evidence/VA02-generation/budget-node.json",
+        "evidence/VA02-generation/budget-browser.json",
+        "evidence/VA06-crosscheck/budget-real-chromium.json",
+        "evidence/VA06-crosscheck/browser_budget.ts"
+      ],
+      "impact": "仅一条pipeline/Worker也会触发，因为其内部自一致性样本并发。改变调用次数、失败容忍和图类型决策；平台变化已经影响算法。",
+      "recommendation": "显式传递每次logical call预算或引入正确的async上下文隔离；不要通过关闭自一致性/串行化掩盖原并发算法差异。修复后加入该三端差分回归。",
+      "source_ids": [
+        "G-D02"
+      ],
+      "evidence_directory": "evidence/VA02-generation",
+      "independent_confirmation": "主智能体独立打包并在真实Chromium执行，相同脚本Browser [3,2,2]/flowchart，Node/Python [3,3,3]/architecture；Chromium无pageerror。"
+    },
+    {
+      "id": "AUD-D03",
+      "classification": "D",
+      "severity": "P2",
+      "title": "smart_crop 将低位深 PNG 的 packed 字节当成逐像素采样值",
+      "python_location": "evodesign/agentic_system/render_engine/shared/image_cropper.py:51-52",
+      "ts_location": "packages/render-engine/src/render_engine/shared/image_cropper.ts:65-84",
+      "trigger": "100×80 黑白1-bit PNG，黑色矩形和单像素横线，padding=0，canvas_engine=excalidraw。",
+      "before": "Python/OpenCV 裁剪78×56，RGB SHA-256 efe17a8561f2e812413fc91cd8e9f12199ff999931c9d8376e39c1468790e705。",
+      "after": "TS 裁剪100×11，RGB SHA-256 4fb01fe65f50ab63d7b43a85296e1d09abd5ff2941bd91ad40bd976e0143c209。",
+      "cause": "fast-png 对低位深PNG返回packed样本；当前 _imread 按 src[p * channels] 逐像素读取，未根据bit depth和每行padding解包。",
+      "reproduction": "cd packages/render-engine; PYTHONPATH=../.. ../../.venv/bin/python migration/verification/VA03-render/gen_crop_cases.py; node node_modules/tsx/dist/cli.mjs migration/verification/VA03-render/compare_crop.mts",
+      "evidence": [
+        "evidence/VA03-render/crop-python.json",
+        "evidence/VA03-render/crop-comparison.json",
+        "evidence/VA03-render/crop-cases/onebit.png",
+        "evidence/VA03-render/crop-cases/onebit.py.png",
+        "evidence/VA03-render/crop-cases/onebit.ts.png"
+      ],
+      "impact": "通用裁剪函数的合法低位深PNG输入错误；当前 Excalidraw 导出8-bit RGBA，常规网页出图未发现该触发条件。",
+      "suggestion": "后续修复先正确解包depth<8样本/调色板索引，再做BGR转换；将低位深PNG纳入独立回归。",
+      "source_ids": [
+        "VA03-D02"
+      ],
+      "evidence_directory": "evidence/VA03-render"
+    },
+    {
+      "id": "AUD-D04",
+      "classification": "D",
+      "severity": "P2",
+      "title": "2^53 整数的 Python JSON/字符串格式仍不等价",
+      "python_location": "Python 3.11 json.dumps(2**53)",
+      "ts_location": "packages/render-engine/src/py/json.ts:92-94; src/py/str.ts:numberStr",
+      "trigger": "值为9007199254740992的Python int，经过pyJsonDumps或numberStr。",
+      "before": "9007199254740992",
+      "after": "9007199254740992.0",
+      "reproduction": "cd packages/render-engine; PYTHONPATH=../.. ../../.venv/bin/python migration/wp11/gen_json.py migration/verification/VA03-render/numeric-vectors.json; node node_modules/tsx/dist/cli.mjs migration/wp11/run_json.mts migration/verification/VA03-render/numeric-vectors.json",
+      "evidence": [
+        "evidence/VA03-render/numeric-vectors.json",
+        "evidence/VA03-render/numeric-comparison.log"
+      ],
+      "impact": "跨语言大整数序列化与潜在hash输入不同；未在常规布局/seed输入中复现用户可见变化。该问题是旧WP11已记载且本轮重新复现的边界限制。",
+      "suggestion": "限定安全整数域或保留整数字面量/BigInt，明确JSON类型策略。",
+      "source_ids": [
+        "VA03-D03"
+      ],
+      "evidence_directory": "evidence/VA03-render"
+    },
+    {
+      "id": "AUD-D05",
+      "classification": "D",
+      "severity": "P3",
+      "title": "可见性网格通过 Set 规范化了负零",
+      "python_location": "evodesign/agentic_system/render_engine/excalidraw/arrow_routing/grid_router.py:_find_orthogonal_visibility_route",
+      "ts_location": "packages/render-engine/src/render_engine/excalidraw/arrow_routing/grid_router.ts:227-228",
+      "trigger": "起点含-0.0且轴坐标集合合并正负零。400组样本中26组带符号零表示不同。",
+      "before": "示例路线 [[-0.0,60],[-0.0,120]]",
+      "after": "示例路线 [[-0,60],[0,120]]",
+      "reproduction": "cd packages/render-engine; node node_modules/tsx/dist/cli.mjs migration/wp11/run_grid_signed_zero.mts migration/verification/VA03-render/grid-vectors.json",
+      "evidence": [
+        "evidence/VA03-render/grid-vectors.json",
+        "evidence/VA03-render/grid-comparison.log",
+        "evidence/VA03-render/grid-signed-zero.log"
+      ],
+      "impact": "坐标数值和路线几何相同，本轮未观察可见图形变化；严格序列化并非逐位相同。旧WP11记录过，本轮独立重生成样本复现。",
+      "suggestion": "在等价定义中明确signed zero边界；若要求序列化相同，需保留原始零符号。",
+      "source_ids": [
+        "VA03-D04"
+      ],
+      "evidence_directory": "evidence/VA03-render"
+    },
+    {
+      "id": "AUD-D06",
+      "title": "float()词法规则改变模型分数与编辑坐标",
+      "classification": "D",
+      "severity": "P2",
+      "python": [
+        "evodesign/agentic_system/verification_stage/critic/critic_agent.py:80",
+        "evodesign/agentic_system/refinement_stage/fixers/primitives.py:185"
+      ],
+      "ts": [
+        "packages/render-engine/src/py/number.ts:179",
+        "packages/render-engine/src/verification_stage/critic/critic_agent.ts:134"
+      ],
+      "trigger": {
+        "score": "7_",
+        "coordinate": "1__0",
+        "unicode_score": "١"
+      },
+      "before": "Python拒绝7_、1__0；float(١)=1。",
+      "after": "TS删除所有下划线：7_变7、7__0变70后评分钳为10，1__0变10并应用编辑；١被拒绝。",
+      "impact": "同一合法JSON里的畸形数值字符串会被不同地接受或拒绝，改变评审是否成功、质量分数与几何编辑。",
+      "reachability_limits": "默认数字类型分数/坐标已检查一致；未发现真实模型历史回复使用这些字符串。Unicode例是Python float支持的输入，但非正常JSON number。",
+      "reproduce": "PYTHONPATH=. .venv/bin/python packages/render-engine/migration/verification/VA04-quality/boundary_compare.py",
+      "evidence": [
+        "evidence/VA04-quality/boundary-diffs.json: cases 440,441,442,445,531,532",
+        "evidence/VA04-quality/boundary-input.json",
+        "evidence/VA04-quality/boundary-python.json",
+        "evidence/VA04-quality/boundary-ts.json"
+      ],
+      "recommendation": "在共享Python数值语义层校验下划线位置并支持Python十进制Unicode数字；针对评审与EditOp保持拒绝/接受一致。",
+      "source_ids": [
+        "VA04-D01"
+      ],
+      "evidence_directory": "evidence/VA04-quality"
+    },
+    {
+      "id": "AUD-D07",
+      "title": "VerifierState未校验objective_summary的整型值",
+      "classification": "D",
+      "severity": "P2",
+      "python": [
+        "evodesign/agentic_system/verification_stage/state.py:67"
+      ],
+      "ts": [
+        "packages/render-engine/src/verification_stage/state.ts:142",
+        "packages/render-engine/src/verification_stage/state.ts:214"
+      ],
+      "trigger": {
+        "objective_summary": {
+          "major": "oops"
+        },
+        "status": "reported"
+      },
+      "before": "Pydantic Dict[str,int]在构造时抛ValidationError。",
+      "after": "TS仅检查dict，major=oops得到NaN，quality_passed=true、cli_exit_code=0；null/空容器也未拒绝。",
+      "impact": "错误状态数据可进入质量判断，状态构造/恢复的输入域与Python不同。",
+      "reachability_limits": "正常aggregator只生成整型计数，本轮未证明默认网页自动流程会生成该错误状态；直接状态构造已可复现。",
+      "reproduce": "PYTHONPATH=. .venv/bin/python packages/render-engine/migration/verification/VA04-quality/boundary_compare.py",
+      "evidence": [
+        "evidence/VA04-quality/boundary-diffs.json: cases 472,473,474,475,476,477,478,479",
+        "evidence/VA04-quality/boundary-python.json",
+        "evidence/VA04-quality/boundary-ts.json"
+      ],
+      "recommendation": "为objective_summary使用与Pydantic Dict[str,int]一致的逐值校验/强制转换，并保持非法数据报错。",
+      "source_ids": [
+        "VA04-D02"
+      ],
+      "evidence_directory": "evidence/VA04-quality"
+    },
+    {
+      "id": "AUD-D08",
+      "title": "Refiner状态的整数及可选浮点强制转换不等价",
+      "classification": "D",
+      "severity": "P2",
+      "python": [
+        "evodesign/agentic_system/refinement_stage/state.py:124",
+        "evodesign/agentic_system/refinement_stage/state.py:136",
+        "evodesign/agentic_system/refinement_stage/state.py:153"
+      ],
+      "ts": [
+        "packages/render-engine/src/refinement_stage/state.ts:81",
+        "packages/render-engine/src/refinement_stage/state.ts:101"
+      ],
+      "trigger": {
+        "max_iterations": "2.0",
+        "best_findings_score": [
+          "1_0",
+          "NaN",
+          "0x10"
+        ]
+      },
+      "before": "Pydantic接受max_iterations=2.0字符串并转2，接受合法下划线浮点1_0、NaN，拒绝十六进制0x10。",
+      "after": "TS拒绝2.0、1_0、NaN，却用Number接受0x10=16及0b10=2。",
+      "impact": "程序化控制/状态恢复可能提前报错，或接受Python拒绝的状态；有效整数轮次1..20及终止条件测试一致。",
+      "reachability_limits": "浏览器UI通常传number，best_findings_score由程序内部计算；未证明默认UI路径可达字符串输入。",
+      "reproduce": "PYTHONPATH=. .venv/bin/python packages/render-engine/migration/verification/VA04-quality/boundary_compare.py",
+      "evidence": [
+        "evidence/VA04-quality/boundary-diffs.json: refiner_state cases",
+        "evidence/VA04-quality/boundary-python.json",
+        "evidence/VA04-quality/boundary-ts.json"
+      ],
+      "recommendation": "实现并统一Pydantic lax int/float规则，区别Python float与Pydantic float支持域，不直接套Number。",
+      "source_ids": [
+        "VA04-D03"
+      ],
+      "evidence_directory": "evidence/VA04-quality"
+    },
+    {
+      "id": "AUD-D09",
+      "title": "空文本片段改变critic/refiner的成功与重试路径",
+      "classification": "D",
+      "severity": "P2",
+      "python": [
+        "evodesign/agentic_system/verification_stage/critic/critic_agent.py:208",
+        "evodesign/agentic_system/refinement_stage/agent/llm_agent.py:262"
+      ],
+      "ts": [
+        "packages/render-engine/src/verification_stage/critic/critic_agent.ts:290",
+        "packages/render-engine/src/refinement_stage/agent/llm_agent.ts:374"
+      ],
+      "trigger": {
+        "content": [
+          {
+            "type": "reasoning",
+            "text": null
+          },
+          {
+            "type": "text",
+            "text": "<valid JSON>"
+          }
+        ]
+      },
+      "before": "Python str.join遇None抛TypeError；critic重试3次后失败；refiner重试3次，last_exhaustion_error记录失败。",
+      "after": "TS critic的join把null合为空串；refiner pyStr后解析仍找到JSON；均1次成功，refiner无exhaustion。",
+      "impact": "注入模型或保留非文本parts的提供商响应会改变调用次数、校验成功/失败和降级信息。",
+      "reachability_limits": "由主智能体createOpenAIChatModel+mock fetch独立确认transport保留该parts；真实服务商是否发送该payload未验证。",
+      "reproduce": "PYTHONPATH=. .venv/bin/python packages/render-engine/migration/verification/VA04-quality/retry_compare.py",
+      "evidence": [
+        "evidence/VA04-quality/retry-diffs.json: cases 5,11",
+        "evidence/VA04-quality/retry-input.json",
+        "evidence/VA04-quality/retry-python.json",
+        "evidence/VA04-quality/retry-ts.json"
+      ],
+      "recommendation": "明确同一响应parts规则；若选择主动支持null，应同步Python并记为行为修复，而不是无差异迁移。",
+      "source_ids": [
+        "VA04-D04"
+      ],
+      "evidence_directory": "evidence/VA04-quality"
+    },
+    {
+      "id": "AUD-D10",
+      "classification": "D",
+      "severity": "P2",
+      "title": "网页请求模型把Python允许的base_version强制转换改成严格整数",
+      "python_location": "backend/app/schemas/diagram_generate.py:44",
+      "ts_location": "packages/render-engine/src/web_runtime/diagram_generate.ts:142",
+      "trigger": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "base_version": "1"
+      },
+      "before": "Python/Pydantic接受字符串1、1.0以及true，并转为整数1。",
+      "after": "TS抛RequestValidationError(int_type)，请求不进入流水线。",
+      "impact": "程序化调用和旧请求体的可接受输入域改变；当前前端通常不传base_version或传number，不是已证实默认UI故障。",
+      "reproduction": "cd packages/render-engine && node node_modules/tsx/dist/cli.mjs migration/verification/VA05-platform/schema_probe.ts",
+      "evidence": [
+        "evidence/VA05-platform/schema-results.json",
+        "evidence/VA05-platform/schema-inputs.json",
+        "evidence/VA05-platform/schema_probe.py",
+        "evidence/VA05-platform/schema_probe.ts"
+      ],
+      "source_ids": [
+        "VA05-D01"
+      ],
+      "evidence_directory": "evidence/VA05-platform"
+    },
+    {
+      "id": "AUD-D11",
+      "classification": "D",
+      "severity": "P2",
+      "title": "推断use_icons时未保留Python空容器真值规则",
+      "python_location": "backend/app/schemas/diagram_generate.py:56-60",
+      "ts_location": "packages/render-engine/src/web_runtime/diagram_generate.ts:183-186",
+      "trigger": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "current_schema": {
+          "elements": [
+            {
+              "id": "node",
+              "type": "image",
+              "customData": {
+                "evoDesignIcon": {}
+              }
+            }
+          ]
+        }
+      },
+      "before": "未显式指定use_icons时，Python将空dict/list标记视为False，推断use_icons=false。",
+      "after": "TS使用Boolean({})/Boolean([])，推断use_icons=true；isDeleted=[]同样改变live过滤与默认开关。",
+      "impact": "相同请求可切换图标生成策略和提示词。当前前端会显式传use_icons，通常避开此分支；公共streamDiagram入口与后端仍不同。",
+      "reproduction": "cd packages/render-engine && node node_modules/tsx/dist/cli.mjs migration/verification/VA05-platform/schema_probe.ts",
+      "evidence": [
+        "evidence/VA05-platform/schema-results.json"
+      ],
+      "source_ids": [
+        "VA05-D02"
+      ],
+      "evidence_directory": "evidence/VA05-platform"
+    },
+    {
+      "id": "AUD-D12",
+      "classification": "D",
+      "severity": "P3",
+      "title": "遗漏必选参数时异常类型不等价",
+      "python_location": "evodesign/agentic_system/generation_stage/styling/contracts/__init__.py:16",
+      "ts_location": "packages/render-engine/src/generation_stage/styling/contracts/__init__.ts:22",
+      "trigger": "不传canvas，调用get_styling_contract()。",
+      "before": "Python在参数绑定时抛TypeError(missing required positional argument)。",
+      "after": "TS执行函数体，将undefined作为None传入canvas规范化，抛ValueError(Unknown canvas_library: None)。",
+      "impact": "内部API错误输入的异常类型改变；未发现有效网页输入上的可见影响，故列低严重度。旧106条异常向量只看任意throw，该项被原测试漏报。",
+      "reproduction": "cd packages/render-engine && node node_modules/tsx/dist/cli.mjs migration/verification/VA01-baseline/strict_replay.ts",
+      "evidence": [
+        "evidence/VA01-baseline/strict-replay.json",
+        "evidence/VA01-baseline/strict-replay.log"
+      ],
+      "source_ids": [
+        "VA01-D01"
+      ],
+      "evidence_directory": "evidence/VA01-baseline"
+    },
+    {
+      "id": "AUD-I01",
+      "classification": "I",
+      "severity": "P2",
+      "comparison": "A → B/C/D",
+      "status": "reproduced",
+      "title": "图标字段兼容与内置图标校验是明确的主动行为修复",
+      "locations": [
+        {
+          "file": "evodesign/agentic_system/generation_stage/styling/styling_agent.py",
+          "line": 86
+        },
+        {
+          "file": "evodesign/agentic_system/generation_stage/styling/styling_agent.py",
+          "line": 185
+        },
+        {
+          "file": "packages/render-engine/src/generation_stage/styling/styling_agent.ts",
+          "line": 110
+        }
+      ],
+      "trigger": "模型输出节点顶层 icon=outline_globe，或 props.icon=outline_globe。",
+      "before": "A：顶层icon原样留在节点但没有伴随图标；嵌套outline_globe被降级为label。",
+      "after": "B/C：顶层与嵌套均提取为 n:icon，保留outline_globe；新探针普通ID全部一致。",
+      "commands": [
+        "PYTHONPATH=. .venv/bin/python packages/render-engine/migration/verification/VA02-generation/repro-baseline.py"
+      ],
+      "evidence": [
+        "evidence/VA02-generation/baseline-diff.json",
+        "evidence/VA02-generation/probe-results.json"
+      ],
+      "impact": "此项改善缺图标，但意味着不能声称相对原始A完全相同；不是Python→TS翻译偏差。",
+      "recommendation": "在总报告的主动差异台账中保留。",
+      "source_ids": [
+        "G-I01",
+        "VA05-I01"
+      ],
+      "evidence_directory": "evidence/VA02-generation",
+      "baseline_drift_evidence": "evidence/VA05-platform/paper-baseline-comparison.json"
+    },
+    {
+      "id": "AUD-P01",
+      "classification": "P",
+      "severity": "P2",
+      "title": "共享模型通道按既定策略改变模型、视觉评审和传输参数",
+      "python_location": "backend/app/services/llm_client.py; evodesign/core/llm_factory.py",
+      "ts_location": "frontend/src/services/browser/modelConfig.ts:57-61; frontend/src/services/browser/pipeline.worker.ts:20-31; shared/model-runs.mjs:105-125",
+      "before": "完整模式可使用配置的模型、流式请求和视觉评审；调用者可指定支持的模型参数。",
+      "after": "共享模式强制服务器模型、stream=false、thinking disabled、输出上限32768；默认supportsVision=false跳过critic。allowlist丢弃reasoning_effort和tool.function.strict等字段。",
+      "impact": "共享模型与自有模型/后端默认配置并非同条件实验，不能声称其生成和质量行为完全相同。模型/额度/stream与text-only路径是第三期明确的适配边界；参数差异应透明记录。",
+      "reproduction": "cd packages/render-engine && node migration/verification/VA05-platform/shared_probe.mjs",
+      "evidence": [
+        "evidence/VA05-platform/shared-policy.json",
+        "evidence/VA05-platform/shared-worker-smoke.json"
+      ],
+      "source_ids": [
+        "VA05-P01"
+      ],
+      "evidence_directory": "evidence/VA05-platform"
+    },
+    {
+      "id": "AUD-P02",
+      "classification": "P",
+      "severity": "P3",
+      "title": "refiner预准备从并行变为串行，改变调度和计时",
+      "python_location": "backend/app/services/workflow_engine_adapter.py:405-408",
+      "ts_location": "packages/render-engine/src/web_runtime/index.ts:156-160",
+      "before": "Python通过asyncio.create_task在verification期间并行准备确定性refiner。",
+      "after": "TS先await准备完成，再发verification阶段事件，避免BrowserAsyncContext交叠。",
+      "impact": "正常录制下的决策/结果一致，但并行性、阶段延迟和耗时语义不完全相同；仍叫parallel_preparation_ms的字段不能证明实际并行。没有进行独立性能基准。",
+      "evidence": [
+        "evidence/VA05-platform/web-runs-node24.json"
+      ],
+      "reproduction_status": "源码调度差异；事件/模型/结果由27个成功web回放覆盖。",
+      "source_ids": [
+        "VA05-P02"
+      ],
+      "evidence_directory": "evidence/VA05-platform"
+    },
+    {
+      "id": "AUD-U01",
+      "classification": "U",
+      "severity": "P2",
+      "title": "现有比较器存在整数、Map键和异常契约盲区",
+      "locations": [
+        "packages/render-engine/test/harness/compare.ts:40",
+        "packages/render-engine/test/harness/compare.ts:66",
+        "packages/render-engine/test/parity/functions.test.ts:89"
+      ],
+      "trigger": "Map键替换但value相同；seed量级整数相差1；预期异常改成其他异常。",
+      "impact": "历史全绿不能单独保证算法完全等价。本轮独立strict replay没有发现现有向量返回值/副作用被这些规则掩盖的新差异；明确存在1条异常类型差异。",
+      "evidence": [
+        "evidence/VA01-baseline/harness-results.json",
+        "evidence/VA01-baseline/vector-domains.json",
+        "evidence/VA01-baseline/strict-replay.json"
+      ],
+      "recommendation": "后续强化生产测试harness：整数精确、Map键必需、await异步、校验异常类型和重要消息、kwargs mutation；对新语义边界加入跨语言回归。",
+      "source_ids": [
+        "VA01-U01"
+      ],
+      "evidence_directory": "evidence/VA01-baseline"
+    },
+    {
+      "id": "AUD-U02",
+      "classification": "U",
+      "severity": "P2",
+      "title": "函数级覆盖仍有显式跳过与无直接向量模块",
+      "trigger": "138个Python映射模块中29个无直接函数向量；458条向量显式跳过，1178条adapter关闭mutation。",
+      "impact": "端到端与新增边界补充了部分路径，但没有形成任意合法输入与全部异常分支的等价证明。各子报告只对实际查过的源码和输入域作结论。",
+      "evidence": [
+        "evidence/VA01-baseline/coverage-inventory.json",
+        "evidence/VA01-baseline/REPORT.md"
+      ],
+      "recommendation": "按coverage逐个补齐高风险U，而不是把报告项或空选择测试计作算法覆盖。",
+      "source_ids": [
+        "VA01-U02"
+      ],
+      "evidence_directory": "evidence/VA01-baseline"
+    },
+    {
+      "id": "AUD-U03",
+      "classification": "U",
+      "severity": "P3",
+      "title": "部分caller标识和真实Worker交错位置没有独立强校验",
+      "trigger": "每组pipeline回放有13次caller未验证；Worker smoke将事件llm_calls填入expected值。",
+      "impact": "请求内容/总调用数/终态仍被比较，但不能用这些通过项证明所有调用者身份与事件交错严格一致。",
+      "evidence": [
+        "evidence/VA01-baseline/../VA04-quality/summary.json",
+        "evidence/VA01-baseline/../VA05-platform/REPORT.md"
+      ],
+      "recommendation": "为模型调用和事件增加同一真实单调序号，跨Worker记录caller与调用序列。",
+      "source_ids": [
+        "VA01-U03"
+      ],
+      "evidence_directory": "evidence/VA01-baseline"
+    },
+    {
+      "id": "AUD-U04",
+      "classification": "U",
+      "severity": "P2",
+      "title": "Python 3.12+ 的数值语义未被当前 3.11 证据覆盖",
+      "python_location": "pyproject.toml:requires-python >=3.11",
+      "ts_location": "packages/render-engine/src/py/number.ts:191-195; src/py/math.ts:vectorNorm",
+      "trigger": "Python部署升级到3.12+，浮点sum等行为可能与绑定3.11的TS helper不同。",
+      "evidence": [
+        "evidence/VA03-render/coverage.json",
+        "evidence/VA03-render/numeric-comparison.log"
+      ],
+      "impact": "本轮实际对照使用仓库.venv CPython3.11，不能外推为所有requires-python允许版本均等价。",
+      "suggestion": "在单一实现前固定Python参考版本，或增加所支持版本差分CI。",
+      "reproduction_status": "静态支持范围缺口；本轮没有安装/运行额外Python版本，不声称在3.12部署上实测到图形偏差。",
+      "source_ids": [
+        "VA03-U01"
+      ],
+      "evidence_directory": "evidence/VA03-render"
+    },
+    {
+      "id": "AUD-U05",
+      "classification": "U",
+      "severity": "P3",
+      "comparison": "B → C/D",
+      "status": "coverage_limit",
+      "title": "未覆盖全部统一生成修复及通用agent工具分支",
+      "locations": [
+        {
+          "file": "packages/render-engine/src/generation_stage/unified/workflow.ts",
+          "line": 107
+        },
+        {
+          "file": "packages/render-engine/src/generation_stage/unified/generator.ts",
+          "line": 429
+        }
+      ],
+      "trigger": "统一生成normalize/validate多次失败、任意tools绑定、全部9样本并发混合时序等路径。",
+      "before": "本轮进行了源码关键分支检查及一个规范化后的受控修复提示词实验。",
+      "after": "该受控修复assistant echo逐字相同（57771字符），未发现旧notes所述整数浮点风险在此用例复现；这不证明全部失败路径等价。",
+      "commands": [
+        "PYTHONPATH=. .venv/bin/python packages/render-engine/migration/verification/VA02-generation/repro-unified-repair.py",
+        "export PATH=/Users/zhanyi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH",
+        "node packages/render-engine/node_modules/tsx/dist/cli.mjs packages/render-engine/migration/verification/VA02-generation/repro-unified-repair.ts"
+      ],
+      "evidence": [
+        "evidence/VA02-generation/unified-repair-diff.json"
+      ],
+      "impact": "明确限制等价结论，不把未复现的历史风险升级为已证实缺陷。",
+      "recommendation": "后续对实际normalize/validate失败链、tools和其他并发调度补全差分录制。",
+      "source_ids": [
+        "G-U01"
+      ],
+      "evidence_directory": "evidence/VA02-generation"
+    }
+  ]
+}

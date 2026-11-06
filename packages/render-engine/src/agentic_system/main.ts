@@ -18,10 +18,9 @@
 // * ``runRecordedPipeline`` is the entry used by ``tools/parity-runs.ts``
 //   (PHASE2_PLAN appendix E); it mirrors ``tools/record_runs.py worker()``.
 
+import { homedir, mkdirSync, readFileSync, statSync, writeFileSync } from '../py/fs.ts';
+import { join } from '../py/path.ts';
 import { withPyFloats } from '../py/float_marks.ts';
-import { mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
-import { homedir } from 'node:os';
-import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 

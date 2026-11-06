@@ -6,7 +6,7 @@ from evodesign.agentic_system.render_engine.state import WorkflowState
 from evodesign.agentic_system.render_engine.workflow import RenderWorkflow
 FX = pathlib.Path('/Users/zhanyi/Code/EvoDesign/packages/render-engine/fixtures/stages')
 OUT = pathlib.Path(sys.argv[1]); OUT.mkdir(exist_ok=True)
-only = sys.argv[2:] 
+only = sys.argv[2:]
 wf = RenderWorkflow(canvas_library="excalidraw")
 def collect_ids(s):
     s = s.get('structure_instantiation', s) if isinstance(s, dict) else s

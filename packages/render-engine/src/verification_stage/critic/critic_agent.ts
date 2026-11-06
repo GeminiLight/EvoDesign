@@ -18,7 +18,8 @@
 // check first, then model creation). ``new VerifierCriticAgent(model, ...)``
 // requires a model. ``critique()`` is async.
 
-import { readFileSync } from 'node:fs';
+import { readUInt32BE } from '../../py/bytes.ts';
+import { readFileSync } from '../../py/fs.ts';
 import type { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { HumanMessage, SystemMessage, type BaseMessage } from '@langchain/core/messages';
 import { VERIFIER_CRITIC_SYSTEM_PROMPT, build_user_prompt } from './prompts.ts';
@@ -43,11 +44,11 @@ type Dict = Record<string, any>;
 /** ``Image.open(path).size`` for the PNGs the renderer writes (IHDR width/height). */
 function _image_size(image_path: string): [number, number] {
   const bytes = readFileSync(image_path);
-  if (bytes.length < 24 || bytes.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') {
+  if (bytes.length < 24 || ![0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every((b, i) => bytes[i] === b)) {
     // PIL.UnidentifiedImageError (an OSError)
     throw new Error(`cannot identify image file '${image_path}'`);
   }
-  return [bytes.readUInt32BE(16), bytes.readUInt32BE(20)];
+  return [readUInt32BE(bytes, 16), readUInt32BE(bytes, 20)];
 }
 
 /** ``e[key]`` on a dict (KeyError when missing). */

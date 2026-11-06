@@ -1,0 +1,83 @@
+{
+ "callbacks": [
+  "onStageStart",
+  "onStageComplete",
+  "onStageStart",
+  "onStageComplete",
+  "onStageStart",
+  "onStageComplete",
+  "onStageStart",
+  "onStageComplete",
+  "onStageStart",
+  "onStageComplete",
+  "onStageStart",
+  "onStageComplete",
+  "onRefineComplete",
+  "onResult"
+ ],
+ "response": {
+  "generationReport": {
+   "quality_status": "passed",
+   "memory": {
+    "status": "disabled",
+    "retrieved_count": 0,
+    "retrieved_items": []
+   },
+   "refinement": {
+    "fixes_applied": 0,
+    "status": "skipped",
+    "message": "No auto-refinement needed."
+   },
+   "learning": {
+    "status": "skipped",
+    "saved_count": 0
+   },
+   "before": {
+    "findings": {
+     "critical": 0,
+     "major": 0,
+     "minor": 0,
+     "info": 1,
+     "total": 1
+    },
+    "score": 8.3,
+    "constraint_violations": []
+   },
+   "after": {
+    "findings": {
+     "critical": 0,
+     "major": 0,
+     "minor": 0,
+     "info": 1,
+     "total": 1
+    },
+    "score": 8.3,
+    "constraint_violations": []
+   },
+   "timings_ms": {
+    "memory": 0,
+    "structure": 0,
+    "styling": 0,
+    "layout": 0,
+    "render": 0,
+    "verification": 0
+   },
+   "optimizations": {
+    "memory_retrieval_ms": 0,
+    "initialization_and_routing_ms": 0,
+    "router_skipped": true
+   },
+   "total_duration_ms": 0
+  },
+  "requestId": "req_<ID>",
+  "projectId": null,
+  "snapshotId": null,
+  "excalidraw": {
+   "elements": 33,
+   "files": []
+  },
+  "summary": "The structure agent distills source content into a semantic graph aligned with u",
+  "persistError": false
+ },
+ "throws": null
+}

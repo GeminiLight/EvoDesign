@@ -1,0 +1,17 @@
+{
+  "image_count": 9,
+  "icon_names": [
+    "outline_globe",
+    "outline_smartphone",
+    "outline_route",
+    "outline_users",
+    "outline_shopping_cart",
+    "outline_credit_card",
+    "outline_database",
+    "outline_zap",
+    "outline_message_square"
+  ],
+  "embedded_svg": true,
+  "model_calls": 5,
+  "seconds": 163.75
+}

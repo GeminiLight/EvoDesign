@@ -10,38 +10,37 @@
 //   TYPE_PATTERNS_DIR.glob("*.md")                              (common/diagram_types.py)
 //     -> globAssets('system_prompt/type_patterns', '*.md')
 //
-// This is the only module allowed to import ``node:*``. For the browser build
-// (plan §10) install a bundled provider with ``setAssetProvider``.
+// The default provider comes from the host platform (``#platform``): under Node
+// it reads this checkout (src/node/assets.ts); in browsers the host installs a
+// bundled provider with ``setAssetProvider`` (WP31). No ``node:*`` imports here.
 
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { dirname, join, relative, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { pyJsonLoads } from './json.ts';
+import { join, relative } from './path.ts';
+import { getPlatform } from './platform.ts';
+import type { AssetProvider } from './platform_types.ts';
 import { cpCompare } from './sort.ts';
 
-export interface AssetProvider {
-  readText(path: string): string;
-  exists(path: string): boolean;
-  isDir(path: string): boolean;
-  /** Entries (file and directory names) directly inside ``path``. */
-  list(path: string): string[];
-}
+export type { AssetProvider } from './platform_types.ts';
 
-/** Absolute path of ``evodesign/agentic_system`` in this checkout. */
-export const AGENTIC_SYSTEM_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', 'evodesign', 'agentic_system');
+/** Absolute path of ``evodesign/agentic_system`` in this checkout (pseudo path in browsers). */
+export const AGENTIC_SYSTEM_ROOT = join(getPlatform().repoRoot, 'evodesign', 'agentic_system');
 
-const nodeProvider: AssetProvider = {
-  readText: (path) => readFileSync(join(AGENTIC_SYSTEM_ROOT, path), 'utf-8'),
-  exists: (path) => existsSync(join(AGENTIC_SYSTEM_ROOT, path)),
-  isDir: (path) => {
-    const full = join(AGENTIC_SYSTEM_ROOT, path);
-    return existsSync(full) && statSync(full).isDirectory();
-  },
-  list: (path) => readdirSync(join(AGENTIC_SYSTEM_ROOT, path)),
+const missingProvider: AssetProvider = {
+  readText: (path) => { throw new Error(`No asset provider installed (setAssetProvider): ${path}`); },
+  exists: (path) => { throw new Error(`No asset provider installed (setAssetProvider): ${path}`); },
+  isDir: (path) => { throw new Error(`No asset provider installed (setAssetProvider): ${path}`); },
+  list: (path) => { throw new Error(`No asset provider installed (setAssetProvider): ${path}`); },
 };
+
+const nodeProvider: AssetProvider = getPlatform().assetProvider ?? missingProvider;
 
 let provider: AssetProvider = nodeProvider;
 const textCache = new Map<string, string>();
+
+/** The active asset provider (e.g. to mount it into a MemoryFS at AGENTIC_SYSTEM_ROOT). */
+export function getAssetProvider(): AssetProvider {
+  return provider;
+}
 
 /** Replace the file-system provider (browser bundles, tests). Clears caches. */
 export function setAssetProvider(next: AssetProvider | null): void {
@@ -132,5 +131,5 @@ export function pathName(path: string): string {
 
 /** Relative path from the agentic_system root (for messages / debugging). */
 export function relativeAssetPath(absolute: string): string {
-  return relative(AGENTIC_SYSTEM_ROOT, absolute).split(sep).join('/');
+  return relative(AGENTIC_SYSTEM_ROOT, absolute);
 }

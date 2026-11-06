@@ -107,7 +107,7 @@ export class StylingAgent extends BaseAgent {
       return ICON_FALLBACK_NAME;
     }
 
-    if (icon_name_exists(normalized)) {
+    if (has(bundled_icons(), normalized) || icon_name_exists(normalized)) {
       return normalized;
     }
     return ICON_FALLBACK_NAME;
@@ -188,14 +188,15 @@ export class StylingAgent extends BaseAgent {
    *
    * Supports:
    * 1) Nested `props.icon` on element nodes.
-   * 2) Direct canonical icon entries (`<id>:icon`).
+   * 2) Top-level `icon` on element nodes.
+   * 3) Direct canonical icon entries (`<id>:icon`).
    */
   _postprocess_styling_json(styling_json: Dict): Dict {
     const processed: Dict = {};
     let extracted_icons = 0;
     let normalized_icons = 0;
 
-    // Pass 1: copy non-icon entries and extract nested props.icon
+    // Pass 1: extract inline icons; the existing props format takes priority.
     for (const [element_id, element_data] of Object.entries(styling_json)) {
       if (this._is_icon_key(element_id)) {
         continue;
@@ -209,12 +210,14 @@ export class StylingAgent extends BaseAgent {
       }
 
       const props = get(copied, 'props');
-      if (!isDict(props) || !has(props, 'icon')) {
+      const nested_icon = isDict(props) && has(props, 'icon');
+      if (!nested_icon && !has(copied, 'icon')) {
         continue;
       }
 
-      const raw_icon = props.icon;
-      delete props.icon;
+      const raw_icon = nested_icon ? (props as Dict).icon : copied.icon;
+      if (isDict(props)) delete props.icon;
+      delete copied.icon;
       const icon_entry_key = companion_id(element_id, ICON_SUFFIX);
       processed[icon_entry_key] = this._build_icon_entry(raw_icon, copied);
       extracted_icons += 1;

@@ -1,0 +1,60 @@
+{
+ "side": "python",
+ "seconds": 100.47,
+ "model_calls": 4,
+ "ok": true,
+ "generation": {
+  "quality_status": "passed",
+  "memory": {
+   "status": "disabled",
+   "retrieved_count": 0,
+   "retrieved_items": []
+  },
+  "refinement": {
+   "fixes_applied": 0,
+   "status": "skipped",
+   "message": "No auto-refinement needed."
+  },
+  "learning": {
+   "status": "skipped",
+   "saved_count": 0
+  },
+  "before": {
+   "findings": {
+    "critical": 0,
+    "major": 0,
+    "minor": 0,
+    "info": 0,
+    "total": 0
+   },
+   "score": 9.0,
+   "constraint_violations": []
+  },
+  "after": {
+   "findings": {
+    "critical": 0,
+    "major": 0,
+    "minor": 0,
+    "info": 0,
+    "total": 0
+   },
+   "score": 9.0,
+   "constraint_violations": []
+  },
+  "timings_ms": {
+   "memory": 61,
+   "structure": 21434,
+   "styling": 20368,
+   "layout": 8773,
+   "render": 26880,
+   "verification": 21426
+  },
+  "optimizations": {
+   "memory_retrieval_ms": 0,
+   "initialization_and_routing_ms": 60,
+   "router_skipped": true
+  },
+  "total_duration_ms": 98970
+ },
+ "errors": []
+}
