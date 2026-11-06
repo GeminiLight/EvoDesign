@@ -1,0 +1,5716 @@
+{
+ "cases": [
+  {
+   "case": "configured-model__big_en_aes",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__big_en_f1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__big_en_h1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__big_en_h2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__big_en_h3",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__big_en_rw",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__big_en_x1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__big_en_x2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__big_en_x3a",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__big_en_x3b",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__compose_f1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__compose_x1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__compose_x2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__cy_flywheel_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__cy_flywheel_ty2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__cy_pdca_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__delivery_aes",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__dg_course_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__dg_pkgs_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__doc_agentcli_aes",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__doc_agentcli_f1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__doc_agentcli_x1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__doc_agentcli_x2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__dp_k8s_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__dp_onprem_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__ecommerce_aes",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__education_aes",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__flow_aes",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__flow_cicd_aes",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__flow_h1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__flow_h2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__flow_leave_aes",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__flow_x1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__flow_x2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__hcai_demo",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__iot_aes",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__kb_hiring_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__kb_sprint_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__ls_osi_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__ls_web_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__ls_web_ty2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__mind_pm_aes",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__ne_cloud_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__ne_saas_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__notes_f1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__notes_h1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__notes_h2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__notes_x1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__notes_x2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__notes_x3a",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__notes_x3b",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__oneliner_f1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__oneliner_g1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__oneliner_g2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__oneliner_x1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__oneliner_x2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_full_aes",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_full_f1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_full_f2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_full_x1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_full_x2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_full_x4a",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_full_x4b",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_full_x5b",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_method_aes",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_method_f1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_method_f2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_method_x1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_method_x2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_method_x3a",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_method_x3b",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_method_x4a",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_method_x4b",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_method_x5a",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__paper_method_x5b",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__plain-ecommerce",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__qd_roadmap_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__qd_vendors_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__quickstart-service",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__rag_aes",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__sm_course_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__sm_shop_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_class_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_class_tz",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_dataflow_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_er_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_er_tz",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_fishbone_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_funnel_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_funnel_tz",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_gantt_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_infographic_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_matrix_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_mindmap_aes",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_mindmap_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_network_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_orgchart_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_pyramid_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_sequence_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_sequence_tz",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_state_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_state_tz",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_swimlane_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_swimlane_tz",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_swot_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_timeline_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_tree_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__t_venn_ty",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__target-arch",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__uj_clinic_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__uj_onboard_ty1",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  },
+  {
+   "case": "configured-model__uj_onboard_ty2",
+   "ok": true,
+   "isolated": [
+    {
+     "node": "excalidraw_add_icon_urls",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_convert",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_size_fit",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_fit_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_align_groups",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arrows",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_arch_design_system",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_zorder_repair",
+     "ok": true,
+     "diffs": []
+    },
+    {
+     "node": "excalidraw_validate",
+     "ok": true,
+     "diffs": []
+    }
+   ]
+  }
+ ]
+}

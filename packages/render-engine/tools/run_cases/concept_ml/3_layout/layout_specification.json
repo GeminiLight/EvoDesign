@@ -1,0 +1,9 @@
+{
+  "canvas_use_plan": {
+    "viewport": {
+      "width": 1600,
+      "height": 1000
+    },
+    "primary_axis": "radial"
+  }
+}

@@ -1,0 +1,147 @@
+{
+ "diagram_paradigm": {
+  "chart_type": "architecture",
+  "confidence": "high",
+  "intent": "EvoDiagram coordinates structure, style, and layout agents to create editable diagrams, while refinement experience evolves the design knowledge that guides subsequent generation.",
+  "primary_organizer": "Role-based component tiers with a generation path and a knowledge evolution feedback path.",
+  "recognition_anchor": "Distinct agent components, a canvas rendering loop, and shared design expertise memory.",
+  "type_budget": "type=architecture → nodes≤12, groups=0, edges≤nodes+4"
+ },
+ "semantic_typology": {
+  "node_classes": [
+   "input",
+   "agent",
+   "render_engine",
+   "output",
+   "experience_search",
+   "knowledge_distiller",
+   "memory"
+  ],
+  "fact_ledger": [
+   {
+    "subject_id": "input_content",
+    "predicate": "provides content and requirements to",
+    "object_id": "structure_agent",
+    "evidence": "The structure agent distills source content into a semantic graph aligned with user queries."
+   },
+   {
+    "subject_id": "structure_agent",
+    "predicate": "provides semantic topology to",
+    "object_id": "style_agent",
+    "evidence": "The visual style agent defines aesthetic properties of the semantic topology G."
+   },
+   {
+    "subject_id": "style_agent",
+    "predicate": "provides styled semantic elements to",
+    "object_id": "layout_agent",
+    "evidence": "The layout agent maps styled semantic elements onto a two-dimensional coordinate system."
+   },
+   {
+    "subject_id": "layout_agent",
+    "predicate": "provides the completed manifest for rendering by",
+    "object_id": "canvas_render_engine",
+    "evidence": "After adding library metadata, the system executes deterministic rendering of the representation manifest."
+   },
+   {
+    "subject_id": "canvas_render_engine",
+    "predicate": "provides the rendered canvas for diagnosis by",
+    "object_id": "diagram_refiner",
+    "evidence": "The refinement agent identifies discrepancies that emerge post-rendering."
+   },
+   {
+    "subject_id": "diagram_refiner",
+    "predicate": "applies canvas corrections through",
+    "object_id": "canvas_render_engine",
+    "evidence": "The refiner invokes precision tools for single-element updates, rerouting, and alignment."
+   },
+   {
+    "subject_id": "canvas_render_engine",
+    "predicate": "renders",
+    "object_id": "editable_diagram",
+    "evidence": "Rendering within the canvas environment produces an interactive visual artifact."
+   },
+   {
+    "subject_id": "diagram_refiner",
+    "predicate": "contributes refinement traces to",
+    "object_id": "hybrid_experience_search",
+    "evidence": "Vertical exploration captures the reasoning path through iterative refiner thoughts, fixes, and feedback."
+   },
+   {
+    "subject_id": "hybrid_experience_search",
+    "predicate": "supplies collected execution traces to",
+    "object_id": "knowledge_distiller",
+    "evidence": "The summarizer filters logs from hybrid experience search for subsequent knowledge distillation."
+   },
+   {
+    "subject_id": "knowledge_distiller",
+    "predicate": "incrementally updates",
+    "object_id": "design_expertise_memory",
+    "evidence": "Newly collected strategies pass through distillation and are incrementally merged into M."
+   },
+   {
+    "subject_id": "design_expertise_memory",
+    "predicate": "supplies retrieved design heuristics to",
+    "object_id": "structure_agent",
+    "evidence": "Each agent retrieves tailored context-aware heuristics; the structure agent uses tailored knowledge."
+   },
+   {
+    "subject_id": "design_expertise_memory",
+    "predicate": "supplies retrieved design heuristics to",
+    "object_id": "style_agent",
+    "evidence": "The visual style agent uses retrieved knowledge Ksty."
+   },
+   {
+    "subject_id": "design_expertise_memory",
+    "predicate": "supplies retrieved design heuristics to",
+    "object_id": "layout_agent",
+    "evidence": "The spatial layout agent uses knowledge Klay."
+   }
+  ],
+  "organizer_ledger": []
+ },
+ "topological_invariants": [
+  "Preserve the Structure Agent → Style Agent → Layout Agent generation order and their shared canvas schema.",
+  "Preserve both directions of the rendering–refinement cycle as distinct source facts.",
+  "Preserve the experience search → distillation → memory feedback path and memory retrieval by all three generation agents.",
+  "Every node participates in at least one edge; no groups or visible edge labels are required.",
+  "CanvasBench, experimental baselines, and auxiliary implementation tools are outside the framework overview scope."
+ ],
+ "schema_extensions": {
+  "node_fields": {
+   "sublabel": "Source-grounded component responsibility.",
+   "role": "Architectural role for downstream tier assignment.",
+   "icon": "Requested component icon identifier."
+  },
+  "edge_fields": {
+   "relation": "Exact semantic predicate from the fact ledger.",
+   "evidence_basis": "Explicit source support for each selected relationship."
+  },
+  "knowledge_abstraction": "Memory tiers are summarized within one memory component; distillation stages are summarized within one distiller."
+ },
+ "tier_plan": {
+  "columns": [
+   [
+    "input_content"
+   ],
+   [
+    "structure_agent",
+    "style_agent",
+    "layout_agent"
+   ],
+   [
+    "canvas_render_engine",
+    "diagram_refiner"
+   ],
+   [
+    "hybrid_experience_search",
+    "knowledge_distiller"
+   ],
+   [
+    "editable_diagram"
+   ]
+  ],
+  "bottom_row": [
+   "design_expertise_memory"
+  ]
+ }
+}

@@ -1,0 +1,180 @@
+[
+  {
+    "id": "base_version_0",
+    "body": {
+      "context": "test",
+      "canvas_library": "excalidraw",
+      "base_version": null
+    }
+  },
+  {
+    "id": "base_version_1",
+    "body": {
+      "context": "test",
+      "canvas_library": "excalidraw",
+      "base_version": 1
+    }
+  },
+  {
+    "id": "base_version_2",
+    "body": {
+      "context": "test",
+      "canvas_library": "excalidraw",
+      "base_version": 1
+    }
+  },
+  {
+    "id": "base_version_3",
+    "body": {
+      "context": "test",
+      "canvas_library": "excalidraw",
+      "base_version": "1"
+    }
+  },
+  {
+    "id": "base_version_4",
+    "body": {
+      "context": "test",
+      "canvas_library": "excalidraw",
+      "base_version": "1.0"
+    }
+  },
+  {
+    "id": "base_version_5",
+    "body": {
+      "context": "test",
+      "canvas_library": "excalidraw",
+      "base_version": true
+    }
+  },
+  {
+    "id": "base_version_6",
+    "body": {
+      "context": "test",
+      "canvas_library": "excalidraw",
+      "base_version": false
+    }
+  },
+  {
+    "id": "base_version_7",
+    "body": {
+      "context": "test",
+      "canvas_library": "excalidraw",
+      "base_version": 1.5
+    }
+  },
+  {
+    "id": "icon_marker_0",
+    "body": {
+      "context": "test",
+      "canvas_library": "excalidraw",
+      "current_schema": {
+        "elements": [
+          {
+            "id": "node",
+            "type": "image",
+            "customData": {
+              "evoDesignIcon": {}
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "icon_marker_1",
+    "body": {
+      "context": "test",
+      "canvas_library": "excalidraw",
+      "current_schema": {
+        "elements": [
+          {
+            "id": "node",
+            "type": "image",
+            "customData": {
+              "evoDesignIcon": false
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "icon_marker_2",
+    "body": {
+      "context": "test",
+      "canvas_library": "excalidraw",
+      "current_schema": {
+        "elements": [
+          {
+            "id": "node",
+            "type": "image",
+            "customData": {
+              "evoDesignIcon": []
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "icon_marker_3",
+    "body": {
+      "context": "test",
+      "canvas_library": "excalidraw",
+      "current_schema": {
+        "elements": [
+          {
+            "id": "node",
+            "type": "image",
+            "customData": {
+              "evoDesignIcon": {
+                "name": "outline_globe"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "deleted_empty_array",
+    "body": {
+      "context": "test",
+      "canvas_library": "excalidraw",
+      "current_schema": {
+        "elements": [
+          {
+            "id": "node",
+            "type": "rectangle",
+            "isDeleted": []
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "false_icon",
+    "body": {
+      "context": "test",
+      "canvas_library": "excalidraw",
+      "use_icons": false
+    }
+  },
+  {
+    "id": "true_icon",
+    "body": {
+      "context": "test",
+      "canvas_library": "excalidraw",
+      "use_icons": true
+    }
+  },
+  {
+    "id": "automated",
+    "body": {
+      "context": "test",
+      "canvas_library": "excalidraw",
+      "diagram_type": "automated"
+    }
+  }
+]

@@ -1,0 +1,150 @@
+[
+  {
+    "id": "G-D01",
+    "classification": "D",
+    "severity": "P1",
+    "comparison": "A/B → C/D",
+    "status": "reproduced",
+    "title": "合法 __proto__ 语义节点在 Styling 字典写入时丢失并导致校验失败",
+    "locations": [
+      {
+        "file": "packages/render-engine/src/generation_stage/styling/styling_agent.ts",
+        "line": 195
+      },
+      {
+        "file": "packages/render-engine/src/generation_stage/styling/styling_agent.ts",
+        "line": 206
+      },
+      {
+        "file": "evodesign/agentic_system/generation_stage/styling/styling_agent.py",
+        "line": 177
+      }
+    ],
+    "trigger": "Structure 包含合法字符串节点 id=__proto__，模型返回该 ID 的样式对象；无须开启图标。",
+    "before": "原始 A 和当前 B 均通过 Structure 和 Styling 校验，own 字典项保留。",
+    "after": "TS Structure 接受；processed[element_id]=copied 改变 processed 的原型，Object.keys(processed)=[]，validate_styling_instantiation 抛 StylingValidationError: Styling instantiation must be a JSON object; got Object.",
+    "commands": [
+      "export PATH=/Users/zhanyi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH",
+      "PYTHONPATH=. .venv/bin/python packages/render-engine/migration/verification/VA02-generation/repro-baseline.py",
+      "node packages/render-engine/node_modules/tsx/dist/cli.mjs packages/render-engine/migration/verification/VA02-generation/repro-prototype.ts"
+    ],
+    "evidence": [
+      "packages/render-engine/migration/verification/VA02-generation/baseline-diff.json",
+      "packages/render-engine/migration/verification/VA02-generation/prototype-ts.json",
+      "packages/render-engine/migration/verification/VA02-generation/probe-results.json"
+    ],
+    "impact": "有效模型输出在生成阶段中断；与 R 发现的 converter 普通对象语义键问题属于同一跨阶段根因。",
+    "recommendation": "所有 semantic-id map 使用 Map 或无原型字典并确保 deep-copy/validator/序列化兼容；禁止只修一个写入点。"
+  },
+  {
+    "id": "G-D02",
+    "classification": "D",
+    "severity": "P1",
+    "comparison": "A/B/C → D",
+    "status": "reproduced",
+    "title": "浏览器并发自一致性样本共用调用预算，改变有效样本与多数票结果",
+    "locations": [
+      {
+        "file": "packages/render-engine/src/py/platform_browser.ts",
+        "line": 25
+      },
+      {
+        "file": "packages/render-engine/src/common/self_consistency.ts",
+        "line": 59
+      },
+      {
+        "file": "packages/render-engine/src/generation_stage/structure/structure_agent.ts",
+        "line": 148
+      },
+      {
+        "file": "packages/render-engine/src/core/base_agent.ts",
+        "line": 760
+      },
+      {
+        "file": "packages/render-engine/src/core/base_agent.ts",
+        "line": 664
+      }
+    ],
+    "trigger": "structure_self_consistency_n=3（默认1不触发）；每样本第一次返回坏JSON，修正请求遭遇一次可重试传输错误，接着提供有效响应。transport_attempts=2、json_retry_attempts=2。",
+    "before": "Python ContextVar 和 Node AsyncLocalStorage：每个样本请求3次，attempts=[3,3,3]，9请求，2:1选中 architecture，返回 sample1。",
+    "after": "相同请求/响应安排，production BrowserAsyncContext 下 attempts=[3,2,2]，7请求；两个样本因共用最后一个budget而提前失败，剩下 sample0 的 flowchart 胜出。",
+    "commands": [
+      "export PATH=/Users/zhanyi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH",
+      "PYTHONPATH=. .venv/bin/python packages/render-engine/migration/verification/VA02-generation/repro-budget.py",
+      "node packages/render-engine/node_modules/tsx/dist/cli.mjs packages/render-engine/migration/verification/VA02-generation/repro-budget.ts node",
+      "node packages/render-engine/node_modules/tsx/dist/cli.mjs packages/render-engine/migration/verification/VA02-generation/repro-budget.ts browser"
+    ],
+    "evidence": [
+      "packages/render-engine/migration/verification/VA02-generation/budget-python.json",
+      "packages/render-engine/migration/verification/VA02-generation/budget-node.json",
+      "packages/render-engine/migration/verification/VA02-generation/budget-browser.json"
+    ],
+    "impact": "仅一条pipeline/Worker也会触发，因为其内部自一致性样本并发。改变调用次数、失败容忍和图类型决策；平台变化已经影响算法。",
+    "recommendation": "显式传递每次logical call预算或引入正确的async上下文隔离；不要通过关闭自一致性/串行化掩盖原并发算法差异。修复后加入该三端差分回归。"
+  },
+  {
+    "id": "G-I01",
+    "classification": "I",
+    "severity": "P2",
+    "comparison": "A → B/C/D",
+    "status": "reproduced",
+    "title": "图标字段兼容与内置图标校验是明确的主动行为修复",
+    "locations": [
+      {
+        "file": "evodesign/agentic_system/generation_stage/styling/styling_agent.py",
+        "line": 86
+      },
+      {
+        "file": "evodesign/agentic_system/generation_stage/styling/styling_agent.py",
+        "line": 185
+      },
+      {
+        "file": "packages/render-engine/src/generation_stage/styling/styling_agent.ts",
+        "line": 110
+      }
+    ],
+    "trigger": "模型输出节点顶层 icon=outline_globe，或 props.icon=outline_globe。",
+    "before": "A：顶层icon原样留在节点但没有伴随图标；嵌套outline_globe被降级为label。",
+    "after": "B/C：顶层与嵌套均提取为 n:icon，保留outline_globe；新探针普通ID全部一致。",
+    "commands": [
+      "PYTHONPATH=. .venv/bin/python packages/render-engine/migration/verification/VA02-generation/repro-baseline.py"
+    ],
+    "evidence": [
+      "packages/render-engine/migration/verification/VA02-generation/baseline-diff.json",
+      "packages/render-engine/migration/verification/VA02-generation/probe-results.json"
+    ],
+    "impact": "此项改善缺图标，但意味着不能声称相对原始A完全相同；不是Python→TS翻译偏差。",
+    "recommendation": "在总报告的主动差异台账中保留。"
+  },
+  {
+    "id": "G-U01",
+    "classification": "U",
+    "severity": "P3",
+    "comparison": "B → C/D",
+    "status": "coverage_limit",
+    "title": "未覆盖全部统一生成修复及通用agent工具分支",
+    "locations": [
+      {
+        "file": "packages/render-engine/src/generation_stage/unified/workflow.ts",
+        "line": 107
+      },
+      {
+        "file": "packages/render-engine/src/generation_stage/unified/generator.ts",
+        "line": 429
+      }
+    ],
+    "trigger": "统一生成normalize/validate多次失败、任意tools绑定、全部9样本并发混合时序等路径。",
+    "before": "本轮进行了源码关键分支检查及一个规范化后的受控修复提示词实验。",
+    "after": "该受控修复assistant echo逐字相同（57771字符），未发现旧notes所述整数浮点风险在此用例复现；这不证明全部失败路径等价。",
+    "commands": [
+      "PYTHONPATH=. .venv/bin/python packages/render-engine/migration/verification/VA02-generation/repro-unified-repair.py",
+      "export PATH=/Users/zhanyi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH",
+      "node packages/render-engine/node_modules/tsx/dist/cli.mjs packages/render-engine/migration/verification/VA02-generation/repro-unified-repair.ts"
+    ],
+    "evidence": [
+      "packages/render-engine/migration/verification/VA02-generation/unified-repair-diff.json"
+    ],
+    "impact": "明确限制等价结论，不把未复现的历史风险升级为已证实缺陷。",
+    "recommendation": "后续对实际normalize/validate失败链、tools和其他并发调度补全差分录制。"
+  }
+]

@@ -1,0 +1,48 @@
+{
+  "probes": {
+    "seed_plus_one": {
+      "diffs": [],
+      "tolerated": 0,
+      "keyOrder": []
+    },
+    "seed_plus_two": {
+      "diffs": [],
+      "tolerated": 0,
+      "keyOrder": []
+    },
+    "seed_plus_three": {
+      "diffs": [
+        "$: expected 2000000000, got 2000000003"
+      ],
+      "tolerated": 0,
+      "keyOrder": []
+    },
+    "bad_map": {
+      "diffs": [],
+      "tolerated": 0,
+      "keyOrder": []
+    },
+    "bad_promise": {
+      "diffs": [],
+      "tolerated": 0,
+      "keyOrder": []
+    }
+  },
+  "map_key_crosscheck": [
+    {
+      "name": "_branch_interactions",
+      "map_result_vectors": 4,
+      "strictly_missing_keys": 0
+    },
+    {
+      "name": "_dependency_layers",
+      "map_result_vectors": 22,
+      "strictly_missing_keys": 0
+    },
+    {
+      "name": "_assign_port_ranks",
+      "map_result_vectors": 32,
+      "strictly_missing_keys": 0
+    }
+  ]
+}

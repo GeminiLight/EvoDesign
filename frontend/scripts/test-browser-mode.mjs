@@ -17,8 +17,6 @@ async function load(relative) {
 }
 const reference = await load('src/utils/homeReference.ts');
 const model = await load('src/services/browser/modelConfig.ts');
-const { normalizePlan, layoutPlan, preservesContent } = await load('src/services/browser/diagramPlan.ts');
-const { crossesBox, routeAroundNodes } = await load('src/services/browser/edgeRouting.ts');
 const { sanitizeEdit } = await load('src/services/browser/diagramService.ts');
 const { preserveLockedElements } = await load('src/services/browser/scene.ts');
 const { mergeDeltaIntoSchema } = await load('src/utils/app.ts');
@@ -56,7 +54,7 @@ test('shared transport sends only a diagram task and never forwards a custom key
   globalThis.fetch = async (url, options) => {
     assert.equal(url, '/api/model');
     assert.equal(options.headers.Authorization, undefined);
-    assert.deepEqual(JSON.parse(options.body), { task: 'diagram', prompt: 'Draw a flow.', maxTokens: 8192 });
+    assert.deepEqual(JSON.parse(options.body), { task: 'edit', prompt: 'Draw a flow.', maxTokens: 8192 });
     return Response.json({ choices: [{ message: { content: 'OK' } }] });
   };
   assert.equal(await model.callBrowserModel({ ...config, source: 'hosted' }, 'System', 'Draw a flow.'), 'OK');
@@ -203,80 +201,6 @@ test('short provider cooldown retries once and cancellation stops the retry', as
   assert.equal(calls, 1);
   calls = 0; globalThis.fetch = async () => { calls++; return new Response('', { status: 402 }); };
   await assert.rejects(model.callBrowserModel(config, '', ''), /balance/); assert.equal(calls, 1);
-});
-const sample = () => ({ title: 'Retry workflow', kind: 'graph', direction: 'TB', nodes: [
-  { id: 'a', label: 'Start' }, { id: 'b', label: 'Request approved?', shape: 'diamond' }, { id: 'c', label: 'Notify user' },
-], edges: [{ source: 'a', target: 'b' }, { source: 'b', target: 'c', label: 'Yes' }, { source: 'b', target: 'a', label: 'Retry' }] });
-test('readable model IDs are remapped without losing branches or colliding with stable IDs', () => {
-  const plan = normalizePlan({ nodes: [
-    { id: 'Paid?', label: 'Paid?' }, { id: 'node_1', label: 'Keep this ID' },
-    { id: '重试 支付', label: 'Retry payment' },
-  ], edges: [{ source: 'Paid?', target: '重试 支付', label: 'no' },
-    { source: '重试 支付', target: 'Paid?', label: 'retry' },
-    { source: 'Paid?', target: 'node_1', label: 'yes' }] });
-  assert.equal(new Set(plan.nodes.map(n => n.id)).size, 3);
-  assert.equal(plan.nodes[1].id, 'node_1');
-  assert.ok(plan.nodes.every(n => /^[a-zA-Z0-9_-]+$/.test(n.id)));
-  assert.deepEqual(plan.edges.map(e => [e.source, e.target]), [
-    [plan.nodes[0].id, plan.nodes[2].id], [plan.nodes[2].id, plan.nodes[0].id],
-    [plan.nodes[0].id, 'node_1'],
-  ]);
-  assert.deepEqual(normalizePlan(plan), plan);
-});
-test('untrusted plans reject missing endpoints, duplicate IDs and excessive size', () => {
-  for (const data of [{ ...sample(), edges: [{ source: 'a', target: 'missing' }] }, { ...sample(), nodes: [{ id: 'a', label: 'A' }, { id: 'a', label: 'B' }] }, { ...sample(), nodes: Array.from({ length: 61 }, (_, i) => ({ id: String(i), label: 'Node' })) }]) assert.throws(() => normalizePlan(data));
-  const plan = normalizePlan({ ...sample(), nodes: [{ id: 'a', label: '<script>plain text</script>', color: 'url(secret)', image: 'https://tracker' }], edges: [] });
-  assert.equal(plan.nodes[0].color, '#e0e7ff'); assert.equal(plan.nodes[0].image, undefined);
-});
-test('cyclic graph layouts have finite, nonoverlapping nodes with icons on and off', () => {
-  for (const icons of [false, true]) {
-    const plan = normalizePlan(sample()); plan.nodes[0].icon = 'database';
-    const layout = layoutPlan(plan, icons);
-    assert.equal(layout.edges.length, 3);
-    for (const node of layout.nodes) {
-      for (const key of ['x', 'y', 'width', 'height']) assert.ok(Number.isFinite(node[key]));
-      for (const other of layout.nodes.filter(n => n.id !== node.id)) assert.ok(node.x + node.width <= other.x || other.x + other.width <= node.x || node.y + node.height <= other.y || other.y + other.height <= node.y);
-    }
-    for (const edge of layout.edges) assert.ok(edge.points.length >= 2 && edge.points.every(p => Number.isFinite(p.x) && Number.isFinite(p.y)));
-  }
-});
-test('sequence messages stay chronological, including self messages and replies', () => {
-  const plan = normalizePlan({ ...sample(), kind: 'sequence', edges: [{ source: 'a', target: 'b', strokeStyle: 'invalid' }, { source: 'b', target: 'b' }, { source: 'b', target: 'a', strokeStyle: 'dashed' }] });
-  const layout = layoutPlan(plan, false);
-  assert.ok(layout.edges[0].points[0].y < layout.edges[1].points[0].y);
-  assert.ok(layout.edges[1].points[0].y < layout.edges[2].points[0].y);
-  assert.equal(layout.edges[1].points.length, 4);
-  assert.deepEqual(layout.edges.map(e => e.strokeStyle), ['solid', 'solid', 'dashed']);
-  assert.equal(normalizePlan({ ...plan, edges: [{ source: 'b', target: 'a' }] }).edges[0].strokeStyle, 'solid',
-    'a leftward call is not automatically a dashed reply');
-  assert.equal(preservesContent(plan, { ...plan, edges: [...plan.edges].reverse() }), false);
-  assert.equal(preservesContent(plan, { ...plan, nodes: [...plan.nodes].reverse() }), false);
-});
-test('architecture fan-out and feedback routes do not run through unrelated nodes', () => {
-  const ids = ['web', 'mobile', 'cdn', 'gateway', 'identity', 'catalog', 'order', 'payment', 'inventory', 'bus', 'notify', 'postgres', 'redis', 'observe'];
-  const pairs = [['web','cdn'], ['mobile','cdn'], ['cdn','gateway'], ['gateway','identity'], ['gateway','catalog'], ['gateway','order'], ['catalog','redis'], ['catalog','postgres'], ['order','payment'], ['order','inventory'], ['order','postgres'], ['order','bus'], ['payment','bus'], ['inventory','bus'], ['bus','notify'], ...['gateway','identity','catalog','order','payment','inventory','notify'].map(id => [id,'observe'])];
-  for (const direction of ['LR', 'TB']) for (const icons of [false, true]) {
-    const plan = normalizePlan({ title: 'Architecture', direction, nodes: ids.map(id => ({ id, label: `${id}\nservice`, icon: 'database' })), edges: pairs.map(([source,target]) => ({source,target,label:'request'})) });
-    const layout = layoutPlan(plan, icons);
-    for (const edge of layout.edges) for (const [i,p] of edge.points.entries()) if (i) {
-      assert.ok(!layout.nodes.some(node => node.id !== edge.source && node.id !== edge.target && crossesBox(edge.points[i - 1],p,node)), `${direction} ${edge.source} → ${edge.target} crosses a node`);
-    }
-  }
-});
-test('routing detours preserve endpoints and leave unobstructed routes unchanged', () => {
-  const source = {id:'s',x:0,y:0,width:80,height:60}; const target = {id:'t',x:300,y:160,width:80,height:60};
-  const blocker = {id:'b',x:250,y:50,width:120,height:80};
-  const points = [{x:80,y:30},{x:180,y:30},{x:340,y:160}];
-  assert.equal(routeAroundNodes(points,source,target,[source,target],'LR'),points);
-  const routed = routeAroundNodes(points,source,target,[source,target,blocker],'LR');
-  assert.deepEqual(routed[0],{x:80,y:30}); assert.deepEqual(routed.at(-1),{x:300,y:190});
-  assert.ok(routed.every((p,i) => !i || !crossesBox(routed[i-1],p,blocker)));
-});
-test('review cannot drop nodes, branches or repeated connections', () => {
-  const plan = normalizePlan(sample());
-  assert.equal(preservesContent(plan, normalizePlan(sample())), true);
-  assert.equal(preservesContent(plan, { ...plan, edges: plan.edges.slice(1) }), false);
-  assert.equal(preservesContent({ ...plan, edges: [...plan.edges, plan.edges[0]] }, plan), false);
 });
 test('local edits are scoped to selection and bound text; URLs and unrelated objects are rejected', () => {
   const source = { elements: [{ id: 'a', type: 'rectangle', x: 0, width: 200 }, { id: 'label', type: 'text', containerId: 'a', text: 'Before' }, { id: 'other', type: 'rectangle', x: 20 }] };

@@ -1,0 +1,1133 @@
+{
+ "work_packages": [
+  {
+   "id": "WP01",
+   "title": "基础运行时与公共工具",
+   "depends_on": []
+  },
+  {
+   "id": "WP02",
+   "title": "图标资源与尺寸估算",
+   "depends_on": [
+    "WP01"
+   ]
+  },
+  {
+   "id": "WP03",
+   "title": "共享几何、路由工具与审计",
+   "depends_on": [
+    "WP01"
+   ]
+  },
+  {
+   "id": "WP04",
+   "title": "转换器与尺寸适配",
+   "depends_on": [
+    "WP01",
+    "WP02",
+    "WP03"
+   ]
+  },
+  {
+   "id": "WP05",
+   "title": "分组框、对齐、层级压缩、图层顺序",
+   "depends_on": [
+    "WP01",
+    "WP02",
+    "WP03"
+   ]
+  },
+  {
+   "id": "WP06",
+   "title": "概念图放射压缩",
+   "depends_on": [
+    "WP01",
+    "WP02"
+   ]
+  },
+  {
+   "id": "WP07",
+   "title": "连线路由与时序图",
+   "depends_on": [
+    "WP01",
+    "WP03",
+    "WP04"
+   ]
+  },
+  {
+   "id": "WP08",
+   "title": "架构图设计系统",
+   "depends_on": [
+    "WP01",
+    "WP02"
+   ]
+  },
+  {
+   "id": "WP09",
+   "title": "统一主题与说明文字",
+   "depends_on": [
+    "WP02",
+    "WP08"
+   ]
+  },
+  {
+   "id": "WP10",
+   "title": "流水线编排、端到端对照与出图",
+   "depends_on": [
+    "WP04",
+    "WP05",
+    "WP06",
+    "WP07",
+    "WP08",
+    "WP09"
+   ]
+  },
+  {
+   "id": "WP11",
+   "title": "独立验收",
+   "depends_on": [
+    "WP10"
+   ]
+  },
+  {
+   "id": "WP12",
+   "title": "第二期对照基础设施（录制回放、端到端录制、函数向量、回放工具）",
+   "depends_on": []
+  },
+  {
+   "id": "WP13",
+   "title": "基础层：配置、工具、LLM 工厂与 BaseAgent、公共流程件",
+   "depends_on": [
+    "WP12"
+   ]
+  },
+  {
+   "id": "WP14",
+   "title": "出图与画布环境",
+   "depends_on": [
+    "WP13"
+   ]
+  },
+  {
+   "id": "WP15",
+   "title": "生成·结构与路由",
+   "depends_on": [
+    "WP13"
+   ]
+  },
+  {
+   "id": "WP16",
+   "title": "生成·样式",
+   "depends_on": [
+    "WP13"
+   ]
+  },
+  {
+   "id": "WP17",
+   "title": "生成·布局与多智能体编排",
+   "depends_on": [
+    "WP15",
+    "WP16"
+   ]
+  },
+  {
+   "id": "WP18",
+   "title": "生成·一体化（unified/native）",
+   "depends_on": [
+    "WP17"
+   ]
+  },
+  {
+   "id": "WP19",
+   "title": "校验·确定性检查与报告",
+   "depends_on": [
+    "WP13"
+   ]
+  },
+  {
+   "id": "WP20",
+   "title": "校验·评审与流程",
+   "depends_on": [
+    "WP14",
+    "WP19"
+   ]
+  },
+  {
+   "id": "WP21",
+   "title": "修复·确定性修复器",
+   "depends_on": [
+    "WP13",
+    "WP19"
+   ]
+  },
+  {
+   "id": "WP22",
+   "title": "修复·大模型修复与流程",
+   "depends_on": [
+    "WP20",
+    "WP21"
+   ]
+  },
+  {
+   "id": "WP23",
+   "title": "总编排",
+   "depends_on": [
+    "WP13",
+    "WP14",
+    "WP15",
+    "WP16",
+    "WP17",
+    "WP18",
+    "WP19",
+    "WP20",
+    "WP21",
+    "WP22"
+   ]
+  },
+  {
+   "id": "WP24",
+   "title": "集成：端到端回放对照全部通过",
+   "depends_on": [
+    "WP23"
+   ]
+  },
+  {
+   "id": "WP25",
+   "title": "第二期独立验收",
+   "depends_on": [
+    "WP24"
+   ]
+  }
+ ],
+ "modules": [
+  {
+   "python": null,
+   "ts": "src/py/",
+   "wp": "WP01"
+  },
+  {
+   "python": "evodesign.agentic_system.common.semantic_ids",
+   "source": "evodesign/agentic_system/common/semantic_ids.py",
+   "ts": "src/common/semantic_ids.ts",
+   "wp": "WP01"
+  },
+  {
+   "python": "evodesign.agentic_system.common.spec_utils",
+   "source": "evodesign/agentic_system/common/spec_utils.py",
+   "ts": "src/common/spec_utils.ts",
+   "wp": "WP01"
+  },
+  {
+   "python": "evodesign.agentic_system.common.diagram_types",
+   "source": "evodesign/agentic_system/common/diagram_types.py",
+   "ts": "src/common/diagram_types.ts",
+   "wp": "WP01"
+  },
+  {
+   "python": "evodesign.agentic_system.common.design_constraints",
+   "source": "evodesign/agentic_system/common/design_constraints.py",
+   "ts": "src/common/design_constraints.ts",
+   "wp": "WP01"
+  },
+  {
+   "python": "evodesign.agentic_system.common.tldraw_utils",
+   "source": "evodesign/agentic_system/common/tldraw_utils.py",
+   "ts": "src/common/tldraw_utils.ts",
+   "wp": "WP01"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.shared.order_keys",
+   "source": "evodesign/agentic_system/render_engine/shared/order_keys.py",
+   "ts": "src/render_engine/shared/order_keys.ts",
+   "wp": "WP01"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.shared.label_geometry",
+   "source": "evodesign/agentic_system/render_engine/shared/label_geometry.py",
+   "ts": "src/render_engine/shared/label_geometry.ts",
+   "wp": "WP01"
+  },
+  {
+   "python": "evodesign.agentic_system.common.node_icons",
+   "source": "evodesign/agentic_system/common/node_icons.py",
+   "ts": "src/common/node_icons.ts",
+   "wp": "WP02"
+  },
+  {
+   "python": "evodesign.agentic_system.common.icon_assets",
+   "source": "evodesign/agentic_system/common/icon_assets.py",
+   "ts": "src/common/icon_assets.ts",
+   "wp": "WP02"
+  },
+  {
+   "python": "evodesign.agentic_system.common.layout_contract",
+   "source": "evodesign/agentic_system/common/layout_contract.py",
+   "ts": "src/common/layout_contract.ts",
+   "wp": "WP02"
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.layout.element_shape_estimator",
+   "source": "evodesign/agentic_system/generation_stage/layout/element_shape_estimator.py",
+   "ts": "src/generation_stage/layout/element_shape_estimator.ts",
+   "wp": "WP02"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.shared.icon_url_adder",
+   "source": "evodesign/agentic_system/render_engine/shared/icon_url_adder.py",
+   "ts": "src/render_engine/shared/icon_url_adder.ts",
+   "wp": "WP02"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.shared.edge_routing",
+   "source": "evodesign/agentic_system/render_engine/shared/edge_routing.py",
+   "ts": "src/render_engine/shared/edge_routing.ts",
+   "wp": "WP03"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.shared.edge_crossing_detector",
+   "source": "evodesign/agentic_system/render_engine/shared/edge_crossing_detector.py",
+   "ts": "src/render_engine/shared/edge_crossing_detector.ts",
+   "wp": "WP03"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.shared.normalization",
+   "source": "evodesign/agentic_system/render_engine/shared/normalization.py",
+   "ts": "src/render_engine/shared/normalization.ts",
+   "wp": "WP03"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.shared.render_audit",
+   "source": "evodesign/agentic_system/render_engine/shared/render_audit.py",
+   "ts": "src/render_engine/shared/render_audit.ts",
+   "wp": "WP03"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.converter",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/converter.py",
+   "ts": "src/render_engine/excalidraw/converter.ts",
+   "wp": "WP04"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.normalizer",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/normalizer.py",
+   "ts": "src/render_engine/excalidraw/normalizer.ts",
+   "wp": "WP04"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.shape_size_fitter",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/shape_size_fitter.py",
+   "ts": "src/render_engine/excalidraw/shape_size_fitter.ts",
+   "wp": "WP04"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.validator",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/validator.py",
+   "ts": "src/render_engine/excalidraw/validator.ts",
+   "wp": "WP04"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.group_fitter",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/group_fitter.py",
+   "ts": "src/render_engine/excalidraw/group_fitter.ts",
+   "wp": "WP05"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.group_alignment_normalizer",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/group_alignment_normalizer.py",
+   "ts": "src/render_engine/excalidraw/group_alignment_normalizer.ts",
+   "wp": "WP05"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.layered_layout_compactor",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/layered_layout_compactor.py",
+   "ts": "src/render_engine/excalidraw/layered_layout_compactor.ts",
+   "wp": "WP05"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.zorder_repair",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/zorder_repair.py",
+   "ts": "src/render_engine/excalidraw/zorder_repair.ts",
+   "wp": "WP05"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.radial_concept_compactor",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/radial_concept_compactor.py",
+   "ts": "src/render_engine/excalidraw/radial_concept_compactor.ts",
+   "wp": "WP06"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.edge_router",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/edge_router.py",
+   "ts": "src/render_engine/excalidraw/edge_router.ts",
+   "wp": "WP07"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.arrow_routing.context",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/arrow_routing/context.py",
+   "ts": "src/render_engine/excalidraw/arrow_routing/context.ts",
+   "wp": "WP07"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.arrow_routing.geometry",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/arrow_routing/geometry.py",
+   "ts": "src/render_engine/excalidraw/arrow_routing/geometry.ts",
+   "wp": "WP07"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.arrow_routing.grid_router",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/arrow_routing/grid_router.py",
+   "ts": "src/render_engine/excalidraw/arrow_routing/grid_router.ts",
+   "wp": "WP07"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.arrow_routing.detours",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/arrow_routing/detours.py",
+   "ts": "src/render_engine/excalidraw/arrow_routing/detours.ts",
+   "wp": "WP07"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.arrow_routing.ports",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/arrow_routing/ports.py",
+   "ts": "src/render_engine/excalidraw/arrow_routing/ports.ts",
+   "wp": "WP07"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.arrow_routing.labels",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/arrow_routing/labels.py",
+   "ts": "src/render_engine/excalidraw/arrow_routing/labels.ts",
+   "wp": "WP07"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.arrow_routing.passes",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/arrow_routing/passes.py",
+   "ts": "src/render_engine/excalidraw/arrow_routing/passes.ts",
+   "wp": "WP07"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.arrow_adder",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/arrow_adder.py",
+   "ts": "src/render_engine/excalidraw/arrow_adder.ts",
+   "wp": "WP07"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.sequence_layout",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/sequence_layout.py",
+   "ts": "src/render_engine/excalidraw/sequence_layout.ts",
+   "wp": "WP07"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.architecture_style_normalizer",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/architecture_style_normalizer.py",
+   "ts": "src/render_engine/excalidraw/architecture_style_normalizer.ts",
+   "wp": "WP08"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.architecture_design_system",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/architecture_design_system.py",
+   "ts": "src/render_engine/excalidraw/architecture_design_system.ts",
+   "wp": "WP08"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.caption_placer",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/caption_placer.py",
+   "ts": "src/render_engine/excalidraw/caption_placer.ts",
+   "wp": "WP09"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.excalidraw.design_theme",
+   "source": "evodesign/agentic_system/render_engine/excalidraw/design_theme.py",
+   "ts": "src/render_engine/excalidraw/design_theme.ts",
+   "wp": "WP09"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.workflow",
+   "source": "evodesign/agentic_system/render_engine/workflow.py",
+   "ts": "src/render_engine/workflow.ts",
+   "wp": "WP10"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.state",
+   "source": "evodesign/agentic_system/render_engine/state.py",
+   "ts": "src/render_engine/state.ts",
+   "wp": "WP10"
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.stages",
+   "source": "evodesign/agentic_system/render_engine/stages.py",
+   "ts": "src/render_engine/stages.ts",
+   "wp": "WP10"
+  },
+  {
+   "python": "evodesign.config.settings",
+   "source": "evodesign/config/settings.py",
+   "ts": "src/config/settings.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.config.model_loader",
+   "source": "evodesign/config/model_loader.py",
+   "ts": "src/config/model_loader.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.utils.llm_output",
+   "source": "evodesign/utils/llm_output.py",
+   "ts": "src/utils/llm_output.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.utils.path_manager",
+   "source": "evodesign/utils/path_manager.py",
+   "ts": "src/utils/path_manager.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.utils.env_loader",
+   "source": "evodesign/utils/env_loader.py",
+   "ts": "src/utils/env_loader.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.utils.io_utils",
+   "source": "evodesign/utils/io_utils.py",
+   "ts": "src/utils/io_utils.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.core.llm_factory",
+   "source": "evodesign/core/llm_factory.py",
+   "ts": "src/core/llm_factory.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.core.base_agent",
+   "source": "evodesign/core/base_agent.py",
+   "ts": "src/core/base_agent.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.core.experiment",
+   "source": "evodesign/core/experiment.py",
+   "ts": "src/core/experiment.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.config",
+   "source": "evodesign/agentic_system/config.py",
+   "ts": "src/agentic_system/config.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.quality_policy",
+   "source": "evodesign/agentic_system/quality_policy.py",
+   "ts": "src/agentic_system/quality_policy.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.canvas_runtime",
+   "source": "evodesign/canvas_runtime.py",
+   "ts": "src/canvas_runtime.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.common.base_workflow",
+   "source": "evodesign/agentic_system/common/base_workflow.py",
+   "ts": "src/common/base_workflow.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.common.workflow_state_base",
+   "source": "evodesign/agentic_system/common/workflow_state_base.py",
+   "ts": "src/common/workflow_state_base.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.common.task_prompts",
+   "source": "evodesign/agentic_system/common/task_prompts.py",
+   "ts": "src/common/task_prompts.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.common.skill_loader",
+   "source": "evodesign/agentic_system/common/skill_loader.py",
+   "ts": "src/common/skill_loader.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.common.domain_knowledge_loader",
+   "source": "evodesign/agentic_system/common/domain_knowledge_loader.py",
+   "ts": "src/common/domain_knowledge_loader.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.common.self_consistency",
+   "source": "evodesign/agentic_system/common/self_consistency.py",
+   "ts": "src/common/self_consistency.ts",
+   "wp": "WP13",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.canvas_render",
+   "source": "evodesign/agentic_system/render_engine/canvas_render.py",
+   "ts": "src/render_engine/canvas_render.ts",
+   "wp": "WP14",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.service",
+   "source": "evodesign/agentic_system/render_engine/service.py",
+   "ts": "src/render_engine/service.ts",
+   "wp": "WP14",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.shared.image_cropper",
+   "source": "evodesign/agentic_system/render_engine/shared/image_cropper.py",
+   "ts": "src/render_engine/shared/image_cropper.ts",
+   "wp": "WP14",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.render_engine.shared.png_validation",
+   "source": "evodesign/agentic_system/render_engine/shared/png_validation.py",
+   "ts": "src/render_engine/shared/png_validation.ts",
+   "wp": "WP14",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.canvas_environment._render_engine_adapter",
+   "source": "evodesign/canvas_environment/_render_engine_adapter.py",
+   "ts": "src/canvas_environment/_render_engine_adapter.ts",
+   "wp": "WP14",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.canvas_environment.capabilities",
+   "source": "evodesign/canvas_environment/capabilities.py",
+   "ts": "src/canvas_environment/capabilities.ts",
+   "wp": "WP14",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.canvas_environment.config",
+   "source": "evodesign/canvas_environment/config.py",
+   "ts": "src/canvas_environment/config.ts",
+   "wp": "WP14",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.canvas_environment.constants",
+   "source": "evodesign/canvas_environment/constants.py",
+   "ts": "src/canvas_environment/constants.ts",
+   "wp": "WP14",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.canvas_environment.editing",
+   "source": "evodesign/canvas_environment/editing.py",
+   "ts": "src/canvas_environment/editing.ts",
+   "wp": "WP14",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.canvas_environment.environment",
+   "source": "evodesign/canvas_environment/environment.py",
+   "ts": "src/canvas_environment/environment.ts",
+   "wp": "WP14",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.canvas_environment.geometry",
+   "source": "evodesign/canvas_environment/geometry.py",
+   "ts": "src/canvas_environment/geometry.ts",
+   "wp": "WP14",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.canvas_environment.rendering",
+   "source": "evodesign/canvas_environment/rendering.py",
+   "ts": "src/canvas_environment/rendering.ts",
+   "wp": "WP14",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.canvas_environment.scene",
+   "source": "evodesign/canvas_environment/scene.py",
+   "ts": "src/canvas_environment/scene.ts",
+   "wp": "WP14",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.canvas_environment.validation",
+   "source": "evodesign/canvas_environment/validation.py",
+   "ts": "src/canvas_environment/validation.ts",
+   "wp": "WP14",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.structure.prompts",
+   "source": "evodesign/agentic_system/generation_stage/structure/prompts.py",
+   "ts": "src/generation_stage/structure/prompts.ts",
+   "wp": "WP15",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.structure.schemas",
+   "source": "evodesign/agentic_system/generation_stage/structure/schemas.py",
+   "ts": "src/generation_stage/structure/schemas.ts",
+   "wp": "WP15",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.structure.state",
+   "source": "evodesign/agentic_system/generation_stage/structure/state.py",
+   "ts": "src/generation_stage/structure/state.ts",
+   "wp": "WP15",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.structure.structure_agent",
+   "source": "evodesign/agentic_system/generation_stage/structure/structure_agent.py",
+   "ts": "src/generation_stage/structure/structure_agent.ts",
+   "wp": "WP15",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.structure.workflow",
+   "source": "evodesign/agentic_system/generation_stage/structure/workflow.py",
+   "ts": "src/generation_stage/structure/workflow.ts",
+   "wp": "WP15",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.router.agent",
+   "source": "evodesign/agentic_system/generation_stage/router/agent.py",
+   "ts": "src/generation_stage/router/agent.ts",
+   "wp": "WP15",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.router.prompts",
+   "source": "evodesign/agentic_system/generation_stage/router/prompts.py",
+   "ts": "src/generation_stage/router/prompts.ts",
+   "wp": "WP15",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.compact_decisions",
+   "source": "evodesign/agentic_system/generation_stage/compact_decisions.py",
+   "ts": "src/generation_stage/compact_decisions.ts",
+   "wp": "WP15",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.styling.colorful",
+   "source": "evodesign/agentic_system/generation_stage/styling/colorful.py",
+   "ts": "src/generation_stage/styling/colorful.ts",
+   "wp": "WP16",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.styling.contracts",
+   "source": "evodesign/agentic_system/generation_stage/styling/contracts/__init__.py",
+   "ts": "src/generation_stage/styling/contracts/__init__.ts",
+   "wp": "WP16",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.styling.contracts.base",
+   "source": "evodesign/agentic_system/generation_stage/styling/contracts/base.py",
+   "ts": "src/generation_stage/styling/contracts/base.ts",
+   "wp": "WP16",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.styling.contracts.excalidraw",
+   "source": "evodesign/agentic_system/generation_stage/styling/contracts/excalidraw.py",
+   "ts": "src/generation_stage/styling/contracts/excalidraw.ts",
+   "wp": "WP16",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.styling.contracts.tldraw",
+   "source": "evodesign/agentic_system/generation_stage/styling/contracts/tldraw.py",
+   "ts": "src/generation_stage/styling/contracts/tldraw.ts",
+   "wp": "WP16",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.styling.icon_colors",
+   "source": "evodesign/agentic_system/generation_stage/styling/icon_colors.py",
+   "ts": "src/generation_stage/styling/icon_colors.ts",
+   "wp": "WP16",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.styling.prompts",
+   "source": "evodesign/agentic_system/generation_stage/styling/prompts.py",
+   "ts": "src/generation_stage/styling/prompts.ts",
+   "wp": "WP16",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.styling.schemas",
+   "source": "evodesign/agentic_system/generation_stage/styling/schemas.py",
+   "ts": "src/generation_stage/styling/schemas.ts",
+   "wp": "WP16",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.styling.state",
+   "source": "evodesign/agentic_system/generation_stage/styling/state.py",
+   "ts": "src/generation_stage/styling/state.ts",
+   "wp": "WP16",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.styling.styling_agent",
+   "source": "evodesign/agentic_system/generation_stage/styling/styling_agent.py",
+   "ts": "src/generation_stage/styling/styling_agent.ts",
+   "wp": "WP16",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.styling.workflow",
+   "source": "evodesign/agentic_system/generation_stage/styling/workflow.py",
+   "ts": "src/generation_stage/styling/workflow.ts",
+   "wp": "WP16",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.layout.flow_grid",
+   "source": "evodesign/agentic_system/generation_stage/layout/flow_grid.py",
+   "ts": "src/generation_stage/layout/flow_grid.ts",
+   "wp": "WP17",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.layout.layout_agent",
+   "source": "evodesign/agentic_system/generation_stage/layout/layout_agent.py",
+   "ts": "src/generation_stage/layout/layout_agent.ts",
+   "wp": "WP17",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.layout.prompts",
+   "source": "evodesign/agentic_system/generation_stage/layout/prompts.py",
+   "ts": "src/generation_stage/layout/prompts.ts",
+   "wp": "WP17",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.layout.sequence_layout",
+   "source": "evodesign/agentic_system/generation_stage/layout/sequence_layout.py",
+   "ts": "src/generation_stage/layout/sequence_layout.ts",
+   "wp": "WP17",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.layout.state",
+   "source": "evodesign/agentic_system/generation_stage/layout/state.py",
+   "ts": "src/generation_stage/layout/state.ts",
+   "wp": "WP17",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.layout.viewport_profile",
+   "source": "evodesign/agentic_system/generation_stage/layout/viewport_profile.py",
+   "ts": "src/generation_stage/layout/viewport_profile.ts",
+   "wp": "WP17",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.layout.workflow",
+   "source": "evodesign/agentic_system/generation_stage/layout/workflow.py",
+   "ts": "src/generation_stage/layout/workflow.ts",
+   "wp": "WP17",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.workflow",
+   "source": "evodesign/agentic_system/generation_stage/workflow.py",
+   "ts": "src/generation_stage/workflow.ts",
+   "wp": "WP17",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.unified.continuation",
+   "source": "evodesign/agentic_system/generation_stage/unified/continuation.py",
+   "ts": "src/generation_stage/unified/continuation.ts",
+   "wp": "WP18",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.unified.generator",
+   "source": "evodesign/agentic_system/generation_stage/unified/generator.py",
+   "ts": "src/generation_stage/unified/generator.ts",
+   "wp": "WP18",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.unified.native_defaults",
+   "source": "evodesign/agentic_system/generation_stage/unified/native_defaults.py",
+   "ts": "src/generation_stage/unified/native_defaults.ts",
+   "wp": "WP18",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.unified.sidecar",
+   "source": "evodesign/agentic_system/generation_stage/unified/sidecar.py",
+   "ts": "src/generation_stage/unified/sidecar.ts",
+   "wp": "WP18",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.unified.state",
+   "source": "evodesign/agentic_system/generation_stage/unified/state.py",
+   "ts": "src/generation_stage/unified/state.ts",
+   "wp": "WP18",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.unified.transport_journal",
+   "source": "evodesign/agentic_system/generation_stage/unified/transport_journal.py",
+   "ts": "src/generation_stage/unified/transport_journal.ts",
+   "wp": "WP18",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.generation_stage.unified.workflow",
+   "source": "evodesign/agentic_system/generation_stage/unified/workflow.py",
+   "ts": "src/generation_stage/unified/workflow.ts",
+   "wp": "WP18",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.checks.aggregator",
+   "source": "evodesign/agentic_system/verification_stage/checks/aggregator.py",
+   "ts": "src/verification_stage/checks/aggregator.ts",
+   "wp": "WP19",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.checks.binding_consistency",
+   "source": "evodesign/agentic_system/verification_stage/checks/binding_consistency.py",
+   "ts": "src/verification_stage/checks/binding_consistency.ts",
+   "wp": "WP19",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.checks.collision_detection",
+   "source": "evodesign/agentic_system/verification_stage/checks/collision_detection.py",
+   "ts": "src/verification_stage/checks/collision_detection.ts",
+   "wp": "WP19",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.checks.containment",
+   "source": "evodesign/agentic_system/verification_stage/checks/containment.py",
+   "ts": "src/verification_stage/checks/containment.ts",
+   "wp": "WP19",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.checks.finding",
+   "source": "evodesign/agentic_system/verification_stage/checks/finding.py",
+   "ts": "src/verification_stage/checks/finding.ts",
+   "wp": "WP19",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.checks.label_proximity",
+   "source": "evodesign/agentic_system/verification_stage/checks/label_proximity.py",
+   "ts": "src/verification_stage/checks/label_proximity.ts",
+   "wp": "WP19",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.checks.node_icons",
+   "source": "evodesign/agentic_system/verification_stage/checks/node_icons.py",
+   "ts": "src/verification_stage/checks/node_icons.ts",
+   "wp": "WP19",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.checks.objective_manifest",
+   "source": "evodesign/agentic_system/verification_stage/checks/objective_manifest.py",
+   "ts": "src/verification_stage/checks/objective_manifest.ts",
+   "wp": "WP19",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.checks.render_validation",
+   "source": "evodesign/agentic_system/verification_stage/checks/render_validation.py",
+   "ts": "src/verification_stage/checks/render_validation.ts",
+   "wp": "WP19",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.checks.sequence",
+   "source": "evodesign/agentic_system/verification_stage/checks/sequence.py",
+   "ts": "src/verification_stage/checks/sequence.ts",
+   "wp": "WP19",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.reports.report_builder",
+   "source": "evodesign/agentic_system/verification_stage/reports/report_builder.py",
+   "ts": "src/verification_stage/reports/report_builder.ts",
+   "wp": "WP19",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.critic.comparison",
+   "source": "evodesign/agentic_system/verification_stage/critic/comparison.py",
+   "ts": "src/verification_stage/critic/comparison.ts",
+   "wp": "WP20",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.critic.critic_agent",
+   "source": "evodesign/agentic_system/verification_stage/critic/critic_agent.py",
+   "ts": "src/verification_stage/critic/critic_agent.ts",
+   "wp": "WP20",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.critic.prompts",
+   "source": "evodesign/agentic_system/verification_stage/critic/prompts.py",
+   "ts": "src/verification_stage/critic/prompts.ts",
+   "wp": "WP20",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.workflow",
+   "source": "evodesign/agentic_system/verification_stage/workflow.py",
+   "ts": "src/verification_stage/workflow.ts",
+   "wp": "WP20",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.state",
+   "source": "evodesign/agentic_system/verification_stage/state.py",
+   "ts": "src/verification_stage/state.ts",
+   "wp": "WP20",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.verification_stage.__main__",
+   "source": "evodesign/agentic_system/verification_stage/__main__.py",
+   "ts": "src/verification_stage/__main__.ts",
+   "wp": "WP20",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.refinement_stage.fixers.apply_edits",
+   "source": "evodesign/agentic_system/refinement_stage/fixers/apply_edits.py",
+   "ts": "src/refinement_stage/fixers/apply_edits.ts",
+   "wp": "WP21",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.refinement_stage.fixers.arrow_reroute",
+   "source": "evodesign/agentic_system/refinement_stage/fixers/arrow_reroute.py",
+   "ts": "src/refinement_stage/fixers/arrow_reroute.ts",
+   "wp": "WP21",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.refinement_stage.fixers.deterministic",
+   "source": "evodesign/agentic_system/refinement_stage/fixers/deterministic.py",
+   "ts": "src/refinement_stage/fixers/deterministic.ts",
+   "wp": "WP21",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.refinement_stage.fixers.primitives",
+   "source": "evodesign/agentic_system/refinement_stage/fixers/primitives.py",
+   "ts": "src/refinement_stage/fixers/primitives.ts",
+   "wp": "WP21",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.refinement_stage.agent.llm_agent",
+   "source": "evodesign/agentic_system/refinement_stage/agent/llm_agent.py",
+   "ts": "src/refinement_stage/agent/llm_agent.ts",
+   "wp": "WP22",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.refinement_stage.agent.prompts",
+   "source": "evodesign/agentic_system/refinement_stage/agent/prompts.py",
+   "ts": "src/refinement_stage/agent/prompts.ts",
+   "wp": "WP22",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.refinement_stage.reports.refiner_report",
+   "source": "evodesign/agentic_system/refinement_stage/reports/refiner_report.py",
+   "ts": "src/refinement_stage/reports/refiner_report.ts",
+   "wp": "WP22",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.refinement_stage.state",
+   "source": "evodesign/agentic_system/refinement_stage/state.py",
+   "ts": "src/refinement_stage/state.ts",
+   "wp": "WP22",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.refinement_stage.__main__",
+   "source": "evodesign/agentic_system/refinement_stage/__main__.py",
+   "ts": "src/refinement_stage/__main__.ts",
+   "wp": "WP22",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.workflow",
+   "source": "evodesign/agentic_system/workflow.py",
+   "ts": "src/agentic_system/workflow.ts",
+   "wp": "WP23",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.iterative_workflow",
+   "source": "evodesign/agentic_system/iterative_workflow.py",
+   "ts": "src/agentic_system/iterative_workflow.ts",
+   "wp": "WP23",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.main",
+   "source": "evodesign/agentic_system/main.py",
+   "ts": "src/agentic_system/main.ts",
+   "wp": "WP23",
+   "phase": 2
+  },
+  {
+   "python": "evodesign.agentic_system.__main__",
+   "source": "evodesign/agentic_system/__main__.py",
+   "ts": "src/agentic_system/__main__.ts",
+   "wp": "WP23",
+   "phase": 2
+  }
+ ]
+}

@@ -1,0 +1,112 @@
+{
+ "visual_paradigm": {
+  "chart_type": "architecture",
+  "recognition_anchor": "Role-based component cards distinguish generation agents, the rendering–refinement loop, and shared expertise memory.",
+  "boundary_check": "Preserve the upstream role tiers and feedback dependencies so the figure reads as a system architecture rather than a linear flowchart.",
+  "container_visibility_audit": "Structure declares no groups or explicit boundaries; do not introduce layer frames.",
+  "role_hierarchy": "Generation agents are primary, rendering and memory are shared infrastructure, and experience workers support knowledge evolution.",
+  "parent_first_surface_logic": "No containment surfaces are required; apply consistent component-card styling.",
+  "topological_invariants": [
+   "Preserve Structure Agent → Style Agent → Layout Agent order.",
+   "Preserve both rendering–refinement directions as separate edges.",
+   "Preserve experience search → distillation → memory and retrieval by all three generation agents.",
+   "Preserve all upstream IDs, labels, roles, sublabels, and relationships without adding groups."
+  ]
+ },
+ "shape_and_icon_system": {
+  "shape_family": "geometric",
+  "component_shape": "rectangle",
+  "card_treatment": "Light solid fill, paired family border, clean outline icon, component name, and supporting sublabel.",
+  "icon_policy": "Retain Structure's component icons; use the assigned node stroke color for each icon.",
+  "roughness": 0,
+  "strokeWidth": 2,
+  "strokeStyle": "solid",
+  "fillStyle": "solid"
+ },
+ "color_and_stroke_system": {
+  "palette_name": "ocean_glass",
+  "canvas": "#F6FAFA",
+  "border_default": "#21343A",
+  "accent_edge": "#367E8A",
+  "fill_families": [
+   {
+    "name": "teal",
+    "fill": "#D2E9E7",
+    "stroke": "#367E8A"
+   },
+   {
+    "name": "seafoam",
+    "fill": "#DDEFE7",
+    "stroke": "#5E8A75"
+   },
+   {
+    "name": "bluegray",
+    "fill": "#D7E3EA",
+    "stroke": "#4B6F82"
+   }
+  ],
+  "family_assignments": {
+   "input_content": "bluegray",
+   "structure_agent": "teal",
+   "style_agent": "teal",
+   "layout_agent": "teal",
+   "canvas_render_engine": "bluegray",
+   "diagram_refiner": "teal",
+   "editable_diagram": "seafoam",
+   "hybrid_experience_search": "seafoam",
+   "knowledge_distiller": "seafoam",
+   "design_expertise_memory": "bluegray"
+  },
+  "role_mapping": "Teal identifies coordinating agents, blue-gray identifies input and shared infrastructure, and seafoam identifies knowledge support and editable output.",
+  "edge_policy": "All edges use border_default; edge entries contain color only.",
+  "text_color": "#21343A"
+ },
+ "typography_and_hierarchy": {
+  "fontFamily": 2,
+  "font_name": "Helvetica",
+  "lineHeight": 1.2,
+  "primary_labels": {
+   "fontSize": 18,
+   "fontStyle": 1,
+   "color": "#21343A"
+  },
+  "ordinary_labels": {
+   "fontSize": 18,
+   "fontStyle": 0,
+   "color": "#21343A"
+  },
+  "sublabels": {
+   "fontSize": 12,
+   "fontStyle": 0,
+   "color": "#21343A"
+  },
+  "emphasis_policy": "Bold identifies generation agents, the render engine, and shared expertise memory; sublabels remain regular.",
+  "label_policy": "Preserve all component names and sublabels verbatim."
+ },
+ "tier_plan": {
+  "columns": [
+   [
+    "input_content"
+   ],
+   [
+    "structure_agent",
+    "style_agent",
+    "layout_agent"
+   ],
+   [
+    "canvas_render_engine",
+    "diagram_refiner"
+   ],
+   [
+    "hybrid_experience_search",
+    "knowledge_distiller"
+   ],
+   [
+    "editable_diagram"
+   ]
+  ],
+  "bottom_row": [
+   "design_expertise_memory"
+  ]
+ }
+}

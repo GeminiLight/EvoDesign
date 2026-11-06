@@ -1,0 +1,31 @@
+[
+  {
+    "case": "n_control",
+    "python_error": null,
+    "ts_first_divergence": null
+  },
+  {
+    "case": "__proto__",
+    "python_error": null,
+    "ts_first_divergence": {
+      "node": "excalidraw_convert",
+      "diffs": [
+        "$.diagram_manifest.elements: length 20 != 18",
+        "$.diagram_manifest.elements[8].strokeColor: expected \"#3F7E8C\", got \"#5967A8\"",
+        "$.diagram_manifest.elements[8].backgroundColor: expected \"#D2E9EB\", got \"#D8DBF0\"",
+        "$.diagram_manifest.elements[8].roundness: expected null, got {\"type\":3}",
+        "$.diagram_manifest.elements[8].seed: expected 1124559537, got 1438389330"
+      ]
+    }
+  },
+  {
+    "case": "constructor",
+    "python_error": null,
+    "ts_first_divergence": null
+  },
+  {
+    "case": "toString",
+    "python_error": null,
+    "ts_first_divergence": null
+  }
+]

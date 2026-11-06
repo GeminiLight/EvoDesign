@@ -32,7 +32,7 @@ export function createStudioServer({ env = process.env, root = staticRoot, handl
         if (req.method !== 'GET' && req.method !== 'HEAD') { send(405, { error: 'Use GET.' }); return; }
         send(200, { ok: true, region: 'cn', revision: env.APP_REVISION || 'local' }); return;
       }
-      if (url.pathname === '/api/model') {
+      if (['/api/model', '/api/model/run'].includes(url.pathname)) {
         const headers = new Headers();
         for (const name of ['content-type', 'origin', 'referer']) {
           if (typeof req.headers[name] === 'string') headers.set(name, req.headers[name]);
@@ -43,16 +43,16 @@ export function createStudioServer({ env = process.env, root = staticRoot, handl
         const method = req.method || 'GET';
         let body;
         if (method === 'POST') {
-          if (Number(req.headers['content-length']) > 100_000) { req.resume(); send(413, { error: { code: 'input', message: 'Request too large.' } }); return; }
+          if (Number(req.headers['content-length']) > 8_000_000) { req.resume(); send(413, { error: { code: 'input', message: 'Request too large.' } }); return; }
           const chunks = []; let size = 0;
           for await (const chunk of req.iterator({ destroyOnReturn: false })) {
             size += chunk.length;
-            if (size > 100_000) { req.resume(); send(413, { error: { code: 'input', message: 'Request too large.' } }); return; }
+            if (size > 8_000_000) { req.resume(); send(413, { error: { code: 'input', message: 'Request too large.' } }); return; }
             chunks.push(chunk);
           }
           body = Buffer.concat(chunks);
         }
-        const result = await handle(new Request(new URL('/api/model', origin), { method, headers, body, signal: controller.signal }));
+        const result = await handle(new Request(new URL(url.pathname, origin), { method, headers, body, signal: controller.signal }));
         if (res.destroyed) return;
         res.writeHead(result.status, Object.fromEntries(result.headers));
         res.end(Buffer.from(await result.arrayBuffer())); return;

@@ -1,0 +1,135 @@
+[
+  {
+    "id": "VA04-D01",
+    "title": "float()词法规则改变模型分数与编辑坐标",
+    "classification": "D",
+    "severity": "P2",
+    "python": [
+      "evodesign/agentic_system/verification_stage/critic/critic_agent.py:80",
+      "evodesign/agentic_system/refinement_stage/fixers/primitives.py:185"
+    ],
+    "ts": [
+      "packages/render-engine/src/py/number.ts:179",
+      "packages/render-engine/src/verification_stage/critic/critic_agent.ts:134"
+    ],
+    "trigger": {
+      "score": "7_",
+      "coordinate": "1__0",
+      "unicode_score": "١"
+    },
+    "before": "Python拒绝7_、1__0；float(١)=1。",
+    "after": "TS删除所有下划线：7_变7、7__0变70后评分钳为10，1__0变10并应用编辑；١被拒绝。",
+    "impact": "同一合法JSON里的畸形数值字符串会被不同地接受或拒绝，改变评审是否成功、质量分数与几何编辑。",
+    "reachability_limits": "默认数字类型分数/坐标已检查一致；未发现真实模型历史回复使用这些字符串。Unicode例是Python float支持的输入，但非正常JSON number。",
+    "reproduce": "PYTHONPATH=. .venv/bin/python packages/render-engine/migration/verification/VA04-quality/boundary_compare.py",
+    "evidence": [
+      "boundary-diffs.json: cases 440,441,442,445,531,532",
+      "boundary-input.json",
+      "boundary-python.json",
+      "boundary-ts.json"
+    ],
+    "recommendation": "在共享Python数值语义层校验下划线位置并支持Python十进制Unicode数字；针对评审与EditOp保持拒绝/接受一致。"
+  },
+  {
+    "id": "VA04-D02",
+    "title": "VerifierState未校验objective_summary的整型值",
+    "classification": "D",
+    "severity": "P2",
+    "python": [
+      "evodesign/agentic_system/verification_stage/state.py:67"
+    ],
+    "ts": [
+      "packages/render-engine/src/verification_stage/state.ts:142",
+      "packages/render-engine/src/verification_stage/state.ts:214"
+    ],
+    "trigger": {
+      "objective_summary": {
+        "major": "oops"
+      },
+      "status": "reported"
+    },
+    "before": "Pydantic Dict[str,int]在构造时抛ValidationError。",
+    "after": "TS仅检查dict，major=oops得到NaN，quality_passed=true、cli_exit_code=0；null/空容器也未拒绝。",
+    "impact": "错误状态数据可进入质量判断，状态构造/恢复的输入域与Python不同。",
+    "reachability_limits": "正常aggregator只生成整型计数，本轮未证明默认网页自动流程会生成该错误状态；直接状态构造已可复现。",
+    "reproduce": "PYTHONPATH=. .venv/bin/python packages/render-engine/migration/verification/VA04-quality/boundary_compare.py",
+    "evidence": [
+      "boundary-diffs.json: cases 472,473,474,475,476,477,478,479",
+      "boundary-python.json",
+      "boundary-ts.json"
+    ],
+    "recommendation": "为objective_summary使用与Pydantic Dict[str,int]一致的逐值校验/强制转换，并保持非法数据报错。"
+  },
+  {
+    "id": "VA04-D03",
+    "title": "Refiner状态的整数及可选浮点强制转换不等价",
+    "classification": "D",
+    "severity": "P2",
+    "python": [
+      "evodesign/agentic_system/refinement_stage/state.py:124",
+      "evodesign/agentic_system/refinement_stage/state.py:136",
+      "evodesign/agentic_system/refinement_stage/state.py:153"
+    ],
+    "ts": [
+      "packages/render-engine/src/refinement_stage/state.ts:81",
+      "packages/render-engine/src/refinement_stage/state.ts:101"
+    ],
+    "trigger": {
+      "max_iterations": "2.0",
+      "best_findings_score": [
+        "1_0",
+        "NaN",
+        "0x10"
+      ]
+    },
+    "before": "Pydantic接受max_iterations=2.0字符串并转2，接受合法下划线浮点1_0、NaN，拒绝十六进制0x10。",
+    "after": "TS拒绝2.0、1_0、NaN，却用Number接受0x10=16及0b10=2。",
+    "impact": "程序化控制/状态恢复可能提前报错，或接受Python拒绝的状态；有效整数轮次1..20及终止条件测试一致。",
+    "reachability_limits": "浏览器UI通常传number，best_findings_score由程序内部计算；未证明默认UI路径可达字符串输入。",
+    "reproduce": "PYTHONPATH=. .venv/bin/python packages/render-engine/migration/verification/VA04-quality/boundary_compare.py",
+    "evidence": [
+      "boundary-diffs.json: refiner_state cases",
+      "boundary-python.json",
+      "boundary-ts.json"
+    ],
+    "recommendation": "实现并统一Pydantic lax int/float规则，区别Python float与Pydantic float支持域，不直接套Number。"
+  },
+  {
+    "id": "VA04-D04",
+    "title": "空文本片段改变critic/refiner的成功与重试路径",
+    "classification": "D",
+    "severity": "P2",
+    "python": [
+      "evodesign/agentic_system/verification_stage/critic/critic_agent.py:208",
+      "evodesign/agentic_system/refinement_stage/agent/llm_agent.py:262"
+    ],
+    "ts": [
+      "packages/render-engine/src/verification_stage/critic/critic_agent.ts:290",
+      "packages/render-engine/src/refinement_stage/agent/llm_agent.ts:374"
+    ],
+    "trigger": {
+      "content": [
+        {
+          "type": "reasoning",
+          "text": null
+        },
+        {
+          "type": "text",
+          "text": "<valid JSON>"
+        }
+      ]
+    },
+    "before": "Python str.join遇None抛TypeError；critic重试3次后失败；refiner重试3次，last_exhaustion_error记录失败。",
+    "after": "TS critic的join把null合为空串；refiner pyStr后解析仍找到JSON；均1次成功，refiner无exhaustion。",
+    "impact": "注入模型或保留非文本parts的提供商响应会改变调用次数、校验成功/失败和降级信息。",
+    "reachability_limits": "由主智能体createOpenAIChatModel+mock fetch独立确认transport保留该parts；真实服务商是否发送该payload未验证。",
+    "reproduce": "PYTHONPATH=. .venv/bin/python packages/render-engine/migration/verification/VA04-quality/retry_compare.py",
+    "evidence": [
+      "retry-diffs.json: cases 5,11",
+      "retry-input.json",
+      "retry-python.json",
+      "retry-ts.json"
+    ],
+    "recommendation": "明确同一响应parts规则；若选择主动支持null，应同步Python并记为行为修复，而不是无差异迁移。"
+  }
+]

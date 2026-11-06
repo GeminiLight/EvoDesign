@@ -1,0 +1,23 @@
+[
+  {
+    "case": "flow_x1__web",
+    "calls": 4,
+    "events": 14,
+    "elements": 46,
+    "cancellation": true
+  },
+  {
+    "case": "flow_h1__web_router",
+    "calls": 5,
+    "events": 14,
+    "elements": 38,
+    "cancellation": true
+  },
+  {
+    "case": "hcai_demo__web_refine",
+    "calls": 5,
+    "events": 16,
+    "elements": 25,
+    "cancellation": true
+  }
+]

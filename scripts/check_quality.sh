@@ -100,6 +100,12 @@ run_user_memory() {
 run_frontend() {
     cd "$PROJECT_ROOT"
     "$PY" -m pytest tests/test_frontend_contract.py
+    # The frontend prepare lifecycle installs/builds this sibling package.
+    # These checks use only versioned inputs; full parity captures stay local.
+    cd "$PROJECT_ROOT/packages/render-engine"
+    npm run typecheck
+    npm run check:browser
+    npx vitest run test/py test/models test/generation
     cd "$PROJECT_ROOT/frontend"
     npm run lint
     npm run test:icons

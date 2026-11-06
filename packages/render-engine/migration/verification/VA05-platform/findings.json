@@ -1,0 +1,51 @@
+[
+  {
+    "id":"VA05-D01","classification":"D","severity":"P2","title":"网页请求模型把Python允许的base_version强制转换改成严格整数",
+    "python_location":"backend/app/schemas/diagram_generate.py:44",
+    "ts_location":"packages/render-engine/src/web_runtime/diagram_generate.ts:142",
+    "trigger":{"context":"test","canvas_library":"excalidraw","base_version":"1"},
+    "before":"Python/Pydantic接受字符串1、1.0以及true，并转为整数1。",
+    "after":"TS抛RequestValidationError(int_type)，请求不进入流水线。",
+    "impact":"程序化调用和旧请求体的可接受输入域改变；当前前端通常不传base_version或传number，不是已证实默认UI故障。",
+    "reproduction":"cd packages/render-engine && node node_modules/tsx/dist/cli.mjs migration/verification/VA05-platform/schema_probe.ts",
+    "evidence":["schema-results.json","schema-inputs.json","schema_probe.py","schema_probe.ts"]
+  },
+  {
+    "id":"VA05-D02","classification":"D","severity":"P2","title":"推断use_icons时未保留Python空容器真值规则",
+    "python_location":"backend/app/schemas/diagram_generate.py:56-60",
+    "ts_location":"packages/render-engine/src/web_runtime/diagram_generate.ts:183-186",
+    "trigger":{"context":"test","canvas_library":"excalidraw","current_schema":{"elements":[{"id":"node","type":"image","customData":{"evoDesignIcon":{}}}]}},
+    "before":"未显式指定use_icons时，Python将空dict/list标记视为False，推断use_icons=false。",
+    "after":"TS使用Boolean({})/Boolean([])，推断use_icons=true；isDeleted=[]同样改变live过滤与默认开关。",
+    "impact":"相同请求可切换图标生成策略和提示词。当前前端会显式传use_icons，通常避开此分支；公共streamDiagram入口与后端仍不同。",
+    "reproduction":"cd packages/render-engine && node node_modules/tsx/dist/cli.mjs migration/verification/VA05-platform/schema_probe.ts",
+    "evidence":["schema-results.json"]
+  },
+  {
+    "id":"VA05-P01","classification":"P","severity":"P2","title":"共享模型通道按既定策略改变模型、视觉评审和传输参数",
+    "python_location":"backend/app/services/llm_client.py; evodesign/core/llm_factory.py",
+    "ts_location":"frontend/src/services/browser/modelConfig.ts:57-61; frontend/src/services/browser/pipeline.worker.ts:20-31; shared/model-runs.mjs:105-125",
+    "before":"完整模式可使用配置的模型、流式请求和视觉评审；调用者可指定支持的模型参数。",
+    "after":"共享模式强制服务器模型、stream=false、thinking disabled、输出上限32768；默认supportsVision=false跳过critic。allowlist丢弃reasoning_effort和tool.function.strict等字段。",
+    "impact":"共享模型与自有模型/后端默认配置并非同条件实验，不能声称其生成和质量行为完全相同。模型/额度/stream与text-only路径是第三期明确的适配边界；参数差异应透明记录。",
+    "reproduction":"cd packages/render-engine && node migration/verification/VA05-platform/shared_probe.mjs",
+    "evidence":["shared-policy.json","shared-worker-smoke.json"]
+  },
+  {
+    "id":"VA05-P02","classification":"P","severity":"P3","title":"refiner预准备从并行变为串行，改变调度和计时",
+    "python_location":"backend/app/services/workflow_engine_adapter.py:405-408",
+    "ts_location":"packages/render-engine/src/web_runtime/index.ts:156-160",
+    "before":"Python通过asyncio.create_task在verification期间并行准备确定性refiner。",
+    "after":"TS先await准备完成，再发verification阶段事件，避免BrowserAsyncContext交叠。",
+    "impact":"正常录制下的决策/结果一致，但并行性、阶段延迟和耗时语义不完全相同；仍叫parallel_preparation_ms的字段不能证明实际并行。没有进行独立性能基准。",
+    "evidence":["web-runs-node24.json"],"reproduction_status":"源码调度差异；事件/模型/结果由27个成功web回放覆盖。"
+  },
+  {
+    "id":"VA05-I01","classification":"I","severity":"P2","title":"旧paper回放失配已定位为图标主动修复引发的基线漂移",
+    "before":"A的两个Styling方法动态载入后，Python旧web回放成功，所有历史产物比较为零差异。",
+    "after":"B在LayoutAgent调用2出现与TS完全相同的messages[4].content首处分歧，原顶层icon已转换。",
+    "impact":"旧回放27/28及35/36不是全部通过，也不能把这一例归为TS独有回归；新行为的该例下游仍未被原cassette完整核验。",
+    "reproduction":"cd /Users/zhanyi/Code/EvoDesign && .venv/bin/python packages/render-engine/migration/verification/VA05-platform/web_python_probe.py",
+    "evidence":["paper-baseline-comparison.json","paper-python-A/result.json","paper-python-B/mismatch.json"]
+  }
+]

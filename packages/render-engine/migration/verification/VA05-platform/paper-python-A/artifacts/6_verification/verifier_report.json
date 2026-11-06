@@ -1,0 +1,110 @@
+{
+ "manifest_path": "<OUT>/results/stream_runs/req_<ID>/4_render/diagram_manifest.json",
+ "image_path": "<OUT>/results/stream_runs/req_<ID>/4_render/diagram_manifest.png",
+ "canvas_library": "excalidraw",
+ "structure_path": "<OUT>/results/stream_runs/req_<ID>/1_structure/structure_instantiation.json",
+ "layout_path": "<OUT>/results/stream_runs/req_<ID>/3_layout/layout_instantiation.json",
+ "objective": {
+  "summary": {
+   "critical": 0,
+   "major": 0,
+   "minor": 0,
+   "info": 1,
+   "total": 1
+  },
+  "findings": [
+   {
+    "category": "collision/edge_crossing",
+    "severity": "info",
+    "message": "3 arrow crossing pair(s) detected. Sample: '1553aca93363e018bc28'×'f7e8bd12f0918a04a11b', '1553aca93363e018bc28'×'6d0265c94860e67a47d7', 'f7e8bd12f0918a04a11b'×'6d0265c94860e67a47d7'.",
+    "location": {
+     "count": 3,
+     "pairs": [
+      [
+       "1553aca93363e018bc28",
+       "f7e8bd12f0918a04a11b"
+      ],
+      [
+       "1553aca93363e018bc28",
+       "6d0265c94860e67a47d7"
+      ],
+      [
+       "f7e8bd12f0918a04a11b",
+       "6d0265c94860e67a47d7"
+      ]
+     ]
+    }
+   }
+  ]
+ },
+ "subjective": {
+  "structure": {
+   "score": 8.3,
+   "strengths": [
+    "Captures the specialized structure, style, and layout agents, rendering engine, refinement loop, editable output, and knowledge evolution components.",
+    "The bidirectional render–refiner connection clearly represents iterative correction.",
+    "The architecture format appropriately separates generation, refinement, experience search, and memory."
+   ],
+   "weaknesses": [
+    "The shared symbolic schema coordinating the three agents is not explicit; the sequential arrows primarily communicate handoffs.",
+    "Memory lists strategies, guidelines, and principles without showing the hierarchy emphasized in the source."
+   ],
+   "suggestions": [
+    "Label the agent handoffs with their specifications and identify their shared canvas schema.",
+    "Arrange the three memory levels as a compact hierarchy within the existing memory card."
+   ]
+  },
+  "styling": {
+   "score": 9.0,
+   "strengths": [
+    "Dark headings and muted supporting text establish a clear, readable typographic hierarchy.",
+    "Consistent rounded cards and restrained blue, teal, and green families distinguish functional groups without visual clutter.",
+    "Simple line icons reinforce component roles, and all labels fit comfortably inside their cards."
+   ],
+   "weaknesses": [],
+   "suggestions": []
+  },
+  "layout": {
+   "score": 7.6,
+   "strengths": [
+    "Agent cards and paired processing cards align cleanly, with consistent sizes and generous internal padding.",
+    "Short vertical connectors make the agent sequence and render–refiner loop easy to follow.",
+    "The input and editable output anchor a recognizable left-to-right architecture."
+   ],
+   "weaknesses": [
+    "The distiller-to-memory route overlaps the blue memory feedback route, making their shared segment and junction difficult to interpret.",
+    "The refiner-to-output connector crosses the render-to-search connector and takes a long detour above the cards.",
+    "Long perimeter routes create broad empty bands above and below the main processing cards."
+   ],
+   "suggestions": [
+    "Separate the distiller-to-memory and memory-to-agent routes into distinct horizontal tracks with clearly separated memory attachments.",
+    "Route the refiner output below the search and distillation cards, keeping it clear of the memory tracks.",
+    "After separating connectors, tighten the outer routing bands toward the cards while preserving readable gaps."
+   ]
+  },
+  "overall_score": 8.3,
+  "constraint_violations": [],
+  "summary": "The architecture is readable and visually consistent, but overlapping memory routes and a long crossing output connector obscure the feedback paths.",
+  "call_metrics": {
+   "duration_ms": 0,
+   "attempts": 1,
+   "max_image_edge": 3072,
+   "usage": {}
+  }
+ },
+ "design_constraints": "{\"source_and_explicit_design_requests\": \"The structure agent distills source content into a semantic graph aligned with user queries.\\nThe visual style agent defines aesthetic properties of the semantic topology G.\\nThe layout agent maps styled semantic elements onto a two-dimensional coordinate system.\\nAfter adding library metadata, the system executes deterministic rendering of the representation manifest.\\nThe refinement agent identifies discrepancies that emerge post-rendering.\\nThe refiner invokes precision tools for single-element updates, rerouting, and alignment.\\nRendering within the canvas environment produces an interactive visual artifact.\\nVertical exploration captures the reasoning path through iterative refiner thoughts, fixes, and feedback.\\nThe summarizer filters logs from hybrid experience search for subsequent knowledge distillation.\\nNewly collected strategies pass through distillation and are incrementally merged into M.\\nEach agent retrieves tailored context-aware heuristics; the structure agent uses tailored knowledge.\\nThe visual style agent uses retrieved knowledge Ksty.\\nThe spatial layout agent uses knowledge Klay.\", \"requirements\": \"Create a architecture diagram that visualizes the provided text.\", \"user_design_preferences\": \"\", \"diagram_type\": \"architecture\", \"locked_element_ids\": [], \"icons\": \"Node icons are disabled. Do not add or recommend them.\"}",
+ "metadata": {
+  "timestamp": "<TIMESTAMP>",
+  "vlm_model": "cassette-model",
+  "skip_critic": false,
+  "canvas_library": "excalidraw",
+  "status": "reported",
+  "had_errors": false,
+  "had_blocking_errors": false,
+  "had_blocking_findings": false,
+  "quality_passed": true,
+  "errors": [],
+  "blocking_errors": [],
+  "nonblocking_errors": []
+ }
+}

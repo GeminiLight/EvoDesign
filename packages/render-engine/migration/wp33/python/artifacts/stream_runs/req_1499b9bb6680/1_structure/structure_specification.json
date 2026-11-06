@@ -1,0 +1,60 @@
+{
+  "diagram_paradigm": {
+    "chart_type": "flowchart",
+    "confidence": "high",
+    "intent": "Payment success leads to shipment and confirmation; payment failure prompts a retry request.",
+    "primary_organizer": "Continuous process spine with a payment decision and two outcome branches.",
+    "type_budget": "type=flowchart → nodes≤6, groups=0, edges=5"
+  },
+  "semantic_typology": {
+    "node_roles": [
+      "start",
+      "process",
+      "decision",
+      "end"
+    ],
+    "fact_ledger": [
+      {
+        "subject_id": "submit_order",
+        "predicate": "proceeds to payment authorization",
+        "object_id": "authorize_payment",
+        "evidence": "A customer submits an order. The payment service authorizes payment."
+      },
+      {
+        "subject_id": "payment_succeeds",
+        "predicate": "on failure prompts retry request",
+        "object_id": "request_retry",
+        "evidence": "If payment fails, ask the customer to retry."
+      },
+      {
+        "subject_id": "payment_succeeds",
+        "predicate": "on success proceeds to shipment",
+        "object_id": "ship_parcel",
+        "evidence": "If payment succeeds, the warehouse ships the parcel"
+      },
+      {
+        "subject_id": "ship_parcel",
+        "predicate": "is followed by customer confirmation",
+        "object_id": "receive_confirmation",
+        "evidence": "the warehouse ships the parcel and the customer receives a confirmation."
+      }
+    ],
+    "organizer_ledger": [
+      {
+        "source_id": "authorize_payment",
+        "label": "branches by payment outcome",
+        "target_id": "payment_succeeds"
+      }
+    ]
+  },
+  "topological_invariants": [
+    "The success spine is submit_order → authorize_payment → payment_succeeds → ship_parcel → receive_confirmation.",
+    "The decision has exactly two outgoing branches, labeled Yes and No.",
+    "The failure branch ends at the retry request; no completed retry or return transition is stated.",
+    "No groups or additional helper nodes."
+  ],
+  "schema_extensions": {
+    "relation": "Semantic predicate retained independently of visible edge labels.",
+    "evidence_basis": "Distinguishes source claims from the structural outcome checkpoint."
+  }
+}

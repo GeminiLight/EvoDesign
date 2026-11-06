@@ -4,9 +4,11 @@ from copy import deepcopy
 
 import pytest
 
-from evodesign.agentic_system.render_engine.excalidraw.arrow_adder import (
+from evodesign.agentic_system.render_engine.excalidraw.arrow_routing.geometry import (
     _absolute_arrow_points,
     _path_parallel_channel_penalty,
+)
+from evodesign.agentic_system.render_engine.excalidraw.arrow_routing.passes import (
     _separate_final_channels,
     _spread_final_target_ports,
 )

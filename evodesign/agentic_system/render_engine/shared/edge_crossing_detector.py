@@ -259,6 +259,43 @@ def count_prepared_crossings(
     return count
 
 
+_IndexedArrow = Tuple[str, List[_PreparedSegment], Optional[Tuple[float, float, float, float]]]
+
+
+def _index_arrow(arrow: Dict[str, Any]) -> Optional[_IndexedArrow]:
+    """Prepared segments of a visible, identified arrow with a drawable path."""
+    if not _is_visible_arrow(arrow):
+        return None
+    aid = arrow.get("id")
+    if not aid:
+        return None
+    segs = _arrow_segments(arrow)
+    if not segs:
+        return None
+    prepared = _prepare(segs)
+    return aid, prepared, _union_box(prepared)
+
+
+def _first_crossing(first: _IndexedArrow, second: _IndexedArrow) -> Optional[Tuple[int, int]]:
+    """Segment indices of the first crossing between two arrows, if any."""
+    _, segs_i, box_i_all = first
+    _, segs_j, box_j_all = second
+    if box_i_all is not None and box_j_all is not None and _boxes_apart(box_i_all, box_j_all):
+        return None
+    for si_idx, (si, box_i) in enumerate(segs_i):
+        for sj_idx, (sj, box_j) in enumerate(segs_j):
+            if box_i is not None and box_j is not None and _boxes_apart(box_i, box_j):
+                continue
+            if _shares_endpoint(si, sj):
+                # Two segments that join at a common point (e.g.
+                # two incoming arrows sharing the same target
+                # face midpoint) are convergence, not crossing.
+                continue
+            if _segments_intersect(si, sj):
+                return si_idx, sj_idx
+    return None
+
+
 def detect_crossings(
     arrows: List[Dict[str, Any]],
 ) -> List[Tuple[str, str, Dict[str, Any]]]:
@@ -274,55 +311,40 @@ def detect_crossings(
         Each arrow pair appears at most once; order within the pair is
         ``(smaller_id, larger_id)`` for stable diff.
     """
-    if not arrows:
-        return []
-
-    # Pre-compute segments per arrow
-    indexed: List[Tuple[str, List[_PreparedSegment], Optional[Tuple[float, float, float, float]]]] = []
-    for a in arrows:
-        if not _is_visible_arrow(a):
-            continue
-        aid = a.get("id")
-        if not aid:
-            continue
-        segs = _arrow_segments(a)
-        if segs:
-            prepared = _prepare(segs)
-            indexed.append((aid, prepared, _union_box(prepared)))
-
+    indexed = [entry for entry in map(_index_arrow, arrows or []) if entry]
     crossings: List[Tuple[str, str, Dict[str, Any]]] = []
-
     for i in range(len(indexed)):
-        id_i, segs_i, box_i_all = indexed[i]
         for j in range(i + 1, len(indexed)):
-            id_j, segs_j, box_j_all = indexed[j]
-            if box_i_all is not None and box_j_all is not None and _boxes_apart(box_i_all, box_j_all):
+            first_cross = _first_crossing(indexed[i], indexed[j])
+            if first_cross is None:
                 continue
-            first_cross: Tuple[int, int] = (-1, -1)
-            for si_idx, (si, box_i) in enumerate(segs_i):
-                for sj_idx, (sj, box_j) in enumerate(segs_j):
-                    if box_i is not None and box_j is not None and _boxes_apart(box_i, box_j):
-                        continue
-                    if _shares_endpoint(si, sj):
-                        # Two segments that join at a common point (e.g.
-                        # two incoming arrows sharing the same target
-                        # face midpoint) are convergence, not crossing.
-                        continue
-                    if _segments_intersect(si, sj):
-                        first_cross = (si_idx, sj_idx)
-                        break
-                if first_cross != (-1, -1):
-                    break
-            if first_cross != (-1, -1):
-                a_id, b_id = sorted((id_i, id_j))
-                crossings.append(
-                    (
-                        a_id,
-                        b_id,
-                        {
-                            "segment_index_a": first_cross[0] if a_id == id_i else first_cross[1],
-                            "segment_index_b": first_cross[1] if a_id == id_i else first_cross[0],
-                        },
-                    )
+            id_i, id_j = indexed[i][0], indexed[j][0]
+            a_id, b_id = sorted((id_i, id_j))
+            crossings.append(
+                (
+                    a_id,
+                    b_id,
+                    {
+                        "segment_index_a": first_cross[0] if a_id == id_i else first_cross[1],
+                        "segment_index_b": first_cross[1] if a_id == id_i else first_cross[0],
+                    },
                 )
+            )
     return crossings
+
+
+def count_arrow_crossings(arrow: Dict[str, Any], others: List[Dict[str, Any]]) -> int:
+    """Number of pairs :func:`detect_crossings` would report between ``arrow`` and ``others``.
+
+    Crossings are decided pair by pair, so replacing one arrow changes a
+    scene's total by exactly the difference of this count. Route search uses
+    that to score a candidate in O(E) instead of re-detecting the scene.
+    """
+    indexed = _index_arrow(arrow)
+    if indexed is None:
+        return 0
+    return sum(
+        1
+        for other in map(_index_arrow, others)
+        if other is not None and _first_crossing(indexed, other) is not None
+    )

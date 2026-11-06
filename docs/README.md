@@ -21,6 +21,7 @@ and citation downloads stay at their existing URLs.
 - [Web quality loop](development/web-quality-loop.md) · [node icons](development/node-icons.md)
 - [Website maintenance and discovery](development/website.md) · [performance](development/performance.md)
 - [Regional browser deployments](development/regional-deployment.md)
+- [Browser pipeline migration](../packages/render-engine/migration/PHASE3_REPORT.md) · [algorithm verification and open differences](../packages/render-engine/migration/ALGORITHM_VERIFICATION_REPORT.md)
 - [Integration reviews](development/reviews/)
 
 ## Research and reference

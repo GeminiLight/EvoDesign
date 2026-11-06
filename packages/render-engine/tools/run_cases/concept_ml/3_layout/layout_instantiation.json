@@ -1,0 +1,313 @@
+{
+  "machine_learning": {
+    "shape": "ellipse",
+    "label": {
+      "text": "机器学习"
+    },
+    "strokeColor": "#3F4A8A",
+    "backgroundColor": "#DCE0F5",
+    "fillStyle": "solid",
+    "strokeWidth": 3,
+    "roughness": 0,
+    "x": 700,
+    "y": 420,
+    "w": 220,
+    "h": 90
+  },
+  "supervised": {
+    "shape": "rectangle",
+    "label": {
+      "text": "监督学习"
+    },
+    "strokeColor": "#2F6F5E",
+    "backgroundColor": "#D5EDE4",
+    "fillStyle": "solid",
+    "strokeWidth": 3,
+    "roughness": 0,
+    "x": 320,
+    "y": 180,
+    "w": 180,
+    "h": 64
+  },
+  "unsupervised": {
+    "shape": "rectangle",
+    "label": {
+      "text": "无监督学习"
+    },
+    "strokeColor": "#8A5A2B",
+    "backgroundColor": "#F4E3CF",
+    "fillStyle": "solid",
+    "strokeWidth": 3,
+    "roughness": 0,
+    "x": 1120,
+    "y": 180,
+    "w": 200,
+    "h": 64
+  },
+  "reinforcement": {
+    "shape": "rectangle",
+    "label": {
+      "text": "强化学习"
+    },
+    "strokeColor": "#7A3F6B",
+    "backgroundColor": "#F0D9EA",
+    "fillStyle": "solid",
+    "strokeWidth": 3,
+    "roughness": 0,
+    "x": 720,
+    "y": 720,
+    "w": 180,
+    "h": 64
+  },
+  "classification": {
+    "shape": "rectangle",
+    "label": {
+      "text": "分类"
+    },
+    "strokeColor": "#2F6F5E",
+    "backgroundColor": "#D5EDE4",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "roughness": 0,
+    "x": 80,
+    "y": 80,
+    "w": 140,
+    "h": 56
+  },
+  "regression": {
+    "shape": "rectangle",
+    "label": {
+      "text": "回归"
+    },
+    "strokeColor": "#2F6F5E",
+    "backgroundColor": "#D5EDE4",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "roughness": 0,
+    "x": 80,
+    "y": 300,
+    "w": 140,
+    "h": 56
+  },
+  "clustering": {
+    "shape": "rectangle",
+    "label": {
+      "text": "聚类"
+    },
+    "strokeColor": "#8A5A2B",
+    "backgroundColor": "#F4E3CF",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "roughness": 0,
+    "x": 1440,
+    "y": 80,
+    "w": 140,
+    "h": 56
+  },
+  "dim_reduction": {
+    "shape": "rectangle",
+    "label": {
+      "text": "降维"
+    },
+    "strokeColor": "#8A5A2B",
+    "backgroundColor": "#F4E3CF",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "roughness": 0,
+    "x": 1440,
+    "y": 300,
+    "w": 140,
+    "h": 56
+  },
+  "agent": {
+    "shape": "rectangle",
+    "label": {
+      "text": "智能体"
+    },
+    "strokeColor": "#7A3F6B",
+    "backgroundColor": "#F0D9EA",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "roughness": 0,
+    "x": 440,
+    "y": 900,
+    "w": 140,
+    "h": 56
+  },
+  "reward": {
+    "shape": "rectangle",
+    "label": {
+      "text": "奖励信号"
+    },
+    "strokeColor": "#7A3F6B",
+    "backgroundColor": "#F0D9EA",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "roughness": 0,
+    "x": 1040,
+    "y": 900,
+    "w": 160,
+    "h": 56
+  },
+  "edge:machine_learning2supervised": {
+    "strokeColor": "#4A5060",
+    "start": {
+      "elementId": "machine_learning",
+      "side": "left"
+    },
+    "end": {
+      "elementId": "supervised",
+      "side": "right"
+    },
+    "routing": "curved",
+    "startArrowhead": null,
+    "endArrowhead": "arrow"
+  },
+  "edge:machine_learning2unsupervised": {
+    "strokeColor": "#4A5060",
+    "start": {
+      "elementId": "machine_learning",
+      "side": "right"
+    },
+    "end": {
+      "elementId": "unsupervised",
+      "side": "left"
+    },
+    "routing": "curved",
+    "startArrowhead": null,
+    "endArrowhead": "arrow"
+  },
+  "edge:machine_learning2reinforcement": {
+    "strokeColor": "#4A5060",
+    "start": {
+      "elementId": "machine_learning",
+      "side": "bottom"
+    },
+    "end": {
+      "elementId": "reinforcement",
+      "side": "top"
+    },
+    "routing": "curved",
+    "startArrowhead": null,
+    "endArrowhead": "arrow"
+  },
+  "edge:supervised2classification": {
+    "strokeColor": "#4A5060",
+    "start": {
+      "elementId": "supervised",
+      "side": "left"
+    },
+    "end": {
+      "elementId": "classification",
+      "side": "right"
+    },
+    "routing": "curved",
+    "startArrowhead": null,
+    "endArrowhead": "arrow",
+    "label": {
+      "text": "包括"
+    }
+  },
+  "edge:supervised2regression": {
+    "strokeColor": "#4A5060",
+    "start": {
+      "elementId": "supervised",
+      "side": "left"
+    },
+    "end": {
+      "elementId": "regression",
+      "side": "right"
+    },
+    "routing": "curved",
+    "startArrowhead": null,
+    "endArrowhead": "arrow",
+    "label": {
+      "text": "包括"
+    }
+  },
+  "edge:unsupervised2clustering": {
+    "strokeColor": "#4A5060",
+    "start": {
+      "elementId": "unsupervised",
+      "side": "right"
+    },
+    "end": {
+      "elementId": "clustering",
+      "side": "left"
+    },
+    "routing": "curved",
+    "startArrowhead": null,
+    "endArrowhead": "arrow",
+    "label": {
+      "text": "包括"
+    }
+  },
+  "edge:unsupervised2dim_reduction": {
+    "strokeColor": "#4A5060",
+    "start": {
+      "elementId": "unsupervised",
+      "side": "right"
+    },
+    "end": {
+      "elementId": "dim_reduction",
+      "side": "left"
+    },
+    "routing": "curved",
+    "startArrowhead": null,
+    "endArrowhead": "arrow",
+    "label": {
+      "text": "包括"
+    }
+  },
+  "edge:reinforcement2agent": {
+    "strokeColor": "#4A5060",
+    "start": {
+      "elementId": "reinforcement",
+      "side": "left"
+    },
+    "end": {
+      "elementId": "agent",
+      "side": "right"
+    },
+    "routing": "curved",
+    "startArrowhead": null,
+    "endArrowhead": "arrow",
+    "label": {
+      "text": "训练"
+    }
+  },
+  "edge:reward2agent": {
+    "strokeColor": "#4A5060",
+    "start": {
+      "elementId": "reward",
+      "side": "left"
+    },
+    "end": {
+      "elementId": "agent",
+      "side": "right"
+    },
+    "routing": "curved",
+    "startArrowhead": null,
+    "endArrowhead": "arrow",
+    "label": {
+      "text": "引导"
+    }
+  },
+  "edge:dim_reduction2clustering": {
+    "strokeColor": "#4A5060",
+    "start": {
+      "elementId": "dim_reduction",
+      "side": "top"
+    },
+    "end": {
+      "elementId": "clustering",
+      "side": "bottom"
+    },
+    "routing": "curved",
+    "startArrowhead": null,
+    "endArrowhead": "arrow",
+    "label": {
+      "text": "常用于"
+    }
+  }
+}

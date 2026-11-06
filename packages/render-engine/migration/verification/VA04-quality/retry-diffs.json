@@ -1,0 +1,65 @@
+[
+ {
+  "case": {
+   "id": 5,
+   "role": "critic",
+   "content": [
+    {
+     "type": "reasoning",
+     "text": null
+    },
+    {
+     "type": "text",
+     "text": "{\"structure\": {\"score\": 8}, \"styling\": {\"score\": 8}, \"layout\": {\"score\": 8}, \"overall_score\": 8}"
+    }
+   ]
+  },
+  "python": {
+   "id": 5,
+   "calls": 3,
+   "ok": false,
+   "error": "TypeError",
+   "message": "sequence item 0: expected str instance, NoneType found"
+  },
+  "ts": {
+   "id": 5,
+   "calls": 1,
+   "ok": true,
+   "value": 8
+  }
+ },
+ {
+  "case": {
+   "id": 11,
+   "role": "refiner",
+   "content": [
+    {
+     "type": "reasoning",
+     "text": null
+    },
+    {
+     "type": "text",
+     "text": "[]"
+    }
+   ]
+  },
+  "python": {
+   "id": 11,
+   "calls": 3,
+   "ok": true,
+   "value": {
+    "edits": 0,
+    "exhaustion": "TypeError: sequence item 0: expected str instance, NoneType found"
+   }
+  },
+  "ts": {
+   "id": 11,
+   "calls": 1,
+   "ok": true,
+   "value": {
+    "edits": 0,
+    "exhaustion": null
+   }
+  }
+ }
+]

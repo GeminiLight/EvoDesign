@@ -1,0 +1,221 @@
+{
+ "input_content": {
+  "shape": "rectangle",
+  "label": {
+   "text": "Input Content",
+   "fontFamily": 2,
+   "fontSize": 18,
+   "fontStyle": 0,
+   "lineHeight": 1.2,
+   "color": "#21343A"
+  },
+  "sublabel": "Source content / User requirements",
+  "backgroundColor": "#D7E3EA",
+  "strokeColor": "#4B6F82",
+  "fillStyle": "solid",
+  "strokeWidth": 2,
+  "strokeStyle": "solid",
+  "roughness": 0
+ },
+ "structure_agent": {
+  "shape": "rectangle",
+  "label": {
+   "text": "Structure Agent",
+   "fontFamily": 2,
+   "fontSize": 18,
+   "fontStyle": 1,
+   "lineHeight": 1.2,
+   "color": "#21343A"
+  },
+  "sublabel": "Semantic topology / Structure specification",
+  "backgroundColor": "#D2E9E7",
+  "strokeColor": "#367E8A",
+  "fillStyle": "solid",
+  "strokeWidth": 2,
+  "strokeStyle": "solid",
+  "roughness": 0
+ },
+ "style_agent": {
+  "shape": "rectangle",
+  "label": {
+   "text": "Style Agent",
+   "fontFamily": 2,
+   "fontSize": 18,
+   "fontStyle": 1,
+   "lineHeight": 1.2,
+   "color": "#21343A"
+  },
+  "sublabel": "Visual encodings / Styling specification",
+  "backgroundColor": "#D2E9E7",
+  "strokeColor": "#367E8A",
+  "fillStyle": "solid",
+  "strokeWidth": 2,
+  "strokeStyle": "solid",
+  "roughness": 0
+ },
+ "layout_agent": {
+  "shape": "rectangle",
+  "label": {
+   "text": "Layout Agent",
+   "fontFamily": 2,
+   "fontSize": 18,
+   "fontStyle": 1,
+   "lineHeight": 1.2,
+   "color": "#21343A"
+  },
+  "sublabel": "Geometry / Routing / Layout specification",
+  "backgroundColor": "#D2E9E7",
+  "strokeColor": "#367E8A",
+  "fillStyle": "solid",
+  "strokeWidth": 2,
+  "strokeStyle": "solid",
+  "roughness": 0
+ },
+ "canvas_render_engine": {
+  "shape": "rectangle",
+  "label": {
+   "text": "Canvas Render Engine",
+   "fontFamily": 2,
+   "fontSize": 18,
+   "fontStyle": 1,
+   "lineHeight": 1.2,
+   "color": "#21343A"
+  },
+  "sublabel": "Canvas schema / Deterministic rendering",
+  "backgroundColor": "#D7E3EA",
+  "strokeColor": "#4B6F82",
+  "fillStyle": "solid",
+  "strokeWidth": 2,
+  "strokeStyle": "solid",
+  "roughness": 0
+ },
+ "diagram_refiner": {
+  "shape": "rectangle",
+  "label": {
+   "text": "Diagram Refiner",
+   "fontFamily": 2,
+   "fontSize": 18,
+   "fontStyle": 0,
+   "lineHeight": 1.2,
+   "color": "#21343A"
+  },
+  "sublabel": "Visual diagnosis / Tool-augmented correction",
+  "backgroundColor": "#D2E9E7",
+  "strokeColor": "#367E8A",
+  "fillStyle": "solid",
+  "strokeWidth": 2,
+  "strokeStyle": "solid",
+  "roughness": 0
+ },
+ "editable_diagram": {
+  "shape": "rectangle",
+  "label": {
+   "text": "Editable Diagram",
+   "fontFamily": 2,
+   "fontSize": 18,
+   "fontStyle": 0,
+   "lineHeight": 1.2,
+   "color": "#21343A"
+  },
+  "sublabel": "Object-level editing / Direct UI operations",
+  "backgroundColor": "#DDEFE7",
+  "strokeColor": "#5E8A75",
+  "fillStyle": "solid",
+  "strokeWidth": 2,
+  "strokeStyle": "solid",
+  "roughness": 0
+ },
+ "hybrid_experience_search": {
+  "shape": "rectangle",
+  "label": {
+   "text": "Hybrid Experience Search",
+   "fontFamily": 2,
+   "fontSize": 18,
+   "fontStyle": 0,
+   "lineHeight": 1.2,
+   "color": "#21343A"
+  },
+  "sublabel": "Vertical refinement / Horizontal comparison",
+  "backgroundColor": "#DDEFE7",
+  "strokeColor": "#5E8A75",
+  "fillStyle": "solid",
+  "strokeWidth": 2,
+  "strokeStyle": "solid",
+  "roughness": 0
+ },
+ "knowledge_distiller": {
+  "shape": "rectangle",
+  "label": {
+   "text": "Knowledge Distiller",
+   "fontFamily": 2,
+   "fontSize": 18,
+   "fontStyle": 0,
+   "lineHeight": 1.2,
+   "color": "#21343A"
+  },
+  "sublabel": "Summarization / Aggregation / Abstraction",
+  "backgroundColor": "#DDEFE7",
+  "strokeColor": "#5E8A75",
+  "fillStyle": "solid",
+  "strokeWidth": 2,
+  "strokeStyle": "solid",
+  "roughness": 0
+ },
+ "design_expertise_memory": {
+  "shape": "rectangle",
+  "label": {
+   "text": "Design Expertise Memory",
+   "fontFamily": 2,
+   "fontSize": 18,
+   "fontStyle": 1,
+   "lineHeight": 1.2,
+   "color": "#21343A"
+  },
+  "sublabel": "Sample strategies / Guidelines / Principles",
+  "backgroundColor": "#D7E3EA",
+  "strokeColor": "#4B6F82",
+  "fillStyle": "solid",
+  "strokeWidth": 2,
+  "strokeStyle": "solid",
+  "roughness": 0
+ },
+ "edge:input_content2structure_agent": {
+  "strokeColor": "#21343A"
+ },
+ "edge:structure_agent2style_agent": {
+  "strokeColor": "#21343A"
+ },
+ "edge:style_agent2layout_agent": {
+  "strokeColor": "#21343A"
+ },
+ "edge:layout_agent2canvas_render_engine": {
+  "strokeColor": "#21343A"
+ },
+ "edge:canvas_render_engine2diagram_refiner": {
+  "strokeColor": "#21343A"
+ },
+ "edge:diagram_refiner2canvas_render_engine": {
+  "strokeColor": "#21343A"
+ },
+ "edge:canvas_render_engine2editable_diagram": {
+  "strokeColor": "#21343A"
+ },
+ "edge:diagram_refiner2hybrid_experience_search": {
+  "strokeColor": "#21343A"
+ },
+ "edge:hybrid_experience_search2knowledge_distiller": {
+  "strokeColor": "#21343A"
+ },
+ "edge:knowledge_distiller2design_expertise_memory": {
+  "strokeColor": "#21343A"
+ },
+ "edge:design_expertise_memory2structure_agent": {
+  "strokeColor": "#21343A"
+ },
+ "edge:design_expertise_memory2style_agent": {
+  "strokeColor": "#21343A"
+ },
+ "edge:design_expertise_memory2layout_agent": {
+  "strokeColor": "#21343A"
+ }
+}

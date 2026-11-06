@@ -97,7 +97,7 @@ test('Studio serves SPA routes and real assets; bounded API preserves origin rej
     assert.deepEqual(await (await fetch(base + '/api/model')).json(), { available: false, model: 'glm-5.3-flash' });
     assert.equal((await fetch(base + '/api/model', { method: 'POST', headers: { Origin: 'https://evil.example', 'Content-Type': 'application/json' }, body: '{}' })).status, 403);
     assert.equal((await fetch(base + '/api/model', { method: 'POST', headers: { Origin: 'https://geminilight-evodesign.ms.show', 'Content-Type': 'application/json' }, body: '{}' })).status, 503);
-    assert.equal((await fetch(base + '/api/model', { method: 'POST', body: 'x'.repeat(100001) })).status, 413);
+    assert.equal((await fetch(base + '/api/model', { method: 'POST', body: 'x'.repeat(8_000_001) })).status, 413);
   } finally { await new Promise(resolve => server.close(resolve)); await rm(root, { recursive: true, force: true }); }
 });
 
@@ -105,7 +105,7 @@ test('Studio starts through a symlink from an unrelated working directory', asyn
   const root = await mkdtemp(join(tmpdir(), 'evodesign-studio-start-'));
   const app = join(root, 'release');
   const repository = fileURLToPath(new URL('../../', import.meta.url));
-  for (const path of ['deploy/modelscope/server.mjs', 'api/model.mjs', 'shared/diagram-prompts.mjs', 'shared/edge-identity.mjs']) {
+  for (const path of ['deploy/modelscope/server.mjs', 'api/model.mjs', 'shared/diagram-prompts.mjs', 'shared/edge-identity.mjs', 'shared/model-runs.mjs']) {
     const destination = join(app, path);
     await mkdir(join(destination, '..'), { recursive: true });
     await copyFile(join(repository, path), destination);
