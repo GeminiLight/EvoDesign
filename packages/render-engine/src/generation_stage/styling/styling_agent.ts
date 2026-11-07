@@ -192,7 +192,7 @@ export class StylingAgent extends BaseAgent {
    * 3) Direct canonical icon entries (`<id>:icon`).
    */
   _postprocess_styling_json(styling_json: Dict): Dict {
-    const processed: Dict = {};
+    const processed: Dict = Object.create(null);
     let extracted_icons = 0;
     let normalized_icons = 0;
 
@@ -273,7 +273,7 @@ export class StylingAgent extends BaseAgent {
     canvas_library: string,
     structure_instantiation: Dict | null = null,
   ): Dict {
-    const sanitized: Dict = {};
+    const sanitized: Dict = Object.create(null);
     let sanitized_edge_count = 0;
     const structure_edge_ids = this._collect_structure_edge_ids(structure_instantiation);
 

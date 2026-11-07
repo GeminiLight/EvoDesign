@@ -3,6 +3,8 @@ import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
 export const RUN_TTL = 900;
 const CALL_LIMIT = 40;
 const TOKEN_LIMIT = 400_000;
+export const visitorTokenLimit = dailyTokens => Math.floor(dailyTokens / 5);
+export const VISITOR_QUOTA_MESSAGE = 'This visitor’s shared model allowance has been reached for today. Connect your own model to continue.';
 export const ISSUE_RUN_SCRIPT = `
 local now=tonumber(redis.call('TIME')[1])
 local day=math.floor(now/86400)
@@ -22,14 +24,18 @@ if redis.call('HGET',run,'visitor')~=ARGV[5] then return -3 end
 if tonumber(redis.call('HGET',run,'calls') or '0')>=tonumber(ARGV[8]) then return -2 end
 if tonumber(redis.call('HGET',run,'tokens') or '0')+tonumber(ARGV[1])>tonumber(ARGV[9]) then return -2 end
 local counter=KEYS[1]..':day:'..day
+local visitorTokens=counter..':tokens:'..ARGV[5]
 local active=KEYS[1]..':active'
 redis.call('ZREMRANGEBYSCORE',active,'-inf',now)
 if tonumber(redis.call('GET',counter) or '0')+tonumber(ARGV[1])>tonumber(ARGV[2]) then return 0 end
+if tonumber(redis.call('GET',visitorTokens) or '0')+tonumber(ARGV[1])>tonumber(ARGV[10]) then return -4 end
 if redis.call('ZCARD',active)>=tonumber(ARGV[3]) then return -1 end
 redis.call('HINCRBY',run,'calls',1)
 redis.call('HINCRBY',run,'tokens',ARGV[1])
 redis.call('INCRBY',counter,ARGV[1])
 redis.call('EXPIREAT',counter,(day+2)*86400)
+redis.call('INCRBY',visitorTokens,ARGV[1])
+redis.call('EXPIREAT',visitorTokens,(day+2)*86400)
 redis.call('ZADD',active,now+150,ARGV[4])
 return 1`;
 
@@ -130,21 +136,28 @@ export async function handleRunRequest({ request, input, visitor, env, fetcher, 
   // Base64 is an encoding, not text tokens. Reserve a conservative image
   // allowance per image plus UTF-8 text bytes and the maximum output budget.
   let imageTokens = 0;
-  const text = JSON.stringify(body, (_key, value) => {
-    if (typeof value === 'string' && value.startsWith('data:image/')) { imageTokens += 16384; return '<image>'; }
-    return value;
+  const messages = body.messages.map(message => {
+    if (!Array.isArray(message.content)) return message;
+    const content = message.content.map(part => {
+      if (part.type !== 'image_url') return part;
+      imageTokens += 16384;
+      return { ...part, image_url: { ...part.image_url, url: '<image>' } };
+    });
+    return { ...message, content };
   });
-  const reserved = Buffer.byteLength(text) + imageTokens + body.max_tokens + 512;
+  const reserved = Buffer.byteLength(JSON.stringify({ ...body, messages })) + imageTokens + body.max_tokens + 512;
   const id = randomUUID();
   let reservation;
   try {
-    const limits = { reserved, id, visitor, runId: claims.id, dailyTokens: positive(env.DEMO_DAILY_TOKENS, 2_000_000),
+    const dailyTokens = positive(env.DEMO_DAILY_TOKENS, 2_000_000);
+    const limits = { reserved, id, visitor, runId: claims.id, dailyTokens, visitorTokens: visitorTokenLimit(dailyTokens),
       concurrency: positive(env.DEMO_CONCURRENCY, 4), callLimit: CALL_LIMIT, tokenLimit: TOKEN_LIMIT };
     reservation = options.budget ? await options.budget.reserveRun(limits)
       : await budget(['EVAL', RESERVE_RUN_SCRIPT, 1, key, reserved, limits.dailyTokens, limits.concurrency,
-        id, visitor, 0, claims.id, CALL_LIMIT, TOKEN_LIMIT], env, fetcher);
+        id, visitor, 0, claims.id, CALL_LIMIT, TOKEN_LIMIT, limits.visitorTokens], env, fetcher);
   } catch { return error('budget', 'The shared model is temporarily unavailable.', 503); }
   if (reservation === -1) return error('busy', 'The shared model is busy. Retry shortly.', 429, { 'Retry-After': '10' });
+  if (reservation === -4) return error('quota', VISITOR_QUOTA_MESSAGE, 429);
   if (reservation !== 1) return error('quota', 'The generation allowance has been reached. Start a new diagram or use your own model.', reservation === null ? 503 : 429);
   try {
     const response = await fetcher(options.endpoint || endpoint, {

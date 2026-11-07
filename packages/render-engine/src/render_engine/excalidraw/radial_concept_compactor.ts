@@ -17,7 +17,7 @@ import { markF, pyDeepcopy, pyUpdate } from '../../py/float_marks.ts';
 import { id_map_from_manifest } from '../../common/semantic_ids.ts';
 import { unwrap_structure_instantiation } from '../../common/spec_utils.ts';
 import { _estimate_text_dimensions } from '../../generation_stage/layout/element_shape_estimator.ts';
-import { pyGet, pyGetItem, pyItems, pyKeys, pyPop, pySetdefault, pyValues } from '../../py/dict.ts';
+import { pySetItem, pyGet, pyGetItem, pyItems, pyKeys, pyPop, pySetdefault, pyValues } from '../../py/dict.ts';
 import { pyEq, pyIn } from '../../py/eq.ts';
 import { PyTypeError, StopIteration, ValueError } from '../../py/errors.ts';
 import { sha256Hex } from '../../py/hash.ts';
@@ -216,8 +216,7 @@ function _ebValues(elements_by_id: ElementsById): Dict[] {
 }
 
 function _ebSet(elements_by_id: ElementsById, key: string, value: Dict): void {
-  if (elements_by_id instanceof Map) elements_by_id.set(key, value);
-  else (elements_by_id as Record<string, Dict>)[key] = value;
+  pySetItem(elements_by_id, key, value);
 }
 
 // ---------------------------------------------------------------------------
@@ -427,7 +426,7 @@ export function _normalize_concept_shape_language(
 ): null {
   const nodeIdList = [...node_ids];
   const anchor_ids = new Set(pyValues(sectors) as string[]);
-  const leaf_widths: Record<string, number> = {};
+  const leaf_widths: Record<string, number> = Object.create(null);
   for (const branch_id of pyKeys(sectors) as string[]) {
     const excluded = new Set<unknown>([core_id, ...anchor_ids]);
     const widths: number[] = [];
@@ -763,13 +762,13 @@ export function _best_branch_order(branch_ids: Iterable<string>, interactions: I
   }
   let best = original;
   let best_cost: [number, number] | null = null;
-  const original_index: Record<string, number> = {};
+  const original_index: Record<string, number> = Object.create(null);
   original.forEach((branch_id, index) => {
     original_index[branch_id] = index;
   });
   const items = _interactionItems(interactions);
   for (const candidate of _permutations(original)) {
-    const positions: Record<string, number> = {};
+    const positions: Record<string, number> = Object.create(null);
     candidate.forEach((branch_id, index) => {
       positions[branch_id] = index;
     });
@@ -793,7 +792,7 @@ export function _best_branch_order(branch_ids: Iterable<string>, interactions: I
 export function _best_radial_slots(branch_ids: Iterable<string>, interactions: Interactions): Record<string, string> {
   const branches = [...branch_ids];
   const slot_names = ['upper_left', 'upper_right', 'lower_left', 'lower_right'];
-  const default_: Record<string, string> = {};
+  const default_: Record<string, string> = Object.create(null);
   for (const branch_id of branches) if (slot_names.includes(branch_id)) default_[branch_id] = branch_id;
   if (branches.length !== 4) {
     return default_;
@@ -809,7 +808,7 @@ export function _best_radial_slots(branch_ids: Iterable<string>, interactions: I
   let best_cost: [number, number] | null = null;
   const items = _interactionItems(interactions);
   for (const assigned_slots of _permutations(slot_names)) {
-    const candidate: Record<string, string> = {};
+    const candidate: Record<string, string> = Object.create(null);
     branches.forEach((branch_id, index) => {
       candidate[branch_id] = assigned_slots[index];
     });
@@ -1171,7 +1170,7 @@ export function _apply_radial_candidate(
   const [width, height] = _infer_profile(node_ids.length);
   const slots = _sectors(width, height);
   const slot_by_branch = _best_radial_slots(pyKeys(sectors) as string[], interactions);
-  const physical_ownership: Record<string, string> = {};
+  const physical_ownership: Record<string, string> = Object.create(null);
   for (const [node_id, branch_id] of pyItems(assigned)) {
     physical_ownership[node_id as string] = pyGet(slot_by_branch, branch_id, branch_id) as string;
   }
@@ -1253,7 +1252,7 @@ export function _layer_external_preferences(
       preferences.get(member_id)!.push(pyGetItem(branch_positions, other_branch) as number);
     }
   }
-  const result: Record<string, number> = {};
+  const result: Record<string, number> = Object.create(null);
   for (const [node_id, values] of preferences) {
     result[node_id] = values.length
       ? pySum(values) / values.length
@@ -1275,12 +1274,12 @@ export function _apply_layered_candidate(
 ): Dict {
   const elements_by_id = _elementsByIdFromManifest(manifest, false);
   const branch_order = _best_branch_order(pyKeys(sectors) as string[], interactions);
-  const branch_positions: Record<string, number> = {};
+  const branch_positions: Record<string, number> = Object.create(null);
   branch_order.forEach((branch_id, index) => {
     branch_positions[branch_id] = index;
   });
-  const layers_by_branch: Record<string, Map<number, string[]>> = {};
-  const lane_widths: Record<string, number> = {};
+  const layers_by_branch: Record<string, Map<number, string[]>> = Object.create(null);
+  const lane_widths: Record<string, number> = Object.create(null);
   const max_nodes_per_row = 3;
   const row_gap = 36.0;
 
@@ -1467,7 +1466,7 @@ export function _apply_stacked_bands_candidate(
   let branch_order = _best_branch_order(pyKeys(sectors) as string[], interactions);
   if (columns > 1) {
     const original = pyKeys(sectors) as string[];
-    const original_index: Record<string, number> = {};
+    const original_index: Record<string, number> = Object.create(null);
     original.forEach((branch, index) => {
       original_index[branch] = index;
     });
@@ -1513,7 +1512,7 @@ export function _apply_stacked_bands_candidate(
   const sectorCount = pyKeys(sectors).length;
   const max_nodes_per_row = columns > 1 ? 3 : (sectorCount === 2 ? 2 : (sectorCount === 3 ? 3 : 4));
   const coreAndAnchors = new Set<string>([core_id, ...anchor_ids]);
-  const branch_rows: Record<string, string[][]> = {};
+  const branch_rows: Record<string, string[][]> = Object.create(null);
   for (const branch_id of pyKeys(sectors) as string[]) {
     branch_rows[branch_id] = _stacked_branch_rows(
       node_ids.filter((node_id) => !coreAndAnchors.has(node_id) && pyGet(assigned, node_id) === branch_id),
@@ -1523,7 +1522,7 @@ export function _apply_stacked_bands_candidate(
       columns === 1,
     );
   }
-  const branch_row_widths: Record<string, number> = {};
+  const branch_row_widths: Record<string, number> = Object.create(null);
   for (const [branch_id, rows] of Object.entries(branch_rows)) {
     branch_row_widths[branch_id] = pyMax(
       rows.map((row) => (
@@ -1585,7 +1584,7 @@ export function _apply_stacked_bands_candidate(
   const rowMaxHeight = (row: string[]): number => pyMax(
     row.map((node_id) => _number(pyGet(_node_shape(elements_by_id, id_map, node_id) ?? {}, 'height'), 52.0)),
   );
-  const branch_heights: Record<string, number> = {};
+  const branch_heights: Record<string, number> = Object.create(null);
   for (const [branch_id, rows] of Object.entries(branch_rows)) {
     branch_heights[branch_id] = pyMaxN(
       136.0,
@@ -1979,7 +1978,7 @@ export function compact_concept_map_layout(manifest: any, structure_instantiatio
       )
     )
   ));
-  const sectors: Record<string, string> = {};
+  const sectors: Record<string, string> = Object.create(null);
   anchor_ids.forEach((anchor_id, index) => {
     const branch_id = index < _SLOT_ORDER.length
       ? _SLOT_ORDER[index]
@@ -2002,9 +2001,9 @@ export function compact_concept_map_layout(manifest: any, structure_instantiatio
   // Prefer explicit branch ownership; legacy structures fall back to direct
   // anchor children and graph propagation. This mirrors draw.io's compartment
   // model: ownership is structural, while cross-links remain routing-only.
-  const assigned: Record<string, string> = {};
+  const assigned: Record<string, string> = Object.create(null);
   for (const [sector, anchor_id] of Object.entries(sectors)) assigned[anchor_id] = sector;
-  const sector_by_anchor: Record<string, string> = {};
+  const sector_by_anchor: Record<string, string> = Object.create(null);
   for (const [sector, anchor_id] of Object.entries(sectors)) sector_by_anchor[anchor_id] = sector;
   for (const node of nodes) {
     const node_id = pyGet(node, 'id');
@@ -2063,7 +2062,7 @@ export function compact_concept_map_layout(manifest: any, structure_instantiatio
   // majority so a single isolated cross-link cannot steal ownership.
   const reassigned = new Set<string>();
   for (let iteration = 0; iteration < node_ids.length; iteration += 1) {
-    const updates: Record<string, string> = {};
+    const updates: Record<string, string> = Object.create(null);
     for (const target of node_ids) {
       if (coreAndAnchors.has(target)) {
         continue;
@@ -2071,7 +2070,7 @@ export function compact_concept_map_layout(manifest: any, structure_instantiatio
       if (has_explicit_branch_ids && isStr(pyGet(node_by_id.get(target)!, 'branch_id'))) {
         continue;
       }
-      const owner_counts: Record<string, number> = {};
+      const owner_counts: Record<string, number> = Object.create(null);
       for (const source of new Set(incoming.get(target) ?? [])) {
         const owner = pyGet(assigned, source) as string | null;
         if (owner !== null) {
@@ -2267,7 +2266,7 @@ export function compact_concept_map_layout(manifest: any, structure_instantiatio
       interactions,
     );
   }
-  const scores: Record<string, Dict> = {};
+  const scores: Record<string, Dict> = Object.create(null);
   for (const [name, candidate] of Object.entries(candidates)) {
     scores[name] = _layout_score(candidate, id_map, node_ids, edges, structural_edge_ids);
   }

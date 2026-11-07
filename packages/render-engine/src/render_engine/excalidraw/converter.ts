@@ -301,10 +301,10 @@ export class InstantiationToExcalidrawConverter {
   constructor(layout_instantiation: Dict, structure_instantiation: Dict | null = null) {
     this.layout_instantiation = layout_instantiation;
     this.structure_instantiation = pyOr(structure_instantiation, {}) as Dict;
-    this.id_map = {}; // semantic ID -> excalidraw ID
+    this.id_map = Object.create(null); // semantic ID -> excalidraw ID
     this._index_counter = 0;
     // Pre-build a label lookup from structure for O(1) fallback.
-    this._structure_labels = {};
+    this._structure_labels = Object.create(null);
     for (const field of ['nodes', 'groups', 'edges']) {
       for (const item of (pyOr(pyGet(this.structure_instantiation, field), []) as unknown[])) {
         if (isDict(item) && truthy(pyGet(item, 'id')) && truthy(pyGet(item, 'label'))) {
@@ -684,11 +684,11 @@ export class InstantiationToExcalidrawConverter {
 
     const elements: Dict[] = [];
     const files: Dict = {};
-    const edge_data: Dict = {};
+    const edge_data: Dict = Object.create(null);
 
     // Classify elements
-    const icon_elements: Record<string, [string, Dict]> = {};
-    const regular_elements: Record<string, Dict> = {};
+    const icon_elements: Record<string, [string, Dict]> = Object.create(null);
+    const regular_elements: Record<string, Dict> = Object.create(null);
 
     for (const [element_id, element_data] of Object.entries(this.layout_instantiation) as [string, Dict][]) {
       if (is_layout_edge_entry(element_id, element_data)) {

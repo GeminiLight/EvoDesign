@@ -85,7 +85,7 @@ export function _diagram_context(structure: Dict, id_map: PyMapping, elements: u
   const nodes = _list(pyOr(pyGet(structure, 'nodes', []), [])).filter(isDict);
   const groups = _list(pyOr(pyGet(structure, 'groups', []), [])).filter(isDict);
   const context = new DiagramContext(pyLower(pyStr(pyGet(structure, 'chart_type', ''))));
-  const node_group_ids: Record<string, string> = {};
+  const node_group_ids: Record<string, string> = Object.create(null);
   for (const node of nodes) {
     if (truthy(pyGet(node, 'id')) && truthy(pyGet(node, 'group_id'))) {
       node_group_ids[pyStr(pyGet(node, 'id'))] = pyStr(pyGet(node, 'group_id'));

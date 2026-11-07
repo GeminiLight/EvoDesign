@@ -68,7 +68,7 @@ export function render_sequence_messages(manifest: Dict, structure: Dict): Dict 
     }
   }
   output.elements = (output.elements as Dict[]).filter((item) => !removed_ids.has(item.id));
-  const filtered: Record<string, string> = {};
+  const filtered: Record<string, string> = Object.create(null);
   for (const [key, value] of pyItems(id_map)) if (!removed_ids.has(value)) filtered[key as string] = value;
   meta.id_map = id_map = filtered;
   for (const item of output.elements as Dict[]) {

@@ -161,7 +161,7 @@ export function _collect_groups(manifest: Dict, structure: Dict | null = null): 
 
   const idm = id_map_from_manifest(manifest);
   const group_id_map = resolve_group_id_map(idm);
-  const bg_for: Record<string, string> = { ...group_id_map.background_by_group };
+  const bg_for: Record<string, string> = Object.assign(Object.create(null), group_id_map.background_by_group);
   const title_for = group_id_map.title_by_group;
 
   // When Structure is available, a semantic group may map directly to the
@@ -235,7 +235,7 @@ export function build_explicit_member_map(structure: Dict | null): Record<string
     return {};
   }
 
-  const member_to_group: Record<string, string> = {};
+  const member_to_group: Record<string, string> = Object.create(null);
   for (const group of groups) {
     if (!isDict(group)) {
       continue;
@@ -295,7 +295,7 @@ export function _membership_context(manifest: Dict, structure: Dict | null): _Me
   const idm = id_map_from_manifest(manifest);
   const reverse_ids = reverse_base_id_map(idm);
   const explicit_members = build_explicit_member_map(structure);
-  const groups_by_id: Record<string, _Group> = {};
+  const groups_by_id: Record<string, _Group> = Object.create(null);
   for (const group of groups) groups_by_id[group.id] = group;
   // Concept-map sections are created from branch ownership, not from the
   // optional structure.groups list. Geometry-based inference would silently

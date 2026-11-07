@@ -7,7 +7,7 @@
 // string coercion).
 
 import { excalidraw_element_defaults } from '../../canvas_environment/scene.ts';
-import { pyPop, pySetdefault } from '../../py/dict.ts';
+import { pySetItem, pyPop, pySetdefault } from '../../py/dict.ts';
 import { pyEq } from '../../py/eq.ts';
 import { KeyError, ValueError } from '../../py/errors.ts';
 import { pyRepr, pyStr } from '../../py/str.ts';
@@ -180,7 +180,7 @@ export function complete_native_semantics(manifest: Dict): null {
     } else if (truthy(get(edge, 'label'))) {
       payload.label = edge.label;
     }
-    edge_data[pyStr(edge_id)] = payload;
+    pySetItem(edge_data, pyStr(edge_id), payload);
   }
   return null;
 }

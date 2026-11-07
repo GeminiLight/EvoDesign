@@ -42,8 +42,8 @@ export function _build_tldraw_objective_manifest(manifest: Dict, structure: Dict
   }
 
   const elements: Dict[] = [];
-  const id_map: Record<string, string> = {};
-  const element_by_id: Record<string, Dict> = {};
+  const id_map: Record<string, string> = Object.create(null);
+  const element_by_id: Record<string, Dict> = Object.create(null);
 
   for (const [key, record] of Object.entries(store)) {
     if (!isDict(record) || pyGet(record, 'typeName') !== 'shape') {

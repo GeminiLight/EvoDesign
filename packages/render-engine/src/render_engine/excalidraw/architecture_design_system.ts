@@ -1499,7 +1499,7 @@ export function apply_architecture_design_system(
   result.elements = ordered;
 
   const live_ids = new Set(ordered.map((e) => e.id));
-  const filtered_id_map: Dict = {};
+  const filtered_id_map: Dict = Object.create(null);
   for (const [k, v] of Object.entries(id_map)) {
     if (live_ids.has(v)) filtered_id_map[k] = v;
   }
@@ -1512,7 +1512,7 @@ export function apply_architecture_design_system(
   result.files = kept_files;
   const app_state = pySetdefault<unknown>(result, 'appState', {}) as Dict;
   pySetdefault<unknown>(app_state, 'viewBackgroundColor', '#FFFFFF');
-  const cardSummary: Dict = {};
+  const cardSummary: Dict = Object.create(null);
   for (const c of cards) cardSummary[c.id] = { role: c.role, icon: c.icon, colors: [...c.colors] };
   meta.architecture_design_system = {
     tier_plan_source: plan ? 'layout_agent' : 'fallback',

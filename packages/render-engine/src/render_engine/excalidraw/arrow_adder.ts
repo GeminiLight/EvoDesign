@@ -369,7 +369,7 @@ export function _add_excalidraw_arrows_to_manifest(
   const node_label_map = _node_label_lookup(structure_instantiation);
   let dropped_label_count = 0;
   const new_arrows: Dict[] = [];
-  const route_contexts: Record<string, Dict> = {};
+  const route_contexts: Record<string, Dict> = Object.create(null);
   for (const plan of plans) {
     const waypoints = _route_edge(plan, totals, new_arrows, port_spacing);
     const arrow = _arrow_element(
@@ -392,7 +392,7 @@ export function _add_excalidraw_arrows_to_manifest(
   // 3. Scene-wide route optimization.
   const arrow_elems = new_arrows.filter((element) =>
     pyGet(element, 'type') === 'arrow' && pyFloatParse(pyOr(pyGet(element, 'opacity', 100), 0) as number) > 0);
-  const elements_by_id: Record<string, Dict> = {};
+  const elements_by_id: Record<string, Dict> = Object.create(null);
   for (const element of new_arrows) pySetdefault<unknown>(elements_by_id, pyStr(pyGet(element, 'id', '')), element);
   if (arrow_elems.length) {
     _reduce_crossings(arrow_elems, route_contexts, elements_by_id, port_spacing);
@@ -522,7 +522,7 @@ export function rebuild_excalidraw_arrows(manifest: Dict, structure_instantiatio
   source.elements = retained;
 
   const rebuilt = add_excalidraw_arrows_to_manifest(source, structure_instantiation);
-  const id_map: Record<string, string> = {};
+  const id_map: Record<string, string> = Object.create(null);
   for (const [key, value] of Object.entries(id_map_from_manifest(rebuilt))) {
     if (!removed_ids.has(value)) id_map[key] = value;
   }

@@ -354,7 +354,7 @@ export function extract_side_from_port(port_payload: unknown): string | null {
 }
 
 export function collect_edge_payloads(concept_hierarchy: Dict, store: Dict | null = null): Record<string, Dict> {
-  const payloads: Record<string, Dict> = {};
+  const payloads: Record<string, Dict> = Object.create(null);
 
   const styling_instantiation = pyOr(pyGet(concept_hierarchy, 'styling_instantiation'), {});
   if (isDict(styling_instantiation)) {
@@ -447,7 +447,7 @@ export function extract_edge_port_hints(
   concept_hierarchy: Dict,
   store: Dict | null = null,
 ): Record<string, { start: string | null; end: string | null }> {
-  const hints: Record<string, { start: string | null; end: string | null }> = {};
+  const hints: Record<string, { start: string | null; end: string | null }> = Object.create(null);
 
   const styling_instantiation = pyOr(pyGet(concept_hierarchy, 'styling_instantiation'), {});
   if (isDict(styling_instantiation)) {

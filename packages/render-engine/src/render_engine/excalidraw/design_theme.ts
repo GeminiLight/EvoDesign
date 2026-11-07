@@ -136,7 +136,7 @@ export function _tree_emphasis(nodes: Dict[], edges: unknown[], agent: Record<st
     }
   }
   const roots = [...ids].filter((i) => !parent.has(i) && children.has(i));
-  const result: Record<string, string> = { ...agent };
+  const result: Record<string, string> = Object.assign(Object.create(null), agent);
   for (const node_id of ids) {
     if (truthy(pyGet(result, node_id))) {
       continue;
@@ -305,7 +305,7 @@ export function apply_design_theme(manifest: unknown, structure_instantiation: u
   const styling: Dict = isDict(layout_instantiation) ? layout_instantiation : {};
   const files = pySetdefault<unknown>(result, 'files', {}) as Dict;
 
-  let emphasis: Record<string, string> = {};
+  let emphasis: Record<string, string> = Object.create(null);
   for (const n of nodes) emphasis[pyStr(n.id)] = emphasis_of(n);
   if (TREE_TYPES.has(chart_type)) {
     emphasis = _tree_emphasis(nodes, pyOr(pyGet(structure, 'edges'), []) as unknown[], emphasis);

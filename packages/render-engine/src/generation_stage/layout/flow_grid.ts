@@ -10,6 +10,7 @@
 // ``columns`` / ``rows`` keep Python dict insertion order (``Map`` for the
 // integer-keyed ones).
 
+import { pySetItem } from '../../py/dict.ts';
 import { CANVAS_DEFAULT_VIEWPORT_HEIGHT, CANVAS_DEFAULT_VIEWPORT_WIDTH } from '../../canvas_runtime.ts';
 import { estimate_element_sizes } from './element_shape_estimator.ts';
 import { unwrap_structure_instantiation } from '../../common/spec_utils.ts';
@@ -100,7 +101,7 @@ export function supports_flow_grid(structure: Dict, styling: Dict, runtime_direc
 
 export function flow_grid_sizes(structure: Dict, styling: Dict): Record<string, [number, number]> {
   const estimated = estimate_element_sizes(styling, structure) as Dict;
-  const sizes: Record<string, [number, number]> = {};
+  const sizes: Record<string, [number, number]> = Object.create(null);
   for (const node of iterate(item(structure, 'nodes'))) {
     const node_id = item(node, 'id') as string;
     const entry = item(estimated, node_id) as Dict;
@@ -184,7 +185,7 @@ export function expand_flow_grid(output: unknown, structure: unknown, styling: D
   for (const [key, [col, row]] of cells) {
     const [width, height] = sizes[key];
     // Python: floats (``/ 2``), then the int width/height.
-    expanded[key] = [columns.get(col)! - width / 2, rows.get(row)! - height / 2, width, height];
+    pySetItem(expanded, key, [columns.get(col)! - width / 2, rows.get(row)! - height / 2, width, height]);
   }
   const result = structuredClone(output) as Dict;
   result.instantiation = expanded;

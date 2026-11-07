@@ -120,7 +120,7 @@ export function _edge_label_payload(relation: Dict, edge_payload: Dict | null): 
 /** Build a {node_id -> node.label} map from structure_instantiation. */
 export function _node_label_lookup(structure_instantiation: Dict | null): Record<string, string> {
   const inst = unwrap_structure_instantiation(structure_instantiation);
-  const out: Record<string, string> = {};
+  const out: Record<string, string> = Object.create(null);
   for (const n of _list(pyOr(pyGet(inst, 'nodes'), []))) {
     if (isDict(n)) {
       const nid = pyGet(n, 'id');

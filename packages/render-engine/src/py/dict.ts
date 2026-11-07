@@ -61,13 +61,21 @@ export function pyValues<V>(mapping: PyMapping<V>): V[] {
   return Object.values(mapping);
 }
 
+/** Set an own dictionary entry, including the JavaScript prototype accessor name. */
+export function pySetItem<V>(mapping: PyMapping<V>, key: string, value: NoInfer<V>): void {
+  if (mapping instanceof Map) mapping.set(key, value);
+  else if (key === '__proto__') {
+    Object.defineProperty(mapping, key, { value, writable: true, enumerable: true, configurable: true });
+  } else mapping[key] = value;
+}
+
 /** ``mapping.setdefault(key, value)`` */
 export function pySetdefault<V>(mapping: PyMapping<V>, key: string, value: V): V {
   if (mapping instanceof Map) {
     if (!mapping.has(key)) mapping.set(key, value);
     return mapping.get(key) as V;
   }
-  if (!hasOwn(mapping, key)) mapping[key] = value;
+  if (!hasOwn(mapping, key)) pySetItem(mapping, key, value);
   return mapping[key];
 }
 

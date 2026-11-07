@@ -3,7 +3,7 @@ fixtures/
 !test/fixtures/
 test/fixtures/*
 !test/fixtures/runtime_inputs.json
-reports/
+/reports/
 
 # Rebuilt from canonical engine resources
 src/generated/

@@ -6,6 +6,7 @@
 // style, element box and edge port pair; no topology or geometry is inferred.
 // Persisted artifacts and downstream stages always use the existing full schema.
 
+import { pySetItem } from '../py/dict.ts';
 import { unwrap_structure_instantiation } from '../common/spec_utils.ts';
 import { KeyError, ValueError } from '../py/errors.ts';
 import { pyRepr } from '../py/str.ts';
@@ -35,9 +36,9 @@ export function _merge(base: Record<string, unknown>, override: Record<string, u
   for (const [key, value] of Object.entries(override)) {
     const current = has(result, key) ? result[key] : null;
     if (isDict(value) && isDict(current)) {
-      result[key] = _merge(current, value);
+      pySetItem(result, key, _merge(current, value));
     } else {
-      result[key] = structuredClone(value);
+      pySetItem(result, key, structuredClone(value));
     }
   }
   return result;
@@ -74,7 +75,7 @@ export function expand_styling_output(output: unknown, structure: unknown): unkn
       throw new ValueError('Style templates must not contain label text.');
     }
   }
-  const expanded: Record<string, unknown> = {};
+  const expanded: Record<string, unknown> = Object.create(null);
   for (const [element_id, decision] of Object.entries(elements)) {
     let ref: unknown;
     let override: Record<string, unknown>;

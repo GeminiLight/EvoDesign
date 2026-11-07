@@ -134,7 +134,7 @@ export function validate_styling_instantiation(
 
   _validate_required_coverage(entries, node_ids, edge_ids, structure);
   if (group_shells.size) {
-    const out: Dict = {};
+    const out: Dict = Object.create(null);
     for (const [key, value] of Object.entries(entries)) {
       if (!group_shells.has(key)) out[key] = value;
     }

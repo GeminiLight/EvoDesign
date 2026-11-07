@@ -39,7 +39,7 @@ export function drop_canvas_decorations(
   if (!dropped.length) {
     return [entries, []];
   }
-  const kept: Record<string, unknown> = {};
+  const kept: Record<string, unknown> = Object.create(null);
   for (const [key, value] of Object.entries(entries)) {
     if (!dropped.includes(key)) kept[key] = value;
   }
@@ -112,7 +112,7 @@ export function id_map_from_manifest(manifest: unknown): Record<string, string> 
   if (!isMapping(id_map)) {
     return {};
   }
-  const result: Record<string, string> = {};
+  const result: Record<string, string> = Object.create(null);
   for (const [key, value] of pyItems(id_map)) {
     if (isStr(key) && isStr(value)) result[key] = value;
   }
@@ -121,8 +121,8 @@ export function id_map_from_manifest(manifest: unknown): Record<string, string> 
 
 /** Resolve group background/title render IDs from semantic companion keys. */
 export function resolve_group_id_map(id_map: PyMapping): GroupIdMap {
-  const background_by_group: Record<string, string> = {};
-  const title_by_group: Record<string, string> = {};
+  const background_by_group: Record<string, string> = Object.create(null);
+  const title_by_group: Record<string, string> = Object.create(null);
   for (const [key, value] of pyItems(id_map)) {
     if (!isStr(key) || !isStr(value)) {
       continue;
@@ -168,7 +168,7 @@ export function group_frame_render_id(id_map: PyMapping, group_id: unknown): str
 
 /** Build rendered element id -> raw semantic id from an id_map. */
 export function reverse_id_map(id_map: PyMapping): Record<string, string> {
-  const result: Record<string, string> = {};
+  const result: Record<string, string> = Object.create(null);
   for (const [key, value] of pyItems(id_map)) {
     if (isStr(key) && key && isStr(value) && value) {
       result[value] = key;
@@ -179,7 +179,7 @@ export function reverse_id_map(id_map: PyMapping): Record<string, string> {
 
 /** Build rendered element id -> base semantic id from an id_map. */
 export function reverse_base_id_map(id_map: PyMapping): Record<string, string> {
-  const reverse: Record<string, string> = {};
+  const reverse: Record<string, string> = Object.create(null);
   for (const [key, value] of pyItems(id_map)) {
     if (!isStr(value) || !value) {
       continue;

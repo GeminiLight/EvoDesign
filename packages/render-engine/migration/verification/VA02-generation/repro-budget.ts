@@ -7,7 +7,7 @@ import { AIMessage } from '@langchain/core/messages';
 const mode=process.argv[2]??'node';
 if(mode==='browser')setPlatform({createAsyncContext:browserPlatform.createAsyncContext});
 // All import of BaseAgent must follow host context selection.
-const { BaseAgent, LLMResponseError, _set_clock, _CALL_BUDGET }=await import('../../../src/core/base_agent.ts');
+const { BaseAgent, LLMResponseError, _set_clock }=await import('../../../src/core/base_agent.ts');
 const { sample_and_vote }=await import('../../../src/common/self_consistency.ts');
 const { _unwrap_and_validate_structure_sample }=await import('../../../src/generation_stage/structure/structure_agent.ts');
 _set_clock({monotonic:()=>0,sleep:async()=>{}});
@@ -19,7 +19,7 @@ const agent:any=Object.create(BaseAgent.prototype);
 Object.assign(agent,{_tools:[],jsonalize_output:true,strict_json_output:true,json_retry_attempts:2,exclude_think:true,transport_attempts:2,call_deadline_seconds:0});
 agent._model={invoke:async(messages:any[])=>{
  const sample=Number(messages[0].content);const attempt=++attempts[sample];
- events.push({sample,attempt,budget_retries:_CALL_BUDGET.getStore()?.retries_left});
+ events.push({sample,attempt});
  if(attempt===1){if(++firstCalls===3)releaseFirst();await first;return new AIMessage('malformed JSON');}
  if(attempt===2){if(++secondCalls===3)releaseSecond();await second;throw new LLMResponseError('malformed provider response');}
  return new AIMessage(JSON.stringify({specification:{sample},instantiation:{chart_type:sample===0?'flowchart':'architecture',nodes:[{id:'a',label:'A',class:'step'}],edges:[],groups:[]}}));

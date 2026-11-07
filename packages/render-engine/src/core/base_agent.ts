@@ -6,7 +6,7 @@
 // * Python's synchronous ``invoke``/``invoke_with_history`` are ``async``;
 //   the call order (and therefore the cassette order) is unchanged.
 // * ``ContextVar`` → ``AsyncLocalStorage``; context managers
-//   (``llm_run_budget``, ``_CallBudget.scope``) take the body as a callback.
+//   (``llm_run_budget``) take the body as a callback.
 // * ``time.monotonic``/``time.sleep`` go through ``_monotonic``/``_sleep``,
 //   which tests may replace with ``_set_clock``.
 // * ``create_agent(model, tools, system_prompt=str)`` → ``createAgent`` with
@@ -439,12 +439,6 @@ export class _CallBudget {
     );
   }
 
-  /** ``with _CallBudget.scope(agent) as budget:`` */
-  static scope<T>(agent: unknown, body: (budget: _CallBudget) => Promise<T>): Promise<T> {
-    const budget = _CallBudget.start(agent);
-    return _CALL_BUDGET.run(budget, () => body(budget));
-  }
-
   elapsed_seconds(): number {
     return _monotonic() - this.started_at;
   }
@@ -482,8 +476,6 @@ export class _CallBudget {
     }
   }
 }
-
-export const _CALL_BUDGET = getPlatform().createAsyncContext<_CallBudget | null>();
 
 // Unbound method forms (``_CallBudget.check(self, ...)``) for the parity harness.
 export function _CallBudget_check(self: _CallBudget, charge = false): null {
@@ -667,8 +659,7 @@ export abstract class BaseAgent {
    * logical ``invoke`` / ``invoke_with_history`` call, and no attempt starts
    * after the call deadline.
    */
-  async _transport_call(call: () => unknown): Promise<unknown> {
-    const budget = _CALL_BUDGET.getStore() ?? _CallBudget.start(this);
+  async _transport_call(call: () => unknown, budget = _CallBudget.start(this)): Promise<unknown> {
     while (true) {
       budget.check(true);
       try {
@@ -706,29 +697,26 @@ export abstract class BaseAgent {
   }
 
   /** Invoke the agent through the shared transport retry layer. */
-  _invoke_with_retry(input_prompt: PromptDict): Promise<unknown> {
-    return this._transport_call(() => this._agent.invoke(input_prompt));
+  _invoke_with_retry(input_prompt: PromptDict, budget?: _CallBudget): Promise<unknown> {
+    return this._transport_call(() => this._agent.invoke(input_prompt), budget);
   }
 
   /** Invoke the agent with the given input variables. */
   invoke(input_dict: Record<string, unknown>): Promise<unknown> {
-    return _CallBudget.scope(this, () => this._invoke_parsed(input_dict));
+    return this._invoke_parsed(input_dict, _CallBudget.start(this));
   }
 
-  async _invoke_parsed(input_dict: Record<string, unknown>): Promise<unknown> {
+  async _invoke_parsed(input_dict: Record<string, unknown>, budget: _CallBudget): Promise<unknown> {
     const input_prompt = this._build_prompt(input_dict);
     const parse_attempts = this.jsonalize_output ? this.json_retry_attempts : 1;
     let last_error: PyJSONDecodeError | null = null;
     const strict = Boolean(getattr(this, 'strict_json_output', false));
     let attempt_prompt = input_prompt;
-    const budget = _CALL_BUDGET.getStore() ?? null;
 
     for (let attempt = 1; attempt <= parse_attempts; attempt += 1) {
       const is_last_attempt = attempt === parse_attempts;
-      if (budget !== null) {
-        budget.check();
-      }
-      const raw_output = await this._invoke_with_retry(attempt_prompt);
+      budget.check();
+      const raw_output = await this._invoke_with_retry(attempt_prompt, budget);
       this._last_raw_output = raw_output;
       try {
         return preprocess_response(
@@ -793,10 +781,10 @@ export abstract class BaseAgent {
    * @param tools Optional tool list; falls back to ``this._tools``.
    */
   invoke_with_history(messages: ChatMessageDict[], tools: unknown[] | null = null): Promise<unknown> {
-    return _CallBudget.scope(this, () => this._invoke_with_history_parsed(messages, tools));
+    return this._invoke_with_history_parsed(messages, tools, _CallBudget.start(this));
   }
 
-  async _invoke_with_history_parsed(messages: ChatMessageDict[], tools: unknown[] | null): Promise<unknown> {
+  async _invoke_with_history_parsed(messages: ChatMessageDict[], tools: unknown[] | null, budget: _CallBudget): Promise<unknown> {
     const lc_messages: BaseMessage[] = [];
     for (const msg of messages) {
       const role = Object.prototype.hasOwnProperty.call(msg, 'role') ? msg.role : 'user';
@@ -825,7 +813,7 @@ export abstract class BaseAgent {
     for (let attempt = 1; attempt <= parse_attempts; attempt += 1) {
       const is_last_attempt = attempt === parse_attempts;
       const request = attempt_messages;
-      const raw_output = await this._transport_call(() => model.invoke(request));
+      const raw_output = await this._transport_call(() => model.invoke(request), budget);
       this._last_raw_output = raw_output;
 
       try {

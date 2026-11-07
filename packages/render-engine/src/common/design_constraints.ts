@@ -108,7 +108,7 @@ export function locked_scene_elements(manifest: Record<string, unknown>, constra
   }
   const fields = ['x', 'y', 'width', 'height', 'angle', 'text', 'originalText', 'isDeleted',
     'strokeColor', 'backgroundColor', 'fontSize', 'fontFamily', 'opacity', 'fileId'];
-  const protectedElements: Record<string, unknown> = {};
+  const protectedElements: Record<string, unknown> = Object.create(null);
   for (const item of pyGet(manifest, 'elements', []) as unknown[]) {
     const icon = pyOr(pyGet(pyOr(pyGet(item, 'customData'), {}), 'evoDesignIcon'), {});
     const part = pyOr(pyGet(pyOr(pyGet(item, 'customData'), {}), 'evoDesignCardPart'), {});

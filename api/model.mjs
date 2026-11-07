@@ -1,4 +1,4 @@
-import { handleRunRequest } from '../shared/model-runs.mjs';
+import { handleRunRequest, visitorTokenLimit, VISITOR_QUOTA_MESSAGE } from '../shared/model-runs.mjs';
 import { createHmac, randomUUID } from 'node:crypto';
 import { EDIT_PROMPT } from '../shared/diagram-prompts.mjs';
 import { visitorIp } from '../shared/edge-identity.mjs';
@@ -16,13 +16,17 @@ local now=tonumber(redis.call('TIME')[1])
 local day=math.floor(now/86400)
 local counter=KEYS[1]..':day:'..day
 local visitor=counter..':visitor:'..ARGV[5]
+local visitorTokens=counter..':tokens:'..ARGV[5]
 local active=KEYS[1]..':active'
 redis.call('ZREMRANGEBYSCORE',active,'-inf',now)
 if tonumber(redis.call('GET',counter) or '0')+tonumber(ARGV[1])>tonumber(ARGV[2]) then return 0 end
 if tonumber(redis.call('GET',visitor) or '0')>=tonumber(ARGV[6]) then return -2 end
+if tonumber(redis.call('GET',visitorTokens) or '0')+tonumber(ARGV[1])>tonumber(ARGV[7]) then return -4 end
 if redis.call('ZCARD',active)>=tonumber(ARGV[3]) then return -1 end
 redis.call('INCRBY',counter,ARGV[1])
 redis.call('EXPIREAT',counter,(day+2)*86400)
+redis.call('INCRBY',visitorTokens,ARGV[1])
+redis.call('EXPIREAT',visitorTokens,(day+2)*86400)
 redis.call('INCR',visitor)
 redis.call('EXPIREAT',visitor,(day+2)*86400)
 redis.call('ZADD',active,now+150,ARGV[4])
@@ -104,13 +108,15 @@ export function createModelHandler(env = process.env, fetcher = fetch, options =
     // ingress signs its real client IP so proxy users do not share one limit.
     let reservation;
     try {
-      const limits = { reserved, id, visitor, dailyTokens: positive(env.DEMO_DAILY_TOKENS, 2_000_000),
+      const dailyTokens = positive(env.DEMO_DAILY_TOKENS, 2_000_000);
+      const limits = { reserved, id, visitor, dailyTokens, visitorTokens: visitorTokenLimit(dailyTokens),
         concurrency: positive(env.DEMO_CONCURRENCY, 4), visitorRequests: positive(env.DEMO_VISITOR_REQUESTS, 40) };
       reservation = options.budget ? await options.budget.reserve(limits)
         : await budget(['EVAL', RESERVE_SCRIPT, 1, BUDGET_KEY, reserved,
-          limits.dailyTokens, limits.concurrency, id, visitor, limits.visitorRequests], env, fetcher);
+          limits.dailyTokens, limits.concurrency, id, visitor, limits.visitorRequests, limits.visitorTokens], env, fetcher);
     } catch { return error('budget', 'The shared model is temporarily unavailable. Retry later or use your own model.', 503); }
     if (reservation === -1) return error('busy', 'The shared model is busy. Retry shortly or use your own model.', 429, { 'Retry-After': '10' });
+    if (reservation === -4) return error('quota', VISITOR_QUOTA_MESSAGE, 429);
     if (reservation === 0 || reservation === -2) return error('quota', 'Today’s demo allowance has been reached. Connect your own model to continue.', 429);
     if (reservation !== 1) return error('budget', 'The shared model is temporarily unavailable.', 503);
     try {

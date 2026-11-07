@@ -73,7 +73,7 @@ export function _with_py_floats(value: unknown): unknown {
   }
   if (!isDict(value)) return value;
   const fields = _PY_FLOAT_FIELDS.get(value);
-  const out: Dict = {};
+  const out: Dict = Object.create(null);
   for (const [key, item] of Object.entries(value)) {
     out[key] = fields?.has(key) && typeof item === 'number' ? pyFloat(item) : _with_py_floats(item);
   }
@@ -141,17 +141,17 @@ export function sequence_layout_geometry(structure: Dict, styling: Dict): Dict {
     throw new ValueError('Sequence diagrams require at least one participant');
   }
   // Styling min sizes are ints (estimate_element_sizes) or the int defaults.
-  const widths: Record<string, Num> = {};
+  const widths: Record<string, Num> = Object.create(null);
   for (const node of nodes) {
     widths[item(node, 'id') as string] = max2(flt(120.0), int((get(item(styling, item(node, 'id') as string), 'min_width', 120) as number) + 40));
   }
-  const heights: Record<string, Num> = {};
+  const heights: Record<string, Num> = Object.create(null);
   for (const node of nodes) {
     heights[item(node, 'id') as string] = max2(flt(64.0), int((get(item(styling, item(node, 'id') as string), 'min_height', 24) as number) + 30));
   }
   const gap = add(maxOf(Object.values(widths)), int(64));
   const max_height = maxOf(Object.values(heights));
-  const layout: Dict = {};
+  const layout: Dict = Object.create(null);
   nodes.forEach((node, index) => {
     const node_id = node.id as string;
     const entry: Dict = {};
@@ -161,7 +161,7 @@ export function sequence_layout_geometry(structure: Dict, styling: Dict): Dict {
     setNum(entry, 'h', max_height);
     layout[node_id] = entry;
   });
-  const indices: Record<string, number> = {};
+  const indices: Record<string, number> = Object.create(null);
   nodes.forEach((node, index) => {
     indices[node.id as string] = index;
   });

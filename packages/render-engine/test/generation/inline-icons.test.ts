@@ -71,3 +71,44 @@ describe('model-authored top-level node icons', () => {
     expect(raw.web.props.icon).toBe('outline_smartphone');
   });
 });
+
+it('preserves prototype-named semantic IDs through styling and full rendering', async () => {
+  const id = '__proto__';
+  const edge = 'edge:__proto__2mysql';
+  const special = {
+    ...structure,
+    nodes: [{ ...structure.nodes[0], id }, structure.nodes[1]],
+    edges: [{ ...structure.edges[0], id: edge, source: id }],
+  };
+  const raw = styles();
+  const agent = Object.create(StylingAgent.prototype) as StylingAgent;
+  agent.use_icons = true;
+  agent._system_prompt = 'system';
+  agent.invoke_with_history = async () => ({
+    specification: {},
+    instantiation: { [id]: raw.web, mysql: raw.mysql, [edge]: raw['edge:web2mysql'] },
+  });
+  const styled = (await agent.run(new WorkflowState({ structure_instantiation: special }))).styling_instantiation! as Record<string, Record<string, unknown>>;
+  expect(Object.hasOwn(styled, id)).toBe(true);
+
+  const layout = {
+    ...styled,
+    [id]: { ...styled[id], x: 100, y: 100, w: 240, h: 100 },
+    mysql: { ...styled.mysql, x: 500, y: 100, w: 240, h: 100 },
+    [edge]: { ...styled[edge], start: { elementId: id, side: 'right' }, end: { elementId: 'mysql', side: 'left' } },
+  };
+  const manifest = renderExcalidrawManifest({ structure_instantiation: special, layout_instantiation: layout }) as {
+    elements: Record<string, unknown>[];
+    _meta: { id_map: Record<string, string> };
+  };
+  const ids = manifest._meta.id_map;
+  expect(Object.hasOwn(ids, id)).toBe(true);
+  expect(manifest.elements).toEqual(expect.arrayContaining([
+    expect.objectContaining({ id: ids[id], type: 'rectangle' }),
+    expect.objectContaining({
+      type: 'arrow',
+      meta: expect.objectContaining({ semantic_edge_id: edge }),
+      startBinding: expect.objectContaining({ elementId: ids[id] }),
+    }),
+  ]));
+});

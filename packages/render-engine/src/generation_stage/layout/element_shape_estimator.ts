@@ -17,7 +17,7 @@
 // - Compatible with both Excalidraw and TLDraw styling formats.
 
 import { markF, pyDeepcopy } from '../../py/float_marks.ts';
-import { pyGet, pyGetItem, pyItems, type PyMapping } from '../../py/dict.ts';
+import { pySetItem, pyGet, pyGetItem, pyItems, type PyMapping } from '../../py/dict.ts';
 import { pyIn } from '../../py/eq.ts';
 import { PyTypeError } from '../../py/errors.ts';
 import { ceil } from '../../py/math.ts';
@@ -118,8 +118,7 @@ export function estimate_element_sizes(
 }
 
 function _setItem(mapping: PyMapping, key: string, value: unknown): void {
-  if (mapping instanceof Map) mapping.set(key, value);
-  else mapping[key] = value;
+  pySetItem(mapping, key, value);
 }
 
 // ---------------------------------------------------------------------------

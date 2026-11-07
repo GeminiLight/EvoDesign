@@ -140,3 +140,38 @@ test('run call and token limits are enforced; one run uses one visitor allowance
   assert.equal((await mock.handle(runRequest(large))).status, 429);
   assert.equal(mock.calls.length, 1);
 });
+
+test('failed model calls cannot spend other visitors’ share across runs or edits', async () => {
+  const { createLocalBudget } = await import('../server/localDemo.mjs');
+  let upstreamCalls = 0;
+  const handle = createModelHandler({ DEMO_GLM_API_KEY: 'run-secret' }, async () => {
+    upstreamCalls += 1;
+    return new Response(null, { status: 400 });
+  }, { budget: createLocalBudget() });
+  const issue = async (headers) => {
+    const response = await handle(runRequest({}, '/api/model/run', headers));
+    assert.equal(response.status, 200);
+    return (await response.json()).token;
+  };
+  const large = { messages: [{ role: 'user', content: 'x'.repeat(399_300) }], max_tokens: 1 };
+  assert.equal((await handle(runRequest({ ...large, runToken: await issue() }))).status, 502);
+  const anotherRun = await issue();
+  for (let i = 0; i < 4; i++) {
+    const response = await handle(runRequest({ ...large, runToken: anotherRun }));
+    assert.equal(response.status, 429);
+    assert.match((await response.json()).error.message, /visitor/);
+  }
+  assert.equal((await handle(runRequest(input))).status, 429);
+
+  const other = { 'x-real-ip': '127.0.0.2' };
+  assert.equal((await handle(runRequest({ ...chat, runToken: await issue(other) }, '/api/model', other))).status, 502);
+  assert.equal(upstreamCalls, 2);
+});
+
+test('data-image prefixes in plain text do not bypass token accounting', async () => {
+  const { handle, calls, token } = await runMock();
+  const messages = [{ role: 'user', content: 'data:image/png;base64,' + 'x'.repeat(400_000) }];
+  const response = await handle(runRequest({ ...chat, messages, runToken: token }));
+  assert.equal(response.status, 429);
+  assert.equal(calls.length, 0);
+});

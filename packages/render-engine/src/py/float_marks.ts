@@ -19,6 +19,7 @@
 //   pyDictCopy(d)        — ``dict(d)`` / ``d.copy()`` / ``{**d}`` (keeps marks)
 //   withPyFloats(v)      — copy with marked numbers wrapped in ``PyFloat`` for pyJsonDumps
 
+import { pySetItem } from './dict.ts';
 import { PY_FLOAT_MARKS } from './json_decoder.ts';
 import { PyFloat, pyFloat } from './number.ts';
 
@@ -64,7 +65,7 @@ export function markF(c: unknown, k: string | number, f: boolean): void {
 
 /** ``c[k] = v`` where Python's value has float-ness ``f``. */
 export function setF<T>(c: Record<string, unknown> | unknown[], k: string | number, v: T, f: boolean): T {
-  (c as Record<string, unknown>)[String(k)] = v;
+  pySetItem(c as Record<string, unknown>, String(k), v);
   markF(c, k, typeof v === 'number' ? f : false);
   return v;
 }
@@ -139,7 +140,7 @@ export function withPyFloats(value: unknown): unknown {
   const proto = Object.getPrototypeOf(value);
   if (proto !== Object.prototype && proto !== null) return value;
   const marks = PY_FLOAT_MARKS.get(value);
-  const out: Record<string, unknown> = {};
+  const out: Record<string, unknown> = Object.create(null);
   for (const [key, item] of Object.entries(value)) {
     out[key] = marks?.has(key) && typeof item === 'number' ? pyFloat(item) : withPyFloats(item);
   }
@@ -188,8 +189,10 @@ export function orF(cands: [unknown, string][], lastIsFinal = false): boolean {
 
 /** Python ``target.update(src)`` / ``Object.assign``: keys of ``src`` take its float-ness. */
 export function pyUpdate<T extends object>(target: T, src: object): T {
-  Object.assign(target, src);
-  for (const key of Object.keys(src)) markF(target, key, isF(src, key));
+  for (const [key, value] of Object.entries(src)) {
+    pySetItem(target as Record<string, unknown>, key, value);
+    markF(target, key, isF(src, key));
+  }
   return target;
 }
 
@@ -205,7 +208,9 @@ export function pyMerge<T extends object>(...dicts: object[]): T {
  * are ``floats``; every other key of ``src`` is not a float (its mark is cleared).
  */
 export function assignF<T extends object>(target: T, src: Record<string, unknown>, floats: readonly string[] = []): T {
-  Object.assign(target, src);
-  for (const key of Object.keys(src)) markF(target, key, floats.includes(key) && typeof src[key] === 'number');
+  for (const [key, value] of Object.entries(src)) {
+    pySetItem(target as Record<string, unknown>, key, value);
+    markF(target, key, floats.includes(key) && typeof value === 'number');
+  }
   return target;
 }

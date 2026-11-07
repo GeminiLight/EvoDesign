@@ -312,7 +312,7 @@ export function check_edge_node_intersections(manifest: Dict, node_clearance = 0
   let id_map: Record<string, string> = {};
   const meta = pyGet(manifest, '_meta');
   if (isDict(meta) && isDict(pyGet(meta, 'id_map'))) {
-    id_map = {};
+    id_map = Object.create(null);
     for (const [key, value] of pyItems(pyGet(meta, 'id_map') as Dict)) id_map[pyStr(key)] = pyStr(value);
   }
   const background_ids = detect_group_frame_ids(

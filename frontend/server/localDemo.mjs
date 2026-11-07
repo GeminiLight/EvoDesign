@@ -8,22 +8,26 @@ export function createLocalBudget(clock = Date.now) {
   let day = -1;
   let used = 0;
   const visitors = new Map();
+  const tokensByVisitor = new Map();
   const active = new Map();
   const runs = new Map();
   const refresh = () => {
     const now = clock();
     const today = Math.floor(now / 86400000);
-    if (today !== day) { day = today; used = 0; visitors.clear(); }
+    if (today !== day) { day = today; used = 0; visitors.clear(); tokensByVisitor.clear(); }
     for (const [key, expiry] of active) if (expiry <= now) active.delete(key);
     for (const [key, run] of runs) if (run.expiry <= now) runs.delete(key);
     return now;
   };
   return {
-    reserve({ reserved, id, visitor, dailyTokens, concurrency, visitorRequests }) {
+    reserve({ reserved, id, visitor, dailyTokens, visitorTokens, concurrency, visitorRequests }) {
       const now = refresh();
       if (used + reserved > dailyTokens) return 0;
       if ((visitors.get(visitor) || 0) >= visitorRequests) return -2;
+      const visitorUsed = tokensByVisitor.get(visitor) || 0;
+      if (visitorUsed + reserved > visitorTokens) return -4;
       if (active.size >= concurrency) return -1;
+      tokensByVisitor.set(visitor, visitorUsed + reserved);
       used += reserved; visitors.set(visitor, (visitors.get(visitor) || 0) + 1);
       active.set(id, now + 150000);
       return 1;
@@ -35,13 +39,16 @@ export function createLocalBudget(clock = Date.now) {
       runs.set(id, { visitor, calls: 0, tokens: 0, expiry: now + ttl * 1000 });
       return 1;
     },
-    reserveRun({ reserved, id, visitor, runId, dailyTokens, concurrency, callLimit, tokenLimit }) {
+    reserveRun({ reserved, id, visitor, runId, dailyTokens, visitorTokens, concurrency, callLimit, tokenLimit }) {
       const now = refresh();
       const run = runs.get(runId);
       if (!run || run.visitor !== visitor) return -3;
       if (run.calls >= callLimit || run.tokens + reserved > tokenLimit) return -2;
       if (used + reserved > dailyTokens) return 0;
+      const visitorUsed = tokensByVisitor.get(visitor) || 0;
+      if (visitorUsed + reserved > visitorTokens) return -4;
       if (active.size >= concurrency) return -1;
+      tokensByVisitor.set(visitor, visitorUsed + reserved);
       run.calls += 1; run.tokens += reserved; used += reserved;
       active.set(id, now + 150000);
       return 1;

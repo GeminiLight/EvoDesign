@@ -129,7 +129,7 @@ export function is_layout_edge_entry(
 }
 
 export function _collect_edge_contracts(structure_instantiation: PyMapping): Contracts {
-  const contracts: Contracts = {};
+  const contracts: Contracts = Object.create(null);
   const edges = pyGet(structure_instantiation, 'edges');
   ((truthy(edges) ? edges : []) as unknown[]).forEach((edge, index) => {
     if (!isMapping(edge)) {

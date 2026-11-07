@@ -58,7 +58,7 @@ test('local budgets keep reservations, cap concurrency and visitors, and expire 
   const { createLocalBudget } = await import('../server/localDemo.mjs');
   let now = 0;
   const store = createLocalBudget(() => now);
-  const input = { reserved: 70, id: 'one', visitor: 'local', dailyTokens: 100, concurrency: 1, visitorRequests: 2 };
+  const input = { reserved: 70, id: 'one', visitor: 'local', dailyTokens: 100, visitorTokens: 100, concurrency: 1, visitorRequests: 2 };
   assert.equal(store.reserve(input), 1);
   assert.equal(store.reserve({ ...input, id: 'busy', reserved: 1 }), -1);
   store.release('one');

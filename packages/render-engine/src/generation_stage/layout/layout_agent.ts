@@ -37,6 +37,8 @@ import type { WorkflowState } from './state.ts';
 import { expand_layout_output, use_compact_decisions } from '../compact_decisions.ts';
 import { expand_flow_grid, supports_flow_grid } from './flow_grid.ts';
 import { _PY_FLOAT_FIELDS, _deepcopy_with_py_floats, _is_py_float, _mark_py_float, _with_py_floats } from './sequence_layout.ts';
+import { pySetItem } from '../../py/dict.ts';
+import { pyUpdate } from '../../py/float_marks.ts';
 import { KeyError, PyTypeError, ValueError } from '../../py/errors.ts';
 import { pyJsonDumps } from '../../py/json.ts';
 import { getLogger } from '../../py/logging.ts';
@@ -103,7 +105,7 @@ function _transfer_py_floats(src: unknown, dst: unknown): void {
 
 /** Copy ``src[field]`` into ``dst[field]`` keeping the Python-float mark. */
 function copyField(dst: Dict, dst_field: string, src: Dict, src_field: string): void {
-  dst[dst_field] = src[src_field];
+  pySetItem(dst, dst_field, src[src_field]);
   _mark_py_float(dst, dst_field, _is_py_float(src, src_field));
 }
 
@@ -306,14 +308,14 @@ export class LayoutAgent extends BaseAgent {
           isDict(existing_edge) ? existing_edge : {},
           canvas_library,
         );
-        merged_instantiation[key] = edge_value;
+        pySetItem(merged_instantiation, key, edge_value);
 
         if (isDict(value)) {
           if (isDict(get(value, 'props'))) {
             if (!has(edge_value, 'props') || !isDict(edge_value.props)) {
               edge_value.props = {};
             }
-            Object.assign(edge_value.props as Dict, value.props as Dict);
+            pyUpdate(edge_value.props as Dict, value.props as Dict);
           }
 
           for (const [edge_key, edge_field] of Object.entries(value)) {
@@ -330,7 +332,7 @@ export class LayoutAgent extends BaseAgent {
       }
 
       if (!has(merged_instantiation, key) || !isDict(merged_instantiation[key])) {
-        merged_instantiation[key] = {};
+        pySetItem(merged_instantiation, key, {});
       }
 
       if (!isDict(value)) {
@@ -477,7 +479,7 @@ export function _build_size_hints_prompt(styling_instantiation: unknown): string
     return '(none)';
   }
 
-  const hints: Record<string, Record<string, unknown>> = {};
+  const hints: Record<string, Record<string, unknown>> = Object.create(null);
   for (const [element_id, element_data] of Object.entries(styling_instantiation)) {
     if (typeof element_id !== 'string' || element_id.endsWith(ICON_SUFFIX)) {
       continue;
