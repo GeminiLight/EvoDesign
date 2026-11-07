@@ -258,6 +258,49 @@ def test_styling_agent_extracts_inline_icon_to_canonical_companion_entry():
     assert processed["n_start:icon"]["props"]["icon"] == "label"
 
 
+@pytest.mark.parametrize("enabled", [False, True])
+def test_top_level_node_icon_survives_styling_without_forcing_other_nodes(enabled):
+    agent = object.__new__(StylingAgent)
+    agent.use_icons = enabled
+    agent._system_prompt = "system"
+    styling = _valid_excalidraw_styling()
+    del styling["n_start:icon"]
+    styling["n_start"]["icon"] = "outline_globe"
+    agent.invoke_with_history = lambda messages: {"specification": {}, "instantiation": styling}
+
+    result = agent.run(WorkflowState(structure_instantiation=_structure())).styling_instantiation
+
+    assert "icon" not in result["n_start"]
+    assert ("n_start:icon" in result) is enabled
+    if enabled:
+        assert result["n_start:icon"]["props"]["icon"] == "outline_globe"
+    assert "n_done:icon" not in result
+    assert styling["n_start"]["icon"] == "outline_globe"
+
+
+@pytest.mark.parametrize("canonical", [False, True])
+def test_inline_icon_formats_keep_existing_precedence(canonical):
+    agent = object.__new__(StylingAgent)
+    styling = {
+        "n_start": {
+            "shape": "rectangle", "strokeColor": "#3F7E8C",
+            "icon": "outline_globe", "props": {"icon": "outline_smartphone"},
+        },
+    }
+    if canonical:
+        styling["n_start:icon"] = {"type": "icon", "props": {"icon": "outline_database"}}
+
+    processed = agent._postprocess_styling_json(styling)
+
+    assert processed["n_start:icon"]["props"]["icon"] == (
+        "outline_database" if canonical else "outline_smartphone"
+    )
+    assert "icon" not in processed["n_start"]
+    assert "icon" not in processed["n_start"]["props"]
+    assert styling["n_start"]["icon"] == "outline_globe"
+    assert styling["n_start"]["props"]["icon"] == "outline_smartphone"
+
+
 def test_styling_agent_validates_icon_name_against_manifest(monkeypatch, tmp_path):
     manifest_path = tmp_path / "manifest.json"
     manifest_path.write_text(

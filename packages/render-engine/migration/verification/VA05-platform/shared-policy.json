@@ -1,0 +1,61 @@
+{
+  "input": {
+    "model": "requested-model",
+    "messages": [
+      {
+        "role": "user",
+        "content": "test"
+      }
+    ],
+    "max_completion_tokens": 40000,
+    "stream": true,
+    "temperature": 0,
+    "reasoning_effort": "high",
+    "thinking": {
+      "type": "enabled"
+    },
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "tool",
+          "description": "test",
+          "parameters": {
+            "type": "object",
+            "properties": {}
+          },
+          "strict": true
+        }
+      }
+    ]
+  },
+  "output": {
+    "model": "shared-server-model",
+    "messages": [
+      {
+        "role": "user",
+        "content": "test"
+      }
+    ],
+    "max_tokens": 32768,
+    "stream": false,
+    "thinking": {
+      "type": "disabled"
+    },
+    "temperature": 0,
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "tool",
+          "parameters": {
+            "type": "object",
+            "properties": {}
+          },
+          "description": "test"
+        }
+      }
+    ]
+  },
+  "note": "Hosted model policy intentionally changes model, output cap, streaming and thinking; tool strict is omitted by allowlist. Do not infer same-model algorithm equivalence for hosted defaults."
+}

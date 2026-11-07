@@ -1,0 +1,60 @@
+[
+ {
+  "path": "1_structure/structure_instantiation.json",
+  "kind": "json",
+  "sha256": "dcda044a4b2da63b2b460cd83e0df7e39fd2dd2d6fd0a6960449b1f919634b93"
+ },
+ {
+  "path": "1_structure/structure_specification.json",
+  "kind": "json",
+  "sha256": "38a2c9bba25e0a33c3812548084b9c75688b0ceaca2fa1c9b2b2b667642bc718"
+ },
+ {
+  "path": "2_styling/styling_instantiation.json",
+  "kind": "json",
+  "sha256": "8b6795b9b3a3ab42642515291d955121d9a6c46430f3cbb2549b91289133ccf8"
+ },
+ {
+  "path": "2_styling/styling_specification.json",
+  "kind": "json",
+  "sha256": "0c54046bef15791a2c24a710534f26c7b1ab7b21882bbba425800d89cd01fea6"
+ },
+ {
+  "path": "3_layout/layout_instantiation.json",
+  "kind": "json",
+  "sha256": "57ce357114d3bb8508591eb6c93d7c35f2bd92f089b17985e4c0cac2e4229d48"
+ },
+ {
+  "path": "3_layout/layout_specification.json",
+  "kind": "json",
+  "sha256": "e284e4c58186d82000cfe261ab55ef5fb5cbf5252e391c7a3a46a4edf09818c3"
+ },
+ {
+  "path": "4_render/diagram_manifest.json",
+  "kind": "json",
+  "sha256": "6883b269f3f247eef5524edae5caab8ab5c0f184b47930ec3220f9ed2b5ed0b3"
+ },
+ {
+  "path": "4_render/diagram_manifest.png",
+  "kind": "png",
+  "width": 5886,
+  "height": 3086,
+  "rgba_sha256": "f8b085ffaf158c5b392a05052aee2b8892b8b232799e64fe1dd7a8cb7e61997f",
+  "sha256": "acf93f13c47f1f3e63af1b51c9b1b55e080d970ad5aaa774af86309ce74ab4e8"
+ },
+ {
+  "path": "4_render/rendered_diagram.excalidraw",
+  "kind": "json",
+  "sha256": "2fc387a536e8a701af9b6f4a2b4458201c16d4a554f402346b4e6edaaf074841"
+ },
+ {
+  "path": "6_verification/verifier_report.json",
+  "kind": "json",
+  "sha256": "2da49d10a405162fdd5f5dddfb37bc3c778445a7f1afe797a1088454553672e7"
+ },
+ {
+  "path": "6_verification/verifier_report.md",
+  "kind": "text",
+  "sha256": "164da8446fdda4633c13467e02513815c432e9b85a84b62b799d26a94a2483fb"
+ }
+]

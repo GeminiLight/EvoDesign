@@ -1,0 +1,799 @@
+[
+  {
+    "input": {
+      "id": "base_version_0",
+      "body": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "base_version": null
+      }
+    },
+    "python": {
+      "id": "base_version_0",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": null,
+        "canvas_library": "excalidraw"
+      }
+    },
+    "typescript": {
+      "id": "base_version_0",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": null,
+        "canvas_library": "excalidraw"
+      }
+    },
+    "same": true
+  },
+  {
+    "input": {
+      "id": "base_version_1",
+      "body": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "base_version": 1
+      }
+    },
+    "python": {
+      "id": "base_version_1",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": 1,
+        "current_schema": null,
+        "canvas_library": "excalidraw"
+      }
+    },
+    "typescript": {
+      "id": "base_version_1",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": 1,
+        "current_schema": null,
+        "canvas_library": "excalidraw"
+      }
+    },
+    "same": true
+  },
+  {
+    "input": {
+      "id": "base_version_2",
+      "body": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "base_version": 1
+      }
+    },
+    "python": {
+      "id": "base_version_2",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": 1,
+        "current_schema": null,
+        "canvas_library": "excalidraw"
+      }
+    },
+    "typescript": {
+      "id": "base_version_2",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": 1,
+        "current_schema": null,
+        "canvas_library": "excalidraw"
+      }
+    },
+    "same": true
+  },
+  {
+    "input": {
+      "id": "base_version_3",
+      "body": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "base_version": "1"
+      }
+    },
+    "python": {
+      "id": "base_version_3",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": 1,
+        "current_schema": null,
+        "canvas_library": "excalidraw"
+      }
+    },
+    "typescript": {
+      "id": "base_version_3",
+      "ok": false,
+      "errors": [
+        {
+          "type": "int_type",
+          "loc": [
+            "body",
+            "base_version"
+          ],
+          "msg": "Input should be a valid integer"
+        }
+      ]
+    },
+    "same": false
+  },
+  {
+    "input": {
+      "id": "base_version_4",
+      "body": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "base_version": "1.0"
+      }
+    },
+    "python": {
+      "id": "base_version_4",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": 1,
+        "current_schema": null,
+        "canvas_library": "excalidraw"
+      }
+    },
+    "typescript": {
+      "id": "base_version_4",
+      "ok": false,
+      "errors": [
+        {
+          "type": "int_type",
+          "loc": [
+            "body",
+            "base_version"
+          ],
+          "msg": "Input should be a valid integer"
+        }
+      ]
+    },
+    "same": false
+  },
+  {
+    "input": {
+      "id": "base_version_5",
+      "body": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "base_version": true
+      }
+    },
+    "python": {
+      "id": "base_version_5",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": 1,
+        "current_schema": null,
+        "canvas_library": "excalidraw"
+      }
+    },
+    "typescript": {
+      "id": "base_version_5",
+      "ok": false,
+      "errors": [
+        {
+          "type": "int_type",
+          "loc": [
+            "body",
+            "base_version"
+          ],
+          "msg": "Input should be a valid integer"
+        }
+      ]
+    },
+    "same": false
+  },
+  {
+    "input": {
+      "id": "base_version_6",
+      "body": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "base_version": false
+      }
+    },
+    "python": {
+      "id": "base_version_6",
+      "ok": false,
+      "errors": [
+        {
+          "type": "greater_than_equal",
+          "loc": [
+            "base_version"
+          ],
+          "msg": "Input should be greater than or equal to 1"
+        }
+      ]
+    },
+    "typescript": {
+      "id": "base_version_6",
+      "ok": false,
+      "errors": [
+        {
+          "type": "int_type",
+          "loc": [
+            "body",
+            "base_version"
+          ],
+          "msg": "Input should be a valid integer"
+        }
+      ]
+    },
+    "same": true
+  },
+  {
+    "input": {
+      "id": "base_version_7",
+      "body": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "base_version": 1.5
+      }
+    },
+    "python": {
+      "id": "base_version_7",
+      "ok": false,
+      "errors": [
+        {
+          "type": "int_from_float",
+          "loc": [
+            "base_version"
+          ],
+          "msg": "Input should be a valid integer, got a number with a fractional part"
+        }
+      ]
+    },
+    "typescript": {
+      "id": "base_version_7",
+      "ok": false,
+      "errors": [
+        {
+          "type": "int_type",
+          "loc": [
+            "body",
+            "base_version"
+          ],
+          "msg": "Input should be a valid integer"
+        }
+      ]
+    },
+    "same": true
+  },
+  {
+    "input": {
+      "id": "icon_marker_0",
+      "body": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "current_schema": {
+          "elements": [
+            {
+              "id": "node",
+              "type": "image",
+              "customData": {
+                "evoDesignIcon": {}
+              }
+            }
+          ]
+        }
+      }
+    },
+    "python": {
+      "id": "icon_marker_0",
+      "ok": true,
+      "value": {
+        "use_icons": false,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": {
+          "elements": [
+            {
+              "id": "node",
+              "type": "image",
+              "customData": {
+                "evoDesignIcon": {}
+              }
+            }
+          ]
+        },
+        "canvas_library": "excalidraw"
+      }
+    },
+    "typescript": {
+      "id": "icon_marker_0",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": {
+          "elements": [
+            {
+              "id": "node",
+              "type": "image",
+              "customData": {
+                "evoDesignIcon": {}
+              }
+            }
+          ]
+        },
+        "canvas_library": "excalidraw"
+      }
+    },
+    "same": false
+  },
+  {
+    "input": {
+      "id": "icon_marker_1",
+      "body": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "current_schema": {
+          "elements": [
+            {
+              "id": "node",
+              "type": "image",
+              "customData": {
+                "evoDesignIcon": false
+              }
+            }
+          ]
+        }
+      }
+    },
+    "python": {
+      "id": "icon_marker_1",
+      "ok": true,
+      "value": {
+        "use_icons": false,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": {
+          "elements": [
+            {
+              "id": "node",
+              "type": "image",
+              "customData": {
+                "evoDesignIcon": false
+              }
+            }
+          ]
+        },
+        "canvas_library": "excalidraw"
+      }
+    },
+    "typescript": {
+      "id": "icon_marker_1",
+      "ok": true,
+      "value": {
+        "use_icons": false,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": {
+          "elements": [
+            {
+              "id": "node",
+              "type": "image",
+              "customData": {
+                "evoDesignIcon": false
+              }
+            }
+          ]
+        },
+        "canvas_library": "excalidraw"
+      }
+    },
+    "same": true
+  },
+  {
+    "input": {
+      "id": "icon_marker_2",
+      "body": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "current_schema": {
+          "elements": [
+            {
+              "id": "node",
+              "type": "image",
+              "customData": {
+                "evoDesignIcon": []
+              }
+            }
+          ]
+        }
+      }
+    },
+    "python": {
+      "id": "icon_marker_2",
+      "ok": true,
+      "value": {
+        "use_icons": false,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": {
+          "elements": [
+            {
+              "id": "node",
+              "type": "image",
+              "customData": {
+                "evoDesignIcon": []
+              }
+            }
+          ]
+        },
+        "canvas_library": "excalidraw"
+      }
+    },
+    "typescript": {
+      "id": "icon_marker_2",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": {
+          "elements": [
+            {
+              "id": "node",
+              "type": "image",
+              "customData": {
+                "evoDesignIcon": []
+              }
+            }
+          ]
+        },
+        "canvas_library": "excalidraw"
+      }
+    },
+    "same": false
+  },
+  {
+    "input": {
+      "id": "icon_marker_3",
+      "body": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "current_schema": {
+          "elements": [
+            {
+              "id": "node",
+              "type": "image",
+              "customData": {
+                "evoDesignIcon": {
+                  "name": "outline_globe"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "python": {
+      "id": "icon_marker_3",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": {
+          "elements": [
+            {
+              "id": "node",
+              "type": "image",
+              "customData": {
+                "evoDesignIcon": {
+                  "name": "outline_globe"
+                }
+              }
+            }
+          ]
+        },
+        "canvas_library": "excalidraw"
+      }
+    },
+    "typescript": {
+      "id": "icon_marker_3",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": {
+          "elements": [
+            {
+              "id": "node",
+              "type": "image",
+              "customData": {
+                "evoDesignIcon": {
+                  "name": "outline_globe"
+                }
+              }
+            }
+          ]
+        },
+        "canvas_library": "excalidraw"
+      }
+    },
+    "same": true
+  },
+  {
+    "input": {
+      "id": "deleted_empty_array",
+      "body": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "current_schema": {
+          "elements": [
+            {
+              "id": "node",
+              "type": "rectangle",
+              "isDeleted": []
+            }
+          ]
+        }
+      }
+    },
+    "python": {
+      "id": "deleted_empty_array",
+      "ok": true,
+      "value": {
+        "use_icons": false,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": {
+          "elements": [
+            {
+              "id": "node",
+              "type": "rectangle",
+              "isDeleted": []
+            }
+          ]
+        },
+        "canvas_library": "excalidraw"
+      }
+    },
+    "typescript": {
+      "id": "deleted_empty_array",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": {
+          "elements": [
+            {
+              "id": "node",
+              "type": "rectangle",
+              "isDeleted": []
+            }
+          ]
+        },
+        "canvas_library": "excalidraw"
+      }
+    },
+    "same": false
+  },
+  {
+    "input": {
+      "id": "false_icon",
+      "body": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "use_icons": false
+      }
+    },
+    "python": {
+      "id": "false_icon",
+      "ok": true,
+      "value": {
+        "use_icons": false,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": null,
+        "canvas_library": "excalidraw"
+      }
+    },
+    "typescript": {
+      "id": "false_icon",
+      "ok": true,
+      "value": {
+        "use_icons": false,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": null,
+        "canvas_library": "excalidraw"
+      }
+    },
+    "same": true
+  },
+  {
+    "input": {
+      "id": "true_icon",
+      "body": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "use_icons": true
+      }
+    },
+    "python": {
+      "id": "true_icon",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": null,
+        "canvas_library": "excalidraw"
+      }
+    },
+    "typescript": {
+      "id": "true_icon",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": null,
+        "canvas_library": "excalidraw"
+      }
+    },
+    "same": true
+  },
+  {
+    "input": {
+      "id": "automated",
+      "body": {
+        "context": "test",
+        "canvas_library": "excalidraw",
+        "diagram_type": "automated"
+      }
+    },
+    "python": {
+      "id": "automated",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": null,
+        "canvas_library": "excalidraw"
+      }
+    },
+    "typescript": {
+      "id": "automated",
+      "ok": true,
+      "value": {
+        "use_icons": true,
+        "diagram_type": null,
+        "context": "test",
+        "requirements": null,
+        "locked_nodes": [],
+        "project_id": null,
+        "base_version": null,
+        "current_schema": null,
+        "canvas_library": "excalidraw"
+      }
+    },
+    "same": true
+  }
+]

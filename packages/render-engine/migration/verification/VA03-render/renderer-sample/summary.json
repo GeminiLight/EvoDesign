@@ -1,0 +1,124 @@
+{
+ "renderer_url": "http://127.0.0.1:3001/renderers/excalidraw",
+ "frontend_url": "http://127.0.0.1:5179",
+ "threshold": {
+  "pixel_channel_diff_gt": 16,
+  "max_ratio": 0.005,
+  "sizes_equal": true
+ },
+ "cases": 1,
+ "modes": [
+  "product",
+  "analysis"
+ ],
+ "renders_per_side": 2,
+ "seconds": {
+  "service": 4.291,
+  "browser": 1.53
+ },
+ "pass": 2,
+ "fail": 0,
+ "identical_bytes": 2,
+ "identical_pixels": 2,
+ "max_ratio": 0,
+ "max_channel_diff": 0,
+ "crop_agree": 2,
+ "with_warnings": 0,
+ "failed": [],
+ "results": [
+  {
+   "case": "configured-model__quickstart-service",
+   "mode": "product",
+   "warnings": {
+    "service": [],
+    "browser": []
+   },
+   "raw": {
+    "sameSize": true,
+    "sizeA": [
+     4368,
+     960
+    ],
+    "sizeB": [
+     4368,
+     960
+    ],
+    "identicalBytes": true,
+    "identicalPixels": true,
+    "over": 0,
+    "ratio": 0,
+    "maxDiff": 0,
+    "pass": true
+   },
+   "crop": {
+    "serviceMessage": "Resized: 4368x960 -> 4172x764",
+    "browserMessage": "Resized: 4368x960 -> 4172x764",
+    "agree": true,
+    "diff": {
+     "sameSize": true,
+     "sizeA": [
+      4172,
+      764
+     ],
+     "sizeB": [
+      4172,
+      764
+     ],
+     "identicalBytes": true,
+     "identicalPixels": true,
+     "over": 0,
+     "ratio": 0,
+     "maxDiff": 0,
+     "pass": true
+    }
+   }
+  },
+  {
+   "case": "configured-model__quickstart-service",
+   "mode": "analysis",
+   "warnings": {
+    "service": [],
+    "browser": []
+   },
+   "raw": {
+    "sameSize": true,
+    "sizeA": [
+     1092,
+     240
+    ],
+    "sizeB": [
+     1092,
+     240
+    ],
+    "identicalBytes": true,
+    "identicalPixels": true,
+    "over": 0,
+    "ratio": 0,
+    "maxDiff": 0,
+    "pass": true
+   },
+   "crop": {
+    "serviceMessage": "Resized: 1092x240 -> 1092x240",
+    "browserMessage": "Resized: 1092x240 -> 1092x240",
+    "agree": true,
+    "diff": {
+     "sameSize": true,
+     "sizeA": [
+      1092,
+      240
+     ],
+     "sizeB": [
+      1092,
+      240
+     ],
+     "identicalBytes": true,
+     "identicalPixels": true,
+     "over": 0,
+     "ratio": 0,
+     "maxDiff": 0,
+     "pass": true
+    }
+   }
+  }
+ ]
+}

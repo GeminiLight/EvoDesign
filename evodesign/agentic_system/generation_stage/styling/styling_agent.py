@@ -83,7 +83,7 @@ class StylingAgent(BaseAgent):
         if not normalized:
             return ICON_FALLBACK_NAME
 
-        if icon_name_exists(normalized):
+        if normalized in bundled_icons() or icon_name_exists(normalized):
             return normalized
         return ICON_FALLBACK_NAME
 
@@ -162,13 +162,14 @@ class StylingAgent(BaseAgent):
 
         Supports:
         1) Nested `props.icon` on element nodes.
-        2) Direct canonical icon entries (`<id>:icon`).
+        2) Top-level `icon` on element nodes.
+        3) Direct canonical icon entries (`<id>:icon`).
         """
         processed: Dict[str, Any] = {}
         extracted_icons = 0
         normalized_icons = 0
 
-        # Pass 1: copy non-icon entries and extract nested props.icon
+        # Pass 1: extract inline icons; the existing props format takes priority.
         for element_id, element_data in styling_json.items():
             if self._is_icon_key(element_id):
                 continue
@@ -180,10 +181,12 @@ class StylingAgent(BaseAgent):
                 continue
 
             props = copied.get("props")
-            if not isinstance(props, dict) or "icon" not in props:
+            nested_icon = isinstance(props, dict) and "icon" in props
+            if not nested_icon and "icon" not in copied:
                 continue
 
-            raw_icon = props.pop("icon")
+            raw_icon = props.pop("icon") if nested_icon else copied["icon"]
+            copied.pop("icon", None)
             icon_entry_key = companion_id(element_id, ICON_SUFFIX)
             processed[icon_entry_key] = self._build_icon_entry(raw_icon, copied)
             extracted_icons += 1

@@ -2,9 +2,8 @@
 from copy import deepcopy
 import pytest
 
-from evodesign.agentic_system.render_engine.excalidraw.arrow_adder import (
-    _position_architecture_bound_labels, _segment_hits_box,
-)
+from evodesign.agentic_system.render_engine.excalidraw.arrow_routing.geometry import _segment_hits_box
+from evodesign.agentic_system.render_engine.excalidraw.arrow_routing.labels import _position_architecture_bound_labels
 
 
 @pytest.mark.parametrize('group_frame', [False, True])

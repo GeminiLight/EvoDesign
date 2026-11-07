@@ -1,0 +1,18 @@
+[
+  {
+    "baseline": "A",
+    "exit_code": 0,
+    "mismatch": null,
+    "diff_vs_historical_fixture": []
+  },
+  {
+    "baseline": "B",
+    "exit_code": 2,
+    "mismatch": {
+      "call": 2,
+      "diffs": [
+        "$.request.messages[4].content: strings differ at char 3297: expected \"User requirements\\\",\\\"icon\\\":\\\"outline_file_text\\\",\\\"backgroundCol\", got \"User requirements\\\",\\\"backgroundColor\\\":\\\"#D7E3EA\\\",\\\"strokeColor\\\"\""
+      ]
+    }
+  }
+]

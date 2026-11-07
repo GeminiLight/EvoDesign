@@ -1,0 +1,108 @@
+{
+  "boundary_cases": 613,
+  "boundary_equal": 586,
+  "boundary_raw_differences": 27,
+  "retry_comparison_cases": 17,
+  "retry_comparison_differences": 2,
+  "boundary_categories": {
+    "quality": 426,
+    "critique": 23,
+    "refiner_state": 23,
+    "verifier_state": 8,
+    "convergence": 36,
+    "after_iteration": 7,
+    "edits": 40,
+    "checks": 50
+  },
+  "runs": {
+    "node20": {
+      "generated": "2026-11-06T13:29:24.638Z",
+      "total": 36,
+      "passed": 35,
+      "failed": [
+        {
+          "case": "paper_full_f2__multi",
+          "divergence": {
+            "kind": "snapshot",
+            "where": "snapshot 1 graph:styling (evodesign.agentic_system.generation_stage.styling.state.WorkflowState)",
+            "diffs": [
+              "$.conversation_history[4].content: expected \"{\\\"specification\\\":{\\\"visual_paradigm\\\":{\\\"chart_type\\\":\\\"architecture\\\",\\\"recognition_anchor\\\":\\\"Role-based compone..., got \"{\\\"specification\\\":{\\\"visual_paradigm\\\":{\\\"chart_type\\\":\\\"architecture\\\",\\\"recognition_anchor\\\":\\\"Role-based compone...",
+              "$.styling_instantiation.input_content: missing key \"icon\" (expected \"outline_file_text\")",
+              "$.styling_instantiation.structure_agent: missing key \"icon\" (expected \"outline_git_branch\")",
+              "$.styling_instantiation.style_agent: missing key \"icon\" (expected \"outline_layers\")",
+              "$.styling_instantiation.layout_agent: missing key \"icon\" (expected \"outline_waypoints\")",
+              "$.styling_instantiation.canvas_render_engine: missing key \"icon\" (expected \"outline_app_window\")",
+              "$.styling_instantiation.diagram_refiner: missing key \"icon\" (expected \"outline_search\")",
+              "$.styling_instantiation.editable_diagram: missing key \"icon\" (expected \"outline_monitor\")"
+            ]
+          }
+        }
+      ],
+      "llm_expected": 158,
+      "llm_matched": 156,
+      "unverified_callers": 13,
+      "snapshots_expected": 853,
+      "snapshots_matched": 830
+    },
+    "node": {
+      "generated": "2026-11-06T13:38:23.448Z",
+      "total": 36,
+      "passed": 35,
+      "failed": [
+        {
+          "case": "paper_full_f2__multi",
+          "divergence": {
+            "kind": "snapshot",
+            "where": "snapshot 1 graph:styling (evodesign.agentic_system.generation_stage.styling.state.WorkflowState)",
+            "diffs": [
+              "$.conversation_history[4].content: expected \"{\\\"specification\\\":{\\\"visual_paradigm\\\":{\\\"chart_type\\\":\\\"architecture\\\",\\\"recognition_anchor\\\":\\\"Role-based compone..., got \"{\\\"specification\\\":{\\\"visual_paradigm\\\":{\\\"chart_type\\\":\\\"architecture\\\",\\\"recognition_anchor\\\":\\\"Role-based compone...",
+              "$.styling_instantiation.input_content: missing key \"icon\" (expected \"outline_file_text\")",
+              "$.styling_instantiation.structure_agent: missing key \"icon\" (expected \"outline_git_branch\")",
+              "$.styling_instantiation.style_agent: missing key \"icon\" (expected \"outline_layers\")",
+              "$.styling_instantiation.layout_agent: missing key \"icon\" (expected \"outline_waypoints\")",
+              "$.styling_instantiation.canvas_render_engine: missing key \"icon\" (expected \"outline_app_window\")",
+              "$.styling_instantiation.diagram_refiner: missing key \"icon\" (expected \"outline_search\")",
+              "$.styling_instantiation.editable_diagram: missing key \"icon\" (expected \"outline_monitor\")"
+            ]
+          }
+        }
+      ],
+      "llm_expected": 158,
+      "llm_matched": 156,
+      "unverified_callers": 13,
+      "snapshots_expected": 853,
+      "snapshots_matched": 830
+    },
+    "memory": {
+      "generated": "2026-11-06T13:35:12.606Z",
+      "total": 36,
+      "passed": 35,
+      "failed": [
+        {
+          "case": "paper_full_f2__multi",
+          "divergence": {
+            "kind": "snapshot",
+            "where": "snapshot 1 graph:styling (evodesign.agentic_system.generation_stage.styling.state.WorkflowState)",
+            "diffs": [
+              "$.conversation_history[4].content: expected \"{\\\"specification\\\":{\\\"visual_paradigm\\\":{\\\"chart_type\\\":\\\"architecture\\\",\\\"recognition_anchor\\\":\\\"Role-based compone..., got \"{\\\"specification\\\":{\\\"visual_paradigm\\\":{\\\"chart_type\\\":\\\"architecture\\\",\\\"recognition_anchor\\\":\\\"Role-based compone...",
+              "$.styling_instantiation.input_content: missing key \"icon\" (expected \"outline_file_text\")",
+              "$.styling_instantiation.structure_agent: missing key \"icon\" (expected \"outline_git_branch\")",
+              "$.styling_instantiation.style_agent: missing key \"icon\" (expected \"outline_layers\")",
+              "$.styling_instantiation.layout_agent: missing key \"icon\" (expected \"outline_waypoints\")",
+              "$.styling_instantiation.canvas_render_engine: missing key \"icon\" (expected \"outline_app_window\")",
+              "$.styling_instantiation.diagram_refiner: missing key \"icon\" (expected \"outline_search\")",
+              "$.styling_instantiation.editable_diagram: missing key \"icon\" (expected \"outline_monitor\")"
+            ]
+          }
+        }
+      ],
+      "llm_expected": 158,
+      "llm_matched": 156,
+      "unverified_callers": 13,
+      "snapshots_expected": 853,
+      "snapshots_matched": 830
+    }
+  },
+  "findings": 4,
+  "production_edits": false
+}

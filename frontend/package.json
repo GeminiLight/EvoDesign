@@ -13,7 +13,10 @@
     "test:editor": "node --test scripts/test-editor-integrity.mjs",
     "dev:browser": "vite --mode browser --host 127.0.0.1 --port 5176 --strictPort",
     "build:browser": "tsc -b && vite build --mode browser",
-    "test:browser": "node --test scripts/test-browser-mode.mjs scripts/test-demo-model.mjs scripts/test-local-demo.mjs scripts/test-regional-deployment.mjs"
+    "test:browser": "node --test scripts/test-browser-mode.mjs scripts/test-demo-model.mjs scripts/test-local-demo.mjs scripts/test-regional-deployment.mjs",
+    "prebuild:browser": "npm --prefix ../packages/render-engine run build:browser",
+    "predev:browser": "npm --prefix ../packages/render-engine run build:browser",
+    "prepare": "npm --prefix ../packages/render-engine ci && npm --prefix ../packages/render-engine run build:browser"
   },
   "dependencies": {
     "@dagrejs/dagre": "^3.1.3",
@@ -22,7 +25,8 @@
     "lucide-react": "^0.575.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-router-dom": "^7.9.6"
+    "react-router-dom": "^7.9.6",
+    "@evodesign/render-engine": "file:../packages/render-engine"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

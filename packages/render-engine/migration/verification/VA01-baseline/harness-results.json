@@ -1,0 +1,42 @@
+[
+  {
+    "id": "large_number_relative_tolerance",
+    "expected": 1000000000000,
+    "actual": 1000000000500,
+    "result": {
+      "diffs": [],
+      "tolerated": 0,
+      "keyOrder": []
+    }
+  },
+  {
+    "id": "different_map_keys",
+    "expected": [
+      [
+        "expected_key",
+        1
+      ]
+    ],
+    "actual": [
+      [
+        "wrong_key",
+        1
+      ]
+    ],
+    "result": {
+      "diffs": [],
+      "tolerated": 0,
+      "keyOrder": []
+    }
+  },
+  {
+    "id": "empty_object_vs_promise",
+    "expected": {},
+    "actual": "Promise.resolve({not_expected:true})",
+    "result": {
+      "diffs": [],
+      "tolerated": 0,
+      "keyOrder": []
+    }
+  }
+]

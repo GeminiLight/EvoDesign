@@ -8,17 +8,48 @@ export function createLocalBudget(clock = Date.now) {
   let day = -1;
   let used = 0;
   const visitors = new Map();
+  const tokensByVisitor = new Map();
   const active = new Map();
+  const runs = new Map();
+  const refresh = () => {
+    const now = clock();
+    const today = Math.floor(now / 86400000);
+    if (today !== day) { day = today; used = 0; visitors.clear(); tokensByVisitor.clear(); }
+    for (const [key, expiry] of active) if (expiry <= now) active.delete(key);
+    for (const [key, run] of runs) if (run.expiry <= now) runs.delete(key);
+    return now;
+  };
   return {
-    reserve({ reserved, id, visitor, dailyTokens, concurrency, visitorRequests }) {
-      const now = clock();
-      const today = Math.floor(now / 86400000);
-      if (today !== day) { day = today; used = 0; visitors.clear(); }
-      for (const [key, expiry] of active) if (expiry <= now) active.delete(key);
+    reserve({ reserved, id, visitor, dailyTokens, visitorTokens, concurrency, visitorRequests }) {
+      const now = refresh();
       if (used + reserved > dailyTokens) return 0;
       if ((visitors.get(visitor) || 0) >= visitorRequests) return -2;
+      const visitorUsed = tokensByVisitor.get(visitor) || 0;
+      if (visitorUsed + reserved > visitorTokens) return -4;
       if (active.size >= concurrency) return -1;
+      tokensByVisitor.set(visitor, visitorUsed + reserved);
       used += reserved; visitors.set(visitor, (visitors.get(visitor) || 0) + 1);
+      active.set(id, now + 150000);
+      return 1;
+    },
+    issueRun({ id, visitor, visitorRequests, ttl }) {
+      const now = refresh();
+      if ((visitors.get(visitor) || 0) >= visitorRequests) return -2;
+      visitors.set(visitor, (visitors.get(visitor) || 0) + 1);
+      runs.set(id, { visitor, calls: 0, tokens: 0, expiry: now + ttl * 1000 });
+      return 1;
+    },
+    reserveRun({ reserved, id, visitor, runId, dailyTokens, visitorTokens, concurrency, callLimit, tokenLimit }) {
+      const now = refresh();
+      const run = runs.get(runId);
+      if (!run || run.visitor !== visitor) return -3;
+      if (run.calls >= callLimit || run.tokens + reserved > tokenLimit) return -2;
+      if (used + reserved > dailyTokens) return 0;
+      const visitorUsed = tokensByVisitor.get(visitor) || 0;
+      if (visitorUsed + reserved > visitorTokens) return -4;
+      if (active.size >= concurrency) return -1;
+      tokensByVisitor.set(visitor, visitorUsed + reserved);
+      run.calls += 1; run.tokens += reserved; used += reserved;
       active.set(id, now + 150000);
       return 1;
     },
@@ -39,10 +70,11 @@ const jsonError = (response, status, message) => {
   response.end(JSON.stringify({ error: { message } }));
 };
 
-/** Mount only the existing diagram endpoint, with no generic credential proxy. */
+/** Mount the bounded model endpoint on loopback only. */
 export function createLocalModelMiddleware(handle) {
   return async (request, response, next) => {
-    if (request.url?.split('?')[0] !== '/api/model') { next(); return; }
+    const pathname = request.url?.split('?')[0];
+    if (pathname !== '/api/model') { next(); return; }
     let origin;
     try {
       origin = new URL(`http://${request.headers.host}`);
@@ -67,14 +99,14 @@ export function createLocalModelMiddleware(handle) {
         let size = 0;
         for await (const chunk of request.iterator({ destroyOnReturn: false })) {
           size += chunk.length;
-          if (size > 100000) {
+          if (size > 8_000_000) {
             request.resume(); jsonError(response, 413, 'This diagram request is too large.'); return;
           }
           chunks.push(chunk);
         }
         body = Buffer.concat(chunks);
       }
-      const result = await handle(new Request(new URL('/api/model', origin), { method, headers, body, signal: controller.signal }));
+      const result = await handle(new Request(new URL(pathname, origin), { method, headers, body, signal: controller.signal }));
       if (response.destroyed) return;
       response.writeHead(result.status, Object.fromEntries(result.headers));
       response.end(Buffer.from(await result.arrayBuffer()));

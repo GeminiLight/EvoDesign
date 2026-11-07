@@ -1,0 +1,101 @@
+[
+  {
+    "name": "rgb",
+    "image": "/Users/zhanyi/Code/EvoDesign/packages/render-engine/migration/verification/VA03-render/crop-cases/rgb.png",
+    "padding": 0,
+    "expected": {
+      "message": "Resized: 100x80 -> 78x56\nSaved to: <OUT>",
+      "size": [
+        78,
+        56
+      ],
+      "rgb_sha256": "efe17a8561f2e812413fc91cd8e9f12199ff999931c9d8376e39c1468790e705"
+    }
+  },
+  {
+    "name": "faint",
+    "image": "/Users/zhanyi/Code/EvoDesign/packages/render-engine/migration/verification/VA03-render/crop-cases/faint.png",
+    "padding": 4,
+    "expected": {
+      "message": "Resized: 100x80 -> 86x64\nSaved to: <OUT>",
+      "size": [
+        86,
+        64
+      ],
+      "rgb_sha256": "03cdc27ed260f548f3abfc9ff020b0d0dbf7a89ce162b74694147a39b0fbb145"
+    }
+  },
+  {
+    "name": "alpha",
+    "image": "/Users/zhanyi/Code/EvoDesign/packages/render-engine/migration/verification/VA03-render/crop-cases/alpha.png",
+    "padding": 3,
+    "expected": {
+      "message": "Resized: 100x80 -> 84x62\nSaved to: <OUT>",
+      "size": [
+        84,
+        62
+      ],
+      "rgb_sha256": "e9f0894e9d32262475dc29a1804037117d2d69867ffde88c2d399a726332fe79"
+    }
+  },
+  {
+    "name": "dark",
+    "image": "/Users/zhanyi/Code/EvoDesign/packages/render-engine/migration/verification/VA03-render/crop-cases/dark.png",
+    "padding": 0,
+    "expected": {
+      "message": "Resized: 100x80 -> 78x56\nSaved to: <OUT>",
+      "size": [
+        78,
+        56
+      ],
+      "rgb_sha256": "e254c97ab068deae9344c704209f66c9c66692842fa0218b71c91960d10e3d35"
+    }
+  },
+  {
+    "name": "gray",
+    "image": "/Users/zhanyi/Code/EvoDesign/packages/render-engine/migration/verification/VA03-render/crop-cases/gray.png",
+    "padding": 0,
+    "expected": {
+      "message": "Resized: 100x80 -> 78x56\nSaved to: <OUT>",
+      "size": [
+        78,
+        56
+      ],
+      "rgb_sha256": "8a99e2690ab02fbe15ac5e07ef44a4345e4fbd741938bb59b456df325071898f"
+    }
+  },
+  {
+    "name": "onebit",
+    "image": "/Users/zhanyi/Code/EvoDesign/packages/render-engine/migration/verification/VA03-render/crop-cases/onebit.png",
+    "padding": 0,
+    "expected": {
+      "message": "Resized: 100x80 -> 78x56\nSaved to: <OUT>",
+      "size": [
+        78,
+        56
+      ],
+      "rgb_sha256": "efe17a8561f2e812413fc91cd8e9f12199ff999931c9d8376e39c1468790e705"
+    }
+  },
+  {
+    "name": "palette",
+    "image": "/Users/zhanyi/Code/EvoDesign/packages/render-engine/migration/verification/VA03-render/crop-cases/palette.png",
+    "padding": 0,
+    "expected": {
+      "message": "Warning: No valid content detected after watermark removal."
+    }
+  },
+  {
+    "name": "negative-padding",
+    "image": "/Users/zhanyi/Code/EvoDesign/packages/render-engine/migration/verification/VA03-render/crop-cases/negative-padding.png",
+    "padding": -12,
+    "expected": {
+      "message": "Resized: 100x80 -> 54x32\nSaved to: <OUT>",
+      "size": [
+        54,
+        32
+      ],
+      "rgb_sha256": "3e7787c50324818815eb4da64a3da16edcf6f17012c3726950f0479231e03d7d"
+    }
+  }
+]

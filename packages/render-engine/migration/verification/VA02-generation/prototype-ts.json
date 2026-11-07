@@ -1,0 +1,14 @@
+{
+  "structure_accepted": true,
+  "input_keys": [
+    "__proto__"
+  ],
+  "processed_keys": [],
+  "processed_has_own_node": false,
+  "validation": {
+    "error": {
+      "type": "StylingValidationError",
+      "message": "Styling instantiation must be a JSON object; got Object."
+    }
+  }
+}

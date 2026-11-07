@@ -1,0 +1,664 @@
+{
+  "mapped_modules": 29,
+  "baseline_A_equals_B": true,
+  "source_review_counts": {
+    "paired_key_paths": 6,
+    "targeted_sections": 10,
+    "no_manual_algorithm_review": 13
+  },
+  "fixture_vectors": 8938,
+  "fixture_groups": 189,
+  "warning": "Fixture counts describe available recorded calls, not fresh execution or exhaustive branch coverage. Root owns fresh full function parity. paired_key_paths means the identified algorithm entry paths were read in both languages, not a formal proof or all-lines review.",
+  "modules": [
+    {
+      "python": "evodesign.agentic_system.quality_policy",
+      "source": "evodesign/agentic_system/quality_policy.py",
+      "ts": "src/agentic_system/quality_policy.ts",
+      "wp": "WP13",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "paired_key_paths",
+      "fixture_groups": 8,
+      "fixture_vectors": 532,
+      "top_level_functions": [
+        "objective_rank",
+        "quality_summary",
+        "blocking_errors",
+        "needs_refinement",
+        "should_refine",
+        "quality_regressed",
+        "refinement_rejection",
+        "quality_status",
+        "verified_learning_gain"
+      ],
+      "top_level_without_fixture": [
+        "verified_learning_gain"
+      ]
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.checks.aggregator",
+      "source": "evodesign/agentic_system/verification_stage/checks/aggregator.py",
+      "ts": "src/verification_stage/checks/aggregator.ts",
+      "wp": "WP19",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "targeted_sections",
+      "fixture_groups": 2,
+      "fixture_vectors": 214,
+      "top_level_functions": [
+        "_is_skipped",
+        "_check_specs",
+        "run_all_checks"
+      ],
+      "top_level_without_fixture": [
+        "_check_specs"
+      ]
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.checks.binding_consistency",
+      "source": "evodesign/agentic_system/verification_stage/checks/binding_consistency.py",
+      "ts": "src/verification_stage/checks/binding_consistency.ts",
+      "wp": "WP19",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "no_manual_algorithm_review",
+      "fixture_groups": 9,
+      "fixture_vectors": 1014,
+      "top_level_functions": [
+        "has_derived_bindings",
+        "check_arrow_shape_binding",
+        "_number",
+        "element_bbox",
+        "arrow_absolute_endpoints",
+        "point_gap_to_bbox",
+        "resolve_arrow_endpoint_shapes",
+        "_binding_gap",
+        "check_arrow_endpoint_geometry"
+      ],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.checks.collision_detection",
+      "source": "evodesign/agentic_system/verification_stage/checks/collision_detection.py",
+      "ts": "src/verification_stage/checks/collision_detection.ts",
+      "wp": "WP19",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "no_manual_algorithm_review",
+      "fixture_groups": 14,
+      "fixture_vectors": 1539,
+      "top_level_functions": [
+        "_is_fully_transparent",
+        "_is_decoration",
+        "_bbox",
+        "_bboxes_overlap",
+        "_segments_intersect",
+        "_arrow_segments",
+        "_segment_intersects_rect_interior",
+        "_arrow_endpoint_ids",
+        "_segment_tracks_border",
+        "check_edge_node_intersections",
+        "check_edge_node_clearance",
+        "check_node_overlap",
+        "check_edge_crossings",
+        "check_out_of_canvas"
+      ],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.checks.containment",
+      "source": "evodesign/agentic_system/verification_stage/checks/containment.py",
+      "ts": "src/verification_stage/checks/containment.ts",
+      "wp": "WP19",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "no_manual_algorithm_review",
+      "fixture_groups": 14,
+      "fixture_vectors": 815,
+      "top_level_functions": [
+        "_get_bbox",
+        "_centroid",
+        "_bbox_area",
+        "_point_in_bbox",
+        "_bbox_contains",
+        "_y_band_contains",
+        "_collect_groups",
+        "_assign_centroid_to_group",
+        "build_explicit_member_map",
+        "_is_candidate_child",
+        "_membership_context",
+        "_iter_candidate_children",
+        "_resolve_parent_group",
+        "check_group_bbox_contains_children",
+        "check_swimlane_lane_membership"
+      ],
+      "top_level_without_fixture": [
+        "_iter_candidate_children"
+      ]
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.checks.finding",
+      "source": "evodesign/agentic_system/verification_stage/checks/finding.py",
+      "ts": "src/verification_stage/checks/finding.ts",
+      "wp": "WP19",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "no_manual_algorithm_review",
+      "fixture_groups": 2,
+      "fixture_vectors": 149,
+      "top_level_functions": [
+        "summarize_findings"
+      ],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.checks.label_proximity",
+      "source": "evodesign/agentic_system/verification_stage/checks/label_proximity.py",
+      "ts": "src/verification_stage/checks/label_proximity.ts",
+      "wp": "WP19",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "no_manual_algorithm_review",
+      "fixture_groups": 2,
+      "fixture_vectors": 105,
+      "top_level_functions": [
+        "_segment_box_distance",
+        "check_edge_label_proximity"
+      ],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.checks.node_icons",
+      "source": "evodesign/agentic_system/verification_stage/checks/node_icons.py",
+      "ts": "src/verification_stage/checks/node_icons.ts",
+      "wp": "WP19",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "no_manual_algorithm_review",
+      "fixture_groups": 1,
+      "fixture_vectors": 84,
+      "top_level_functions": [
+        "check_node_icons"
+      ],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.checks.objective_manifest",
+      "source": "evodesign/agentic_system/verification_stage/checks/objective_manifest.py",
+      "ts": "src/verification_stage/checks/objective_manifest.ts",
+      "wp": "WP19",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "targeted_sections",
+      "fixture_groups": 10,
+      "fixture_vectors": 171,
+      "top_level_functions": [
+        "build_objective_manifest",
+        "_build_tldraw_objective_manifest",
+        "_tldraw_store",
+        "_project_shape_record",
+        "_project_tldraw_arrow_points",
+        "_clamp",
+        "_project_shape_type",
+        "_semantic_id_from_tldraw_shape_id",
+        "_add_structure_group_aliases",
+        "_project_arrow_bindings",
+        "_number"
+      ],
+      "top_level_without_fixture": [
+        "_project_arrow_bindings"
+      ]
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.checks.render_validation",
+      "source": "evodesign/agentic_system/verification_stage/checks/render_validation.py",
+      "ts": "src/verification_stage/checks/render_validation.ts",
+      "wp": "WP19",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "no_manual_algorithm_review",
+      "fixture_groups": 3,
+      "fixture_vectors": 244,
+      "top_level_functions": [
+        "check_schema",
+        "check_render_audit",
+        "check_layout_audit"
+      ],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.checks.sequence",
+      "source": "evodesign/agentic_system/verification_stage/checks/sequence.py",
+      "ts": "src/verification_stage/checks/sequence.ts",
+      "wp": "WP19",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "targeted_sections",
+      "fixture_groups": 1,
+      "fixture_vectors": 86,
+      "top_level_functions": [
+        "check_sequence"
+      ],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.reports.report_builder",
+      "source": "evodesign/agentic_system/verification_stage/reports/report_builder.py",
+      "ts": "src/verification_stage/reports/report_builder.ts",
+      "wp": "WP19",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "no_manual_algorithm_review",
+      "fixture_groups": 8,
+      "fixture_vectors": 398,
+      "top_level_functions": [
+        "_utc_timestamp",
+        "_findings_to_dicts",
+        "_critique_to_dict",
+        "_effective_blocking_errors",
+        "build_report",
+        "_render_dimension_md",
+        "build_markdown_report",
+        "write_report"
+      ],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.critic.comparison",
+      "source": "evodesign/agentic_system/verification_stage/critic/comparison.py",
+      "ts": "src/verification_stage/critic/comparison.ts",
+      "wp": "WP20",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "paired_key_paths",
+      "fixture_groups": 0,
+      "fixture_vectors": 0,
+      "top_level_functions": [
+        "compare_rendered_diagrams"
+      ],
+      "top_level_without_fixture": [
+        "compare_rendered_diagrams"
+      ]
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.critic.critic_agent",
+      "source": "evodesign/agentic_system/verification_stage/critic/critic_agent.py",
+      "ts": "src/verification_stage/critic/critic_agent.ts",
+      "wp": "WP20",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "paired_key_paths",
+      "fixture_groups": 4,
+      "fixture_vectors": 316,
+      "top_level_functions": [
+        "review_image_edge_limit",
+        "_required_score",
+        "_coerce_dimension",
+        "_coerce_critique"
+      ],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.critic.prompts",
+      "source": "evodesign/agentic_system/verification_stage/critic/prompts.py",
+      "ts": "src/verification_stage/critic/prompts.ts",
+      "wp": "WP20",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "no_manual_algorithm_review",
+      "fixture_groups": 1,
+      "fixture_vectors": 39,
+      "top_level_functions": [
+        "build_user_prompt"
+      ],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.workflow",
+      "source": "evodesign/agentic_system/verification_stage/workflow.py",
+      "ts": "src/verification_stage/workflow.ts",
+      "wp": "WP20",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "paired_key_paths",
+      "fixture_groups": 6,
+      "fixture_vectors": 293,
+      "top_level_functions": [
+        "_load_json",
+        "_resolve_layout_path",
+        "_node_load_inputs",
+        "_node_run_objective_checks",
+        "_node_run_subjective_critic",
+        "_node_build_report"
+      ],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.state",
+      "source": "evodesign/agentic_system/verification_stage/state.py",
+      "ts": "src/verification_stage/state.ts",
+      "wp": "WP20",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "targeted_sections",
+      "fixture_groups": 2,
+      "fixture_vectors": 129,
+      "top_level_functions": [],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.verification_stage.__main__",
+      "source": "evodesign/agentic_system/verification_stage/__main__.py",
+      "ts": "src/verification_stage/__main__.ts",
+      "wp": "WP20",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "no_manual_algorithm_review",
+      "fixture_groups": 2,
+      "fixture_vectors": 7,
+      "top_level_functions": [
+        "_resolve_canvas_library",
+        "_parse_args",
+        "main"
+      ],
+      "top_level_without_fixture": [
+        "_parse_args"
+      ]
+    },
+    {
+      "python": "evodesign.agentic_system.refinement_stage.fixers.apply_edits",
+      "source": "evodesign/agentic_system/refinement_stage/fixers/apply_edits.py",
+      "ts": "src/refinement_stage/fixers/apply_edits.ts",
+      "wp": "WP21",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "paired_key_paths",
+      "fixture_groups": 4,
+      "fixture_vectors": 109,
+      "top_level_functions": [
+        "_collapse_whitespace",
+        "_same_label_content",
+        "_semantic_edit_error",
+        "apply_edits"
+      ],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.refinement_stage.fixers.arrow_reroute",
+      "source": "evodesign/agentic_system/refinement_stage/fixers/arrow_reroute.py",
+      "ts": "src/refinement_stage/fixers/arrow_reroute.ts",
+      "wp": "WP21",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "targeted_sections",
+      "fixture_groups": 5,
+      "fixture_vectors": 53,
+      "top_level_functions": [
+        "_as_route_bbox",
+        "_infer_side",
+        "_arrow_label_elements",
+        "_midpoint",
+        "reroute_bound_arrows"
+      ],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.refinement_stage.fixers.deterministic",
+      "source": "evodesign/agentic_system/refinement_stage/fixers/deterministic.py",
+      "ts": "src/refinement_stage/fixers/deterministic.ts",
+      "wp": "WP21",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "targeted_sections",
+      "fixture_groups": 18,
+      "fixture_vectors": 370,
+      "top_level_functions": [
+        "_get_bbox",
+        "_by_id",
+        "_hex_to_rgb",
+        "_luminance",
+        "_contrast_ratio",
+        "_findings_by_category",
+        "fix_dangling_bindings",
+        "fix_missing_back_refs",
+        "fix_swimlane_lane_membership",
+        "fix_group_bbox_escape",
+        "_bbox_inside",
+        "_clamp_axis",
+        "fix_out_of_canvas",
+        "fix_group_frame_zorder",
+        "_best_text_color",
+        "fix_low_contrast",
+        "_stable_excalidraw_int_seed",
+        "patch_schema_defaults",
+        "fix_node_overlap",
+        "reorder_elements_by_index",
+        "run_all_deterministic_fixers"
+      ],
+      "top_level_without_fixture": [
+        "fix_missing_back_refs",
+        "fix_swimlane_lane_membership",
+        "fix_group_bbox_escape"
+      ]
+    },
+    {
+      "python": "evodesign.agentic_system.refinement_stage.fixers.primitives",
+      "source": "evodesign/agentic_system/refinement_stage/fixers/primitives.py",
+      "ts": "src/refinement_stage/fixers/primitives.ts",
+      "wp": "WP21",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "targeted_sections",
+      "fixture_groups": 12,
+      "fixture_vectors": 303,
+      "top_level_functions": [
+        "_find_element",
+        "_elements_list",
+        "_require_element",
+        "_remove_bound_ref",
+        "_bump_version",
+        "_num",
+        "_bound_text_elements",
+        "_move_bound_text",
+        "_recenter_bound_text",
+        "_finite_float",
+        "op_set_position",
+        "op_set_size",
+        "op_set_style",
+        "op_set_text",
+        "op_delete_element",
+        "op_clear_arrow_binding",
+        "op_clear_container_binding",
+        "op_append_bound_element",
+        "op_remove_bound_element",
+        "op_set_index",
+        "op_set_icon"
+      ],
+      "top_level_without_fixture": [
+        "op_set_style",
+        "op_set_text",
+        "op_delete_element",
+        "op_clear_arrow_binding",
+        "op_clear_container_binding",
+        "op_append_bound_element",
+        "op_remove_bound_element",
+        "op_set_index",
+        "op_set_icon"
+      ]
+    },
+    {
+      "python": "evodesign.agentic_system.refinement_stage.agent.llm_agent",
+      "source": "evodesign/agentic_system/refinement_stage/agent/llm_agent.py",
+      "ts": "src/refinement_stage/agent/llm_agent.ts",
+      "wp": "WP22",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "targeted_sections",
+      "fixture_groups": 2,
+      "fixture_vectors": 38,
+      "top_level_functions": [
+        "_coerce_to_edits",
+        "build_manifest_summary",
+        "refine_with_llm"
+      ],
+      "top_level_without_fixture": [
+        "refine_with_llm"
+      ]
+    },
+    {
+      "python": "evodesign.agentic_system.refinement_stage.agent.prompts",
+      "source": "evodesign/agentic_system/refinement_stage/agent/prompts.py",
+      "ts": "src/refinement_stage/agent/prompts.ts",
+      "wp": "WP22",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "no_manual_algorithm_review",
+      "fixture_groups": 1,
+      "fixture_vectors": 18,
+      "top_level_functions": [
+        "build_refiner_user_prompt"
+      ],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.refinement_stage.reports.refiner_report",
+      "source": "evodesign/agentic_system/refinement_stage/reports/refiner_report.py",
+      "ts": "src/refinement_stage/reports/refiner_report.ts",
+      "wp": "WP22",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "no_manual_algorithm_review",
+      "fixture_groups": 8,
+      "fixture_vectors": 200,
+      "top_level_functions": [
+        "_utc_timestamp",
+        "_outcome_to_dict",
+        "_iteration_to_dict",
+        "build_refiner_report",
+        "_edit_row_md",
+        "_render_iteration_md",
+        "build_markdown_report",
+        "write_refiner_report"
+      ],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.refinement_stage.state",
+      "source": "evodesign/agentic_system/refinement_stage/state.py",
+      "ts": "src/refinement_stage/state.ts",
+      "wp": "WP22",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "paired_key_paths",
+      "fixture_groups": 4,
+      "fixture_vectors": 155,
+      "top_level_functions": [
+        "refiner_recursion_limit"
+      ],
+      "top_level_without_fixture": []
+    },
+    {
+      "python": "evodesign.agentic_system.refinement_stage.__main__",
+      "source": "evodesign/agentic_system/refinement_stage/__main__.py",
+      "ts": "src/refinement_stage/__main__.ts",
+      "wp": "WP22",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "no_manual_algorithm_review",
+      "fixture_groups": 2,
+      "fixture_vectors": 5,
+      "top_level_functions": [
+        "_load_environment",
+        "_parse_args",
+        "_infer_canvas_library_from_manifest",
+        "_resolve_canvas_library",
+        "main"
+      ],
+      "top_level_without_fixture": [
+        "_load_environment",
+        "_parse_args",
+        "_resolve_canvas_library"
+      ]
+    },
+    {
+      "python": "evodesign.agentic_system.workflow",
+      "source": "evodesign/agentic_system/workflow.py",
+      "ts": "src/agentic_system/workflow.ts",
+      "wp": "WP23",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "targeted_sections",
+      "fixture_groups": 19,
+      "fixture_vectors": 931,
+      "top_level_functions": [
+        "reset_design_memory_cache",
+        "_load_design_memory_retriever",
+        "_locked_nodes_from_runtime_directives",
+        "_save_json",
+        "_optional_str",
+        "_optional_bool",
+        "_optional_int",
+        "_refinement_regression_reason",
+        "_optional_string_list",
+        "_optional_int_dict",
+        "_optional_retrieved_items",
+        "_has_error_values",
+        "_has_blocking_verification_errors",
+        "_finding_summary",
+        "_refiner_findings_summary",
+        "_require_mapping",
+        "_optional_mapping",
+        "_coerce_artifact_paths",
+        "_validate_artifact_field",
+        "_coerce_generation_artifacts"
+      ],
+      "top_level_without_fixture": [
+        "_validate_artifact_field"
+      ]
+    },
+    {
+      "python": "evodesign.agentic_system.iterative_workflow",
+      "source": "evodesign/agentic_system/iterative_workflow.py",
+      "ts": "src/agentic_system/iterative_workflow.ts",
+      "wp": "WP23",
+      "phase": 2,
+      "A_equals_B": true,
+      "source_review": "targeted_sections",
+      "fixture_groups": 25,
+      "fixture_vectors": 621,
+      "top_level_functions": [
+        "_manifest_fingerprint",
+        "_input_fingerprint",
+        "_load_json",
+        "_findings_to_dicts",
+        "_finding_element_ids",
+        "_any_applied",
+        "_major_or_critical_count",
+        "_findings_score",
+        "_touched_geometry_ids",
+        "_fingerprint_findings",
+        "_normalize_refiner_canvas_library",
+        "_outcome_to_prompt_dict",
+        "_iter_log_to_prompt_dict",
+        "_objective_skip_categories",
+        "_run_objective_checks",
+        "_apply_edit_batch",
+        "_refresh_edited_geometry",
+        "_propose_llm_edits",
+        "_record_rejected_llm_edits",
+        "_repair_derived_geometry",
+        "_rerender_iteration_image",
+        "_mark_convergence",
+        "_node_load_inputs",
+        "_prepare_iteration",
+        "_run_one_iteration",
+        "_refresh_image_for_llm",
+        "_node_finalize"
+      ],
+      "top_level_without_fixture": [
+        "_propose_llm_edits",
+        "_record_rejected_llm_edits"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+{
+  "machine_learning": {
+    "shape": "ellipse",
+    "label": {
+      "text": "机器学习"
+    },
+    "strokeColor": "#3F4A8A",
+    "backgroundColor": "#DCE0F5",
+    "fillStyle": "solid",
+    "strokeWidth": 3,
+    "roughness": 0
+  },
+  "supervised": {
+    "shape": "rectangle",
+    "label": {
+      "text": "监督学习"
+    },
+    "strokeColor": "#2F6F5E",
+    "backgroundColor": "#D5EDE4",
+    "fillStyle": "solid",
+    "strokeWidth": 3,
+    "roughness": 0
+  },
+  "unsupervised": {
+    "shape": "rectangle",
+    "label": {
+      "text": "无监督学习"
+    },
+    "strokeColor": "#8A5A2B",
+    "backgroundColor": "#F4E3CF",
+    "fillStyle": "solid",
+    "strokeWidth": 3,
+    "roughness": 0
+  },
+  "reinforcement": {
+    "shape": "rectangle",
+    "label": {
+      "text": "强化学习"
+    },
+    "strokeColor": "#7A3F6B",
+    "backgroundColor": "#F0D9EA",
+    "fillStyle": "solid",
+    "strokeWidth": 3,
+    "roughness": 0
+  },
+  "classification": {
+    "shape": "rectangle",
+    "label": {
+      "text": "分类"
+    },
+    "strokeColor": "#2F6F5E",
+    "backgroundColor": "#D5EDE4",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "roughness": 0
+  },
+  "regression": {
+    "shape": "rectangle",
+    "label": {
+      "text": "回归"
+    },
+    "strokeColor": "#2F6F5E",
+    "backgroundColor": "#D5EDE4",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "roughness": 0
+  },
+  "clustering": {
+    "shape": "rectangle",
+    "label": {
+      "text": "聚类"
+    },
+    "strokeColor": "#8A5A2B",
+    "backgroundColor": "#F4E3CF",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "roughness": 0
+  },
+  "dim_reduction": {
+    "shape": "rectangle",
+    "label": {
+      "text": "降维"
+    },
+    "strokeColor": "#8A5A2B",
+    "backgroundColor": "#F4E3CF",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "roughness": 0
+  },
+  "agent": {
+    "shape": "rectangle",
+    "label": {
+      "text": "智能体"
+    },
+    "strokeColor": "#7A3F6B",
+    "backgroundColor": "#F0D9EA",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "roughness": 0
+  },
+  "reward": {
+    "shape": "rectangle",
+    "label": {
+      "text": "奖励信号"
+    },
+    "strokeColor": "#7A3F6B",
+    "backgroundColor": "#F0D9EA",
+    "fillStyle": "solid",
+    "strokeWidth": 2,
+    "roughness": 0
+  },
+  "edge:machine_learning2supervised": {
+    "strokeColor": "#4A5060"
+  },
+  "edge:machine_learning2unsupervised": {
+    "strokeColor": "#4A5060"
+  },
+  "edge:machine_learning2reinforcement": {
+    "strokeColor": "#4A5060"
+  },
+  "edge:supervised2classification": {
+    "strokeColor": "#4A5060"
+  },
+  "edge:supervised2regression": {
+    "strokeColor": "#4A5060"
+  },
+  "edge:unsupervised2clustering": {
+    "strokeColor": "#4A5060"
+  },
+  "edge:unsupervised2dim_reduction": {
+    "strokeColor": "#4A5060"
+  },
+  "edge:reinforcement2agent": {
+    "strokeColor": "#4A5060"
+  },
+  "edge:reward2agent": {
+    "strokeColor": "#4A5060"
+  },
+  "edge:dim_reduction2clustering": {
+    "strokeColor": "#4A5060"
+  }
+}

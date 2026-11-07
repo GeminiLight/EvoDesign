@@ -1,0 +1,808 @@
+{
+ "generated": "2026-11-06T13:29:24.638Z",
+ "until": null,
+ "runs": [
+  {
+   "run": "big_en_aes__refine",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 27,
+    "matched": 27
+   },
+   "artifacts": {
+    "expected": 20,
+    "matched": 20
+   },
+   "until": null,
+   "seconds": 10.856
+  },
+  {
+   "run": "concept_ml__multi",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 3.008
+  },
+  {
+   "run": "cy_flywheel_ty2__multi",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 4.796
+  },
+  {
+   "run": "dg_pkgs_ty1__noverify",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 20,
+    "matched": 20
+   },
+   "artifacts": {
+    "expected": 11,
+    "matched": 11
+   },
+   "until": null,
+   "seconds": 3.229
+  },
+  {
+   "run": "dp_k8s_ty1__multi",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 6.037
+  },
+  {
+   "run": "ecommerce_aes__unified",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 2,
+    "matched": 2,
+    "unverifiedCallers": 1,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 12,
+    "matched": 12
+   },
+   "artifacts": {
+    "expected": 12,
+    "matched": 12
+   },
+   "until": null,
+   "seconds": 4.741
+  },
+  {
+   "run": "flow_h1__router",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 1,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 5.878
+  },
+  {
+   "run": "flow_leave_aes__compact",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 5.503
+  },
+  {
+   "run": "flow_x1__multi",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 8.374
+  },
+  {
+   "run": "flow_x2__unified_router",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 2,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 12,
+    "matched": 12
+   },
+   "artifacts": {
+    "expected": 12,
+    "matched": 12
+   },
+   "until": null,
+   "seconds": 10.199
+  },
+  {
+   "run": "hcai_demo__refine",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 27,
+    "matched": 27
+   },
+   "artifacts": {
+    "expected": 19,
+    "matched": 19
+   },
+   "until": null,
+   "seconds": 10.576
+  },
+  {
+   "run": "iot_aes__unified_refine",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 1,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 15,
+    "matched": 15
+   },
+   "artifacts": {
+    "expected": 18,
+    "matched": 18
+   },
+   "until": null,
+   "seconds": 9.385
+  },
+  {
+   "run": "kb_sprint_ty1__multi",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 4.423
+  },
+  {
+   "run": "ls_web_ty2__multi",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 5.17
+  },
+  {
+   "run": "ne_saas_ty1__refine",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 6,
+    "matched": 6,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 32,
+    "matched": 32
+   },
+   "artifacts": {
+    "expected": 20,
+    "matched": 20
+   },
+   "until": null,
+   "seconds": 9.934
+  },
+  {
+   "run": "paper_full_f2__multi",
+   "fs": "node",
+   "ok": false,
+   "firstDivergence": {
+    "kind": "snapshot",
+    "where": "snapshot 1 graph:styling (evodesign.agentic_system.generation_stage.styling.state.WorkflowState)",
+    "diffs": [
+     "$.conversation_history[4].content: expected \"{\\\"specification\\\":{\\\"visual_paradigm\\\":{\\\"chart_type\\\":\\\"architecture\\\",\\\"recognition_anchor\\\":\\\"Role-based compone..., got \"{\\\"specification\\\":{\\\"visual_paradigm\\\":{\\\"chart_type\\\":\\\"architecture\\\",\\\"recognition_anchor\\\":\\\"Role-based compone...",
+     "$.styling_instantiation.input_content: missing key \"icon\" (expected \"outline_file_text\")",
+     "$.styling_instantiation.structure_agent: missing key \"icon\" (expected \"outline_git_branch\")",
+     "$.styling_instantiation.style_agent: missing key \"icon\" (expected \"outline_layers\")",
+     "$.styling_instantiation.layout_agent: missing key \"icon\" (expected \"outline_waypoints\")",
+     "$.styling_instantiation.canvas_render_engine: missing key \"icon\" (expected \"outline_app_window\")",
+     "$.styling_instantiation.diagram_refiner: missing key \"icon\" (expected \"outline_search\")",
+     "$.styling_instantiation.editable_diagram: missing key \"icon\" (expected \"outline_monitor\")"
+    ]
+   },
+   "llm": {
+    "expected": 4,
+    "matched": 2,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 1
+   },
+   "artifacts": null,
+   "until": null,
+   "seconds": 0.042
+  },
+  {
+   "run": "paper_method_x2__refine",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 6,
+    "matched": 6,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 32,
+    "matched": 32
+   },
+   "artifacts": {
+    "expected": 20,
+    "matched": 20
+   },
+   "until": null,
+   "seconds": 13.481
+  },
+  {
+   "run": "plain_ecommerce__icons",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 5.665
+  },
+  {
+   "run": "quickstart_service__router",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 1,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 2.837
+  },
+  {
+   "run": "rag_aes__unified_stream",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 2,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 12,
+    "matched": 12
+   },
+   "artifacts": {
+    "expected": 15,
+    "matched": 15
+   },
+   "until": null,
+   "seconds": 4.288
+  },
+  {
+   "run": "sm_course_ty1__nocritic",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 4.349
+  },
+  {
+   "run": "t_class_tz__refine_forced",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 6,
+    "matched": 6,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 32,
+    "matched": 32
+   },
+   "artifacts": {
+    "expected": 20,
+    "matched": 20
+   },
+   "until": null,
+   "seconds": 9.137
+  },
+  {
+   "run": "t_er_ty__multi",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 3.49
+  },
+  {
+   "run": "t_er_tz__refine_regress",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 6,
+    "matched": 6,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 32,
+    "matched": 32
+   },
+   "artifacts": {
+    "expected": 20,
+    "matched": 20
+   },
+   "until": null,
+   "seconds": 9.554
+  },
+  {
+   "run": "t_fishbone_ty__multi",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 5.238
+  },
+  {
+   "run": "t_funnel_ty__repair",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 9,
+    "matched": 9,
+    "unverifiedCallers": 2,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 2.174
+  },
+  {
+   "run": "t_matrix_ty__multi",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 3.455
+  },
+  {
+   "run": "t_mindmap_ty__router",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 1,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 9.473
+  },
+  {
+   "run": "t_orgchart_ty__multi",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 3.406
+  },
+  {
+   "run": "t_orgchart_ty__unified_repair",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 2,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 13,
+    "matched": 13
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 3.222
+  },
+  {
+   "run": "t_sequence_tz__multi",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 3,
+    "matched": 3,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 4.142
+  },
+  {
+   "run": "t_state_tz__multi",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 2.326
+  },
+  {
+   "run": "t_state_tz__refine_multi",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 27,
+    "matched": 27
+   },
+   "artifacts": {
+    "expected": 19,
+    "matched": 19
+   },
+   "until": null,
+   "seconds": 6.34
+  },
+  {
+   "run": "t_swimlane_ty__multi",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 4,
+    "matched": 4,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 5.333
+  },
+  {
+   "run": "t_swot_ty__refine",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 7,
+    "matched": 7,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 32,
+    "matched": 32
+   },
+   "artifacts": {
+    "expected": 20,
+    "matched": 20
+   },
+   "until": null,
+   "seconds": 9.838
+  },
+  {
+   "run": "t_timeline_ty__repair",
+   "fs": "node",
+   "ok": true,
+   "firstDivergence": null,
+   "llm": {
+    "expected": 5,
+    "matched": 5,
+    "unverifiedCallers": 0,
+    "toleratedImages": []
+   },
+   "snapshots": {
+    "expected": 24,
+    "matched": 24
+   },
+   "artifacts": {
+    "expected": 13,
+    "matched": 13
+   },
+   "until": null,
+   "seconds": 3.122
+  }
+ ]
+}

@@ -1,0 +1,5 @@
+{
+ "keepalives": 0,
+ "work_dir_removed": true,
+ "harness_error": "CassetteMismatch: LLM call 2 differs from cassette: $.request.messages[4].content: strings differ at char 3297: expected \"User requirements\\\",\\\"icon\\\":\\\"outline_file_text\\\",\\\"backgroundCol\", got \"User requirements\\\",\\\"backgroundColor\\\":\\\"#D7E3EA\\\",\\\"strokeColor\\\"\""
+}

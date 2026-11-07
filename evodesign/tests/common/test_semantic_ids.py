@@ -7,8 +7,11 @@ from evodesign.agentic_system.common.semantic_ids import (
     ICON_SUFFIX,
     companion_base_id,
     companion_id,
+    ensure_no_integer_like_semantic_ids,
     group_frame_render_id,
     id_map_from_manifest,
+    integer_like_semantic_ids,
+    is_integer_like_id,
     resolve_group_id_map,
     reverse_id_map,
     reverse_base_id_map,
@@ -97,3 +100,35 @@ def test_reverse_id_map_preserves_raw_semantic_ids():
         "lane-bg": "g_lane:background",
         "lane-title": "g_lane:title",
     }
+
+
+# Shared with packages/render-engine/test/parity/integer-ids.test.ts: both
+# implementations must classify these ids and word the error identically.
+INTEGER_LIKE_CASES = [
+    ("0", True), ("7", True), ("42", True), ("4294967294", True),
+    ("4294967295", False), ("01", False), ("-1", False), ("1.0", False),
+    ("1e3", False), (" 1", False), ("", False), ("n1", False), ("1a", False),
+    ("１", False), ("٣", False), (7, False), (None, False),
+]
+
+
+@pytest.mark.parametrize(("value", "expected"), INTEGER_LIKE_CASES)
+def test_is_integer_like_id_matches_js_array_index(value, expected):
+    assert is_integer_like_id(value) is expected
+
+
+def test_integer_like_semantic_ids_reports_structure_then_layout_keys():
+    structure = {
+        "nodes": [{"id": "n_a"}, {"id": "2"}, {"id": "1"}],
+        "edges": [{"id": "edge:2to1"}],
+        "groups": [{"id": "10"}],
+    }
+    layout = {"n_a": {}, "2": {}, "1": {}, "10": {}, "3": {}, "2:icon": {}}
+    assert integer_like_semantic_ids(structure, layout) == ["2", "1", "10", "3"]
+    assert integer_like_semantic_ids(None, None) == []
+    with pytest.raises(ValueError) as excinfo:
+        ensure_no_integer_like_semantic_ids(structure, layout)
+    assert str(excinfo.value) == (
+        "Semantic ids must not be bare integers (got '2', '1', '10', '3'); "
+        "use descriptive ids such as 'n_login'."
+    )

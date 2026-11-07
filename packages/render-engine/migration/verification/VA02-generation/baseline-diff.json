@@ -1,0 +1,132 @@
+{
+  "before_after": [
+    {
+      "input": {
+        "n": {
+          "shape": "rectangle",
+          "strokeColor": "#333333",
+          "backgroundColor": "#ffffff",
+          "icon": "outline_globe"
+        }
+      },
+      "original_A": {
+        "n": {
+          "shape": "rectangle",
+          "strokeColor": "#333333",
+          "backgroundColor": "#ffffff",
+          "icon": "outline_globe"
+        }
+      },
+      "current_B": {
+        "n": {
+          "shape": "rectangle",
+          "strokeColor": "#333333",
+          "backgroundColor": "#ffffff"
+        },
+        "n:icon": {
+          "type": "icon",
+          "props": {
+            "icon": "outline_globe",
+            "color": "black"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "n": {
+          "shape": "rectangle",
+          "strokeColor": "#333333",
+          "backgroundColor": "#ffffff",
+          "props": {
+            "icon": "outline_globe"
+          }
+        }
+      },
+      "original_A": {
+        "n": {
+          "shape": "rectangle",
+          "strokeColor": "#333333",
+          "backgroundColor": "#ffffff",
+          "props": {}
+        },
+        "n:icon": {
+          "type": "icon",
+          "props": {
+            "icon": "label",
+            "color": "black"
+          }
+        }
+      },
+      "current_B": {
+        "n": {
+          "shape": "rectangle",
+          "strokeColor": "#333333",
+          "backgroundColor": "#ffffff",
+          "props": {}
+        },
+        "n:icon": {
+          "type": "icon",
+          "props": {
+            "icon": "outline_globe",
+            "color": "black"
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "__proto__": {
+          "shape": "rectangle",
+          "label": {
+            "text": "A"
+          },
+          "strokeColor": "#333333",
+          "backgroundColor": "#ffffff"
+        }
+      },
+      "original_A": {
+        "__proto__": {
+          "shape": "rectangle",
+          "label": {
+            "text": "A"
+          },
+          "strokeColor": "#333333",
+          "backgroundColor": "#ffffff"
+        }
+      },
+      "current_B": {
+        "__proto__": {
+          "shape": "rectangle",
+          "label": {
+            "text": "A"
+          },
+          "strokeColor": "#333333",
+          "backgroundColor": "#ffffff"
+        }
+      }
+    }
+  ],
+  "prototype_structure": {
+    "chart_type": "flowchart",
+    "nodes": [
+      {
+        "id": "__proto__",
+        "label": "A",
+        "class": "step"
+      }
+    ],
+    "edges": [],
+    "groups": []
+  },
+  "prototype_style": {
+    "__proto__": {
+      "shape": "rectangle",
+      "label": {
+        "text": "A"
+      },
+      "strokeColor": "#333333",
+      "backgroundColor": "#ffffff"
+    }
+  }
+}

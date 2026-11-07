@@ -1,0 +1,116 @@
+[
+ {
+  "id": 0,
+  "role": "critic",
+  "content": "{\"structure\": {\"score\": 8}, \"styling\": {\"score\": 8}, \"layout\": {\"score\": 8}, \"overall_score\": 8}"
+ },
+ {
+  "id": 1,
+  "role": "critic",
+  "content": ""
+ },
+ {
+  "id": 2,
+  "role": "critic",
+  "content": "   "
+ },
+ {
+  "id": 3,
+  "role": "critic",
+  "content": "{bad"
+ },
+ {
+  "id": 4,
+  "role": "critic",
+  "content": [
+   {
+    "type": "text",
+    "text": "{\"structure\": {\"score\": 8}, \"styling\": {\"score\": 8}, \"layout\": {\"score\": 8}, \"overall_score\": 8}"
+   }
+  ]
+ },
+ {
+  "id": 5,
+  "role": "critic",
+  "content": [
+   {
+    "type": "reasoning",
+    "text": null
+   },
+   {
+    "type": "text",
+    "text": "{\"structure\": {\"score\": 8}, \"styling\": {\"score\": 8}, \"layout\": {\"score\": 8}, \"overall_score\": 8}"
+   }
+  ]
+ },
+ {
+  "id": 6,
+  "role": "refiner",
+  "content": "[]"
+ },
+ {
+  "id": 7,
+  "role": "refiner",
+  "content": ""
+ },
+ {
+  "id": 8,
+  "role": "refiner",
+  "content": "   "
+ },
+ {
+  "id": 9,
+  "role": "refiner",
+  "content": "{bad"
+ },
+ {
+  "id": 10,
+  "role": "refiner",
+  "content": [
+   {
+    "type": "text",
+    "text": "[]"
+   }
+  ]
+ },
+ {
+  "id": 11,
+  "role": "refiner",
+  "content": [
+   {
+    "type": "reasoning",
+    "text": null
+   },
+   {
+    "type": "text",
+    "text": "[]"
+   }
+  ]
+ },
+ {
+  "id": 12,
+  "role": "comparison",
+  "content": "{\"preference\": \"1\", \"reason\": \"Clearer labels.\"}"
+ },
+ {
+  "id": 13,
+  "role": "comparison",
+  "content": "{\"preference\": \"2\", \"reason\": \"Clearer labels.\"}"
+ },
+ {
+  "id": 14,
+  "role": "comparison",
+  "content": "{\"preference\": \"tie\", \"reason\": \"Clearer labels.\"}"
+ },
+ {
+  "id": 15,
+  "role": "comparison",
+  "content": "{\"preference\": null, \"reason\": \"Clearer labels.\"}"
+ },
+ {
+  "id": 16,
+  "role": "comparison",
+  "content": "unused",
+  "identical": true
+ }
+]

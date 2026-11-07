@@ -1,0 +1,171 @@
+[
+ {
+  "id": 0,
+  "calls": 1,
+  "ok": true,
+  "value": 8.0
+ },
+ {
+  "id": 1,
+  "calls": 3,
+  "ok": false,
+  "error": "ValueError",
+  "message": "VLM returned an empty response"
+ },
+ {
+  "id": 2,
+  "calls": 3,
+  "ok": false,
+  "error": "ValueError",
+  "message": "Could not extract JSON object from VLM response"
+ },
+ {
+  "id": 3,
+  "calls": 3,
+  "ok": false,
+  "error": "ValueError",
+  "message": "Could not extract JSON object from VLM response"
+ },
+ {
+  "id": 4,
+  "calls": 1,
+  "ok": true,
+  "value": 8.0
+ },
+ {
+  "id": 5,
+  "calls": 3,
+  "ok": false,
+  "error": "TypeError",
+  "message": "sequence item 0: expected str instance, NoneType found"
+ },
+ {
+  "id": 6,
+  "calls": 1,
+  "ok": true,
+  "value": {
+   "edits": 0,
+   "exhaustion": null
+  }
+ },
+ {
+  "id": 7,
+  "calls": 3,
+  "ok": true,
+  "value": {
+   "edits": 0,
+   "exhaustion": "ValueError: VLM returned empty response"
+  }
+ },
+ {
+  "id": 8,
+  "calls": 3,
+  "ok": true,
+  "value": {
+   "edits": 0,
+   "exhaustion": "ValueError: no JSON array found"
+  }
+ },
+ {
+  "id": 9,
+  "calls": 3,
+  "ok": true,
+  "value": {
+   "edits": 0,
+   "exhaustion": "ValueError: no JSON array found"
+  }
+ },
+ {
+  "id": 10,
+  "calls": 1,
+  "ok": true,
+  "value": {
+   "edits": 0,
+   "exhaustion": null
+  }
+ },
+ {
+  "id": 11,
+  "calls": 3,
+  "ok": true,
+  "value": {
+   "edits": 0,
+   "exhaustion": "TypeError: sequence item 0: expected str instance, NoneType found"
+  }
+ },
+ {
+  "id": 12,
+  "calls": 1,
+  "ok": true,
+  "value": {
+   "winner": "candidate",
+   "reason": "Clearer labels.",
+   "display_order": [
+    "candidate",
+    "original"
+   ],
+   "image_hashes": {
+    "original": "e878950f8091ec010cf5cc723bdea027a8539cf7147cfea199c2f666232dcd4e",
+    "candidate": "c47dd9465c00e9a0c8b85e9ea58d3034a0d23b9cf926113602f3460752a4eb96"
+   },
+   "raw_response": "{\"preference\": \"1\", \"reason\": \"Clearer labels.\"}"
+  }
+ },
+ {
+  "id": 13,
+  "calls": 1,
+  "ok": true,
+  "value": {
+   "winner": "original",
+   "reason": "Clearer labels.",
+   "display_order": [
+    "candidate",
+    "original"
+   ],
+   "image_hashes": {
+    "original": "e878950f8091ec010cf5cc723bdea027a8539cf7147cfea199c2f666232dcd4e",
+    "candidate": "c47dd9465c00e9a0c8b85e9ea58d3034a0d23b9cf926113602f3460752a4eb96"
+   },
+   "raw_response": "{\"preference\": \"2\", \"reason\": \"Clearer labels.\"}"
+  }
+ },
+ {
+  "id": 14,
+  "calls": 1,
+  "ok": true,
+  "value": {
+   "winner": "tie",
+   "reason": "Clearer labels.",
+   "display_order": [
+    "candidate",
+    "original"
+   ],
+   "image_hashes": {
+    "original": "e878950f8091ec010cf5cc723bdea027a8539cf7147cfea199c2f666232dcd4e",
+    "candidate": "c47dd9465c00e9a0c8b85e9ea58d3034a0d23b9cf926113602f3460752a4eb96"
+   },
+   "raw_response": "{\"preference\": \"tie\", \"reason\": \"Clearer labels.\"}"
+  }
+ },
+ {
+  "id": 15,
+  "calls": 1,
+  "ok": false,
+  "error": "ValueError",
+  "message": "Diagram comparison returned an invalid preference"
+ },
+ {
+  "id": 16,
+  "calls": 0,
+  "ok": true,
+  "value": {
+   "winner": "tie",
+   "reason": "The rendered files are identical.",
+   "image_hashes": {
+    "original": "e878950f8091ec010cf5cc723bdea027a8539cf7147cfea199c2f666232dcd4e",
+    "candidate": "e878950f8091ec010cf5cc723bdea027a8539cf7147cfea199c2f666232dcd4e"
+   },
+   "display_order": []
+  }
+ }
+]

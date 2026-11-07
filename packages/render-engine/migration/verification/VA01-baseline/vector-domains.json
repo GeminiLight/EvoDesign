@@ -1,0 +1,142 @@
+{
+  "expected_throw_vectors": 106,
+  "expected_map_vectors": 57,
+  "expected_map_nodes": 119,
+  "result_vectors": 34962,
+  "kwarg_mutation_vectors": 34856,
+  "args_mutation_vectors": 34856,
+  "mutation_disabled_vectors": 1178,
+  "max_number": 4278691507,
+  "relative_tolerance_numeric_nodes": 72184,
+  "relative_tolerance_examples": [
+    {
+      "module": "evodesign.agentic_system.common.spec_utils",
+      "fn": "unwrap_structure_instantiation",
+      "line": 41,
+      "path": "$.result.nodes.0.quantity",
+      "expected": 10000,
+      "undetected_delta": 0.000005
+    },
+    {
+      "module": "evodesign.agentic_system.common.spec_utils",
+      "fn": "unwrap_structure_instantiation",
+      "line": 41,
+      "path": "$.result.nodes.1.quantity",
+      "expected": 6000,
+      "undetected_delta": 0.000003
+    },
+    {
+      "module": "evodesign.agentic_system.common.spec_utils",
+      "fn": "unwrap_structure_instantiation",
+      "line": 41,
+      "path": "$.result.nodes.2.quantity",
+      "expected": 2000,
+      "undetected_delta": 0.0000011
+    },
+    {
+      "module": "evodesign.agentic_system.common.node_icons",
+      "fn": "icon_owner",
+      "line": 1,
+      "path": "$.result.seed",
+      "expected": 1332524356,
+      "undetected_delta": 0.6662621780000001
+    },
+    {
+      "module": "evodesign.agentic_system.common.node_icons",
+      "fn": "icon_owner",
+      "line": 1,
+      "path": "$.result.versionNonce",
+      "expected": 1373597585,
+      "undetected_delta": 0.6867987925000001
+    },
+    {
+      "module": "evodesign.agentic_system.common.node_icons",
+      "fn": "icon_owner",
+      "line": 2,
+      "path": "$.result.seed",
+      "expected": 1523911502,
+      "undetected_delta": 0.761955751
+    },
+    {
+      "module": "evodesign.agentic_system.common.node_icons",
+      "fn": "icon_owner",
+      "line": 2,
+      "path": "$.result.versionNonce",
+      "expected": 316729030,
+      "undetected_delta": 0.158364515
+    },
+    {
+      "module": "evodesign.agentic_system.common.node_icons",
+      "fn": "icon_owner",
+      "line": 3,
+      "path": "$.result.seed",
+      "expected": 865232846,
+      "undetected_delta": 0.432616423
+    },
+    {
+      "module": "evodesign.agentic_system.common.node_icons",
+      "fn": "icon_owner",
+      "line": 3,
+      "path": "$.result.versionNonce",
+      "expected": 200243887,
+      "undetected_delta": 0.1001219435
+    },
+    {
+      "module": "evodesign.agentic_system.common.node_icons",
+      "fn": "icon_owner",
+      "line": 4,
+      "path": "$.result.seed",
+      "expected": 1259422892,
+      "undetected_delta": 0.6297114460000001
+    }
+  ],
+  "throws_examples": [
+    {
+      "module": "evodesign.agentic_system.common.node_icons",
+      "fn": "set_node_icon",
+      "line": 4,
+      "raises": "ValueError",
+      "message": "Icon must be a bundled Material icon name."
+    },
+    {
+      "module": "evodesign.agentic_system.common.node_icons",
+      "fn": "set_node_icon",
+      "line": 5,
+      "raises": "ValueError",
+      "message": "Icon must be a bundled Material icon name."
+    },
+    {
+      "module": "evodesign.agentic_system.common.node_icons",
+      "fn": "set_node_icon",
+      "line": 6,
+      "raises": "ValueError",
+      "message": "Icon host must be an unlocked visible rectangle or ellipse node."
+    },
+    {
+      "module": "evodesign.agentic_system.common.node_icons",
+      "fn": "set_node_icon",
+      "line": 7,
+      "raises": "ValueError",
+      "message": "Icon host must be an unlocked visible rectangle or ellipse node."
+    },
+    {
+      "module": "evodesign.agentic_system.common.node_icons",
+      "fn": "set_node_icon",
+      "line": 8,
+      "raises": "ValueError",
+      "message": "Icon host must be an unlocked visible rectangle or ellipse node."
+    },
+    {
+      "module": "evodesign.agentic_system.common.icon_assets",
+      "fn": "require_icon_assets_available",
+      "line": 1,
+      "raises": "RuntimeError",
+      "message": "Icon generation is enabled, but no Material icon SVG files were found under /private/var/folders/r0/3rj7glpd3k32zqptb7dbt6nr0000gn/T/pytest-of-zhanyi/pytest-99/test_require_icon_assets_avail0/material-design-icons. Disable icons or run `python -m evodesign.scripts.setup_icons` before generating diag"
+    }
+  ],
+  "seed_probe": {
+    "diffs": [],
+    "tolerated": 0,
+    "keyOrder": []
+  }
+}

@@ -1,0 +1,141 @@
+{
+ "chart_type": "architecture",
+ "canvas_use_plan": {
+  "viewport": {
+   "w": 1600,
+   "h": 900
+  },
+  "content_bounds": {
+   "x": 80,
+   "y": 130,
+   "w": 1440,
+   "h": 740
+  },
+  "longest_axis_occupancy": 0.9,
+  "primary_axis": "left_to_right",
+  "decision": "Use five component columns and a lower shared-memory row without introducing frames."
+ },
+ "tier_plan": {
+  "columns": [
+   [
+    "input_content"
+   ],
+   [
+    "structure_agent",
+    "style_agent",
+    "layout_agent"
+   ],
+   [
+    "canvas_render_engine",
+    "diagram_refiner"
+   ],
+   [
+    "hybrid_experience_search",
+    "knowledge_distiller"
+   ],
+   [
+    "editable_diagram"
+   ]
+  ],
+  "bottom_row": [
+   "design_expertise_memory"
+  ]
+ },
+ "pattern_specific_layout_blueprint": {
+  "placement_grammar": "Role-tier columns with top-to-bottom progression inside the generation and knowledge stacks.",
+  "card_sizing": "Reserve icon and title space above supporting text; wrap sublabels at their existing font size.",
+  "generation_path": "Stack the three generation agents in their committed order, then hand off to the rendering column.",
+  "refinement_loop": "Separate the downward diagnosis connector from the curved upward correction connector.",
+  "knowledge_feedback": "Place memory below the component columns and use curved retrieval connectors with obstacle avoidance delegated to the renderer.",
+  "output_alignment": "Align the editable output with the render engine and reserve the upper corridor for their long-span connection."
+ },
+ "anchor_assignments": {
+  "input_content": {
+   "column": 0,
+   "center": {
+    "x": 190,
+    "y": 185
+   }
+  },
+  "structure_agent": {
+   "column": 1,
+   "center": {
+    "x": 470,
+    "y": 185
+   }
+  },
+  "style_agent": {
+   "column": 1,
+   "center": {
+    "x": 470,
+    "y": 385
+   }
+  },
+  "layout_agent": {
+   "column": 1,
+   "center": {
+    "x": 470,
+    "y": 585
+   }
+  },
+  "canvas_render_engine": {
+   "column": 2,
+   "center": {
+    "x": 775,
+    "y": 185
+   }
+  },
+  "diagram_refiner": {
+   "column": 2,
+   "center": {
+    "x": 775,
+    "y": 585
+   }
+  },
+  "hybrid_experience_search": {
+   "column": 3,
+   "center": {
+    "x": 1090,
+    "y": 585
+   }
+  },
+  "knowledge_distiller": {
+   "column": 3,
+   "center": {
+    "x": 1090,
+    "y": 735
+   }
+  },
+  "editable_diagram": {
+   "column": 4,
+   "center": {
+    "x": 1390,
+    "y": 185
+   }
+  },
+  "design_expertise_memory": {
+   "row": "bottom_row",
+   "center": {
+    "x": 1185,
+    "y": 825
+   }
+  }
+ },
+ "boundary_derivation": {
+  "groups": [],
+  "node_bounds": "Each card meets its upstream minimum dimensions and includes internal text clearance.",
+  "canvas_bounds": "The union of node rectangles is [80,130,1520,870], entirely within the preferred viewport."
+ },
+ "layout_self_audit": {
+  "identity": "The inherited role columns, shared memory, and refinement cycle preserve the architecture paradigm.",
+  "topology": "All ten nodes and thirteen directed relationships retain their exact upstream IDs.",
+  "labels": "No visible edge labels are emitted, so edge-label collisions do not arise.",
+  "separation": "Node rectangles do not overlap; consecutive generation cards have 90 pixels of vertical clearance.",
+  "stacking": "There are no group frames or standalone title elements.",
+  "ports": "Every edge has two discrete endpoint objects selected independently from endpoint-center displacement.",
+  "routing": "Feedback uses curves and offset handoffs use elbows; final obstacle avoidance and curve separation depend on renderer routing.",
+  "containment": "No group-containment checks are required.",
+  "bounds": "All node geometry uses integers and remains inside 1600 by 900.",
+  "styling": "Inherited node styling is unchanged and every connector retains #21343A."
+ }
+}

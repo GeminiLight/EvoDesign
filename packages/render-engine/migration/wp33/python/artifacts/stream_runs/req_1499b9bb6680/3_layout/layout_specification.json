@@ -1,0 +1,17 @@
+{
+  "chart_type": "flowchart",
+  "reading_direction": "top-to-bottom",
+  "main_path": [
+    "submit_order",
+    "authorize_payment",
+    "payment_succeeds",
+    "ship_parcel",
+    "receive_confirmation"
+  ],
+  "branch_lanes": "Success continues downward in column 0 with label Yes; failure branches right to column 1 on the decision row with label No.",
+  "return_corridors": "None; the retry request is terminal and has no return edge.",
+  "invariants": [
+    "Preserve all canonical IDs, labels, roles and styling.",
+    "Six nodes, five edges, no groups or additional elements."
+  ]
+}

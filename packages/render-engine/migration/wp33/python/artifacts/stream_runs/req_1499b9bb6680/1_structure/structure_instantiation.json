@@ -1,0 +1,78 @@
+{
+  "chart_type": "flowchart",
+  "nodes": [
+    {
+      "id": "submit_order",
+      "label": "Submit order",
+      "class": "start"
+    },
+    {
+      "id": "authorize_payment",
+      "label": "Authorize payment",
+      "class": "process"
+    },
+    {
+      "id": "payment_succeeds",
+      "label": "Payment succeeds?",
+      "class": "decision",
+      "emphasis": "primary"
+    },
+    {
+      "id": "request_retry",
+      "label": "Ask customer to retry",
+      "class": "end",
+      "emphasis": "muted"
+    },
+    {
+      "id": "ship_parcel",
+      "label": "Warehouse ships parcel",
+      "class": "process"
+    },
+    {
+      "id": "receive_confirmation",
+      "label": "Customer receives confirmation",
+      "class": "end",
+      "emphasis": "primary"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge:submit_order2authorize_payment",
+      "source": "submit_order",
+      "target": "authorize_payment",
+      "relation": "proceeds to payment authorization",
+      "evidence_basis": "explicit"
+    },
+    {
+      "id": "edge:authorize_payment2payment_succeeds",
+      "source": "authorize_payment",
+      "target": "payment_succeeds",
+      "relation": "branches by payment outcome",
+      "evidence_basis": "structural"
+    },
+    {
+      "id": "edge:payment_succeeds2request_retry",
+      "source": "payment_succeeds",
+      "target": "request_retry",
+      "label": "No",
+      "relation": "on failure prompts retry request",
+      "evidence_basis": "explicit"
+    },
+    {
+      "id": "edge:payment_succeeds2ship_parcel",
+      "source": "payment_succeeds",
+      "target": "ship_parcel",
+      "label": "Yes",
+      "relation": "on success proceeds to shipment",
+      "evidence_basis": "explicit"
+    },
+    {
+      "id": "edge:ship_parcel2receive_confirmation",
+      "source": "ship_parcel",
+      "target": "receive_confirmation",
+      "relation": "is followed by customer confirmation",
+      "evidence_basis": "explicit"
+    }
+  ],
+  "groups": []
+}

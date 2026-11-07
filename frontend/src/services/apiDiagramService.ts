@@ -430,50 +430,8 @@ export async function generateDiagramStream(
         try {
           const parsed = JSON.parse(dataStr);
 
-          switch (eventType) {
-            case 'stage_start': {
-              const event = assertStreamPayload(parsed, isStreamStageStartEvent, eventType);
-              recordStageProgress();
-              callbacks.onStageStart?.(event);
-              break;
-            }
-            case 'stage_complete': {
-              const event = assertStreamPayload(parsed, isStreamStageCompleteEvent, eventType);
-              recordStageProgress();
-              callbacks.onStageComplete?.(event);
-              break;
-            }
-            case 'refine_complete': {
-              const event = assertStreamPayload(parsed, isStreamRefineCompleteEvent, eventType);
-              callbacks.onRefineComplete?.(event);
-              break;
-            }
-            case 'refine_error': {
-              const event = assertStreamPayload(parsed, isStreamRefineErrorEvent, eventType);
-              callbacks.onRefineError?.(event);
-              break;
-            }
-            case 'refiner_skipped': {
-              const event = assertStreamPayload(parsed, isRefinerSkippedEvent, eventType);
-              callbacks.onRefinerSkipped?.(event);
-              break;
-            }
-            case 'result': {
-              resultData = assertStreamPayload(parsed, isStreamResultEvent, eventType);
-              callbacks.onResult?.(resultData);
-              break;
-            }
-            case 'error': {
-              const event = assertStreamPayload(parsed, isStreamErrorEvent, eventType);
-              callbacks.onError?.(event);
-              throw new ApiError(
-                'Generation stage failed',
-                500,
-                event.detail || event.message,
-                'generation_stage_failed',
-              );
-            }
-          }
+          const terminal = dispatchDiagramStreamEvent(eventType, parsed, callbacks, recordStageProgress);
+          if (terminal) resultData = terminal;
         } catch (e) {
           if (e instanceof SyntaxError) {
             // Dropping one malformed event must not kill the stream, but it
@@ -500,6 +458,10 @@ export async function generateDiagramStream(
     throw new Error('Stream ended without a result event');
   }
 
+  return diagramResponseFromStream(resultData, request, canvasLibrary);
+}
+
+export function diagramResponseFromStream(resultData: StreamResultEvent, request: DiagramRequest, canvasLibrary: CanvasLibrary): DiagramResponse {
   const splitPayload = splitCanvasPayload(resultData.schema_blob ?? {});
   const payloadInspection = inspectCanvasPayload(resultData.schema_blob ?? {}, canvasLibrary);
   const warnings = payloadInspection.status === 'valid'
@@ -524,4 +486,52 @@ export async function generateDiagramStream(
     warnings,
     persistError: resultData.persist_error ?? false,
   };
+}
+
+export function dispatchDiagramStreamEvent(eventType: string, parsed: unknown, callbacks: StreamCallbacks, onProgress: () => void = () => {}): StreamResultEvent | null {
+          switch (eventType) {
+            case 'stage_start': {
+              const event = assertStreamPayload(parsed, isStreamStageStartEvent, eventType);
+              onProgress();
+              callbacks.onStageStart?.(event);
+              break;
+            }
+            case 'stage_complete': {
+              const event = assertStreamPayload(parsed, isStreamStageCompleteEvent, eventType);
+              onProgress();
+              callbacks.onStageComplete?.(event);
+              break;
+            }
+            case 'refine_complete': {
+              const event = assertStreamPayload(parsed, isStreamRefineCompleteEvent, eventType);
+              callbacks.onRefineComplete?.(event);
+              break;
+            }
+            case 'refine_error': {
+              const event = assertStreamPayload(parsed, isStreamRefineErrorEvent, eventType);
+              callbacks.onRefineError?.(event);
+              break;
+            }
+            case 'refiner_skipped': {
+              const event = assertStreamPayload(parsed, isRefinerSkippedEvent, eventType);
+              callbacks.onRefinerSkipped?.(event);
+              break;
+            }
+            case 'result': {
+              const result = assertStreamPayload(parsed, isStreamResultEvent, eventType);
+              callbacks.onResult?.(result);
+              return result;
+            }
+            case 'error': {
+              const event = assertStreamPayload(parsed, isStreamErrorEvent, eventType);
+              callbacks.onError?.(event);
+              throw new ApiError(
+                'Generation stage failed',
+                500,
+                event.detail || event.message,
+                'generation_stage_failed',
+              );
+            }
+          }
+  return null;
 }

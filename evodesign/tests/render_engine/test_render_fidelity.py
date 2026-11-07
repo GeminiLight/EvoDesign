@@ -28,6 +28,7 @@ from evodesign.agentic_system.render_engine.shared.edge_routing import (
     extract_edge_port_hints,
     find_shape_id,
     is_layout_edge_entry,
+    shape_bbox,
 )
 from evodesign.agentic_system.render_engine.shared.edge_crossing_detector import (
     detect_crossings,
@@ -36,24 +37,31 @@ from evodesign.agentic_system.render_engine.tldraw.group_fitter import (
     fit_groups_to_children,
 )
 from evodesign.agentic_system.render_engine.excalidraw.arrow_adder import (
-    _architecture_port_hint,
-    _avoid_node_intersections,
-    _compress_orthogonal_path,
-    _orthogonal_visibility_route,
-    _path_avoids_endpoint_interiors,
-    _path_crossing_count,
-    _path_is_clear,
-    _prefer_clear_port_pair,
-    _prefer_crosscutting_lower_corridor_route,
-    _prefer_architecture_outer_route,
-    _normalize_label_payload,
-    _merge_semantic_edge_labels,
-    _reposition_edge_labels,
-    _should_drop_edge_label,
-    _segment_hits_box,
     add_excalidraw_arrows_to_manifest,
     rebuild_excalidraw_arrows,
 )
+from evodesign.agentic_system.render_engine.excalidraw.arrow_routing.detours import (
+    _avoid_node_intersections,
+    _prefer_architecture_outer_route,
+    _prefer_clear_port_pair,
+    _prefer_crosscutting_lower_corridor_route,
+)
+from evodesign.agentic_system.render_engine.excalidraw.arrow_routing.geometry import (
+    _compress_orthogonal_path,
+    _path_avoids_endpoint_interiors,
+    _path_crossing_count,
+    _path_is_clear,
+    _path_length,
+    _segment_hits_box,
+)
+from evodesign.agentic_system.render_engine.excalidraw.arrow_routing.grid_router import _orthogonal_visibility_route
+from evodesign.agentic_system.render_engine.excalidraw.arrow_routing.labels import (
+    _merge_semantic_edge_labels,
+    _normalize_label_payload,
+    _reposition_edge_labels,
+    _should_drop_edge_label,
+)
+from evodesign.agentic_system.render_engine.excalidraw.arrow_routing.ports import _architecture_port_hint
 from evodesign.agentic_system.render_engine.excalidraw.converter import (
     InstantiationToExcalidrawConverter,
 )
@@ -692,7 +700,7 @@ def test_port_pair_selection_rejects_route_through_its_endpoints():
 
 
 def test_visibility_detour_cannot_reverse_final_approach_to_avoid_crossing(monkeypatch):
-    import evodesign.agentic_system.render_engine.excalidraw.arrow_adder as arrow_module
+    import evodesign.agentic_system.render_engine.excalidraw.arrow_routing.detours as detours_module
 
     original = [
         {"x": 100.0, "y": 0.0}, {"x": 100.0, "y": 50.0},
@@ -705,7 +713,7 @@ def test_visibility_detour_cannot_reverse_final_approach_to_avoid_crossing(monke
     # A visibility path may overshoot its end lead. Compressing the collinear
     # lead then approaches the top face from inside the target instead.
     monkeypatch.setattr(
-        arrow_module, "_orthogonal_visibility_route",
+        detours_module, "_orthogonal_visibility_route",
         lambda *args, **kwargs: [(100.0, 24.0), (100.0, 150.0), (0.0, 150.0), (0.0, 76.0)],
     )
     routed = _avoid_node_intersections(original, [], existing_arrows=[crossing])
@@ -718,7 +726,7 @@ def test_visibility_detour_cannot_reverse_final_approach_to_avoid_crossing(monke
 
 
 def test_blocked_header_can_route_through_other_faces_without_crossing_children():
-    from evodesign.agentic_system.render_engine.excalidraw.arrow_adder import compute_waypoints
+    from evodesign.agentic_system.render_engine.excalidraw.edge_router import compute_waypoints
 
     source = {"x": 64.0, "y": 520.0, "w": 182.0, "h": 32.0}
     target = {"x": 180.0, "y": 780.0, "w": 168.0, "h": 52.0}
@@ -1898,7 +1906,7 @@ def test_architecture_outer_route_avoids_populated_sublayer_crossings():
         },
     ]
 
-    routed, start_side, end_side, _, _ = _prefer_architecture_outer_route(
+    routed, start_side, end_side = _prefer_architecture_outer_route(
         original,
         "bottom",
         "top",
@@ -1951,7 +1959,7 @@ def test_crosscutting_route_uses_lower_corridor_when_upper_route_is_busy():
         (1305.5, 788.0, 185.0, 60.0),
     ]
 
-    routed, length = _prefer_crosscutting_lower_corridor_route(
+    routed = _prefer_crosscutting_lower_corridor_route(
         original,
         "right",
         "left",
@@ -1973,7 +1981,7 @@ def test_crosscutting_route_uses_lower_corridor_when_upper_route_is_busy():
         (1235.0, 596.0),
         (1257.0, 596.0),
     ]
-    assert length == 1036.0
+    assert _path_length(routed_points) == 1036.0
 
 
 def test_crosscutting_route_separates_parallel_channel_without_new_crossing():
@@ -1994,7 +2002,7 @@ def test_crosscutting_route_separates_parallel_channel_without_new_crossing():
         },
     ]
 
-    routed, length = _prefer_crosscutting_lower_corridor_route(
+    routed = _prefer_crosscutting_lower_corridor_route(
         original,
         "right",
         "left",
@@ -2012,7 +2020,7 @@ def test_crosscutting_route_separates_parallel_channel_without_new_crossing():
         (178.0, 20.0),
         (200.0, 20.0),
     ]
-    assert length == 244.0
+    assert _path_length([(point["x"], point["y"]) for point in routed]) == 244.0
 
 
 def test_bug_c_tldraw_arrow_adder_records_semantic_edge_metadata():
@@ -3324,8 +3332,6 @@ def test_shared_parent_order_shortens_external_link_without_reversing_facts(cons
 
 
 def test_shared_parent_detours_do_not_cross_their_own_target_nodes():
-    from evodesign.agentic_system.render_engine.excalidraw import arrow_adder
-
     nodes = {
         "category": (1104, 168), "producer": (1104, 276),
         "first": (824, 384), "second": (1384, 384),
@@ -3357,10 +3363,10 @@ def test_shared_parent_detours_do_not_cross_their_own_target_nodes():
     arrows = [element for element in manifest["elements"] if element["type"] == "arrow"]
     assert {element["meta"]["semantic_edge_id"] for element in arrows} == {edge["id"] for edge in structure["edges"]}
     for arrow in arrows:
-        source = arrow_adder.shape_bbox(by_id[id_map[arrow["meta"]["source"]]])
-        target = arrow_adder.shape_bbox(by_id[id_map[arrow["meta"]["target"]]])
+        source = shape_bbox(by_id[id_map[arrow["meta"]["source"]]])
+        target = shape_bbox(by_id[id_map[arrow["meta"]["target"]]])
         points = [(arrow["x"] + x, arrow["y"] + y) for x, y in arrow["points"]]
-        assert arrow_adder._path_avoids_endpoint_interiors(points, source, target)
+        assert _path_avoids_endpoint_interiors(points, source, target)
 
 
 def test_short_elbow_label_avoids_incoming_connector():

@@ -1,0 +1,320 @@
+[
+  {
+    "input": {
+      "id": 440,
+      "op": "critique",
+      "data": {
+        "structure": {
+          "score": "7_"
+        },
+        "styling": {
+          "score": "7_"
+        },
+        "layout": {
+          "score": "7_"
+        },
+        "overall_score": "7_"
+      }
+    },
+    "ok": true,
+    "value": {
+      "structure": {
+        "score": 7,
+        "strengths": [],
+        "weaknesses": [],
+        "suggestions": []
+      },
+      "styling": {
+        "score": 7,
+        "strengths": [],
+        "weaknesses": [],
+        "suggestions": []
+      },
+      "layout": {
+        "score": 7,
+        "strengths": [],
+        "weaknesses": [],
+        "suggestions": []
+      },
+      "overall_score": 7,
+      "constraint_violations": [],
+      "summary": "",
+      "call_metrics": {},
+      "raw_response": null
+    }
+  },
+  {
+    "input": {
+      "id": 442,
+      "op": "critique",
+      "data": {
+        "structure": {
+          "score": "7__0"
+        },
+        "styling": {
+          "score": "7__0"
+        },
+        "layout": {
+          "score": "7__0"
+        },
+        "overall_score": "7__0"
+      }
+    },
+    "ok": true,
+    "value": {
+      "structure": {
+        "score": 10,
+        "strengths": [],
+        "weaknesses": [],
+        "suggestions": []
+      },
+      "styling": {
+        "score": 10,
+        "strengths": [],
+        "weaknesses": [],
+        "suggestions": []
+      },
+      "layout": {
+        "score": 10,
+        "strengths": [],
+        "weaknesses": [],
+        "suggestions": []
+      },
+      "overall_score": 10,
+      "constraint_violations": [],
+      "summary": "",
+      "call_metrics": {},
+      "raw_response": null
+    }
+  },
+  {
+    "input": {
+      "id": 445,
+      "op": "critique",
+      "data": {
+        "structure": {
+          "score": "١"
+        },
+        "styling": {
+          "score": "١"
+        },
+        "layout": {
+          "score": "١"
+        },
+        "overall_score": "١"
+      }
+    },
+    "ok": false,
+    "error": "IncompleteCritiqueError",
+    "message": "VLM critique has a non-numeric structure.score: '١'"
+  },
+  {
+    "input": {
+      "id": 472,
+      "op": "verifier_state",
+      "data": {
+        "manifest_path": "m",
+        "image_path": "i",
+        "objective_summary": {
+          "major": "oops"
+        },
+        "status": "reported"
+      }
+    },
+    "ok": true,
+    "value": {
+      "state": {
+        "manifest_path": "m",
+        "image_path": "i",
+        "canvas_library": "excalidraw",
+        "structure_path": null,
+        "layout_path": null,
+        "source_text": null,
+        "design_constraints": "",
+        "output_dir": null,
+        "skip_critic": false,
+        "skip_checks": [],
+        "emit_markdown": false,
+        "manifest": null,
+        "structure": null,
+        "layout_instantiation": null,
+        "objective_findings": [],
+        "objective_summary": {
+          "major": "oops"
+        },
+        "critique": null,
+        "report": null,
+        "report_path": null,
+        "status": "reported",
+        "errors": [],
+        "blocking_errors": [],
+        "nonblocking_errors": [],
+        "logs": []
+      },
+      "quality_passed": true,
+      "cli_exit_code": 0
+    }
+  },
+  {
+    "input": {
+      "id": 531,
+      "op": "edits",
+      "manifest": {
+        "elements": [
+          {
+            "id": "n",
+            "type": "rectangle",
+            "x": 10,
+            "y": 2,
+            "width": 100,
+            "height": 80,
+            "opacity": 100,
+            "strokeColor": "#000000",
+            "backgroundColor": "#ffffff",
+            "text": "A B",
+            "originalText": "A B",
+            "version": 2
+          }
+        ],
+        "_meta": {
+          "id_map": {}
+        }
+      },
+      "edits": [
+        {
+          "op": "set_position",
+          "id": "n",
+          "payload": {
+            "x": "1__0",
+            "y": 2
+          },
+          "source": "llm"
+        }
+      ]
+    },
+    "ok": true,
+    "value": {
+      "manifest": {
+        "elements": [
+          {
+            "id": "n",
+            "type": "rectangle",
+            "x": 10,
+            "y": 2,
+            "width": 100,
+            "height": 80,
+            "opacity": 100,
+            "strokeColor": "#000000",
+            "backgroundColor": "#ffffff",
+            "text": "A B",
+            "originalText": "A B",
+            "version": 2
+          }
+        ],
+        "_meta": {
+          "id_map": {}
+        }
+      },
+      "outcomes": [
+        {
+          "edit": {
+            "op": "set_position",
+            "id": "n",
+            "payload": {
+              "x": "1__0",
+              "y": 2
+            },
+            "rationale": "",
+            "source": "llm"
+          },
+          "applied": true,
+          "error": null,
+          "raw": null
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "id": 532,
+      "op": "edits",
+      "manifest": {
+        "elements": [
+          {
+            "id": "n",
+            "type": "rectangle",
+            "x": 10,
+            "y": 2,
+            "width": 100,
+            "height": 80,
+            "opacity": 100,
+            "strokeColor": "#000000",
+            "backgroundColor": "#ffffff",
+            "text": "A B",
+            "originalText": "A B",
+            "version": 2
+          }
+        ],
+        "_meta": {
+          "id_map": {
+            "source": "n"
+          }
+        }
+      },
+      "edits": [
+        {
+          "op": "set_position",
+          "id": "n",
+          "payload": {
+            "x": "1__0",
+            "y": 2
+          },
+          "source": "llm"
+        }
+      ]
+    },
+    "ok": true,
+    "value": {
+      "manifest": {
+        "elements": [
+          {
+            "id": "n",
+            "type": "rectangle",
+            "x": 10,
+            "y": 2,
+            "width": 100,
+            "height": 80,
+            "opacity": 100,
+            "strokeColor": "#000000",
+            "backgroundColor": "#ffffff",
+            "text": "A B",
+            "originalText": "A B",
+            "version": 2
+          }
+        ],
+        "_meta": {
+          "id_map": {
+            "source": "n"
+          }
+        }
+      },
+      "outcomes": [
+        {
+          "edit": {
+            "op": "set_position",
+            "id": "n",
+            "payload": {
+              "x": "1__0",
+              "y": 2
+            },
+            "rationale": "",
+            "source": "llm"
+          },
+          "applied": true,
+          "error": null,
+          "raw": null
+        }
+      ]
+    }
+  }
+]

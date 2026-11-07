@@ -1,0 +1,1631 @@
+[
+ {
+  "case": {
+   "id": 440,
+   "op": "critique",
+   "data": {
+    "structure": {
+     "score": "7_"
+    },
+    "styling": {
+     "score": "7_"
+    },
+    "layout": {
+     "score": "7_"
+    },
+    "overall_score": "7_"
+   }
+  },
+  "python": {
+   "id": 440,
+   "ok": false,
+   "error": "IncompleteCritiqueError",
+   "message": "VLM critique has a non-numeric structure.score: '7_'"
+  },
+  "ts": {
+   "id": 440,
+   "ok": true,
+   "value": {
+    "structure": {
+     "score": 7,
+     "strengths": [],
+     "weaknesses": [],
+     "suggestions": []
+    },
+    "styling": {
+     "score": 7,
+     "strengths": [],
+     "weaknesses": [],
+     "suggestions": []
+    },
+    "layout": {
+     "score": 7,
+     "strengths": [],
+     "weaknesses": [],
+     "suggestions": []
+    },
+    "overall_score": 7,
+    "constraint_violations": [],
+    "summary": "",
+    "call_metrics": {},
+    "raw_response": null
+   }
+  }
+ },
+ {
+  "case": {
+   "id": 441,
+   "op": "critique",
+   "data": {
+    "structure": {
+     "score": "_7"
+    },
+    "styling": {
+     "score": "_7"
+    },
+    "layout": {
+     "score": "_7"
+    },
+    "overall_score": "_7"
+   }
+  },
+  "python": {
+   "id": 441,
+   "ok": false,
+   "error": "IncompleteCritiqueError",
+   "message": "VLM critique has a non-numeric structure.score: '_7'"
+  },
+  "ts": {
+   "id": 441,
+   "ok": true,
+   "value": {
+    "structure": {
+     "score": 7,
+     "strengths": [],
+     "weaknesses": [],
+     "suggestions": []
+    },
+    "styling": {
+     "score": 7,
+     "strengths": [],
+     "weaknesses": [],
+     "suggestions": []
+    },
+    "layout": {
+     "score": 7,
+     "strengths": [],
+     "weaknesses": [],
+     "suggestions": []
+    },
+    "overall_score": 7,
+    "constraint_violations": [],
+    "summary": "",
+    "call_metrics": {},
+    "raw_response": null
+   }
+  }
+ },
+ {
+  "case": {
+   "id": 442,
+   "op": "critique",
+   "data": {
+    "structure": {
+     "score": "7__0"
+    },
+    "styling": {
+     "score": "7__0"
+    },
+    "layout": {
+     "score": "7__0"
+    },
+    "overall_score": "7__0"
+   }
+  },
+  "python": {
+   "id": 442,
+   "ok": false,
+   "error": "IncompleteCritiqueError",
+   "message": "VLM critique has a non-numeric structure.score: '7__0'"
+  },
+  "ts": {
+   "id": 442,
+   "ok": true,
+   "value": {
+    "structure": {
+     "score": 10,
+     "strengths": [],
+     "weaknesses": [],
+     "suggestions": []
+    },
+    "styling": {
+     "score": 10,
+     "strengths": [],
+     "weaknesses": [],
+     "suggestions": []
+    },
+    "layout": {
+     "score": 10,
+     "strengths": [],
+     "weaknesses": [],
+     "suggestions": []
+    },
+    "overall_score": 10,
+    "constraint_violations": [],
+    "summary": "",
+    "call_metrics": {},
+    "raw_response": null
+   }
+  }
+ },
+ {
+  "case": {
+   "id": 445,
+   "op": "critique",
+   "data": {
+    "structure": {
+     "score": "١"
+    },
+    "styling": {
+     "score": "١"
+    },
+    "layout": {
+     "score": "١"
+    },
+    "overall_score": "١"
+   }
+  },
+  "python": {
+   "id": 445,
+   "ok": true,
+   "value": {
+    "structure": {
+     "score": 1.0,
+     "strengths": [],
+     "weaknesses": [],
+     "suggestions": []
+    },
+    "styling": {
+     "score": 1.0,
+     "strengths": [],
+     "weaknesses": [],
+     "suggestions": []
+    },
+    "layout": {
+     "score": 1.0,
+     "strengths": [],
+     "weaknesses": [],
+     "suggestions": []
+    },
+    "overall_score": 1.0,
+    "constraint_violations": [],
+    "summary": "",
+    "call_metrics": {},
+    "raw_response": null
+   }
+  },
+  "ts": {
+   "id": 445,
+   "ok": false,
+   "error": "IncompleteCritiqueError",
+   "message": "VLM critique has a non-numeric structure.score: '١'"
+  }
+ },
+ {
+  "case": {
+   "id": 449,
+   "op": "refiner_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "max_iterations": "1.0"
+   }
+  },
+  "python": {
+   "id": 449,
+   "ok": true,
+   "value": {
+    "verifier_report_path": null,
+    "design_constraints": "",
+    "manifest_path": "m",
+    "image_path": "i",
+    "structure_path": null,
+    "layout_path": null,
+    "output_dir": null,
+    "canvas_library": "excalidraw",
+    "max_iterations": 1,
+    "skip_rerender_between_iterations": false,
+    "skip_checks": [],
+    "emit_markdown": false,
+    "initial_report": null,
+    "structure": null,
+    "layout_instantiation": null,
+    "manifest": null,
+    "current_iteration": 0,
+    "current_image_path": null,
+    "analysis_manifest_fingerprint": null,
+    "prepared_iteration": null,
+    "prepared_input_fingerprint": null,
+    "iteration_logs": [],
+    "latest_findings": [],
+    "converged": false,
+    "termination_reason": null,
+    "prev_findings_fingerprint": null,
+    "best_findings_score": null,
+    "skipped_objective_checks": [],
+    "refined_manifest_path": null,
+    "refined_image_path": null,
+    "candidate_manifest_path": null,
+    "candidate_image_path": null,
+    "refiner_report_path": null,
+    "status": "init",
+    "errors": [],
+    "logs": []
+   }
+  },
+  "ts": {
+   "id": 449,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\nmax_iterations\n  Value error, Input should be a valid integer"
+  }
+ },
+ {
+  "case": {
+   "id": 450,
+   "op": "refiner_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "max_iterations": "2.0"
+   }
+  },
+  "python": {
+   "id": 450,
+   "ok": true,
+   "value": {
+    "verifier_report_path": null,
+    "design_constraints": "",
+    "manifest_path": "m",
+    "image_path": "i",
+    "structure_path": null,
+    "layout_path": null,
+    "output_dir": null,
+    "canvas_library": "excalidraw",
+    "max_iterations": 2,
+    "skip_rerender_between_iterations": false,
+    "skip_checks": [],
+    "emit_markdown": false,
+    "initial_report": null,
+    "structure": null,
+    "layout_instantiation": null,
+    "manifest": null,
+    "current_iteration": 0,
+    "current_image_path": null,
+    "analysis_manifest_fingerprint": null,
+    "prepared_iteration": null,
+    "prepared_input_fingerprint": null,
+    "iteration_logs": [],
+    "latest_findings": [],
+    "converged": false,
+    "termination_reason": null,
+    "prev_findings_fingerprint": null,
+    "best_findings_score": null,
+    "skipped_objective_checks": [],
+    "refined_manifest_path": null,
+    "refined_image_path": null,
+    "candidate_manifest_path": null,
+    "candidate_image_path": null,
+    "refiner_report_path": null,
+    "status": "init",
+    "errors": [],
+    "logs": []
+   }
+  },
+  "ts": {
+   "id": 450,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\nmax_iterations\n  Value error, Input should be a valid integer"
+  }
+ },
+ {
+  "case": {
+   "id": 451,
+   "op": "refiner_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "max_iterations": "20.0"
+   }
+  },
+  "python": {
+   "id": 451,
+   "ok": true,
+   "value": {
+    "verifier_report_path": null,
+    "design_constraints": "",
+    "manifest_path": "m",
+    "image_path": "i",
+    "structure_path": null,
+    "layout_path": null,
+    "output_dir": null,
+    "canvas_library": "excalidraw",
+    "max_iterations": 20,
+    "skip_rerender_between_iterations": false,
+    "skip_checks": [],
+    "emit_markdown": false,
+    "initial_report": null,
+    "structure": null,
+    "layout_instantiation": null,
+    "manifest": null,
+    "current_iteration": 0,
+    "current_image_path": null,
+    "analysis_manifest_fingerprint": null,
+    "prepared_iteration": null,
+    "prepared_input_fingerprint": null,
+    "iteration_logs": [],
+    "latest_findings": [],
+    "converged": false,
+    "termination_reason": null,
+    "prev_findings_fingerprint": null,
+    "best_findings_score": null,
+    "skipped_objective_checks": [],
+    "refined_manifest_path": null,
+    "refined_image_path": null,
+    "candidate_manifest_path": null,
+    "candidate_image_path": null,
+    "refiner_report_path": null,
+    "status": "init",
+    "errors": [],
+    "logs": []
+   }
+  },
+  "ts": {
+   "id": 451,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\nmax_iterations\n  Value error, Input should be a valid integer"
+  }
+ },
+ {
+  "case": {
+   "id": 454,
+   "op": "refiner_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "max_iterations": 0
+   }
+  },
+  "python": {
+   "id": 454,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\nmax_iterations\n  Input should be greater than or equal to 1 [type=greater_than_equal, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.14/v/greater_than_equal"
+  },
+  "ts": {
+   "id": 454,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\nmax_iterations\n  Value error, Input should be greater than or equal to 1"
+  }
+ },
+ {
+  "case": {
+   "id": 455,
+   "op": "refiner_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "max_iterations": 21
+   }
+  },
+  "python": {
+   "id": 455,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\nmax_iterations\n  Input should be less than or equal to 20 [type=less_than_equal, input_value=21, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.14/v/less_than_equal"
+  },
+  "ts": {
+   "id": 455,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\nmax_iterations\n  Value error, Input should be less than or equal to 20"
+  }
+ },
+ {
+  "case": {
+   "id": 457,
+   "op": "refiner_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "max_iterations": "1e0"
+   }
+  },
+  "python": {
+   "id": 457,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\nmax_iterations\n  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='1e0', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.14/v/int_parsing"
+  },
+  "ts": {
+   "id": 457,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\nmax_iterations\n  Value error, Input should be a valid integer"
+  }
+ },
+ {
+  "case": {
+   "id": 459,
+   "op": "refiner_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "best_findings_score": "NaN"
+   }
+  },
+  "python": {
+   "id": 459,
+   "ok": true,
+   "value": {
+    "verifier_report_path": null,
+    "design_constraints": "",
+    "manifest_path": "m",
+    "image_path": "i",
+    "structure_path": null,
+    "layout_path": null,
+    "output_dir": null,
+    "canvas_library": "excalidraw",
+    "max_iterations": 3,
+    "skip_rerender_between_iterations": false,
+    "skip_checks": [],
+    "emit_markdown": false,
+    "initial_report": null,
+    "structure": null,
+    "layout_instantiation": null,
+    "manifest": null,
+    "current_iteration": 0,
+    "current_image_path": null,
+    "analysis_manifest_fingerprint": null,
+    "prepared_iteration": null,
+    "prepared_input_fingerprint": null,
+    "iteration_logs": [],
+    "latest_findings": [],
+    "converged": false,
+    "termination_reason": null,
+    "prev_findings_fingerprint": null,
+    "best_findings_score": {
+     "__nonfinite__": "NaN"
+    },
+    "skipped_objective_checks": [],
+    "refined_manifest_path": null,
+    "refined_image_path": null,
+    "candidate_manifest_path": null,
+    "candidate_image_path": null,
+    "refiner_report_path": null,
+    "status": "init",
+    "errors": [],
+    "logs": []
+   }
+  },
+  "ts": {
+   "id": 459,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\nbest_findings_score\n  Value error, Input should be a valid number"
+  }
+ },
+ {
+  "case": {
+   "id": 462,
+   "op": "refiner_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "best_findings_score": "1_0"
+   }
+  },
+  "python": {
+   "id": 462,
+   "ok": true,
+   "value": {
+    "verifier_report_path": null,
+    "design_constraints": "",
+    "manifest_path": "m",
+    "image_path": "i",
+    "structure_path": null,
+    "layout_path": null,
+    "output_dir": null,
+    "canvas_library": "excalidraw",
+    "max_iterations": 3,
+    "skip_rerender_between_iterations": false,
+    "skip_checks": [],
+    "emit_markdown": false,
+    "initial_report": null,
+    "structure": null,
+    "layout_instantiation": null,
+    "manifest": null,
+    "current_iteration": 0,
+    "current_image_path": null,
+    "analysis_manifest_fingerprint": null,
+    "prepared_iteration": null,
+    "prepared_input_fingerprint": null,
+    "iteration_logs": [],
+    "latest_findings": [],
+    "converged": false,
+    "termination_reason": null,
+    "prev_findings_fingerprint": null,
+    "best_findings_score": 10.0,
+    "skipped_objective_checks": [],
+    "refined_manifest_path": null,
+    "refined_image_path": null,
+    "candidate_manifest_path": null,
+    "candidate_image_path": null,
+    "refiner_report_path": null,
+    "status": "init",
+    "errors": [],
+    "logs": []
+   }
+  },
+  "ts": {
+   "id": 462,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\nbest_findings_score\n  Value error, Input should be a valid number"
+  }
+ },
+ {
+  "case": {
+   "id": 463,
+   "op": "refiner_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "best_findings_score": "١"
+   }
+  },
+  "python": {
+   "id": 463,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\nbest_findings_score\n  Input should be a valid number, unable to parse string as a number [type=float_parsing, input_value='١', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.14/v/float_parsing"
+  },
+  "ts": {
+   "id": 463,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\nbest_findings_score\n  Value error, Input should be a valid number"
+  }
+ },
+ {
+  "case": {
+   "id": 464,
+   "op": "refiner_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "best_findings_score": "0x10"
+   }
+  },
+  "python": {
+   "id": 464,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\nbest_findings_score\n  Input should be a valid number, unable to parse string as a number [type=float_parsing, input_value='0x10', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.14/v/float_parsing"
+  },
+  "ts": {
+   "id": 464,
+   "ok": true,
+   "value": {
+    "verifier_report_path": null,
+    "design_constraints": "",
+    "manifest_path": "m",
+    "image_path": "i",
+    "structure_path": null,
+    "layout_path": null,
+    "output_dir": null,
+    "canvas_library": "excalidraw",
+    "max_iterations": 3,
+    "skip_rerender_between_iterations": false,
+    "skip_checks": [],
+    "emit_markdown": false,
+    "initial_report": null,
+    "structure": null,
+    "layout_instantiation": null,
+    "manifest": null,
+    "current_iteration": 0,
+    "current_image_path": null,
+    "analysis_manifest_fingerprint": null,
+    "prepared_iteration": null,
+    "prepared_input_fingerprint": null,
+    "iteration_logs": [],
+    "latest_findings": [],
+    "converged": false,
+    "termination_reason": null,
+    "prev_findings_fingerprint": null,
+    "best_findings_score": 16,
+    "skipped_objective_checks": [],
+    "refined_manifest_path": null,
+    "refined_image_path": null,
+    "candidate_manifest_path": null,
+    "candidate_image_path": null,
+    "refiner_report_path": null,
+    "status": "init",
+    "errors": [],
+    "logs": []
+   }
+  }
+ },
+ {
+  "case": {
+   "id": 465,
+   "op": "refiner_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "best_findings_score": "0b10"
+   }
+  },
+  "python": {
+   "id": 465,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\nbest_findings_score\n  Input should be a valid number, unable to parse string as a number [type=float_parsing, input_value='0b10', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.14/v/float_parsing"
+  },
+  "ts": {
+   "id": 465,
+   "ok": true,
+   "value": {
+    "verifier_report_path": null,
+    "design_constraints": "",
+    "manifest_path": "m",
+    "image_path": "i",
+    "structure_path": null,
+    "layout_path": null,
+    "output_dir": null,
+    "canvas_library": "excalidraw",
+    "max_iterations": 3,
+    "skip_rerender_between_iterations": false,
+    "skip_checks": [],
+    "emit_markdown": false,
+    "initial_report": null,
+    "structure": null,
+    "layout_instantiation": null,
+    "manifest": null,
+    "current_iteration": 0,
+    "current_image_path": null,
+    "analysis_manifest_fingerprint": null,
+    "prepared_iteration": null,
+    "prepared_input_fingerprint": null,
+    "iteration_logs": [],
+    "latest_findings": [],
+    "converged": false,
+    "termination_reason": null,
+    "prev_findings_fingerprint": null,
+    "best_findings_score": 2,
+    "skipped_objective_checks": [],
+    "refined_manifest_path": null,
+    "refined_image_path": null,
+    "candidate_manifest_path": null,
+    "candidate_image_path": null,
+    "refiner_report_path": null,
+    "status": "init",
+    "errors": [],
+    "logs": []
+   }
+  }
+ },
+ {
+  "case": {
+   "id": 468,
+   "op": "refiner_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "current_iteration": "1.0"
+   }
+  },
+  "python": {
+   "id": 468,
+   "ok": true,
+   "value": {
+    "verifier_report_path": null,
+    "design_constraints": "",
+    "manifest_path": "m",
+    "image_path": "i",
+    "structure_path": null,
+    "layout_path": null,
+    "output_dir": null,
+    "canvas_library": "excalidraw",
+    "max_iterations": 3,
+    "skip_rerender_between_iterations": false,
+    "skip_checks": [],
+    "emit_markdown": false,
+    "initial_report": null,
+    "structure": null,
+    "layout_instantiation": null,
+    "manifest": null,
+    "current_iteration": 1,
+    "current_image_path": null,
+    "analysis_manifest_fingerprint": null,
+    "prepared_iteration": null,
+    "prepared_input_fingerprint": null,
+    "iteration_logs": [],
+    "latest_findings": [],
+    "converged": false,
+    "termination_reason": null,
+    "prev_findings_fingerprint": null,
+    "best_findings_score": null,
+    "skipped_objective_checks": [],
+    "refined_manifest_path": null,
+    "refined_image_path": null,
+    "candidate_manifest_path": null,
+    "candidate_image_path": null,
+    "refiner_report_path": null,
+    "status": "init",
+    "errors": [],
+    "logs": []
+   }
+  },
+  "ts": {
+   "id": 468,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\ncurrent_iteration\n  Value error, Input should be a valid integer"
+  }
+ },
+ {
+  "case": {
+   "id": 469,
+   "op": "refiner_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "current_iteration": "-1.0"
+   }
+  },
+  "python": {
+   "id": 469,
+   "ok": true,
+   "value": {
+    "verifier_report_path": null,
+    "design_constraints": "",
+    "manifest_path": "m",
+    "image_path": "i",
+    "structure_path": null,
+    "layout_path": null,
+    "output_dir": null,
+    "canvas_library": "excalidraw",
+    "max_iterations": 3,
+    "skip_rerender_between_iterations": false,
+    "skip_checks": [],
+    "emit_markdown": false,
+    "initial_report": null,
+    "structure": null,
+    "layout_instantiation": null,
+    "manifest": null,
+    "current_iteration": -1,
+    "current_image_path": null,
+    "analysis_manifest_fingerprint": null,
+    "prepared_iteration": null,
+    "prepared_input_fingerprint": null,
+    "iteration_logs": [],
+    "latest_findings": [],
+    "converged": false,
+    "termination_reason": null,
+    "prev_findings_fingerprint": null,
+    "best_findings_score": null,
+    "skipped_objective_checks": [],
+    "refined_manifest_path": null,
+    "refined_image_path": null,
+    "candidate_manifest_path": null,
+    "candidate_image_path": null,
+    "refiner_report_path": null,
+    "status": "init",
+    "errors": [],
+    "logs": []
+   }
+  },
+  "ts": {
+   "id": 469,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierRefinerState\ncurrent_iteration\n  Value error, Input should be a valid integer"
+  }
+ },
+ {
+  "case": {
+   "id": 472,
+   "op": "verifier_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "objective_summary": {
+     "major": "oops"
+    },
+    "status": "reported"
+   }
+  },
+  "python": {
+   "id": 472,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierState\nobjective_summary.major\n  Input should be a valid integer, unable to parse string as an integer [type=int_parsing, input_value='oops', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.14/v/int_parsing"
+  },
+  "ts": {
+   "id": 472,
+   "ok": true,
+   "value": {
+    "state": {
+     "manifest_path": "m",
+     "image_path": "i",
+     "canvas_library": "excalidraw",
+     "structure_path": null,
+     "layout_path": null,
+     "source_text": null,
+     "design_constraints": "",
+     "output_dir": null,
+     "skip_critic": false,
+     "skip_checks": [],
+     "emit_markdown": false,
+     "manifest": null,
+     "structure": null,
+     "layout_instantiation": null,
+     "objective_findings": [],
+     "objective_summary": {
+      "major": "oops"
+     },
+     "critique": null,
+     "report": null,
+     "report_path": null,
+     "status": "reported",
+     "errors": [],
+     "blocking_errors": [],
+     "nonblocking_errors": [],
+     "logs": []
+    },
+    "quality_passed": true,
+    "cli_exit_code": 0
+   }
+  }
+ },
+ {
+  "case": {
+   "id": 473,
+   "op": "verifier_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "objective_summary": {
+     "major": "1.0"
+    },
+    "status": "reported"
+   }
+  },
+  "python": {
+   "id": 473,
+   "ok": true,
+   "value": {
+    "state": {
+     "manifest_path": "m",
+     "image_path": "i",
+     "canvas_library": "excalidraw",
+     "structure_path": null,
+     "layout_path": null,
+     "source_text": null,
+     "design_constraints": "",
+     "output_dir": null,
+     "skip_critic": false,
+     "skip_checks": [],
+     "emit_markdown": false,
+     "manifest": null,
+     "structure": null,
+     "layout_instantiation": null,
+     "objective_findings": [],
+     "objective_summary": {
+      "major": 1
+     },
+     "critique": null,
+     "report": null,
+     "report_path": null,
+     "status": "reported",
+     "errors": [],
+     "blocking_errors": [],
+     "nonblocking_errors": [],
+     "logs": []
+    },
+    "quality_passed": false,
+    "cli_exit_code": 1
+   }
+  },
+  "ts": {
+   "id": 473,
+   "ok": true,
+   "value": {
+    "state": {
+     "manifest_path": "m",
+     "image_path": "i",
+     "canvas_library": "excalidraw",
+     "structure_path": null,
+     "layout_path": null,
+     "source_text": null,
+     "design_constraints": "",
+     "output_dir": null,
+     "skip_critic": false,
+     "skip_checks": [],
+     "emit_markdown": false,
+     "manifest": null,
+     "structure": null,
+     "layout_instantiation": null,
+     "objective_findings": [],
+     "objective_summary": {
+      "major": "1.0"
+     },
+     "critique": null,
+     "report": null,
+     "report_path": null,
+     "status": "reported",
+     "errors": [],
+     "blocking_errors": [],
+     "nonblocking_errors": [],
+     "logs": []
+    },
+    "quality_passed": false,
+    "cli_exit_code": 1
+   }
+  }
+ },
+ {
+  "case": {
+   "id": 474,
+   "op": "verifier_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "objective_summary": {
+     "major": "1"
+    },
+    "status": "reported"
+   }
+  },
+  "python": {
+   "id": 474,
+   "ok": true,
+   "value": {
+    "state": {
+     "manifest_path": "m",
+     "image_path": "i",
+     "canvas_library": "excalidraw",
+     "structure_path": null,
+     "layout_path": null,
+     "source_text": null,
+     "design_constraints": "",
+     "output_dir": null,
+     "skip_critic": false,
+     "skip_checks": [],
+     "emit_markdown": false,
+     "manifest": null,
+     "structure": null,
+     "layout_instantiation": null,
+     "objective_findings": [],
+     "objective_summary": {
+      "major": 1
+     },
+     "critique": null,
+     "report": null,
+     "report_path": null,
+     "status": "reported",
+     "errors": [],
+     "blocking_errors": [],
+     "nonblocking_errors": [],
+     "logs": []
+    },
+    "quality_passed": false,
+    "cli_exit_code": 1
+   }
+  },
+  "ts": {
+   "id": 474,
+   "ok": true,
+   "value": {
+    "state": {
+     "manifest_path": "m",
+     "image_path": "i",
+     "canvas_library": "excalidraw",
+     "structure_path": null,
+     "layout_path": null,
+     "source_text": null,
+     "design_constraints": "",
+     "output_dir": null,
+     "skip_critic": false,
+     "skip_checks": [],
+     "emit_markdown": false,
+     "manifest": null,
+     "structure": null,
+     "layout_instantiation": null,
+     "objective_findings": [],
+     "objective_summary": {
+      "major": "1"
+     },
+     "critique": null,
+     "report": null,
+     "report_path": null,
+     "status": "reported",
+     "errors": [],
+     "blocking_errors": [],
+     "nonblocking_errors": [],
+     "logs": []
+    },
+    "quality_passed": false,
+    "cli_exit_code": 1
+   }
+  }
+ },
+ {
+  "case": {
+   "id": 475,
+   "op": "verifier_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "objective_summary": {
+     "major": 1.5
+    },
+    "status": "reported"
+   }
+  },
+  "python": {
+   "id": 475,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierState\nobjective_summary.major\n  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=1.5, input_type=float]\n    For further information visit https://errors.pydantic.dev/2.14/v/int_from_float"
+  },
+  "ts": {
+   "id": 475,
+   "ok": true,
+   "value": {
+    "state": {
+     "manifest_path": "m",
+     "image_path": "i",
+     "canvas_library": "excalidraw",
+     "structure_path": null,
+     "layout_path": null,
+     "source_text": null,
+     "design_constraints": "",
+     "output_dir": null,
+     "skip_critic": false,
+     "skip_checks": [],
+     "emit_markdown": false,
+     "manifest": null,
+     "structure": null,
+     "layout_instantiation": null,
+     "objective_findings": [],
+     "objective_summary": {
+      "major": 1.5
+     },
+     "critique": null,
+     "report": null,
+     "report_path": null,
+     "status": "reported",
+     "errors": [],
+     "blocking_errors": [],
+     "nonblocking_errors": [],
+     "logs": []
+    },
+    "quality_passed": false,
+    "cli_exit_code": 1
+   }
+  }
+ },
+ {
+  "case": {
+   "id": 476,
+   "op": "verifier_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "objective_summary": {
+     "major": null
+    },
+    "status": "reported"
+   }
+  },
+  "python": {
+   "id": 476,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierState\nobjective_summary.major\n  Input should be a valid integer [type=int_type, input_value=None, input_type=NoneType]\n    For further information visit https://errors.pydantic.dev/2.14/v/int_type"
+  },
+  "ts": {
+   "id": 476,
+   "ok": true,
+   "value": {
+    "state": {
+     "manifest_path": "m",
+     "image_path": "i",
+     "canvas_library": "excalidraw",
+     "structure_path": null,
+     "layout_path": null,
+     "source_text": null,
+     "design_constraints": "",
+     "output_dir": null,
+     "skip_critic": false,
+     "skip_checks": [],
+     "emit_markdown": false,
+     "manifest": null,
+     "structure": null,
+     "layout_instantiation": null,
+     "objective_findings": [],
+     "objective_summary": {
+      "major": null
+     },
+     "critique": null,
+     "report": null,
+     "report_path": null,
+     "status": "reported",
+     "errors": [],
+     "blocking_errors": [],
+     "nonblocking_errors": [],
+     "logs": []
+    },
+    "quality_passed": true,
+    "cli_exit_code": 0
+   }
+  }
+ },
+ {
+  "case": {
+   "id": 477,
+   "op": "verifier_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "objective_summary": {
+     "major": {}
+    },
+    "status": "reported"
+   }
+  },
+  "python": {
+   "id": 477,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierState\nobjective_summary.major\n  Input should be a valid integer [type=int_type, input_value={}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.14/v/int_type"
+  },
+  "ts": {
+   "id": 477,
+   "ok": true,
+   "value": {
+    "state": {
+     "manifest_path": "m",
+     "image_path": "i",
+     "canvas_library": "excalidraw",
+     "structure_path": null,
+     "layout_path": null,
+     "source_text": null,
+     "design_constraints": "",
+     "output_dir": null,
+     "skip_critic": false,
+     "skip_checks": [],
+     "emit_markdown": false,
+     "manifest": null,
+     "structure": null,
+     "layout_instantiation": null,
+     "objective_findings": [],
+     "objective_summary": {
+      "major": {}
+     },
+     "critique": null,
+     "report": null,
+     "report_path": null,
+     "status": "reported",
+     "errors": [],
+     "blocking_errors": [],
+     "nonblocking_errors": [],
+     "logs": []
+    },
+    "quality_passed": true,
+    "cli_exit_code": 0
+   }
+  }
+ },
+ {
+  "case": {
+   "id": 478,
+   "op": "verifier_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "objective_summary": {
+     "major": []
+    },
+    "status": "reported"
+   }
+  },
+  "python": {
+   "id": 478,
+   "ok": false,
+   "error": "ValidationError",
+   "message": "1 validation error for VerifierState\nobjective_summary.major\n  Input should be a valid integer [type=int_type, input_value=[], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.14/v/int_type"
+  },
+  "ts": {
+   "id": 478,
+   "ok": true,
+   "value": {
+    "state": {
+     "manifest_path": "m",
+     "image_path": "i",
+     "canvas_library": "excalidraw",
+     "structure_path": null,
+     "layout_path": null,
+     "source_text": null,
+     "design_constraints": "",
+     "output_dir": null,
+     "skip_critic": false,
+     "skip_checks": [],
+     "emit_markdown": false,
+     "manifest": null,
+     "structure": null,
+     "layout_instantiation": null,
+     "objective_findings": [],
+     "objective_summary": {
+      "major": []
+     },
+     "critique": null,
+     "report": null,
+     "report_path": null,
+     "status": "reported",
+     "errors": [],
+     "blocking_errors": [],
+     "nonblocking_errors": [],
+     "logs": []
+    },
+    "quality_passed": true,
+    "cli_exit_code": 0
+   }
+  }
+ },
+ {
+  "case": {
+   "id": 479,
+   "op": "verifier_state",
+   "data": {
+    "manifest_path": "m",
+    "image_path": "i",
+    "objective_summary": {
+     "major": false
+    },
+    "status": "reported"
+   }
+  },
+  "python": {
+   "id": 479,
+   "ok": true,
+   "value": {
+    "state": {
+     "manifest_path": "m",
+     "image_path": "i",
+     "canvas_library": "excalidraw",
+     "structure_path": null,
+     "layout_path": null,
+     "source_text": null,
+     "design_constraints": "",
+     "output_dir": null,
+     "skip_critic": false,
+     "skip_checks": [],
+     "emit_markdown": false,
+     "manifest": null,
+     "structure": null,
+     "layout_instantiation": null,
+     "objective_findings": [],
+     "objective_summary": {
+      "major": 0
+     },
+     "critique": null,
+     "report": null,
+     "report_path": null,
+     "status": "reported",
+     "errors": [],
+     "blocking_errors": [],
+     "nonblocking_errors": [],
+     "logs": []
+    },
+    "quality_passed": true,
+    "cli_exit_code": 0
+   }
+  },
+  "ts": {
+   "id": 479,
+   "ok": true,
+   "value": {
+    "state": {
+     "manifest_path": "m",
+     "image_path": "i",
+     "canvas_library": "excalidraw",
+     "structure_path": null,
+     "layout_path": null,
+     "source_text": null,
+     "design_constraints": "",
+     "output_dir": null,
+     "skip_critic": false,
+     "skip_checks": [],
+     "emit_markdown": false,
+     "manifest": null,
+     "structure": null,
+     "layout_instantiation": null,
+     "objective_findings": [],
+     "objective_summary": {
+      "major": false
+     },
+     "critique": null,
+     "report": null,
+     "report_path": null,
+     "status": "reported",
+     "errors": [],
+     "blocking_errors": [],
+     "nonblocking_errors": [],
+     "logs": []
+    },
+    "quality_passed": true,
+    "cli_exit_code": 0
+   }
+  }
+ },
+ {
+  "case": {
+   "id": 531,
+   "op": "edits",
+   "manifest": {
+    "elements": [
+     {
+      "id": "n",
+      "type": "rectangle",
+      "x": 0,
+      "y": 0,
+      "width": 100,
+      "height": 80,
+      "opacity": 100,
+      "strokeColor": "#000000",
+      "backgroundColor": "#ffffff",
+      "text": "A B",
+      "originalText": "A B"
+     }
+    ],
+    "_meta": {
+     "id_map": {}
+    }
+   },
+   "edits": [
+    {
+     "op": "set_position",
+     "id": "n",
+     "payload": {
+      "x": "1__0",
+      "y": 2
+     },
+     "source": "llm"
+    }
+   ]
+  },
+  "python": {
+   "id": 531,
+   "ok": true,
+   "value": {
+    "manifest": {
+     "elements": [
+      {
+       "id": "n",
+       "type": "rectangle",
+       "x": 0,
+       "y": 0,
+       "width": 100,
+       "height": 80,
+       "opacity": 100,
+       "strokeColor": "#000000",
+       "backgroundColor": "#ffffff",
+       "text": "A B",
+       "originalText": "A B"
+      }
+     ],
+     "_meta": {
+      "id_map": {}
+     }
+    },
+    "outcomes": [
+     {
+      "edit": {
+       "op": "set_position",
+       "id": "n",
+       "payload": {
+        "x": "1__0",
+        "y": 2
+       },
+       "rationale": "",
+       "source": "llm"
+      },
+      "applied": false,
+      "error": "invalid x/y: x: could not convert string to float: '1__0'",
+      "raw": null
+     }
+    ]
+   }
+  },
+  "ts": {
+   "id": 531,
+   "ok": true,
+   "value": {
+    "manifest": {
+     "elements": [
+      {
+       "id": "n",
+       "type": "rectangle",
+       "x": 10,
+       "y": 2,
+       "width": 100,
+       "height": 80,
+       "opacity": 100,
+       "strokeColor": "#000000",
+       "backgroundColor": "#ffffff",
+       "text": "A B",
+       "originalText": "A B",
+       "version": 2
+      }
+     ],
+     "_meta": {
+      "id_map": {}
+     }
+    },
+    "outcomes": [
+     {
+      "edit": {
+       "op": "set_position",
+       "id": "n",
+       "payload": {
+        "x": "1__0",
+        "y": 2
+       },
+       "rationale": "",
+       "source": "llm"
+      },
+      "applied": true,
+      "error": null,
+      "raw": null
+     }
+    ]
+   }
+  }
+ },
+ {
+  "case": {
+   "id": 532,
+   "op": "edits",
+   "manifest": {
+    "elements": [
+     {
+      "id": "n",
+      "type": "rectangle",
+      "x": 0,
+      "y": 0,
+      "width": 100,
+      "height": 80,
+      "opacity": 100,
+      "strokeColor": "#000000",
+      "backgroundColor": "#ffffff",
+      "text": "A B",
+      "originalText": "A B"
+     }
+    ],
+    "_meta": {
+     "id_map": {
+      "source": "n"
+     }
+    }
+   },
+   "edits": [
+    {
+     "op": "set_position",
+     "id": "n",
+     "payload": {
+      "x": "1__0",
+      "y": 2
+     },
+     "source": "llm"
+    }
+   ]
+  },
+  "python": {
+   "id": 532,
+   "ok": true,
+   "value": {
+    "manifest": {
+     "elements": [
+      {
+       "id": "n",
+       "type": "rectangle",
+       "x": 0,
+       "y": 0,
+       "width": 100,
+       "height": 80,
+       "opacity": 100,
+       "strokeColor": "#000000",
+       "backgroundColor": "#ffffff",
+       "text": "A B",
+       "originalText": "A B"
+      }
+     ],
+     "_meta": {
+      "id_map": {
+       "source": "n"
+      }
+     }
+    },
+    "outcomes": [
+     {
+      "edit": {
+       "op": "set_position",
+       "id": "n",
+       "payload": {
+        "x": "1__0",
+        "y": 2
+       },
+       "rationale": "",
+       "source": "llm"
+      },
+      "applied": false,
+      "error": "invalid x/y: x: could not convert string to float: '1__0'",
+      "raw": null
+     }
+    ]
+   }
+  },
+  "ts": {
+   "id": 532,
+   "ok": true,
+   "value": {
+    "manifest": {
+     "elements": [
+      {
+       "id": "n",
+       "type": "rectangle",
+       "x": 10,
+       "y": 2,
+       "width": 100,
+       "height": 80,
+       "opacity": 100,
+       "strokeColor": "#000000",
+       "backgroundColor": "#ffffff",
+       "text": "A B",
+       "originalText": "A B",
+       "version": 2
+      }
+     ],
+     "_meta": {
+      "id_map": {
+       "source": "n"
+      }
+     }
+    },
+    "outcomes": [
+     {
+      "edit": {
+       "op": "set_position",
+       "id": "n",
+       "payload": {
+        "x": "1__0",
+        "y": 2
+       },
+       "rationale": "",
+       "source": "llm"
+      },
+      "applied": true,
+      "error": null,
+      "raw": null
+     }
+    ]
+   }
+  }
+ }
+]

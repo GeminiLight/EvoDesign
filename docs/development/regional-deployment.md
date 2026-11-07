@@ -25,7 +25,7 @@ The Studio uses its managed ingress identity and the same bounded model handler.
 
 ## Publish and validate
 
-1. Run the frontend quality gate, including `test:browser` and both build modes.
+1. Run `npm ci --prefix frontend`; its prepare step installs and builds the sibling engine package using its lockfile. Run the frontend quality gate, including `test:browser` and both build modes.
 2. Set Studio secrets `DEMO_GLM_API_KEY`, `DEMO_REDIS_URL` and `DEMO_REDIS_TOKEN` to the existing production values. Preserve existing limits. Set `STUDIO_PUBLIC_ORIGIN=https://geminilight-evodesign.ms.show` as a plaintext variable.
 3. Build with `npm --prefix frontend run build:browser`, then run `python scripts/publish_modelscope.py` with `MODELSCOPE_API_KEY` securely supplied through the environment. The publisher uses an isolated clone and fixed file allowlist, retains Studio Git history, never force pushes, explicitly requests deployment, and checks the running revision.
 4. The public repository's **China workspace** workflow can always be run manually on `main`. It publishes successful `main` Quality runs automatically only after the repository variable `MODELSCOPE_PUBLISH=true` is set, using its `MODELSCOPE_API_KEY` secret. Fork pull requests and non-main manual runs cannot deploy. The dev repository does not have a second publisher competing for the same Studio.

@@ -1,0 +1,8 @@
+{
+ "equal": true,
+ "python_length": 57771,
+ "ts_length": 57771,
+ "first_differing_character": -1,
+ "python_context": "{\"type\": \"excalidraw/clipboard\", \"elements\": [{\"id\": \"3c320115e8783cf6ba67\", \"type\": \"rectangle\", \"x\": 64.0, \"y\": 40.0, \"width\": 252.0, \"he",
+ "ts_context": "{\"type\": \"excalidraw/clipboard\", \"elements\": [{\"id\": \"3c320115e8783cf6ba67\", \"type\": \"rectangle\", \"x\": 64.0, \"y\": 40.0, \"width\": 252.0, \"he"
+}
