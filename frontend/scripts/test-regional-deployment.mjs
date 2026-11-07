@@ -138,3 +138,28 @@ test('Studio starts through a symlink from an unrelated working directory', asyn
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test('the live routing contract preserves visitor identity from token issuance through inference', async () => {
+  const { createModelHandler } = await import('../../api/model.mjs');
+  const { createLocalBudget } = await import('../server/localDemo.mjs');
+  const secret = 'test-edge-secret';
+  const model = createModelHandler({ DEMO_GLM_API_KEY: 'test-model-key', DEMO_EDGE_IP_SECRET: secret }, async () =>
+    Response.json({ choices: [{ message: { content: 'OK' } }] }), { budget: createLocalBudget() });
+  const router = createRouter(model);
+  const post = (body, ip = '203.0.113.8') => router(new Request('https://evodesign.aurax.live/api/model', {
+    method: 'POST',
+    headers: {
+      Origin: 'https://evodesign.aurax.live',
+      'Content-Type': 'application/json',
+      'CF-Connecting-IP': ip,
+      'X-Real-IP': '192.0.2.1',
+    },
+    body: JSON.stringify(body),
+  }), { ...env, DEMO_EDGE_IP_SECRET: secret });
+  const issued = await post({ task: 'start_run' });
+  assert.equal(issued.status, 200);
+  const { token: runToken } = await issued.json();
+  const chat = { runToken, messages: [{ role: 'user', content: 'Draw a diagram' }] };
+  assert.equal((await post(chat, '203.0.113.9')).status, 401);
+  assert.equal((await post(chat)).status, 200);
+});

@@ -93,7 +93,7 @@ export function createModelHandler(env = process.env, fetcher = fetch, options =
     const ip = await visitorIp(request, env.DEMO_EDGE_IP_SECRET);
     const day = Math.floor(Date.now() / 86_400_000);
     const visitor = createHmac('sha256', env.DEMO_GLM_API_KEY).update(`${day}:${ip}`).digest('hex').slice(0, 24);
-    if (new URL(request.url).pathname.endsWith('/model/run') || input?.runToken || Array.isArray(input?.messages)) {
+    if (input?.task === 'start_run' || input?.runToken || Array.isArray(input?.messages)) {
       return handleRunRequest({ request, input, visitor, env, fetcher, options, budget, key: BUDGET_KEY, model: MODEL, endpoint: ENDPOINT, reply, error, positive });
     }
     if (new TextEncoder().encode(JSON.stringify(input)).length > 100000) return error('input', 'This diagram request is too large.', 400);

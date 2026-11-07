@@ -70,11 +70,11 @@ const jsonError = (response, status, message) => {
   response.end(JSON.stringify({ error: { message } }));
 };
 
-/** Mount the two bounded model endpoints on loopback only. */
+/** Mount the bounded model endpoint on loopback only. */
 export function createLocalModelMiddleware(handle) {
   return async (request, response, next) => {
     const pathname = request.url?.split('?')[0];
-    if (!['/api/model', '/api/model/run'].includes(pathname)) { next(); return; }
+    if (pathname !== '/api/model') { next(); return; }
     let origin;
     try {
       origin = new URL(`http://${request.headers.host}`);

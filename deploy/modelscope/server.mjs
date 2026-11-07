@@ -32,7 +32,7 @@ export function createStudioServer({ env = process.env, root = staticRoot, handl
         if (req.method !== 'GET' && req.method !== 'HEAD') { send(405, { error: 'Use GET.' }); return; }
         send(200, { ok: true, region: 'cn', revision: env.APP_REVISION || 'local' }); return;
       }
-      if (['/api/model', '/api/model/run'].includes(url.pathname)) {
+      if (url.pathname === '/api/model') {
         const headers = new Headers();
         for (const name of ['content-type', 'origin', 'referer']) {
           if (typeof req.headers[name] === 'string') headers.set(name, req.headers[name]);

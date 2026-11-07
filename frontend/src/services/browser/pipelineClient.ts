@@ -10,8 +10,9 @@ export async function runPipelineWorker(request: Record<string, unknown>, config
   const baseUrl = hosted ? 'https://shared.invalid/v1' : completionUrl(config.baseUrl).replace(/\/chat\/completions$/, '');
   let runToken: string | undefined;
   if (hosted) {
-    const response = await fetch('/api/model/run', { method: 'POST', credentials: 'omit',
-      headers: { 'Content-Type': 'application/json' }, body: '{}', signal });
+    // Use the same route as inference so the regional proxy signs both requests.
+    const response = await fetch('/api/model', { method: 'POST', credentials: 'omit',
+      headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ task: 'start_run' }), signal });
     if (!response.ok) throw new Error('The shared generation allowance is unavailable. Retry later or connect your own model.');
     const body = await response.json();
     if (typeof body.token !== 'string') throw new Error('The shared model returned an invalid generation token.');

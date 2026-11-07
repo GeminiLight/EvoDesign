@@ -116,8 +116,7 @@ export function sanitizeRunChat(input, model) {
 }
 
 export async function handleRunRequest({ request, input, visitor, env, fetcher, options, budget, key, model, endpoint, reply, error, positive }) {
-  const issuing = new URL(request.url).pathname.endsWith('/model/run');
-  if (issuing) {
+  if (input?.task === 'start_run') {
     const id = randomUUID();
     const limit = positive(env.DEMO_VISITOR_REQUESTS, 40);
     let reserved;

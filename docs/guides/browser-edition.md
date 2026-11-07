@@ -30,7 +30,7 @@ Browser generation now runs the migrated structure, styling, layout, rendering, 
 
 ## Shared demo and privacy
 
-The default demo sends diagram content through `/api/model` on the current deployment (Vercel or ModelScope) to BigModel's general API using `glm-5.3-flash`. The browser runs the pipeline prompts. A signed token from `/api/model/run` binds its bounded Chat Completions calls to one generation; the server fixes the provider/model and keeps the shared credential on the server. Local edits retain their fixed server prompt. The endpoint is not a general API or CORS proxy. The application does not archive model request bodies or completions on the server. Projects, editable scenes and personal design preferences stay in your browser.
+The default demo sends diagram content through `/api/model` on the current deployment (Vercel or ModelScope) to BigModel's general API using `glm-5.3-flash`. The browser runs the pipeline prompts. The `start_run` task on the same endpoint issues a signed token that binds its bounded Chat Completions calls to one generation; the server fixes the provider/model and keeps the shared credential on the server. Local edits retain their fixed server prompt. The endpoint is not a general API or CORS proxy. The application does not archive model request bodies or completions on the server. Projects, editable scenes and personal design preferences stay in your browser.
 
 The shared service reserves a conservative token allowance before each call, with independent daily, concurrent and visitor limits. Each IP can reserve up to one fifth of the daily shared token budget across generation and editing. Its Redis namespace stores counters, short-lived run/request leases and daily hashes of visitor IPs; it stores no prompts, raw IPs or diagrams. A generation token expires after 15 minutes and allows up to 40 model calls and 400,000 reserved tokens. Stage retries, routing and refinement affect the actual call count; an edit uses one call. Connection checks use the status endpoint and do not reserve an inference allowance. If the demo is busy or reaches its allowance, retry later or switch to your own model. The shared demo is configured as text-only and skips visual review. There is no automatic switch from your own provider to the shared service.
 
@@ -75,7 +75,7 @@ API (`https://open.bigmodel.cn/api/paas/v4`, default) or your authorized Coding
 API (`https://open.bigmodel.cn/api/coding/paas/v4`). Other destinations are rejected.
 These values stay on the server and are never exposed through `VITE_*` or
 bundled in the page. Only loopback connections can use this local endpoint.
-The same signed generation-token and bounded model-request routes are reused; edits retain the fixed edit prompt.
+The same signed generation-token and bounded model-request tasks are reused; edits retain the fixed edit prompt.
 Local token, concurrency and visitor counters need no Redis and reset when the
 dev server restarts; the deployed service keeps its distributed Redis budget.
 Existing custom-model settings remain available; select the default demo in

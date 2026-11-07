@@ -89,7 +89,7 @@ async function runMock() {
     calls.push(JSON.parse(options.body));
     return Response.json({ choices: [{ message: { content: 'OK' }, finish_reason: 'stop' }] });
   }, { budget: createLocalBudget() });
-  const response = await handle(runRequest({}, '/api/model/run'));
+  const response = await handle(runRequest({ task: 'start_run' }));
   assert.equal(response.status, 200);
   return { handle, calls, token: (await response.json()).token };
 }
@@ -149,7 +149,7 @@ test('failed model calls cannot spend other visitors’ share across runs or edi
     return new Response(null, { status: 400 });
   }, { budget: createLocalBudget() });
   const issue = async (headers) => {
-    const response = await handle(runRequest({}, '/api/model/run', headers));
+    const response = await handle(runRequest({ task: 'start_run' }, '/api/model', headers));
     assert.equal(response.status, 200);
     return (await response.json()).token;
   };

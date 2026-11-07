@@ -31,9 +31,12 @@ try {
     page.on('pageerror', e => errors.push(e.message));
     let calls = 0;
     let firstDiff: string | undefined;
-    if (hosted) await page.route('**/api/model/run', route => route.fulfill({ json: { token: 'offline-run-token' } }));
     await page.route(hosted ? '**/api/model' : 'https://llm.example.test/**', async route => {
       const input = route.request().postDataJSON();
+      if (hosted && input.task === 'start_run') {
+        await route.fulfill({ json: { token: 'offline-run-token' } });
+        return;
+      }
       const expected = run.cassette[calls++];
       try {
         assert.ok(expected, `unexpected model call ${calls}`);
