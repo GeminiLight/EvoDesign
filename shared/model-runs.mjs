@@ -3,7 +3,11 @@ import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
 export const RUN_TTL = 900;
 const CALL_LIMIT = 40;
 const TOKEN_LIMIT = 400_000;
-export const visitorTokenLimit = dailyTokens => Math.floor(dailyTokens / 5);
+export function visitorTokenLimit(dailyTokens, configuredLimit) {
+  const fairShare = Math.floor(dailyTokens / 5);
+  const limit = Number(configuredLimit);
+  return Number.isSafeInteger(limit) && limit > 0 ? Math.min(limit, fairShare) : fairShare;
+}
 export const VISITOR_QUOTA_MESSAGE = 'This visitor’s shared model allowance has been reached for today. Connect your own model to continue.';
 export const ISSUE_RUN_SCRIPT = `
 local now=tonumber(redis.call('TIME')[1])
@@ -124,7 +128,8 @@ export async function handleRunRequest({ request, input, visitor, env, fetcher, 
       reserved = options.budget ? await options.budget.issueRun({ id, visitor, visitorRequests: limit, ttl: RUN_TTL })
         : await budget(['EVAL', ISSUE_RUN_SCRIPT, 1, key, id, visitor, limit, RUN_TTL], env, fetcher);
     } catch { return error('budget', 'The shared generation allowance is unavailable.', 503); }
-    if (reserved !== 1) return error('quota', 'Today’s demo allowance has been reached. Connect your own model to continue.', reserved === -2 ? 429 : 503);
+    if (reserved === -2) return error('visitor_quota', VISITOR_QUOTA_MESSAGE, 429);
+    if (reserved !== 1) return error('budget', 'The shared generation allowance is unavailable.', 503);
     const exp = Math.floor(Date.now() / 1000) + RUN_TTL;
     return reply({ token: tokenFor({ id, visitor, exp }, env.DEMO_GLM_API_KEY), expiresAt: exp, callLimit: CALL_LIMIT, tokenLimit: TOKEN_LIMIT });
   }
@@ -149,15 +154,18 @@ export async function handleRunRequest({ request, input, visitor, env, fetcher, 
   let reservation;
   try {
     const dailyTokens = positive(env.DEMO_DAILY_TOKENS, 2_000_000);
-    const limits = { reserved, id, visitor, runId: claims.id, dailyTokens, visitorTokens: visitorTokenLimit(dailyTokens),
+    const limits = { reserved, id, visitor, runId: claims.id, dailyTokens, visitorTokens: visitorTokenLimit(dailyTokens, env.DEMO_VISITOR_DAILY_TOKENS),
       concurrency: positive(env.DEMO_CONCURRENCY, 4), callLimit: CALL_LIMIT, tokenLimit: TOKEN_LIMIT };
     reservation = options.budget ? await options.budget.reserveRun(limits)
       : await budget(['EVAL', RESERVE_RUN_SCRIPT, 1, key, reserved, limits.dailyTokens, limits.concurrency,
         id, visitor, 0, claims.id, CALL_LIMIT, TOKEN_LIMIT, limits.visitorTokens], env, fetcher);
   } catch { return error('budget', 'The shared model is temporarily unavailable.', 503); }
   if (reservation === -1) return error('busy', 'The shared model is busy. Retry shortly.', 429, { 'Retry-After': '10' });
-  if (reservation === -4) return error('quota', VISITOR_QUOTA_MESSAGE, 429);
-  if (reservation !== 1) return error('quota', 'The generation allowance has been reached. Start a new diagram or use your own model.', reservation === null ? 503 : 429);
+  if (reservation === -4) return error('visitor_quota', VISITOR_QUOTA_MESSAGE, 429);
+  if (reservation === 0) return error('daily_quota', 'The shared demo has reached its daily allowance. Connect your own model to continue.', 429);
+  if (reservation === -2) return error('run_quota', 'This diagram has reached its shared model allowance. Simplify the prompt or use your own model.', 429);
+  if (reservation === -3) return error('run_token', 'Start a new diagram generation to use the shared model.', 401);
+  if (reservation !== 1) return error('budget', 'The shared model is temporarily unavailable.', 503);
   try {
     const response = await fetcher(options.endpoint || endpoint, {
       method: 'POST', headers: { Authorization: `Bearer ${env.DEMO_GLM_API_KEY}`, 'Content-Type': 'application/json' },

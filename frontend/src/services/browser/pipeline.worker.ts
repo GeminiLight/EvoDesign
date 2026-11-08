@@ -1,5 +1,6 @@
 /// <reference lib="webworker" />
 import { runBrowserDiagram, type PngRenderRequest, type PngRenderResult } from '@evodesign/render-engine';
+import { readSharedModelQuota } from './sharedModelQuota';
 import type { BrowserModelConfig } from './modelConfig';
 
 const scope = self as unknown as DedicatedWorkerGlobalScope;
@@ -17,6 +18,7 @@ scope.onmessage = async ({ data }) => {
   running = true;
   const config = data.config as BrowserModelConfig;
   const hosted = config.source === 'hosted';
+  let quotaReported = false;
   try {
     const result = await runBrowserDiagram(data.request, config, {
       settings: { auto_refine_enabled: config.refine },
@@ -35,6 +37,11 @@ scope.onmessage = async ({ data }) => {
         body.stream = false;
         const response = await fetch('/api/model', { method: 'POST', credentials: 'omit', redirect: 'error', referrerPolicy: 'same-origin',
           headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...body, runToken: data.runToken }), signal: init?.signal });
+        const code = await readSharedModelQuota(response);
+        if (code && !quotaReported) {
+          quotaReported = true;
+          scope.postMessage({ type: 'shared-model-quota', code });
+        }
         return response;
       } } : {}),
     });

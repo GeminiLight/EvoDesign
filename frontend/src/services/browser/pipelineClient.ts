@@ -1,6 +1,12 @@
 import type { BrowserModelConfig } from './modelConfig';
 import { completionUrl } from './modelConfig';
+import { isSharedModelQuota, readSharedModelQuota } from './sharedModelQuota';
+import { ApiError } from '../httpClient';
 import type { PngRenderRequest } from '@evodesign/render-engine';
+
+function quotaError(code: string): ApiError {
+  return new ApiError('The shared model allowance has been reached.', 429, undefined, code);
+}
 
 /** A fresh worker per generation isolates engine globals and releases memory. */
 export async function runPipelineWorker(request: Record<string, unknown>, config: BrowserModelConfig,
@@ -13,7 +19,11 @@ export async function runPipelineWorker(request: Record<string, unknown>, config
     // Use the same route as inference so the regional proxy signs both requests.
     const response = await fetch('/api/model', { method: 'POST', credentials: 'omit',
       headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ task: 'start_run' }), signal });
-    if (!response.ok) throw new Error('The shared generation allowance is unavailable. Retry later or connect your own model.');
+    if (!response.ok) {
+      const code = await readSharedModelQuota(response);
+      if (code) throw quotaError(code);
+      throw new Error('The shared generation allowance is unavailable. Retry later or connect your own model.');
+    }
     const body = await response.json();
     if (typeof body.token !== 'string') throw new Error('The shared model returned an invalid generation token.');
     runToken = body.token;
@@ -40,6 +50,8 @@ export async function runPipelineWorker(request: Record<string, unknown>, config
           const { pipelineRenderer } = await import('./pipelineRenderer');
           const output = await pipelineRenderer.render({ ...data.request as PngRenderRequest, signal });
           if (!settled) worker.postMessage({ type: 'rendered', id: data.id, output }, [output.png.buffer as ArrayBuffer]);
+        } else if (data.type === 'shared-model-quota' && isSharedModelQuota(data.code)) {
+          finish(quotaError(data.code));
         } else if (data.type === 'result') {
           if (!data.result) finish(new Error('The diagram pipeline ended without a result.'));
           else finish(undefined, data.result);
