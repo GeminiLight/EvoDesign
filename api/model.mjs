@@ -109,15 +109,15 @@ export function createModelHandler(env = process.env, fetcher = fetch, options =
     let reservation;
     try {
       const dailyTokens = positive(env.DEMO_DAILY_TOKENS, 2_000_000);
-      const limits = { reserved, id, visitor, dailyTokens, visitorTokens: visitorTokenLimit(dailyTokens),
+      const limits = { reserved, id, visitor, dailyTokens, visitorTokens: visitorTokenLimit(dailyTokens, env.DEMO_VISITOR_DAILY_TOKENS),
         concurrency: positive(env.DEMO_CONCURRENCY, 4), visitorRequests: positive(env.DEMO_VISITOR_REQUESTS, 40) };
       reservation = options.budget ? await options.budget.reserve(limits)
         : await budget(['EVAL', RESERVE_SCRIPT, 1, BUDGET_KEY, reserved,
           limits.dailyTokens, limits.concurrency, id, visitor, limits.visitorRequests, limits.visitorTokens], env, fetcher);
     } catch { return error('budget', 'The shared model is temporarily unavailable. Retry later or use your own model.', 503); }
     if (reservation === -1) return error('busy', 'The shared model is busy. Retry shortly or use your own model.', 429, { 'Retry-After': '10' });
-    if (reservation === -4) return error('quota', VISITOR_QUOTA_MESSAGE, 429);
-    if (reservation === 0 || reservation === -2) return error('quota', 'Today’s demo allowance has been reached. Connect your own model to continue.', 429);
+    if (reservation === -4 || reservation === -2) return error('visitor_quota', VISITOR_QUOTA_MESSAGE, 429);
+    if (reservation === 0) return error('daily_quota', 'The shared demo has reached its daily allowance. Connect your own model to continue.', 429);
     if (reservation !== 1) return error('budget', 'The shared model is temporarily unavailable.', 503);
     try {
       const response = await fetcher(options.endpoint || ENDPOINT, {

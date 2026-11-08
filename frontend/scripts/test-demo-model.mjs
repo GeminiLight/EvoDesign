@@ -175,3 +175,42 @@ test('data-image prefixes in plain text do not bypass token accounting', async (
   assert.equal(response.status, 429);
   assert.equal(calls.length, 0);
 });
+
+test('large token overrides keep independent site, visitor and run limits', async () => {
+  const calls = [];
+  let reservation = 1;
+  const handle = createModelHandler({
+    ...env, DEMO_DAILY_TOKENS: '10000000000', DEMO_VISITOR_DAILY_TOKENS: '100000000',
+  }, async (url, options) => {
+    const body = JSON.parse(options.body);
+    if (url === env.DEMO_REDIS_URL) {
+      calls.push(body);
+      return Response.json({ result: body[0] === 'EVAL' ? reservation : 1 });
+    }
+    return Response.json({ choices: [{ message: { content: 'OK' } }] });
+  });
+  const issued = await handle(runRequest({ task: 'start_run' }));
+  const { token } = await issued.json();
+  assert.equal(issued.status, 200);
+  assert.equal((await handle(runRequest({ ...chat, runToken: token }))).status, 200);
+  const runReservation = calls[1];
+  assert.equal(runReservation[5], 10_000_000_000);
+  assert.equal(runReservation[12], 400_000);
+  assert.equal(runReservation[13], 100_000_000);
+  assert.equal((await handle(runRequest(input))).status, 200);
+  assert.equal(calls.at(-2)[10], 100_000_000);
+
+  for (const [result, status, code] of [
+    [-4, 429, 'visitor_quota'], [0, 429, 'daily_quota'], [-2, 429, 'run_quota'],
+    [-3, 401, 'run_token'], [-1, 429, 'busy'], [null, 503, 'budget'],
+  ]) {
+    reservation = result;
+    const response = await handle(runRequest({ ...chat, runToken: token }));
+    assert.equal(response.status, status);
+    assert.equal((await response.json()).error.code, code);
+  }
+  reservation = -2;
+  const blockedStart = await handle(runRequest({ task: 'start_run' }));
+  assert.equal(blockedStart.status, 429);
+  assert.equal((await blockedStart.json()).error.code, 'visitor_quota');
+});

@@ -48,6 +48,14 @@ function getGenerationErrorMessage(error: unknown, t: (key: string) => string): 
         return t('workspace.generationGuestUnavailable');
       case 'generation_auth_expired':
         return t('workspace.generationAuthExpired');
+      case 'visitor_quota':
+        return t('workspace.generationSharedVisitorQuota');
+      case 'daily_quota':
+        return t('workspace.generationSharedDailyQuota');
+      case 'run_quota':
+        return t('workspace.generationSharedRunQuota');
+      case 'quota':
+        return t('workspace.generationSharedQuota');
       case 'generation_rate_limited':
         return t('workspace.generationRateLimited');
       case 'generation_invalid_request':
