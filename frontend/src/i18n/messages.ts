@@ -35,6 +35,11 @@ export const messages = {
     common: {
       loading: 'Loading...',
       preparingWorkspace: 'Preparing your workspace...',
+      routeAssetsUnavailable: 'The page did not finish loading',
+      routeAssetsRecovery: 'The app may have updated while this tab was open, or the connection may have dropped. Reload this page to try again.',
+      routeLoadFailed: 'This page could not open',
+      routeLoadRecovery: 'Reload this page to try again, or return home.',
+      reloadPage: 'Reload page',
       close: 'Close',
       guestMode: 'Guest mode',
       logInToSync: 'Log in to Sync',
@@ -1241,6 +1246,11 @@ export const messages = {
     common: {
       loading: '加载中...',
       preparingWorkspace: '正在准备你的工作区...',
+      routeAssetsUnavailable: '页面未能完整加载',
+      routeAssetsRecovery: '应用可能在这个标签页打开期间更新了，也可能是网络暂时中断。请重新加载当前页面。',
+      routeLoadFailed: '暂时无法打开此页面',
+      routeLoadRecovery: '请重新加载当前页面，或返回首页。',
+      reloadPage: '重新加载页面',
       close: '关闭',
       guestMode: '访客模式',
       logInToSync: '登录以同步',
